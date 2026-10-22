@@ -121,6 +121,8 @@
     "comingSoon": "Em breve"
   },
   "charts": {
+    "retry": "Tentar novamente",
+    "loadError": "Não foi possível carregar o gráfico",
     "successRate": {
       "successRate": "Taxa de sucesso: {{rate}}",
       "successRateDescription": "Calculada a partir dos testes aprovados, reprovados e com erros. Os testes ignorados e com estado desconhecido são excluídos.",

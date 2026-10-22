@@ -119,6 +119,8 @@
     "comingSoon": "Wkrótce"
   },
   "charts": {
+    "retry": "Spróbuj ponownie",
+    "loadError": "Nie udało się załadować wykresu",
     "successRate": {
       "successRate": "Współczynnik powodzenia: {{rate}}",
       "successRateDescription": "Obliczany na podstawie testów zaliczonych, niezaliczonych i uszkodzonych. Testy pominięte i o nieznanym statusie są wykluczone.",

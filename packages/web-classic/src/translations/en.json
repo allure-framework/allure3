@@ -129,6 +129,8 @@
     "comingSoon": "Coming soon"
   },
   "charts": {
+    "retry": "Retry",
+    "loadError": "Failed to load chart",
     "currentStatus": {
       "title": "Current Status",
       "status": {

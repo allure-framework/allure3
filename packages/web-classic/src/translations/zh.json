@@ -121,6 +121,8 @@
     "comingSoon": "即将推出"
   },
   "charts": {
+    "retry": "重试",
+    "loadError": "无法加载图表",
     "successRate": {
       "successRate": "成功率：{{rate}}",
       "successRateDescription": "根据通过、失败和损坏的测试计算。跳过和状态未知的测试不计入。",

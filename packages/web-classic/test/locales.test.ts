@@ -16,7 +16,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const localesDir = join(__dirname, "../src/translations");
 
 describe("classic locales", () => {
-  it("defines the label of the back to overview link for every locale", () => {
+  it("defines overview navigation and chart recovery labels for every locale", () => {
     const localeFiles = readdirSync(localesDir).filter((file) => file.endsWith(".json"));
 
     expect(localeFiles.length).toBeGreaterThan(0);
@@ -26,6 +26,8 @@ describe("classic locales", () => {
         const locale = JSON.parse(readFileSync(join(localesDir, file), "utf8"));
 
         expect(locale.controls.backToOverview, file).toEqual(expect.any(String));
+        expect(locale.charts.retry, file).toEqual(expect.stringMatching(/\S/));
+        expect(locale.charts.loadError, file).toEqual(expect.stringMatching(/\S/));
       });
     });
   });

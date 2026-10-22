@@ -121,6 +121,8 @@
     "comingSoon": "בקרוב"
   },
   "charts": {
+    "retry": "ניסיון חוזר",
+    "loadError": "טעינת התרשים נכשלה",
     "successRate": {
       "successRate": "שיעור הצלחה: {{rate}}",
       "successRateDescription": "מחושב לפי בדיקות שעברו, נכשלו או נשברו. בדיקות שדולגו ובדיקות במצב לא ידוע אינן נכללות.",

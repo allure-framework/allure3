@@ -32,7 +32,6 @@
     "lint:fix": "vp lint --import-plugin --fix src test features stories"
   },
   "devDependencies": {
-    "@allurereport/charts-api": "workspace:*",
     "@allurereport/core-api": "workspace:*",
     "@allurereport/plugin-api": "workspace:*",
     "@allurereport/test-config": "workspace:*",

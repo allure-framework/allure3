@@ -897,7 +897,6 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@allurereport/web-classic@workspace:packages/web-classic"
   dependencies:
-    "@allurereport/charts-api": "workspace:*"
     "@allurereport/core-api": "workspace:*"
     "@allurereport/plugin-api": "workspace:*"
     "@allurereport/test-config": "workspace:*"
@@ -1024,8 +1023,8 @@ __metadata:
     "@rollup/plugin-node-resolve": "npm:^16.0.0"
     "@rollup/plugin-terser": "npm:^1.0.0"
     "@rollup/plugin-typescript": "npm:^12.3.0"
-    "@storybook/addon-docs": "npm:^10.6.1"
-    "@storybook/preact-vite": "npm:^10.6.1"
+    "@storybook/addon-docs": "npm:^10.6.2"
+    "@storybook/preact-vite": "npm:^10.6.2"
     "@svgr/plugin-jsx": "npm:^8.1.0"
     "@svgr/plugin-svgo": "npm:^8.1.0"
     "@svgr/rollup": "npm:^8.1.0"
@@ -1086,7 +1085,7 @@ __metadata:
     rollup-plugin-postcss: "npm:^4.0.2"
     sass: "npm:^1.83.1"
     sortablejs: "npm:^1.15.7"
-    storybook: "npm:^10.6.1"
+    storybook: "npm:^10.6.2"
     ts-node: "npm:^10.9.2"
     tslib: "npm:^2.7.0"
     typescript: "npm:^5"
@@ -6425,36 +6424,36 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@storybook/addon-docs@npm:^10.6.1":
-  version: 10.6.1
-  resolution: "@storybook/addon-docs@npm:10.6.1"
+"@storybook/addon-docs@npm:^10.6.2":
+  version: 10.6.3
+  resolution: "@storybook/addon-docs@npm:10.6.3"
   dependencies:
     "@mdx-js/react": "npm:^3.0.0"
     "@storybook/icons": "npm:^2.0.2"
-    "@storybook/react-dom-shim": "npm:10.6.1"
+    "@storybook/react-dom-shim": "npm:10.6.3"
     react: "npm:^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0"
     react-dom: "npm:^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0"
     ts-dedent: "npm:^2.0.0"
     unplugin: "npm:^2.3.5"
   peerDependencies:
     "@types/react": ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
-    storybook: ^10.6.1
+    storybook: ^10.6.3
   peerDependenciesMeta:
     "@types/react":
       optional: true
-  checksum: 10/8017a6d95dcc01491b6005c3213112032f72ecd75e8ea998dfe661e724326cc97a2fe3d79733604fe79890bbb1dc929c98cbdb9b2b55d098cd287149d19431a1
+  checksum: 10/20f77e50279720a455634116f19d946e8d1fc267b336f13617dd71d660c37147b538e63f0da11035cdb1c2550a0b57deefc2197d33874d3749042a940c49970e
   languageName: node
   linkType: hard
 
-"@storybook/builder-vite@npm:10.6.1":
-  version: 10.6.1
-  resolution: "@storybook/builder-vite@npm:10.6.1"
+"@storybook/builder-vite@npm:10.6.3":
+  version: 10.6.3
+  resolution: "@storybook/builder-vite@npm:10.6.3"
   dependencies:
     ts-dedent: "npm:^2.0.0"
   peerDependencies:
-    storybook: ^10.6.1
+    storybook: ^10.6.3
     vite: ^5.0.0 || ^6.0.0 || ^7.0.0 || ^8.0.0
-  checksum: 10/ac77471110fdaae829c7a5d5615e8dbbb09a2a7c964a813f3376df018a012c68dd19ef22d55af38e1678fed8a496c68166f9f7a315ebac753b841758a75d4483
+  checksum: 10/49657d1568a252a8e254aac6efb7a931cef7ac2ae8273f1d81f1517952e3fd902139a35278c1718653f5828f4b635a90e94e02fe37ac9a219a1ef9ca49784904
   languageName: node
   linkType: hard
 
@@ -6474,48 +6473,48 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@storybook/preact-vite@npm:^10.6.1":
-  version: 10.6.1
-  resolution: "@storybook/preact-vite@npm:10.6.1"
+"@storybook/preact-vite@npm:^10.6.2":
+  version: 10.6.3
+  resolution: "@storybook/preact-vite@npm:10.6.3"
   dependencies:
-    "@storybook/builder-vite": "npm:10.6.1"
-    "@storybook/preact": "npm:10.6.1"
+    "@storybook/builder-vite": "npm:10.6.3"
+    "@storybook/preact": "npm:10.6.3"
   peerDependencies:
     preact: ">=10"
-    storybook: ^10.6.1
+    storybook: ^10.6.3
     vite: ^5.0.0 || ^6.0.0 || ^7.0.0 || ^8.0.0
-  checksum: 10/4b64e1b2a6ecaea3c3bf80bb9e8e8a57d5a86224576328483cf17b46bacf38eb4bd3735126438c4cb04f7665acf8528b9fd45fc7cfe2e568be412ac846d99480
+  checksum: 10/f513735cdfb4243f2e606b1947b4d058b18dbc7446ab79e775e919a28bb541c1b2212093c25d92d85b5eae518f9f0b7aa9384a61ef5810d0bd63385f0be010cf
   languageName: node
   linkType: hard
 
-"@storybook/preact@npm:10.6.1":
-  version: 10.6.1
-  resolution: "@storybook/preact@npm:10.6.1"
+"@storybook/preact@npm:10.6.3":
+  version: 10.6.3
+  resolution: "@storybook/preact@npm:10.6.3"
   dependencies:
     "@storybook/global": "npm:^5.0.0"
     ts-dedent: "npm:^2.0.0"
   peerDependencies:
     preact: ^8.0.0||^10.0.0
-    storybook: ^10.6.1
-  checksum: 10/bc9d57966aecb2e2377651943f645c3d3a33093f83cad2fe517351517b8db4787834bf9c8315a8a0548ff00dcefae44d7ad8ec02efeade4bb8f25fac7a9582cd
+    storybook: ^10.6.3
+  checksum: 10/72e336b74a936518e711324ea1bedf9bcafd24c39c109fc845ec0459fc240df8bcc8712c8ebf69591bd6f3f086b0910a59609119c59069a3961b5c8f46f0330e
   languageName: node
   linkType: hard
 
-"@storybook/react-dom-shim@npm:10.6.1":
-  version: 10.6.1
-  resolution: "@storybook/react-dom-shim@npm:10.6.1"
+"@storybook/react-dom-shim@npm:10.6.3":
+  version: 10.6.3
+  resolution: "@storybook/react-dom-shim@npm:10.6.3"
   peerDependencies:
     "@types/react": ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
     "@types/react-dom": ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
     react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
     react-dom: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
-    storybook: ^10.6.1
+    storybook: ^10.6.3
   peerDependenciesMeta:
     "@types/react":
       optional: true
     "@types/react-dom":
       optional: true
-  checksum: 10/e8cea7f0c2c9c0320a7123997248496532e998bf62453c8fd532d5138e17a83cb1782bbf3808213c42a23218568ead3cae2fa662c9d44709db9f04f2046a1d6b
+  checksum: 10/539ca148b05fc832892980d2650683c6dad38d35c92fba5c106a8c5db8deb13c0d72d6d1f40f03b5012c4dd49316a4ef34b2b9971df7ebed1b9187c8ca85ba74
   languageName: node
   linkType: hard
 
@@ -17757,9 +17756,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"storybook@npm:^10.6.1":
-  version: 10.6.1
-  resolution: "storybook@npm:10.6.1"
+"storybook@npm:^10.6.2":
+  version: 10.6.3
+  resolution: "storybook@npm:10.6.3"
   dependencies:
     "@storybook/global": "npm:^5.0.0"
     "@storybook/icons": "npm:^2.0.2"
@@ -17791,7 +17790,7 @@ __metadata:
       optional: true
   bin:
     storybook: ./dist/bin/dispatcher.js
-  checksum: 10/166d5da2e8004bdde166bc49d3572f6a8e1495eb86b628ffc078049f5494f9b6a9d45fef93500758e8102c132add81ab1875f7afc608491b037734394e219f29
+  checksum: 10/c4d94cc759d4674e7f72a8c1265bc74ccc4ec773e48775840c61ee9bcd9e9306235a78ad9fd17502b6366de4dd0ff928872ae92815e8470c89cad0f7974d754a
   languageName: node
   linkType: hard
 

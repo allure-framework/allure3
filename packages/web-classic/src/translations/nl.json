@@ -121,6 +121,8 @@
     "comingSoon": "Binnenkort"
   },
   "charts": {
+    "retry": "Opnieuw proberen",
+    "loadError": "Kan de grafiek niet laden",
     "successRate": {
       "successRate": "Slagingspercentage: {{rate}}",
       "successRateDescription": "Berekend op basis van geslaagde, mislukte en defecte tests. Overgeslagen tests en tests met onbekende status zijn uitgesloten.",

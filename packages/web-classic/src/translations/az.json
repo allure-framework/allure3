@@ -129,6 +129,8 @@
     "comingSoon": "Tezliklə"
   },
   "charts": {
+    "retry": "Yenidən cəhd et",
+    "loadError": "Diaqramı yükləmək mümkün olmadı",
     "trend": {
       "title": "Trend {{type}} Qrafiki"
     },

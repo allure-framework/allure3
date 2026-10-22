@@ -121,6 +121,8 @@
     "comingSoon": "近日公開"
   },
   "charts": {
+    "retry": "再試行",
+    "loadError": "チャートを読み込めませんでした",
     "successRate": {
       "successRate": "成功率: {{rate}}",
       "successRateDescription": "成功、失敗、異常終了のテストから算出します。スキップされたテストとステータス不明のテストは除外します。",

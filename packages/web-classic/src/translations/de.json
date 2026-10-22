@@ -126,5 +126,9 @@
     "suites": "Suiten",
     "timeline": "Zeitleiste",
     "comingSoon": "Demnächst"
+  },
+  "charts": {
+    "retry": "Erneut versuchen",
+    "loadError": "Diagramm konnte nicht geladen werden"
   }
 }

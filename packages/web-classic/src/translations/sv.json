@@ -121,6 +121,8 @@
     "comingSoon": "Kommer snart"
   },
   "charts": {
+    "retry": "Försök igen",
+    "loadError": "Det gick inte att ladda diagrammet",
     "successRate": {
       "successRate": "Andel godkända: {{rate}}",
       "successRateDescription": "Beräknas från godkända, underkända och trasiga tester. Överhoppade tester och tester med okänd status utesluts.",
