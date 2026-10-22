@@ -397,3 +397,14 @@ describe("report context", () => {
     });
   });
 });
+
+describe("publication status", () => {
+  it.each([true, false, undefined])("preserves published=%s from summary files and data", async (published) => {
+    const output = await mkdtemp(join(tmpdir(), "allure-publication-context-"));
+    await writeJson(join(output, "summary.json"), createSummary({ published }));
+    const context = await createReportContext(output);
+    expect(context.reports[0].published).toBe(published);
+    const fromData = createReportContextFromData({ summaries: [createSummary({ published })] });
+    expect(fromData.reports[0].published).toBe(published);
+  });
+});

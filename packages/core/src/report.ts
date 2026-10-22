@@ -214,6 +214,7 @@ export class AllureReport {
   #publishedRemoteHrefs: Set<string> = new Set();
   #artifactFilesByPath: Map<string, ReportArtifact> = new Map();
   #published = false;
+  readonly #failedGenerationPlugins = new Set<string>();
   #endGeneratePerfSpan?: () => void;
   #resolvedReportUrl?: string;
   #reportUrl?: string;
@@ -431,16 +432,19 @@ export class AllureReport {
       throw new Error("report is not completed. Call the done() method first.");
     }
 
-    if (this.#realTime || !this.#allureServiceClient) {
+    if (this.#realTime) {
       this.#published = true;
       return;
     }
 
     const reportsToPublish = (await this.#getReportsToPublish()).filter(
-      (report) => report.publish && Object.keys(report.files).length > 0,
+      ({ pluginId, publish, files }) =>
+        publish &&
+        !this.#failedGenerationPlugins.has(pluginId) &&
+        Object.keys(files).some((filename) => filename !== "summary.json"),
     );
 
-    if (reportsToPublish.length === 0) {
+    if (!this.#allureServiceClient || reportsToPublish.length === 0) {
       this.#published = true;
       return;
     }
@@ -509,14 +513,19 @@ export class AllureReport {
         });
       }
 
-      const changedPluginIds = this.#applyPublishLinksToSummaries(linksByPluginId);
-
-      summariesMutated = changedPluginIds.size > 0;
-
-      if (changedPluginIds.size > 0) {
-        await this.#writeSummaryFiles();
-        await this.#generateRootSummary();
+      for (const { pluginId } of reportsToPublish) {
+        const summary = this.#summariesByPluginId.get(pluginId);
+        if (!summary) {
+          continue;
+        }
+        summary.published = true;
+        if (linksByPluginId[pluginId]) {
+          summary.remoteHref = linksByPluginId[pluginId];
+        }
       }
+      summariesMutated = true;
+      await this.#writeSummaryFiles();
+      await this.#generateRootSummary();
 
       const updatedReports = await this.#getReportsToPublish();
       const updatedReportsByPluginId = new Map(updatedReports.map((report) => [report.pluginId, report]));
@@ -726,9 +735,10 @@ export class AllureReport {
       }
     }
 
-    await this.#eachPlugin(true, async (plugin, context) => {
+    const failedPlugins = await this.#eachPlugin(true, async (plugin, context) => {
       await plugin.start?.(context, this.#store, this.#realtimeChannel.subscriber);
     });
+    failedPlugins.forEach((id) => this.#failedGenerationPlugins.add(id));
 
     if (this.#realTime) {
       await this.#runRealtimeUpdate();
@@ -1223,25 +1233,6 @@ export class AllureReport {
     }
   };
 
-  #applyPublishLinksToSummaries = (linksByPluginId: Record<string, string>): Set<string> => {
-    const changedPluginIds = new Set<string>();
-
-    if (this.#summariesByPluginId.size === 0) {
-      return changedPluginIds;
-    }
-
-    for (const [pluginId, remoteHref] of Object.entries(linksByPluginId)) {
-      const summary = this.#summariesByPluginId.get(pluginId);
-
-      if (summary && remoteHref) {
-        summary.remoteHref = remoteHref;
-        changedPluginIds.add(pluginId);
-      }
-    }
-
-    return changedPluginIds;
-  };
-
   #cloneSummariesByPluginId = (): Map<string, PluginSummary> =>
     new Map([...this.#summariesByPluginId].map(([pluginId, summary]) => [pluginId, clonePluginSummary(summary)]));
 
@@ -1345,13 +1336,14 @@ export class AllureReport {
       this.#overviewHref = await this.#resolveOverviewHref();
 
       // isolate logs of different reports dumps: done and summary
-      await measurePerf(PERF_METRIC_NAMES.generatePluginsDone, async () => {
-        await this.#eachPlugin(false, async (plugin, context) => {
+      const failedPlugins = await measurePerf(PERF_METRIC_NAMES.generatePluginsDone, () =>
+        this.#eachPlugin(false, async (plugin, context) => {
           await measurePerf(`${PERF_METRIC_PREFIXES.generatePluginDone}${context.id}`, async () => {
             await plugin.done?.(context, this.#store);
           });
-        });
-      });
+        }),
+      );
+      failedPlugins.forEach((id) => this.#failedGenerationPlugins.add(id));
       this.#finishGeneratePerfSpan();
 
       await this.#ingestSelfPerfMetrics();
@@ -1365,6 +1357,11 @@ export class AllureReport {
           return;
         }
 
+        if (context.publish && !this.#realTime) {
+          summary.published = false;
+        } else {
+          delete summary.published;
+        }
         summary.pluginId = context.id;
         summary.pullRequestHref = this.#ci?.pullRequestUrl;
         summary.jobHref = this.#ci?.jobRunUrl;
@@ -1405,6 +1402,11 @@ export class AllureReport {
       this.#historyDataPoint = await this.#createHistoryDataPoint(shouldFlattenOutput);
 
       await this.#publish();
+      const unpublished = [...this.#summariesByPluginId.values()].filter((summary) => summary.published === false);
+      if (unpublished.length > 0) {
+        console.warn("Expected reports were not published:");
+        unpublished.forEach(({ pluginId }) => console.warn(`- ${pluginId}`));
+      }
 
       if (this.#knownIssuesPath) {
         await writeKnownIssues(this.#store, this.#knownIssuesPath);
@@ -1491,6 +1493,8 @@ export class AllureReport {
       this.#state = {};
     }
 
+    const failed = new Set<string>();
+
     for (const { enabled, id, plugin, options } of this.#plugins) {
       if (!enabled) {
         continue;
@@ -1499,6 +1503,7 @@ export class AllureReport {
       const pluginState = this.#getPluginState(initState, id);
 
       if (!pluginState) {
+        failed.add(id);
         console.error("plugin error: state is empty");
         continue;
       }
@@ -1566,9 +1571,12 @@ export class AllureReport {
           this.#state![id] = pluginState;
         }
       } catch (e) {
+        failed.add(id);
         console.error(`plugin ${id} error`, e);
       }
     }
+
+    return failed;
   };
 
   #getPluginState(init: boolean, id: string) {
