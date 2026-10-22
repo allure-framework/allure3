@@ -1,4 +1,4 @@
-import { ChartType } from "@allurereport/charts-api";
+import { chartRenderers } from "@allurereport/web-commons";
 import type { ComponentType } from "preact";
 import { useEffect, useState } from "preact/hooks";
 
@@ -8,22 +8,6 @@ import { Spinner } from "../Spinner";
 import type { ChartWidgetProps } from "./ChartWidget.types";
 
 export type { ChartWidgetProps } from "./ChartWidget.types";
-
-const chartRenderers: Record<ChartType, Renderer> = {
-  [ChartType.CurrentStatus]: "pie",
-  [ChartType.StatusDynamics]: "bar",
-  [ChartType.StatusTransitions]: "bar",
-  [ChartType.Durations]: "bar",
-  [ChartType.StabilityDistribution]: "bar",
-  [ChartType.TestBaseGrowthDynamics]: "bar",
-  [ChartType.StatusAgePyramid]: "bar",
-  [ChartType.TrSeverities]: "bar",
-  [ChartType.DurationDynamics]: "bar",
-  [ChartType.CoverageDiff]: "treemap",
-  [ChartType.SuccessRateDistribution]: "treemap",
-  [ChartType.ProblemsDistribution]: "heatmap",
-  [ChartType.TestingPyramid]: "funnel",
-};
 
 const rendererLoaders = {
   pie: () => import(/* webpackChunkName: "chart-pie" */ "./PieChartRenderer"),
