@@ -17,7 +17,6 @@ import {
 } from "@allurereport/reader-api";
 import { KnownError } from "@allurereport/service";
 
-import { logError } from "../../logs.js";
 import { supervisorDiagnosticsEnabled } from "../diagnostics.js";
 import type { JobMonitor, SupervisedCommandOptions, ProcessCompletion, ProcessStartupInfo } from "../model.js";
 import { ProcessSupervisorBase } from "../ProcessSupervisorBase.js";
@@ -466,14 +465,14 @@ export class WindowsProcessSupervisor extends ProcessSupervisorBase {
   #reportHostError(logMessage: string, errorMessage?: string | Error) {
     const reason = errorMessage ? `: ${errorMessage instanceof Error ? errorMessage.message : errorMessage}` : "";
     const message = `${logMessage}${reason}`;
-    void logError(
+    this.error(
       message,
       errorMessage
         ? errorMessage instanceof Error
           ? errorMessage
           : new Error(String(errorMessage))
         : new Error(logMessage),
-    ).catch(() => {});
+    );
   }
 
   #fail(error: unknown) {
@@ -498,16 +497,13 @@ export class WindowsProcessSupervisor extends ProcessSupervisorBase {
     if (wrapper && wrapper.exitCode === null && wrapper.signalCode === null) {
       try {
         if (!wrapper.kill("SIGKILL")) {
-          void logError(
-            "Unable to terminate the process host.",
-            new Error("The kill request was not delivered."),
-          ).catch(() => {});
+          this.error("Unable to terminate the process host.", new Error("The kill request was not delivered."));
         }
       } catch (killError) {
-        void logError(
+        this.error(
           "Unable to terminate the process host.",
           killError instanceof Error ? killError : new Error(String(killError)),
-        ).catch(() => {});
+        );
       }
     }
   }

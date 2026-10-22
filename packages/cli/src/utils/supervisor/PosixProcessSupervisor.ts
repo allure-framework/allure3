@@ -5,7 +5,6 @@ import { promisify } from "node:util";
 
 import { isDefined } from "@allurereport/reader-api";
 
-import { logError } from "../logs.js";
 import type { JobMonitor, SupervisedCommandOptions } from "./model.js";
 import { ProcessSupervisorBase } from "./ProcessSupervisorBase.js";
 
@@ -146,14 +145,14 @@ export class PosixProcessSupervisor extends ProcessSupervisorBase {
     // The second SIGINT terminates the test process group.
     // Allure has a chance to complete the report generation.
     void this.terminate().catch((error) => {
-      logError("Unable to terminate the test process group.", error);
+      this.error("Unable to terminate the test process group.", error);
     });
     this.reportForcedInterruption();
   };
 
   readonly #onSigterm = () => {
     void this.terminate()
-      .catch((error) => logError("Unable to terminate the test process group.", error))
+      .catch((error) => this.error("Unable to terminate the test process group.", error))
       .finally(() => process.kill(process.pid, "SIGTERM"));
   };
 
