@@ -250,6 +250,15 @@ export abstract class ProcessSupervisorBase {
     this.#interrupted = "terminated";
   }
 
+  protected error(message: string, error?: unknown) {
+    if (error) {
+      const resolvedError = error instanceof Error ? error : new Error(String(error));
+      this.#logger?.error(`${new Date().toISOString()} ${message}: ${resolvedError.message}\n${resolvedError.stack}`);
+    } else {
+      this.#logger?.error(`${new Date().toISOString()} ${message}`);
+    }
+  }
+
   protected diagnostic(message: string, details?: Record<string, unknown>) {
     if (!this.diagnosticsEnabled || !this.#logger) {
       return;
