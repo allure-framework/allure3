@@ -188,7 +188,6 @@ describe("PosixProcessSupervisor", { skip: process.platform === "win32", timeout
       const supervisor = new PosixProcessSupervisor(process.execPath, {
         arguments: [treeScriptPath, "0", fixture.workingDirectory, "graceful-stop"],
         silent: true,
-        stopTimeout: 500,
       });
 
       onTestFinished(() => fixture.cleanup({ supervisor }));
@@ -215,13 +214,12 @@ describe("PosixProcessSupervisor", { skip: process.platform === "win32", timeout
       expect(() => process.kill(-rootPid, 0)).toThrow(expect.objectContaining({ code: "ESRCH" }));
     });
 
-    it("escalates to SIGKILL when the root process ignores SIGINT", async ({ onTestFinished }) => {
+    it("supports escalation when the root process ignores SIGINT", async ({ onTestFinished }) => {
       const fixture = await SupervisorFixture.create();
       const treeScriptPath = fixture.resolvePath("three-level-tree.mjs");
       const supervisor = new PosixProcessSupervisor(process.execPath, {
         arguments: [treeScriptPath, "0", fixture.workingDirectory, "ignore"],
         silent: true,
-        stopTimeout: 100,
       });
 
       onTestFinished(() => fixture.cleanup({ supervisor }));
@@ -235,7 +233,7 @@ describe("PosixProcessSupervisor", { skip: process.platform === "win32", timeout
 
       expectProcesses(processIds).toBeAlive();
 
-      await supervisor.stop();
+      await supervisor.stop({ escalate: true, escalationTimeout: 100 });
 
       const signalledRootPid = await fixture.readProcessId("level-0.sigint");
 
@@ -254,7 +252,6 @@ describe("PosixProcessSupervisor", { skip: process.platform === "win32", timeout
       const supervisor = new PosixProcessSupervisor(process.execPath, {
         arguments: [treeScriptPath, "0", fixture.workingDirectory, "graceful-stop"],
         silent: true,
-        stopTimeout: 500,
       });
 
       onTestFinished(() => fixture.cleanup({ supervisor }));
