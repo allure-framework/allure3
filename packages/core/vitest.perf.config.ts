@@ -1,12 +1,15 @@
-import { defineConfig } from "vite-plus";
+import { defaultVitestConfig } from "@allurereport/common-config";
+import { mergeConfig } from "vite-plus";
 
-import config from "./vitest.config.js";
-
-export default defineConfig({
-  ...config,
-  test: {
-    ...config.test,
+export default mergeConfig(
+  defaultVitestConfig(import.meta.dirname, {
     include: ["./test/performance/report-generation.probe.ts"],
-    testTimeout: 1_200_000,
+  }),
+  {
+    test: {
+      setupFiles: ["./test/setup/performance.ts"],
+      sequence: { setupFiles: "list" },
+      testTimeout: 1_200_000,
+    },
   },
-});
+);
