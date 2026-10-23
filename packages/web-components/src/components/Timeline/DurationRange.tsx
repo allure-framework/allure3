@@ -1,6 +1,4 @@
 import { formatDuration } from "@allurereport/core-api";
-import type { Axis } from "d3-axis";
-import { axisBottom } from "d3-axis";
 import type { BrushSelection, D3BrushEvent } from "d3-brush";
 import { brushX as d3BrushX } from "d3-brush";
 import { scaleLinear } from "d3-scale";
@@ -8,7 +6,7 @@ import { select as d3Select } from "d3-selection";
 import type { FunctionComponent } from "preact";
 import { useEffect, useRef } from "preact/hooks";
 
-import { minPositive, useStateRef } from "./utils.js";
+import { d3AxisBottom, minPositive, useStateRef } from "./utils.js";
 
 import styles from "./styles.scss";
 
@@ -27,11 +25,6 @@ type DurationRangeProps = {
     selected: (props: { count: number; percentage: string; minDuration: string; maxDuration: string }) => string;
   };
   transitionDuration?: number;
-};
-
-const d3AxisBottom = (): Axis<number> => {
-  // @ts-expect-error - axisBottom from d3-axis can be called without scale initially, but types are not correct
-  return axisBottom();
 };
 
 const DEFAULT_MARGINS = { top: 0, right: 0, bottom: 20, left: 0 };
@@ -82,8 +75,8 @@ export const DurationRange: FunctionComponent<DurationRangeProps> = (props) => {
   }, [onChange, onReset]);
 
   // Initialize D3 elements that don't depend on DOM or props
-  const xGridAxisRef = useRef(d3AxisBottom().tickFormat(() => ""));
-  const xAxisAxisRef = useRef(d3AxisBottom().tickPadding(0));
+  const xGridAxisRef = useRef(d3AxisBottom<number>().tickFormat(() => ""));
+  const xAxisAxisRef = useRef(d3AxisBottom<number>().tickPadding(0));
 
   const brushBehaviorRef = useRef(
     d3BrushX<SVGGElement>()

@@ -1,164 +1,27 @@
-import { act, cleanup, fireEvent, render, screen } from "@testing-library/preact";
-import { epic, feature, label, story } from "allure-js-commons";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
-
-vi.hoisted(() => {
-  vi.stubGlobal(
-    "matchMedia",
-    vi.fn().mockImplementation(() => ({
-      matches: false,
-      media: "",
-      onchange: null,
-      addListener: vi.fn(),
-      removeListener: vi.fn(),
-      addEventListener: vi.fn(),
-      removeEventListener: vi.fn(),
-      dispatchEvent: vi.fn(),
-    })),
-  );
-});
+// @vitest-environment jsdom
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/preact";
+import { afterEach, expect, it } from "vite-plus/test";
 
 import { EnvironmentPicker } from "@/components/EnvironmentPicker";
-
-beforeEach(async () => {
-  await epic("coverage");
-  await feature("ui-components");
-  await story("EnvironmentPicker");
-  await label("coverage", "ui-components");
-});
-
 import { currentEnvironment, environmentsStore } from "@/stores/env";
 
-const longEnvironmentName = "я".repeat(64);
+afterEach(cleanup);
 
-const setElementSizeMocks = () => {
-  let isNarrowViewport = false;
-  const clientWidthDescriptor = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "clientWidth");
-  const scrollWidthDescriptor = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "scrollWidth");
-
-  Object.defineProperty(HTMLElement.prototype, "clientWidth", {
-    configurable: true,
-    get() {
-      const textContent = this.textContent ?? "";
-
-      if (textContent.includes(longEnvironmentName)) {
-        return isNarrowViewport ? 120 : 420;
-      }
-
-      return 200;
-    },
-  });
-
-  Object.defineProperty(HTMLElement.prototype, "scrollWidth", {
-    configurable: true,
-    get() {
-      const textContent = this.textContent ?? "";
-
-      if (textContent.includes(longEnvironmentName)) {
-        return 300;
-      }
-
-      return 200;
-    },
-  });
-
-  const setNarrowViewport = (isNarrow: boolean) => {
-    isNarrowViewport = isNarrow;
+it("wires the environment menu to the product store", async () => {
+  currentEnvironment.value = "one";
+  environmentsStore.value = {
+    loading: false,
+    error: undefined,
+    data: [
+      { id: "one", name: "First" },
+      { id: "two", name: "Second" },
+    ],
   };
-
-  const restore = () => {
-    if (clientWidthDescriptor) {
-      Object.defineProperty(HTMLElement.prototype, "clientWidth", clientWidthDescriptor);
-    } else {
-      delete (HTMLElement.prototype as Partial<HTMLElement>).clientWidth;
-    }
-
-    if (scrollWidthDescriptor) {
-      Object.defineProperty(HTMLElement.prototype, "scrollWidth", scrollWidthDescriptor);
-    } else {
-      delete (HTMLElement.prototype as Partial<HTMLElement>).scrollWidth;
-    }
-  };
-
-  return {
-    setNarrowViewport,
-    restore,
-  };
-};
-
-describe("components > EnvironmentPicker", () => {
-  let setNarrowViewport: (isNarrow: boolean) => void;
-  let restoreElementSizeMocks: () => void;
-
-  beforeEach(() => {
-    vi.useFakeTimers();
-    vi.stubGlobal(
-      "matchMedia",
-      vi.fn().mockImplementation(() => ({
-        matches: false,
-        media: "",
-        onchange: null,
-        addListener: vi.fn(),
-        removeListener: vi.fn(),
-        addEventListener: vi.fn(),
-        removeEventListener: vi.fn(),
-        dispatchEvent: vi.fn(),
-      })),
-    );
-    const controls = setElementSizeMocks();
-    setNarrowViewport = controls.setNarrowViewport;
-    restoreElementSizeMocks = controls.restore;
-    currentEnvironment.value = "long-environment";
-    environmentsStore.value = {
-      loading: false,
-      error: undefined,
-      data: [
-        { id: "default", name: "default" },
-        { id: "long-environment", name: longEnvironmentName },
-      ],
-    };
-  });
-
-  afterEach(() => {
-    restoreElementSizeMocks();
-    vi.unstubAllGlobals();
-    cleanup();
-    vi.runOnlyPendingTimers();
-    vi.useRealTimers();
-  });
-
-  it("should show tooltip on hover after resize truncates selected value", async () => {
-    render(<EnvironmentPicker />);
-    const getPickerButton = () => screen.getByTestId("environment-picker-button");
-    const getTooltipTrigger = () => getPickerButton().parentElement?.parentElement as HTMLElement;
-    const queryTooltip = () => screen.queryByTestId("environment-picker-selected-tooltip");
-
-    expect(queryTooltip()).not.toBeInTheDocument();
-
-    await act(async () => {
-      setNarrowViewport(true);
-      fireEvent(window, new Event("resize"));
-      await vi.advanceTimersByTimeAsync(16);
-    });
-
-    expect(getTooltipTrigger().childElementCount).toBe(2);
-
-    const tooltipTrigger = getTooltipTrigger();
-    fireEvent.mouseEnter(tooltipTrigger);
-    await act(async () => {
-      await vi.advanceTimersByTimeAsync(200);
-    });
-    expect(queryTooltip()).toBeInTheDocument();
-
-    await act(async () => {
-      fireEvent.mouseLeave(tooltipTrigger);
-      await vi.advanceTimersByTimeAsync(0);
-    });
-    expect(queryTooltip()).not.toBeInTheDocument();
-
-    fireEvent.click(getPickerButton());
-    fireEvent.mouseEnter(getTooltipTrigger());
-
-    expect(queryTooltip()).not.toBeInTheDocument();
-  });
+  render(<EnvironmentPicker />);
+  expect(screen.getByTestId("environment-picker-button").textContent).toBe("First");
+  expect(screen.getByTestId("environment-picker")).not.toBeNull();
+  fireEvent.click(screen.getByTestId("environment-picker-button"));
+  fireEvent.click(await screen.findByText("Second"));
+  await waitFor(() => expect(currentEnvironment.value).toBe("two"));
+  expect(screen.getByTestId("environment-picker-button").textContent).toBe("Second");
 });

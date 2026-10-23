@@ -1,6 +1,9 @@
 /** @internal Shared implementation details of Allure's bundled reports. */
 import {
   type HistoryDataPoint,
+  type AttachmentLink,
+  type TestStatus,
+  type CategoryRule,
   type TestFixtureResult,
   type TestStepResult,
   isStep,
@@ -8,6 +11,7 @@ import {
 } from "@allurereport/core-api";
 
 import type { ReportFixtureResult, ReportTestStepResult } from "../report.js";
+import type { ResultFile } from "../resultFile.js";
 import type { AllureStore } from "../store.js";
 
 export const HISTORY_DATA_POINT_LIMIT = 6;
@@ -62,5 +66,55 @@ export const generateHistoryDataPoints = async (
   // Preserve the original sequential writes and partial output on failure.
   for (const historyPoint of allHistoryPoints.slice(0, HISTORY_DATA_POINT_LIMIT)) {
     await writer.writeData(`history/${historyPoint.uuid}.json`, historyPoint);
+  }
+};
+
+export const generateAttachmentsFiles = async (
+  writer: { writeAttachment: (fileName: string, content: ResultFile) => Promise<void> },
+  attachmentLinks: AttachmentLink[],
+  contentFunction: (id: string) => Promise<ResultFile | undefined>,
+) => {
+  const result = new Map<string, string>();
+  // Preserve partial output on failure: do not read or write later attachments after a rejection.
+  for (const { id, ext, ...link } of attachmentLinks) {
+    if (link.missed) {
+      continue;
+    }
+    const content = await contentFunction(id);
+    if (!content) {
+      continue;
+    }
+    const src = `${id}${ext}`;
+    await writer.writeAttachment(src, content);
+    result.set(id, src);
+  }
+  return result;
+};
+
+export const categoryMatch = (
+  category: Pick<CategoryRule, "matchedStatuses" | "messageRegex" | "traceRegex" | "flaky">,
+  result: { statusMessage?: string; statusTrace?: string; status: TestStatus; flaky: boolean },
+): boolean => {
+  const { status, statusMessage, statusTrace, flaky } = result;
+  const matchesStatus =
+    !category.matchedStatuses || category.matchedStatuses.length === 0 || category.matchedStatuses.includes(status);
+  const matchesMessage = match(category.messageRegex, statusMessage);
+  const matchesTrace = match(category.traceRegex, statusTrace);
+  const matchesFlaky = (category.flaky ?? flaky) === flaky;
+  return matchesStatus && matchesMessage && matchesTrace && matchesFlaky;
+};
+
+const match = (regex?: string, value?: string): boolean => {
+  if (!regex) {
+    return true;
+  }
+  if (!value) {
+    return false;
+  }
+  try {
+    const b = new RegExp(regex, "s").test(value);
+    return b;
+  } catch {
+    return false;
   }
 };

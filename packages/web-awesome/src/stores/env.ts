@@ -8,13 +8,13 @@ import {
   environmentNameById as resolveEnvironmentNameById,
   errorMessageFromUnknown,
   fetchReportJsonData,
+  loadFromLocalStorage,
   migrateStoredEnvironmentSelection,
   normalizeEnvironmentsWidget,
 } from "@allurereport/web-commons";
 import { effect, signal } from "@preact/signals";
 
 import type { StoreSignalState } from "@/stores/types";
-import { loadFromLocalStorage } from "@/utils/loadFromLocalStorage";
 
 export const environmentsStore = signal<StoreSignalState<EnvironmentIdentity[]>>({
   loading: false,

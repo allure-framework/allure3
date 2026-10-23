@@ -2,7 +2,6 @@ import { randomUUID } from "node:crypto";
 
 import { defaultChartsConfig } from "@allurereport/charts-api";
 import {
-  type AttachmentLink,
   type EnvironmentItem,
   type Statistic,
   type TreeGroup,
@@ -28,7 +27,6 @@ import {
   type ReportTreeLeaf,
   type PluginContext,
   type ReportFiles,
-  type ResultFile,
   createTreeByCategories,
   createTreeByLabels,
   processTree,
@@ -235,27 +233,6 @@ export const generateAllCharts = async (
   if (Object.keys(generatedChartsData.general).length > 0) {
     await writer.writeWidget("charts.json", generatedChartsData);
   }
-};
-
-export const generateAttachmentsFiles = async (
-  writer: ClassicDataWriter,
-  attachmentLinks: AttachmentLink[],
-  contentFunction: (id: string) => Promise<ResultFile | undefined>,
-) => {
-  const result = new Map<string, string>();
-  for (const { id, ext, ...link } of attachmentLinks) {
-    if (link.missed) {
-      continue;
-    }
-    const content = await contentFunction(id);
-    if (!content) {
-      continue;
-    }
-    const src = `${id}${ext}`;
-    await writer.writeAttachment(src, content);
-    result.set(id, src);
-  }
-  return result;
 };
 
 export const generateStaticFiles = async (
