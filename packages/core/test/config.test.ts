@@ -1,7 +1,13 @@
 import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
 
-import { MAX_ENVIRONMENT_ID_LENGTH, MAX_ENVIRONMENT_NAME_LENGTH } from "@allurereport/core-api";
+import {
+  MAX_ENVIRONMENT_ID_LENGTH,
+  MAX_ENVIRONMENT_NAME_LENGTH,
+  matchCategory,
+  normalizeCategoriesConfig,
+  shouldHideLabel,
+} from "@allurereport/core-api";
 import type { Config, PluginConstructorContext } from "@allurereport/plugin-api";
 import { epic, feature, label, story } from "allure-js-commons";
 import type { MockInstance } from "vite-plus/test";
@@ -479,6 +485,26 @@ describe("resolveConfig", () => {
     });
 
     expect(resolved.hideLabels).toEqual(["owner", /^tag/]);
+  });
+
+  it("compiles hidden-label expressions from the selected override", async () => {
+    const input = { hideLabels: ["${{ name. }}"] };
+
+    const resolved = await resolveConfig(input, {
+      plugins: {},
+      hideLabels: ["${{ name.startsWith('internal_') }}"],
+    });
+
+    expect(shouldHideLabel("internal_id", resolved.hideLabels)).toBe(true);
+    expect(shouldHideLabel("public", resolved.hideLabels)).toBe(false);
+  });
+
+  it("allows an empty hidden-label override", async () => {
+    const input = { hideLabels: ["${{ name. }}"] };
+
+    const resolved = await resolveConfig(input, { plugins: {}, hideLabels: [] });
+
+    expect(resolved.hideLabels).toEqual([]);
   });
 
   it("normalizes resultsDir string and array; omits empty values", async () => {
@@ -1408,9 +1434,86 @@ describe("readConfig", () => {
   });
 
   afterEach(async () => {
+    vi.restoreAllMocks();
     try {
       await rm(fixturesDir, { recursive: true });
     } catch {}
+  });
+
+  const yamlConfig = `
+hideLabels:
+  - owner
+  - "\${{ name.matches('^internal_[0-9]+$') }}"
+categories:
+  - name: Timeout
+    matchers:
+      - message: unrelated
+      - "\${{ has(data.message) && data.message.matches('timeout') && data.labels.exists(l, l.name == 'owner' && l.value == 'alice') }}"
+`;
+
+  it("loads expressions from YAML through runtime matching", async () => {
+    const filename = "allurerc.yaml";
+    await writeFile(join(fixturesDir, filename), yamlConfig, "utf-8");
+
+    const config = await readConfig(fixturesDir, filename, { plugins: {} });
+    const categories = normalizeCategoriesConfig(config.categories);
+    const hidden = ["owner", "OWNER", "internal_42", "internal_id", "public", "_private"].map((name) =>
+      shouldHideLabel(name, config.hideLabels),
+    );
+    const matched = matchCategory(categories, {
+      status: "failed",
+      flaky: false,
+      labels: [{ name: "owner", value: "alice" }],
+      message: "request failed: timeout",
+    });
+
+    expect(hidden).toEqual([true, false, true, false, false, true]);
+    expect(matched?.name).toBe("Timeout");
+  });
+
+  it("loads JSON expressions with regex escaping and object-form categories", async () => {
+    const content = JSON.stringify({
+      hideLabels: ["${{ name.matches('^internal_\\\\d+$') }}"],
+      categories: { rules: [{ name: "Slow", matchers: "${{ data.duration > 42 }}" }] },
+    });
+    await writeFile(join(fixturesDir, "allurerc.json"), content, "utf-8");
+
+    const config = await readConfig(fixturesDir, undefined, { plugins: {} });
+    const hidden = ["internal_42", "internal_id"].map((name) => shouldHideLabel(name, config.hideLabels));
+    const matched = matchCategory(normalizeCategoriesConfig(config.categories), {
+      status: "passed",
+      flaky: false,
+      labels: [],
+      duration: 100,
+    });
+
+    expect(hidden).toEqual([true, false]);
+    expect(matched?.name).toBe("Slow");
+  });
+
+  it("loads valid YAML entries alongside malformed expressions", async () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const content = `
+hideLabels:
+  - owner
+  - "\${{ name. }}"
+  - "\${{ name.startsWith('internal_') }}"
+categories:
+  - name: Malformed
+    matchers: "\${{ data. }}"
+  - name: Timeout
+    matchers: "\${{ has(data.message) && data.message.matches('timeout') }}"
+`;
+    await writeFile(join(fixturesDir, "allurerc.yaml"), content, "utf-8");
+
+    const config = await readConfig(fixturesDir, undefined, { plugins: {} });
+    const categories = normalizeCategoriesConfig(config.categories);
+    const matched = matchCategory(categories, { status: "failed", flaky: false, labels: [], message: "timeout" });
+
+    expect(shouldHideLabel("internal_id", config.hideLabels)).toBe(true);
+    expect(matched?.name).toBe("Timeout");
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining("hideLabels[1]"));
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining("categories[0].matchers"));
   });
 
   it("should preserve the requested working directory", async () => {
