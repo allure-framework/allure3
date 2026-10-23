@@ -31,6 +31,17 @@ describe("createHtmlPreviewDocument", () => {
     expect(result).toContain('name="referrer"');
   });
 
+  it("guards history calls before the attachment scripts run", () => {
+    const result = createHtmlPreviewDocument(
+      "<html><head><script>window.first=1</script></head><body></body></html>",
+      "token",
+      false,
+    );
+
+    expect(result).toContain("history[name]");
+    expect(result.indexOf("history[name]")).toBeLessThan(result.indexOf("window.first=1"));
+  });
+
   it("adds dark theme styles only for the dark theme", () => {
     expect(createHtmlPreviewDocument("<p>x</p>", "token", true)).toContain("#1c1c1e");
     expect(createHtmlPreviewDocument("<p>x</p>", "token", false)).not.toContain("#1c1c1e");
