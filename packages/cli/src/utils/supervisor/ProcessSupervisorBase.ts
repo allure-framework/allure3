@@ -25,7 +25,7 @@ export abstract class ProcessSupervisorBase {
   #arguments: readonly string[];
   #workingDirectory: string;
   #environmentVariables: Record<string, string>;
-  #stdio: "ignore" | "inherit" | "pipe";
+  #outputMode: "ignore" | "inherit" | "pipe";
   #silent: boolean;
   #outputEncoding: BufferEncoding;
 
@@ -54,7 +54,7 @@ export abstract class ProcessSupervisorBase {
       arguments: args = [],
       workingDirectory = process.cwd(),
       environmentVariables = {},
-      stdio = "pipe",
+      outputMode = "pipe",
       outputEncoding = "utf-8",
       silent = false,
     }: SupervisedCommandOptions = {},
@@ -64,7 +64,7 @@ export abstract class ProcessSupervisorBase {
     this.#arguments = args;
     this.#workingDirectory = workingDirectory;
     this.#environmentVariables = environmentVariables;
-    this.#stdio = stdio;
+    this.#outputMode = outputMode;
     this.#outputEncoding = outputEncoding;
     this.#silent = silent;
     this.diagnosticsEnabled = Boolean(logger?.debugEnabled) && supervisorDiagnosticsEnabled();
@@ -137,12 +137,12 @@ export abstract class ProcessSupervisorBase {
     const target = spawn(this.#command, this.#arguments, {
       cwd: this.#workingDirectory,
       env: this.resolveTargetEnvironment(),
-      stdio: this.#stdio,
+      stdio: ["inherit", this.#outputMode, this.#outputMode],
       shell: this.shell,
       detached: this.detached,
     });
 
-    if (this.#stdio === "pipe") {
+    if (this.#outputMode === "pipe") {
       target.stdout?.setEncoding(this.#outputEncoding).on("data", (data: string) => {
         this.#stdout += data;
 
@@ -309,7 +309,7 @@ export abstract class ProcessSupervisorBase {
     };
 
     const colorDefaults =
-      this.#stdio === "pipe" && configuredEnvironment.NO_COLOR === undefined
+      this.#outputMode === "pipe" && configuredEnvironment.NO_COLOR === undefined
         ? {
             FORCE_COLOR: "1",
             CLICOLOR_FORCE: "1",

@@ -5,7 +5,7 @@ export type SupervisedCommandOptions = {
   arguments?: readonly string[];
   workingDirectory?: string;
   environmentVariables?: Record<string, string>;
-  stdio?: "ignore" | "inherit" | "pipe";
+  outputMode?: "ignore" | "inherit" | "pipe";
   outputEncoding?: BufferEncoding;
   silent?: boolean;
 };

@@ -1721,6 +1721,90 @@ console.log(\`selected selectors: \${Array.from(selectors).join(",")}\`);
       expect(result.stderr).not.toContain("Update available");
     });
   }, 60_000);
+
+  it.skipIf(platform !== "win32")(
+    "preserves console stdout and stderr with --ignore-logs",
+    async () => {
+      const fixtureDir = join(tempDir, "ignore-logs-console");
+      await mkdir(fixtureDir, { recursive: true });
+
+      const configPath = join(fixtureDir, "allurerc.mjs");
+      const scriptPath = join(fixtureDir, "run.mjs");
+      const targetPath = join(fixtureDir, "target.mjs");
+      const outputPath = join(fixtureDir, "console.json");
+
+      // allurerc.mjs: a minimal config with no report plugins
+      await writeFile(configPath, "export default { plugins: {} };\n");
+
+      // target.mjs: the final target script that writes to stdout and stderr
+      await writeFile(targetPath, 'console.log("target-stdout-marker"); console.error("target-stderr-marker");\n');
+
+      const args = [
+        cliPath,
+        "run",
+        "--config",
+        configPath,
+        "--cwd",
+        fixtureDir,
+        "--ignore-logs",
+        "--",
+        process.execPath,
+        targetPath,
+      ];
+
+      // run.mjs: prints to stdout and stderr proving that the console output is captured correctly
+      //          and delegates to allure.
+      await writeFile(
+        scriptPath,
+        `
+          delete process.env.ALLURE_CLI_ACTIVE_COMMAND;
+          process.stdout.write("fixture-stdout-ready\\n");
+          process.stderr.write("fixture-stderr-ready\\n");
+          process.argv = [process.execPath, ...${JSON.stringify(args)}];
+          await import(${JSON.stringify(pathToFileURL(cliPath).href)});
+        `,
+      );
+
+      await step("Run --ignore-logs with separate real console output buffers", async () => {
+        // We're running 'allure run' through PowerShell because we need WinAPI
+        // to create separate console output buffers on Windows.
+        // Capturing stdout/stderr through redirection would change console to pipes,
+        // which cannot prove --ignore-logs actually works.
+        await runCommand(
+          "powershell.exe",
+          [
+            "-NoProfile",
+            "-NonInteractive",
+            "-ExecutionPolicy",
+            "Bypass",
+            "-File",
+            join(commandsDir, "fixtures", "console-output.ps1"),
+            process.execPath,
+            scriptPath,
+            outputPath,
+          ],
+          { timeout: 40_000, windowsHide: true },
+        );
+      });
+
+      const output = JSON.parse((await readFile(outputPath, "utf8")).replace(/^\uFEFF/, ""));
+      await attachCommandOutput("console buffers", output);
+
+      await step("Verify the fixture has working console stdout and stderr", async () => {
+        expect(output.stdout).toContain("fixture-stdout-ready");
+        expect(output.stderr).toContain("fixture-stderr-ready");
+      });
+
+      await step("Verify target output reaches the matching console stream", async () => {
+        expect(output.exitCode).toBe(0);
+        expect.soft(output.stdout).toContain("target-stdout-marker");
+        expect.soft(output.stderr).toContain("target-stderr-marker");
+        expect(output.stdout).not.toContain("target-stderr-marker");
+        expect(output.stderr).not.toContain("target-stdout-marker");
+      });
+    },
+    60_000,
+  );
 });
 
 const waitForOutput = (pattern: RegExp, streams: (NodeJS.ReadableStream | null)[], timeoutMs = 120_000) =>

@@ -183,7 +183,7 @@ export const runTests = async (params: {
       arguments: commandArgs,
       workingDirectory: cwd,
       environmentVariables,
-      stdio: logs,
+      outputMode: logs,
       silent,
       outputEncoding: "utf-8",
     });
