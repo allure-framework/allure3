@@ -54,24 +54,6 @@ const readResultsMetrics = Object.fromEntries(
   ]),
 );
 
-const storeMetricTitles = {
-  "visitTestResult.convert": "Convert test results",
-  "visitTestResult.defaultLabels": "Apply default labels",
-  "visitTestResult.environment": "Map environments",
-  "visitTestResult.retry": "Calculate retry hashes",
-  "visitTestResult.history": "Resolve history",
-  "visitTestResult.resolution": "Classify resolutions",
-  "visitTestResult.indexes": "Index test results",
-  "visitAttachmentFile.metadata": "Read attachment metadata",
-};
-
-const storeMetrics = Object.fromEntries(
-  Object.entries(storeMetricTitles).flatMap(([key, title]) => [
-    [`store.${key}.totalMs`, msMetric(`${title} total`, "store")],
-    [`store.${key}.avgMs`, msMetric(`${title} average`, "store")],
-  ]),
-);
-
 /**
  * @type {import("allure").AllureConfig}
  */
@@ -165,6 +147,9 @@ const config = {
   },
   performance: {
     groups: {
+      aql: {
+        title: "AQL",
+      },
       allure: {
         title: "Allure",
       },
@@ -177,9 +162,6 @@ const config = {
       awesome: {
         title: "Awesome",
       },
-      store: {
-        title: "Store",
-      },
       publish: {
         title: "Publish",
       },
@@ -188,6 +170,21 @@ const config = {
       },
     },
     metrics: {
+      "aql.parse.simple": msMetric("Parse simple condition", "aql"),
+      "aql.parse.complex": msMetric("Parse complex expression", "aql"),
+      "aql.parse.array": msMetric("Parse array condition", "aql"),
+      "aql.parse.nested": msMetric("Parse nested expression", "aql"),
+      "aql.parse.many": msMetric("Parse 1000 expressions", "aql"),
+      "aql.filter.small": msMetric("Filter 100 items", "aql"),
+      "aql.filter.medium": msMetric("Filter 1000 items", "aql"),
+      "aql.filter.large": msMetric("Filter 10000 items", "aql"),
+      "aql.filter.complex": msMetric("Filter complex expression", "aql"),
+      "aql.filter.in": msMetric("Filter IN operator", "aql"),
+      "aql.filter.nested": msMetric("Filter nested properties", "aql"),
+      "aql.filter.reuse": msMetric("Filter pre-parsed expression", "aql"),
+      "aql.filter.empty": msMetric("Filter empty result", "aql"),
+      "aql.workflow.parseAndFilter": msMetric("Parse and filter", "aql"),
+      "aql.workflow.multipleFilters": msMetric("Run multiple filters", "aql"),
       "allure.total": msMetric("Allure total", "allure"),
       "restoreState.total": msMetric("Restore state total", "restoreState"),
       "restoreState.dump": msMetric("Restore state dump", "restoreState"),
@@ -209,9 +206,6 @@ const config = {
       "publish.upload.plugin.allure2": msMetric("Allure 2 upload", "publish"),
       "publish.upload.plugin.dashboard": msMetric("Dashboard upload", "publish"),
       ...readResultsMetrics,
-      "generate.readResults.reader.read.totalMs": msMetric("Read result files total", "generate"),
-      "generate.readResults.reader.read.avgMs": msMetric("Read result file average", "generate"),
-      ...storeMetrics,
       ...awesomeMetrics,
     },
   },
