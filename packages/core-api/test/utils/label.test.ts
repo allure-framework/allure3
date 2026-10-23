@@ -21,6 +21,14 @@ describe("label utils", () => {
     expect(shouldHideLabel("tag", ["owner"])).toBe(false);
   });
 
+  it("should hide labels by predicate matcher", () => {
+    const predicate = (name: string) => name.endsWith("_secret");
+
+    const hidden = ["owner_secret", "owner"].map((name) => shouldHideLabel(name, [predicate]));
+
+    expect(hidden).toEqual([true, false]);
+  });
+
   it("should hide labels by regexp matcher", () => {
     expect(shouldHideLabel("package", [/^pack/])).toBe(true);
     expect(shouldHideLabel("owner", [/^pack/])).toBe(false);

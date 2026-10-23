@@ -13,12 +13,17 @@ export const findLastByLabelName = (labels: TestLabel[], name: string): string |
   return undefined;
 };
 
-export const shouldHideLabel = (labelName: string, matchers: readonly (string | RegExp)[] = []): boolean => {
+export type LabelMatcher = string | RegExp | ((name: string) => boolean);
+
+export const shouldHideLabel = (labelName: string, matchers: readonly LabelMatcher[] = []): boolean => {
   if (labelName.startsWith("_")) {
     return true;
   }
 
   return matchers.some((matcher) => {
+    if (typeof matcher === "function") {
+      return matcher(labelName);
+    }
     if (typeof matcher === "string") {
       return matcher === labelName;
     }
