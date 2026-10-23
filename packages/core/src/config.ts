@@ -8,6 +8,8 @@ import { createJiti } from "jiti";
 import { parse } from "yaml";
 
 import type { FullConfig, PluginInstance } from "./api.js";
+import { resolveCategories } from "./config/categories.js";
+import { resolveHideLabels } from "./config/hideLabels.js";
 import { FileSystemReportFiles } from "./plugin.js";
 import { DEFAULT_KNOWN_ISSUES_PATH, resolveExactIssuesFilePath, validateResolutionsConfig } from "./resolutions.js";
 import {
@@ -339,7 +341,7 @@ export const resolveConfig = async (config: Config, override: ConfigOverride = {
   const open = override.open ?? config.open ?? false;
   const port = override.port ?? config.port ?? undefined;
   const host = override.host ?? config.host ?? undefined;
-  const hideLabels = override.hideLabels ?? config.hideLabels;
+  const hideLabels = resolveHideLabels(override.hideLabels ?? config.hideLabels);
   const historyPath = override.historyPath ?? config.historyPath;
   const historyBaseUrl = override.historyBaseUrl ?? config.historyBaseUrl;
   const historyLimit = override.historyLimit ?? config.historyLimit;
@@ -421,7 +423,7 @@ export const resolveConfig = async (config: Config, override: ConfigOverride = {
             DEFAULT_ALLURE_SERVICE_UPLOAD_MAX_SIMULTANEOUS_FAILURES,
         }
       : undefined,
-    categories: config.categories,
+    categories: resolveCategories(config.categories),
     globalAttachments: config.globalAttachments,
     ...(resultsDir.length ? { resultsDir } : {}),
   };

@@ -5,6 +5,7 @@ import type {
   CiDescriptor,
   GlobalAttachmentLink,
   HistoryDataPoint,
+  LabelMatcher,
   Statistic,
   TestError,
   TestResult,
@@ -44,7 +45,7 @@ export interface PluginContext {
   allureVersion: string;
   reportUuid: string;
   reportName: string;
-  hideLabels?: (string | RegExp)[];
+  hideLabels?: LabelMatcher[];
   reportFiles: ReportFiles;
   reportUrl?: string;
   /**

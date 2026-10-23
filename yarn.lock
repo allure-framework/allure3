@@ -173,6 +173,7 @@ __metadata:
     "@allurereport/reader-api": "workspace:*"
     "@allurereport/service": "workspace:*"
     "@allurereport/summary": "workspace:*"
+    "@marcbachmann/cel-js": "npm:8.0.0"
     "@types/node": "npm:^20"
     "@types/zip-stream": "npm:^7.0.0"
     "@vitest/coverage-istanbul": "catalog:"
@@ -4578,6 +4579,15 @@ __metadata:
   version: 2.0.5
   resolution: "@leichtgewicht/ip-codec@npm:2.0.5"
   checksum: 10/cb98c608392abe59457a14e00134e7dfa57c0c9b459871730cd4e907bb12b834cbd03e08ad8663fea9e486f260da7f1293ccd9af0376bf5524dd8536192f248c
+  languageName: node
+  linkType: hard
+
+"@marcbachmann/cel-js@npm:8.0.0":
+  version: 8.0.0
+  resolution: "@marcbachmann/cel-js@npm:8.0.0"
+  bin:
+    cel-evaluate: bin/cel-evaluate.js
+  checksum: 10/99cbff3ff069eb68e99a5b464770b299893f8aa088fd989e0999492eef262778e5243ceeade1e506973c3354af18ac90a54c072829f0e846131b6042e0ff973b
   languageName: node
   linkType: hard
 

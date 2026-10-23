@@ -48,6 +48,7 @@
     "@allurereport/reader-api": "workspace:*",
     "@allurereport/service": "workspace:*",
     "@allurereport/summary": "workspace:*",
+    "@marcbachmann/cel-js": "8.0.0",
     "glob": "^13.0.6",
     "handlebars": "4.7.10",
     "jiti": "^2.5.1",
