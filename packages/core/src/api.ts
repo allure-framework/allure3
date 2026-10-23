@@ -1,4 +1,9 @@
-import type { CategoriesConfig, PerformanceConfig, ResolvedAllureServiceConfig } from "@allurereport/core-api";
+import type {
+  CategoriesConfig,
+  LabelMatcher,
+  PerformanceConfig,
+  ResolvedAllureServiceConfig,
+} from "@allurereport/core-api";
 import type { Plugin, ReportFiles, Config } from "@allurereport/plugin-api";
 import type { ResultsReader } from "@allurereport/reader-api";
 
@@ -13,7 +18,10 @@ type FullConfigRequiredFromConfig = Required<Pick<Config, "name" | "output" | "o
 
 export interface FullConfig
   extends
-    Omit<Config, "name" | "output" | "open" | "allureService" | "plugins" | "port" | "resultsDir">,
+    Omit<
+      Config,
+      "name" | "output" | "open" | "allureService" | "plugins" | "port" | "resultsDir" | "hideLabels" | "categories"
+    >,
     FullConfigRequiredFromConfig {
   port: Config["port"] | undefined;
   allowedEnvironments?: Config["allowedEnvironments"];
@@ -24,6 +32,7 @@ export interface FullConfig
   qualityGate?: Config["qualityGate"];
   performance?: PerformanceConfig;
   allureService?: ResolvedAllureServiceConfig;
+  hideLabels?: LabelMatcher[];
   categories?: CategoriesConfig;
   globalAttachments?: string[];
   /**
