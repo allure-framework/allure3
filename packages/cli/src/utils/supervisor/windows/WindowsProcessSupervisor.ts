@@ -122,8 +122,6 @@ export class WindowsProcessSupervisor extends ProcessSupervisorBase {
 
   #pendingRequests = new Map<string, PendingRequest>();
 
-  #sigintSeen: boolean = false;
-
   constructor(command: string, options: SupervisedCommandOptions = {}) {
     const pipeName = `win-supervisor-${randomUUID()}`;
     const pipePath = `\\\\.\\pipe\\${pipeName}`;
@@ -150,7 +148,7 @@ export class WindowsProcessSupervisor extends ProcessSupervisorBase {
         this.#disposeControl();
 
         // Use the default Node.js SIGINT handler from now on.
-        process.off("SIGINT", this.#onSigint);
+        this.stopListeningForSigint();
       },
     };
 
@@ -175,7 +173,7 @@ export class WindowsProcessSupervisor extends ProcessSupervisorBase {
       throw new Error("The controller has already been started.");
     }
 
-    process.on("SIGINT", this.#onSigint);
+    this.listenForSigint();
 
     this.#server = createServer((socket) => {
       if (this.#control || this.#failed) {
@@ -272,6 +270,25 @@ export class WindowsProcessSupervisor extends ProcessSupervisorBase {
     return this.#startupInfo;
   }
 
+  protected override interceptSigint() {
+    if (this.#started) {
+      return false;
+    }
+
+    // The target may not exist yet and cannot reliably receive this interrupt.
+    // Abort startup without depending on the control connection being ready.
+    this.#fail(new KnownError("Allure run startup cancelled by Ctrl+C."));
+    return true;
+  }
+
+  protected override handleGracefulStopError(error: unknown) {
+    this.#reportHostError("Unable to gracefully stop the process. Press CTRL+C again to force termination.", error);
+  }
+
+  protected override handleForcedTerminationError(error: unknown) {
+    this.#fail(error);
+  }
+
   protected override async requestGracefulStop(signal: AbortSignal) {
     const control = this.#getRequestControl();
     if (!control) {
@@ -335,35 +352,6 @@ export class WindowsProcessSupervisor extends ProcessSupervisorBase {
       abortController.abort();
     }
   }
-
-  readonly #onSigint = () => {
-    if (!this.#started) {
-      // The target may not exist yet and cannot reliably receive this interrupt.
-      // Abort startup without depending on the control connection being ready.
-      this.#fail(new KnownError("Allure run startup cancelled by Ctrl+C."));
-      return;
-    }
-
-    if (!this.#sigintSeen) {
-      this.#sigintSeen = true;
-      this.stop({ escalate: false }).catch((error) => {
-        this.#reportHostError("Unable to gracefully stop the process. Press CTRL+C again to force termination.", error);
-      });
-      this.reportInterruption();
-      return;
-    }
-
-    // Removing the handler so the third SIGINT will use the default Node.js handler,
-    // which terminates Allure.
-    process.off("SIGINT", this.#onSigint);
-
-    // The second SIGINT terminates the entire job.
-    // Allure has a chance to complete the report generation.
-    void this.terminate().catch((error) => {
-      this.#fail(error);
-    });
-    this.reportForcedInterruption();
-  };
 
   #handleCompletedMessage(message: ShallowKnown<HostTargetCompletedEvent>) {
     this.diagnostic("completed frame received", { rootExitCode: String(message.rootExitCode), reason: message.reason });
@@ -464,7 +452,7 @@ export class WindowsProcessSupervisor extends ProcessSupervisorBase {
     }
   }
 
-  #reportHostError(logMessage: string, errorMessage?: string | Error) {
+  #reportHostError(logMessage: string, errorMessage?: unknown) {
     const reason = errorMessage ? `: ${errorMessage instanceof Error ? errorMessage.message : errorMessage}` : "";
     const message = `${logMessage}${reason}`;
     this.error(
@@ -487,7 +475,7 @@ export class WindowsProcessSupervisor extends ProcessSupervisorBase {
     this.#rejectJobCompletion(error);
     this.#disposeControl();
 
-    process.off("SIGINT", this.#onSigint);
+    this.stopListeningForSigint();
 
     for (const pendingRequest of this.#pendingRequests.values()) {
       pendingRequest.reject(error instanceof Error ? error : new Error(String(error)));

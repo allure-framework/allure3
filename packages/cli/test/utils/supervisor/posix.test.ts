@@ -601,6 +601,58 @@ describe("PosixProcessSupervisor", { skip: process.platform === "win32", timeout
       expect(process.listeners("SIGINT")).not.toContain(supervisorSigintListeners[0]);
       expect(() => process.kill(process.pid, 0)).not.toThrow();
     });
+
+    it("allows the second signal to terminate after the graceful stop request fails", async ({ onTestFinished }) => {
+      const fixture = await SupervisorFixture.create();
+      const treeScriptPath = fixture.resolvePath("three-level-tree.mjs");
+      const supervisor = new PosixProcessSupervisor(process.execPath, {
+        arguments: [treeScriptPath, "0", fixture.workingDirectory, "ignore"],
+        silent: true,
+      });
+      const existingSigintListeners = new Set(process.listeners("SIGINT"));
+
+      onTestFinished(() => fixture.cleanup({ supervisor }));
+
+      await fixture.writeScript("three-level-tree.mjs", nodeScripts.threeLevelTree);
+      await supervisor.start();
+
+      const rootPid = supervisor.process.pid!;
+      const processIds = await Promise.all([0, 1, 2].map((level) => fixture.readProcessId(`level-${level}.pid`)));
+      const supervisorSigintListeners = process
+        .listeners("SIGINT")
+        .filter((listener) => !existingSigintListeners.has(listener));
+      const realKill = process.kill.bind(process);
+      const killMock = vi.spyOn(process, "kill").mockImplementation((pid, signal) => {
+        if (pid === -rootPid && signal === "SIGINT") {
+          throw Object.assign(new Error("Unable to signal the process group."), { code: "EPERM" });
+        }
+
+        return realKill(pid, signal);
+      });
+
+      try {
+        expect(supervisorSigintListeners).toHaveLength(1);
+        expectProcesses(processIds).toBeAlive();
+
+        supervisorSigintListeners[0]!("SIGINT");
+
+        expect(killMock.mock.calls.filter(([pid, signal]) => pid === -rootPid && signal === "SIGINT")).toHaveLength(1);
+        expectProcesses(processIds).toBeAlive();
+
+        supervisorSigintListeners[0]!("SIGINT");
+
+        await expect(supervisor.completion).resolves.toEqual({
+          code: null,
+          signal: "SIGKILL",
+          externalInterruption: "terminated",
+        });
+        expect(supervisor.completed).toBe(true);
+        expectProcesses(processIds).toBeDead();
+        expect(process.listeners("SIGINT")).not.toContain(supervisorSigintListeners[0]);
+      } finally {
+        killMock.mockRestore();
+      }
+    });
   });
 
   describe("SIGTERM", () => {

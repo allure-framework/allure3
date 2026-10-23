@@ -18,7 +18,6 @@ export class PosixProcessSupervisor extends ProcessSupervisorBase {
 
   protected readonly monitor: JobMonitor;
 
-  #sigintSeen: boolean = false;
   #forceTerminated: boolean = false;
 
   constructor(command: string, options: SupervisedCommandOptions = {}) {
@@ -50,7 +49,7 @@ export class PosixProcessSupervisor extends ProcessSupervisorBase {
 
       dispose: () => {
         // Use the default Node.js SIGINT and SIGTERM handlers from now on.
-        process.off("SIGINT", this.#onSigint);
+        this.stopListeningForSigint();
         process.off("SIGTERM", this.#onSigterm);
       },
     };
@@ -61,7 +60,7 @@ export class PosixProcessSupervisor extends ProcessSupervisorBase {
 
     // Override the default Node.js SIGINT handler to gracefully stop the test process
     // on CTRL+C.
-    process.on("SIGINT", this.#onSigint);
+    this.listenForSigint();
 
     // Override the default Node.js SIGTERM handler to ensure the test process termination.
     process.once("SIGTERM", this.#onSigterm);
@@ -143,29 +142,6 @@ export class PosixProcessSupervisor extends ProcessSupervisorBase {
       // This is fine, we can continue normally.
     }
   }
-
-  readonly #onSigint = () => {
-    if (!this.#sigintSeen) {
-      this.#sigintSeen = true;
-      // First SIGINT is forwarded to the process group.
-      this.stop({ escalate: false }).catch((error) => {
-        this.error("Unable to gracefully stop the process. Press CTRL+C again to force termination.", error);
-      });
-      this.reportInterruption();
-      return;
-    }
-
-    // Removing the handler so the third SIGINT will use the default Node.js handler,
-    // which terminates Allure.
-    process.off("SIGINT", this.#onSigint);
-
-    // The second SIGINT terminates the test process group.
-    // Allure has a chance to complete the report generation.
-    void this.terminate().catch((error) => {
-      this.error("Unable to terminate the test process group.", error);
-    });
-    this.reportForcedInterruption();
-  };
 
   readonly #onSigterm = () => {
     void this.terminate()
