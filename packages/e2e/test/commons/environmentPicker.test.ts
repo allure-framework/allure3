@@ -53,6 +53,10 @@ for (const frontend of ["awesome", "dashboard"] as const) {
     const tooltip = page.getByTestId("environment-picker-selected-tooltip");
     const menu = page.getByRole("complementary");
     await expect(trigger).toHaveText(longEnvironmentName);
+    // Model Button's equally specific max-width rule loading after the picker styles.
+    await page.addStyleTag({
+      content: '[data-testid="environment-picker-button"] { max-width: max-content; }',
+    });
     // Awesome's header uses flex:none, so a narrow viewport alone does not
     // constrain its controls. Exercise the picker inside a constrained host;
     // leave the picker and its tooltip wrappers' own styles untouched.

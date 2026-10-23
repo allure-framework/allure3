@@ -9,6 +9,11 @@
     max-width: 100%;
     flex: 1 1 auto;
   }
+
+  // Override Button's intrinsic width regardless of stylesheet order.
+  .environment-picker-button {
+    max-width: 100%;
+  }
 }
 
 .environment-picker-label {
@@ -17,10 +22,6 @@
 
 .environment-picker-trigger {
   min-width: 0;
-  max-width: 100%;
-}
-
-.environment-picker-button {
   max-width: 100%;
 }
 
