@@ -549,7 +549,6 @@ describe("WindowsProcessSupervisor", { skip: process.platform !== "win32", timeo
         fixture.resolvePath("sigint"),
       ],
       silent: true,
-      stopTimeout: 3_000,
     });
 
     onTestFinished(() =>
@@ -607,7 +606,7 @@ describe("WindowsProcessSupervisor", { skip: process.platform !== "win32", timeo
     });
   }, 10_000);
 
-  it("forcibly terminates while graceful stop is pending", async ({ onTestFinished }) => {
+  it("can forcibly terminate while graceful stop is pending", async ({ onTestFinished }) => {
     const fixture = await SupervisorFixture.create();
     const supervisor = new WindowsProcessSupervisor(process.execPath, {
       arguments: [
@@ -616,7 +615,6 @@ describe("WindowsProcessSupervisor", { skip: process.platform !== "win32", timeo
         fixture.resolvePath("sigint"),
       ],
       silent: true,
-      stopTimeout: 30_000,
     });
 
     onTestFinished(() =>
@@ -686,7 +684,6 @@ describe("WindowsProcessSupervisor", { skip: process.platform !== "win32", timeo
         fixture.resolvePath("sigint"),
       ],
       silent: true,
-      stopTimeout: 3_000,
     });
 
     onTestFinished(() =>
@@ -750,7 +747,6 @@ describe("WindowsProcessSupervisor", { skip: process.platform !== "win32", timeo
         fixture.resolvePath("sigint"),
       ],
       silent: true,
-      stopTimeout: 500,
     });
 
     onTestFinished(() =>
@@ -787,7 +783,8 @@ describe("WindowsProcessSupervisor", { skip: process.platform !== "win32", timeo
     });
 
     await step("Waiting for the escalated stop", async () => {
-      await supervisor.stop();
+      await supervisor.stop({ escalate: true, escalationTimeout: 500 });
+      expect(supervisor.completed).toBe(true);
     });
 
     await step("Verify the stop timeout forces termination of target and host", async () => {
@@ -808,7 +805,6 @@ describe("WindowsProcessSupervisor", { skip: process.platform !== "win32", timeo
     const supervisor = new WindowsProcessSupervisor(process.execPath, {
       arguments: [fixture.resolvePath("tree.mjs"), "0", fixture.workingDirectory, "exit"],
       silent: true,
-      stopTimeout: 3_000,
     });
 
     onTestFinished(() =>
@@ -858,7 +854,6 @@ describe("WindowsProcessSupervisor", { skip: process.platform !== "win32", timeo
     const supervisor = new WindowsProcessSupervisor(process.execPath, {
       arguments: [fixture.resolvePath("tree.mjs"), "0", fixture.workingDirectory, "ignore"],
       silent: true,
-      stopTimeout: 500,
     });
 
     onTestFinished(() =>
@@ -884,7 +879,10 @@ describe("WindowsProcessSupervisor", { skip: process.platform !== "win32", timeo
       expect(supervisor.completed).toBe(false);
     });
 
-    await supervisor.stop();
+    await step("Wait for escalated stop", async () => {
+      await supervisor.stop({ escalate: true, escalationTimeout: 500 });
+      expect(supervisor.completed).toBe(true);
+    });
 
     await step("Verify stop timeout escalation removes the entire tree and host", async () => {
       const { code, signal, stdout, stderr } = await wait(supervisor);
