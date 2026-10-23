@@ -121,6 +121,25 @@ export const nodeScripts = {
 
     await delay(10_000);
   `,
+  sigintReporter: `
+    import { rename, writeFile } from "node:fs/promises";
+
+    const [readyPath, sigintPath] = process.argv.slice(2);
+    const writeProcessId = async (targetPath) => {
+      const temporaryPath = targetPath + "." + process.pid + ".tmp";
+
+      await writeFile(temporaryPath, String(process.pid), "utf-8");
+      await rename(temporaryPath, targetPath);
+    };
+
+    process.once("SIGINT", async () => {
+      await writeProcessId(sigintPath);
+      process.exit(20);
+    });
+
+    await writeProcessId(readyPath);
+    setTimeout(() => process.exit(42), 10_000);
+  `,
   writeOutputAndExit: `
     const [stdout, stderr, exitCode] = process.argv.slice(1);
 
