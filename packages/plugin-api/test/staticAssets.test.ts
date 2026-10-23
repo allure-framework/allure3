@@ -70,15 +70,47 @@ describe("report static archives", () => {
     expect(assets.files.get("styles.css")?.toString("utf8")).toBe("body { color: purple; }");
   });
 
-  it("rejects builds containing additional runtime chunks", async () => {
+  it("packs feature metadata for an inlineable build without exposing it as a runtime asset", async () => {
     const sourceDir = await createFixtureBuild();
+    const graph = {
+      version: 1,
+      initial: ["app.js", "styles.css"],
+      base: ["app.js", "app.js.LICENSE.txt", "styles.css"],
+      features: {},
+    };
+    await writeFile(join(sourceDir, "feature-assets.json"), JSON.stringify(graph));
+    const archive = join(fixtureRoot, "report.tar");
 
-    await writeFile(join(sourceDir, "123.app.js"), "chunk");
+    await createReportStaticArchive(sourceDir, archive);
+    const assets = await readReportStaticAssets(archive);
 
-    await expect(createReportStaticArchive(sourceDir, join(fixtureRoot, "report.tar"))).rejects.toThrow(
-      "unexpected asset: 123.app.js",
-    );
+    expect(assets.featureAssets).toEqual(graph);
+    expect([...assets.files.keys()]).toEqual(graph.base);
+    expect(assets.manifest).toEqual({ "main.js": "app.js", "main.css": "styles.css" });
   });
+
+  it.each([false, true])(
+    "rejects additional runtime chunks even with feature metadata (metadata=%s)",
+    async (withMetadata) => {
+      const sourceDir = await createFixtureBuild();
+      await writeFile(join(sourceDir, "123.app.js"), "chunk");
+      if (withMetadata) {
+        await writeFile(
+          join(sourceDir, "feature-assets.json"),
+          JSON.stringify({
+            version: 1,
+            initial: ["app.js"],
+            base: ["app.js", "app.js.LICENSE.txt", "styles.css", "123.app.js"],
+            features: {},
+          }),
+        );
+      }
+
+      await expect(createReportStaticArchive(sourceDir, join(fixtureRoot, "report.tar"))).rejects.toThrow(
+        "unexpected asset: 123.app.js",
+      );
+    },
+  );
 
   it("packs additional runtime chunks for multi-file reports", async () => {
     const sourceDir = await createFixtureBuild();

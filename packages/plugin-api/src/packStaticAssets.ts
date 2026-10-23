@@ -80,6 +80,7 @@ const validateBuild = async (files: StaticFile[], singleFileCompatible: boolean)
   for (const file of files) {
     if (
       file.archivePath !== "manifest.json" &&
+      file.archivePath !== "feature-assets.json" &&
       !manifestAssets.has(file.archivePath) &&
       !file.archivePath.endsWith(".LICENSE.txt")
     ) {

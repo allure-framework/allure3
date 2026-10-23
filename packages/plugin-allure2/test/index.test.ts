@@ -1,5 +1,9 @@
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
+
 import type { GlobalAttachmentLink, TestResult } from "@allurereport/core-api";
 import type { AllureStore, PluginContext, ReportFiles, ResultFile } from "@allurereport/plugin-api";
+import { readReportStaticAssets } from "@allurereport/plugin-api/static-assets";
 import { epic, feature, label, story } from "allure-js-commons";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
@@ -115,7 +119,21 @@ const createContext = () => {
   return { context, files };
 };
 
+const reportStaticArchive = join(dirname(fileURLToPath(import.meta.url)), "../dist/static/report.tar");
+
 describe("Allure2Plugin", () => {
+  it("ships all-base feature metadata for the production UI", async () => {
+    const assets = await readReportStaticAssets(reportStaticArchive);
+
+    expect(assets.featureAssets).toEqual({
+      version: 1,
+      initial: Object.values(assets.manifest).sort(),
+      base: [...assets.files.keys()].sort(),
+      features: {},
+    });
+    expect(assets.files.has("feature-assets.json")).toBe(false);
+  });
+
   it("should generate the Allure 2.46 UI and run-level data", async () => {
     const { context, files } = createContext();
     const plugin = new Allure2Plugin({ reportLanguage: "en" });
@@ -124,6 +142,11 @@ describe("Allure2Plugin", () => {
 
     const mainAsset = [...files.keys()].find((name) => /^assets\/index-[\w-]+\.js$/u.test(name));
 
+    const assets = await readReportStaticAssets(reportStaticArchive);
+    for (const [file, content] of assets.files) {
+      expect(files.get(file)).toEqual(content);
+    }
+    expect(files.has("feature-assets.json")).toBe(false);
     expect(mainAsset).toBeDefined();
     expect(files.get(mainAsset!)?.toString()).toContain("data:image/x-icon;base64,");
     expect(files.get("data/attachments/global-log.txt")?.toString()).toBe("global log");
@@ -133,6 +156,7 @@ describe("Allure2Plugin", () => {
     expect(index).toContain(`src="${mainAsset}"`);
     expect(index).not.toContain("favicon.ico");
     expect(index).not.toContain("window.allureReportData");
+    expect(index).not.toContain("feature-assets.json");
 
     const globals = JSON.parse(files.get("widgets/globals.json")!.toString());
     expect(globals).toEqual({
@@ -202,10 +226,13 @@ describe("Allure2Plugin", () => {
     expect([...files.keys()]).toEqual(["index.html"]);
 
     const index = files.get("index.html")!.toString();
-    expect(index).toContain("data:text/javascript;base64,");
+    const assets = await readReportStaticAssets(reportStaticArchive);
+    const embeddedJs = index.match(/src="data:text\/javascript;base64,([^"\s]+)"/)![1];
+    expect(Buffer.from(embeddedJs, "base64").equals(assets.files.get(assets.manifest["main.js"])!)).toBe(true);
     expect(index).toContain("window.reportData = window.reportData || {};");
     expect(index).toContain('d("widgets/globals.json"');
     expect(index).not.toContain("window.allureReportData");
+    expect(index).not.toContain("feature-assets.json");
   });
 
   it("should assemble single-file report data from separate buffers", async () => {

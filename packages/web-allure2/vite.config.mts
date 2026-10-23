@@ -129,10 +129,9 @@ const emitReportManifest = (): Plugin => ({
   apply: "build",
   enforce: "post",
   generateBundle(_options, bundle) {
-    const entryChunks = Object.values(bundle).filter((output) => output.type === "chunk" && output.isEntry);
-    const styleAssets = Object.values(bundle).filter(
-      (output) => output.type === "asset" && output.fileName.endsWith(".css"),
-    );
+    const assets = Object.values(bundle);
+    const entryChunks = assets.filter((output) => output.type === "chunk" && output.isEntry);
+    const styleAssets = assets.filter((output) => output.type === "asset" && output.fileName.endsWith(".css"));
 
     if (entryChunks.length !== 1) {
       throw new Error(`Expected one Allure 2 UI entry chunk, found ${entryChunks.length}`);
@@ -154,6 +153,21 @@ const emitReportManifest = (): Plugin => ({
       type: "asset",
       fileName: "manifest.json",
       source: JSON.stringify(manifest, null, 2),
+    });
+    // Allure 2 currently has no optional chunks; retain the complete runtime asset set.
+    this.emitFile({
+      type: "asset",
+      fileName: "feature-assets.json",
+      source: JSON.stringify(
+        {
+          version: 1,
+          initial: Object.values(manifest).sort(),
+          base: assets.map((asset) => asset.fileName).sort(),
+          features: {},
+        },
+        null,
+        2,
+      ),
     });
   },
 });
