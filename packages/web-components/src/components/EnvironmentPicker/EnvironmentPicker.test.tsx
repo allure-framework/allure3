@@ -1,6 +1,6 @@
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/preact";
 import { epic, feature, label, story } from "allure-js-commons";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
+import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 vi.hoisted(() => {
   vi.stubGlobal(
@@ -26,6 +26,8 @@ beforeEach(async () => {
   await story("EnvironmentPicker");
   await label("coverage", "ui-components");
 });
+
+afterAll(() => vi.unstubAllGlobals());
 
 const longEnvironmentName = "я".repeat(64);
 
@@ -100,19 +102,6 @@ describe("components > EnvironmentPicker", () => {
 
   beforeEach(() => {
     vi.useFakeTimers();
-    vi.stubGlobal(
-      "matchMedia",
-      vi.fn().mockImplementation(() => ({
-        matches: false,
-        media: "",
-        onchange: null,
-        addListener: vi.fn(),
-        removeListener: vi.fn(),
-        addEventListener: vi.fn(),
-        removeEventListener: vi.fn(),
-        dispatchEvent: vi.fn(),
-      })),
-    );
     const controls = setElementSizeMocks();
     setNarrowViewport = controls.setNarrowViewport;
     restoreElementSizeMocks = controls.restore;
@@ -120,7 +109,6 @@ describe("components > EnvironmentPicker", () => {
 
   afterEach(() => {
     restoreElementSizeMocks();
-    vi.unstubAllGlobals();
     cleanup();
     vi.runOnlyPendingTimers();
     vi.useRealTimers();
@@ -132,15 +120,16 @@ describe("components > EnvironmentPicker", () => {
     const getTooltipTrigger = () => getPickerButton().parentElement?.parentElement as HTMLElement;
     const queryTooltip = () => screen.queryByTestId("environment-picker-selected-tooltip");
 
+    fireEvent.mouseEnter(getTooltipTrigger());
+    await act(async () => vi.advanceTimersByTimeAsync(200));
     expect(queryTooltip()).toBeNull();
+    fireEvent.mouseLeave(getTooltipTrigger());
 
     await act(async () => {
       setNarrowViewport(true);
       fireEvent(window, new Event("resize"));
       await vi.advanceTimersByTimeAsync(16);
     });
-
-    expect(getTooltipTrigger().childElementCount).toBe(2);
 
     const tooltipTrigger = getTooltipTrigger();
     fireEvent.mouseEnter(tooltipTrigger);
@@ -169,6 +158,33 @@ describe("components > EnvironmentPicker", () => {
     fireEvent.keyDown(document, { key: "Escape" });
     expect(screen.queryAllByTestId("environment-picker-item")).toHaveLength(0);
   });
+
+  it.each(["selected", "all"])(
+    "measures a late-mounted %s label without a label change or resize",
+    async (selection) => {
+      setNarrowViewport(true);
+      const props = {
+        ...pickerProps,
+        value: selection === "selected" ? longEnvironmentName : "",
+        labels: { environment: "Environment", all: longEnvironmentName },
+      };
+      const { rerender } = render(<EnvironmentPicker {...props} environments={[]} />);
+      expect(screen.queryByTestId("environment-picker-button")).toBeNull();
+      rerender(
+        <EnvironmentPicker
+          {...props}
+          environments={[
+            { id: longEnvironmentName, name: longEnvironmentName },
+            { id: "short", name: "Short" },
+          ]}
+        />,
+      );
+      const button = screen.getByTestId("environment-picker-button");
+      fireEvent.mouseEnter(button.parentElement!.parentElement!);
+      await act(async () => vi.advanceTimersByTimeAsync(200));
+      expect(screen.queryByTestId("environment-picker-selected-tooltip")).not.toBeNull();
+    },
+  );
 });
 
 it("hides a picker with at most one environment", () => {

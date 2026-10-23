@@ -32,38 +32,49 @@ describe("TooltipWrapper activation", () => {
     vi.useRealTimers();
   });
 
-  it.each(["visible", "pending"])(
-    "disabling a %s tooltip hides it without remounting its trigger or resuming an old timer",
-    async (state) => {
-      vi.useFakeTimers();
-      const tooltip = (active: boolean) => (
-        <TooltipWrapper tooltipText="Details" isTriggerActive={active} data-testid="details">
-          <button>Trigger</button>
-        </TooltipWrapper>
-      );
-      const { rerender } = render(tooltip(true));
-      const button = screen.getByRole("button", { name: "Trigger" });
-      const wrapper = button.parentElement!.parentElement!;
-      fireEvent.mouseEnter(wrapper);
-      if (state === "visible") {
-        await act(async () => {
-          await vi.advanceTimersByTimeAsync(200);
-        });
-        expect(screen.queryByTestId("details")).not.toBeNull();
-      }
-      rerender(tooltip(false));
-      expect(screen.queryByTestId("details")).toBeNull();
-      expect(screen.getByRole("button", { name: "Trigger" })).toBe(button);
-      await act(async () => {
-        await vi.advanceTimersByTimeAsync(250);
-      });
-      rerender(tooltip(true));
-      expect(screen.queryByTestId("details")).toBeNull();
-      fireEvent.mouseEnter(wrapper);
-      await act(async () => {
-        await vi.advanceTimersByTimeAsync(200);
-      });
-      expect(screen.queryByTestId("details")).not.toBeNull();
-    },
-  );
+  it("gates inactive hover content without replacing the trigger", async () => {
+    vi.useFakeTimers();
+    const tooltip = (active: boolean) => (
+      <TooltipWrapper tooltipText="Details" isTriggerActive={active} data-testid="details">
+        <button>Trigger</button>
+      </TooltipWrapper>
+    );
+    const { rerender } = render(tooltip(false));
+    const button = screen.getByRole("button", { name: "Trigger" });
+    const wrapper = button.parentElement!.parentElement!;
+    fireEvent.mouseEnter(wrapper);
+    await act(async () => vi.advanceTimersByTimeAsync(200));
+    expect(screen.queryByTestId("details")).toBeNull();
+    rerender(tooltip(true));
+    fireEvent.mouseEnter(wrapper);
+    await act(async () => vi.advanceTimersByTimeAsync(200));
+    expect(screen.queryByTestId("details")).not.toBeNull();
+    rerender(tooltip(false));
+    expect(screen.queryByTestId("details")).toBeNull();
+    expect(screen.getByRole("button", { name: "Trigger" })).toBe(button);
+  });
+
+  it("preserves the click auto-hide deadline across activation changes", async () => {
+    vi.useFakeTimers();
+    const tooltip = (active: boolean) => (
+      <TooltipWrapper triggerMode="click" tooltipText="Details" isTriggerActive={active} data-testid="details">
+        <button>Trigger</button>
+      </TooltipWrapper>
+    );
+    const { rerender } = render(tooltip(true));
+    const button = screen.getByRole("button", { name: "Trigger" });
+    const wrapper = button.parentElement!.parentElement!;
+    fireEvent.click(button);
+    fireEvent.mouseLeave(wrapper);
+    await act(async () => vi.advanceTimersByTimeAsync(200));
+    rerender(tooltip(false));
+    expect(screen.queryByTestId("details")).toBeNull();
+    rerender(tooltip(true));
+    expect(screen.queryByTestId("details")).not.toBeNull();
+    await act(async () => vi.advanceTimersByTimeAsync(400));
+    expect(screen.queryByTestId("details")).toBeNull();
+    rerender(tooltip(false));
+    rerender(tooltip(true));
+    expect(screen.queryByTestId("details")).toBeNull();
+  });
 });

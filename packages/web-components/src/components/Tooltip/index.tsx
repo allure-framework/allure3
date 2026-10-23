@@ -178,10 +178,6 @@ export const TooltipWrapper: FunctionalComponent<TooltipWrapperProps> = ({
   };
 
   useEffect(() => {
-    if (!isTriggerActive) {
-      setIsVisible(false);
-    }
-
     return () => {
       if (showTimer.current) {
         clearTimeout(showTimer.current);
@@ -190,7 +186,7 @@ export const TooltipWrapper: FunctionalComponent<TooltipWrapperProps> = ({
         clearTimeout(hideTimer.current);
       }
     };
-  }, [isTriggerActive]);
+  }, []);
 
   const tooltipContent = tooltipComponent ? (
     tooltipComponent

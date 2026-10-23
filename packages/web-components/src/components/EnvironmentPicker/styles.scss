@@ -15,6 +15,11 @@
   text-transform: capitalize;
 }
 
+.environment-picker-trigger {
+  min-width: 0;
+  max-width: 100%;
+}
+
 .environment-picker-button {
   max-width: 100%;
 }

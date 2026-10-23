@@ -1,8 +1,8 @@
 import type { EnvironmentIdentity } from "@allurereport/core-api";
 import {
-  loadFromLocalStorage,
   errorMessageFromUnknown,
   fetchReportJsonData,
+  loadFromLocalStorage,
   migrateStoredEnvironmentSelection,
   normalizeEnvironmentsWidget,
 } from "@allurereport/web-commons";

@@ -90,6 +90,8 @@ export const EnvironmentPicker = ({
           return (
             <TooltipWrapper
               tooltipText={selectedEnvironmentLabel}
+              className={styles["environment-picker-trigger"]}
+              triggerClassName={styles["environment-picker-trigger"]}
               isTriggerActive={!isOpened && isSelectedValueTruncated}
               data-testid="environment-picker-selected-tooltip"
             >

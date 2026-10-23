@@ -75,6 +75,7 @@ export const generateAttachmentsFiles = async (
   contentFunction: (id: string) => Promise<ResultFile | undefined>,
 ) => {
   const result = new Map<string, string>();
+  // Preserve partial output on failure: do not read or write later attachments after a rejection.
   for (const { id, ext, ...link } of attachmentLinks) {
     if (link.missed) {
       continue;

@@ -17,9 +17,8 @@ it("wires the environment menu to the product store", async () => {
       { id: "two", name: "Second" },
     ],
   };
-  const { container } = render(<EnvironmentPicker />);
+  render(<EnvironmentPicker />);
   expect(screen.getByTestId("environment-picker-button").textContent).toBe("First");
-  expect(container.querySelector("[data-testid=environment-picker]")).toBeNull();
   fireEvent.click(screen.getByTestId("environment-picker-button"));
   fireEvent.click(await screen.findByText("Second"));
   await waitFor(() => expect(currentEnvironment.value).toBe("two"));

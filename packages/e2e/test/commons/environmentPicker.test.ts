@@ -53,13 +53,26 @@ for (const frontend of ["awesome", "dashboard"] as const) {
     const tooltip = page.getByTestId("environment-picker-selected-tooltip");
     const menu = page.getByRole("complementary");
     await expect(trigger).toHaveText(longEnvironmentName);
-    // Awesome's header keeps its intrinsic width. Constrain the picker owner to
-    // exercise the shared truncated state without changing the product layout.
+    // Awesome's header uses flex:none, so a narrow viewport alone does not
+    // constrain its controls. Exercise the picker inside a constrained host;
+    // leave the picker and its tooltip wrappers' own styles untouched.
     if (frontend === "awesome") {
       await page.getByTestId("environment-picker").evaluate((element) => {
-        element.style.maxWidth = "300px";
+        element.parentElement!.style.maxWidth = "350px";
       });
     }
+    await expect
+      .poll(() =>
+        trigger.evaluate((button) => {
+          const wrappers = [button.parentElement!, button.parentElement!.parentElement!];
+          return (
+            wrappers.every(
+              (wrapper) => button.getBoundingClientRect().width <= wrapper.getBoundingClientRect().width + 1,
+            ) && Array.from(button.querySelectorAll("span")).some((text) => text.scrollWidth > text.clientWidth)
+          );
+        }),
+      )
+      .toBe(true);
     await trigger.hover();
     await expect(tooltip).toBeVisible();
 
@@ -94,7 +107,7 @@ for (const frontend of ["awesome", "dashboard"] as const) {
     await page.setViewportSize({ width: 1680, height: 1000 });
     if (frontend === "awesome") {
       await page.getByTestId("environment-picker").evaluate((element) => {
-        element.style.maxWidth = "";
+        element.parentElement!.style.maxWidth = "";
       });
     }
     await trigger.hover();
