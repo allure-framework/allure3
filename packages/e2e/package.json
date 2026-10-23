@@ -30,7 +30,7 @@
     "@types/lodash.times": "^4.3.9",
     "@types/node": "^20",
     "allure-js-commons": "^3",
-    "allure-playwright": "^3.10.2",
+    "allure-playwright": "^3.14.0",
     "lodash.times": "^4.3.2",
     "rimraf": "^6",
     "typescript": "^5"
