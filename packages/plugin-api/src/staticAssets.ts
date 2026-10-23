@@ -203,3 +203,17 @@ export const copyReportStaticAssets = async (assets: ReportStaticAssets, reportF
 };
 
 export { createSingleFileScripts } from "./singleFileAssets.js";
+
+export const selectReportStaticFiles = (
+  assets: ReportStaticAssets,
+  requiredFeatures?: readonly string[],
+): ReadonlyMap<string, Buffer> => {
+  const graph = assets.featureAssets;
+  // Undefined means requirements are unknown (including live runs); [] selects only base assets.
+  // Unknown feature IDs retain the full archive rather than risk omitting a dependency.
+  if (!graph || !requiredFeatures || requiredFeatures.some((key) => !Object.hasOwn(graph.features, key))) {
+    return assets.files;
+  }
+  const selected = new Set([...graph.base, ...requiredFeatures.flatMap((key) => graph.features[key])]);
+  return new Map([...assets.files].filter(([file]) => selected.has(file)));
+};
