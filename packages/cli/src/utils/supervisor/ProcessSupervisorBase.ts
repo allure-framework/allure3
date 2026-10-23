@@ -42,6 +42,7 @@ export abstract class ProcessSupervisorBase {
   #started: boolean = false;
   #completed: boolean = false;
 
+  #sigintSeen: boolean = false;
   #interrupted: InterruptionLevel | undefined;
 
   protected readonly diagnosticsEnabled: boolean;
@@ -126,10 +127,6 @@ export abstract class ProcessSupervisorBase {
 
   get signal(): Promise<NodeJS.Signals | null> {
     return this.completion.then(({ signal }) => signal);
-  }
-
-  get stopInProgress(): boolean {
-    return Boolean(this.#gracefulStopAbortController);
   }
 
   async start() {
@@ -245,12 +242,43 @@ export abstract class ProcessSupervisorBase {
   protected abstract requestForcedTermination(): void | Promise<void>;
   protected abstract getStartupInfo(): ProcessStartupInfo | undefined;
 
-  protected reportInterruption() {
-    this.#interrupted = "stopped";
+  protected listenForSigint() {
+    process.on("SIGINT", this.#onSigint);
   }
 
-  protected reportForcedInterruption() {
+  protected stopListeningForSigint() {
+    process.off("SIGINT", this.#onSigint);
+  }
+
+  readonly #onSigint = () => {
+    if (this.interceptSigint()) {
+      return;
+    }
+
+    if (!this.#sigintSeen) {
+      this.#sigintSeen = true;
+      this.stop({ escalate: false }).catch((error) => this.handleGracefulStopError(error));
+      this.#interrupted = "stopped";
+      return;
+    }
+
+    // The third SIGINT will use Node.js's default handler and terminate Allure.
+    this.stopListeningForSigint();
+
+    void this.terminate().catch((error) => this.handleForcedTerminationError(error));
     this.#interrupted = "terminated";
+  };
+
+  protected interceptSigint(): boolean {
+    return false;
+  }
+
+  protected handleGracefulStopError(error: unknown) {
+    this.error("Unable to gracefully stop the process. Press CTRL+C again to force termination.", error);
+  }
+
+  protected handleForcedTerminationError(error: unknown) {
+    this.error("Unable to terminate the supervised process.", error);
   }
 
   protected error(message: string, error?: unknown) {
