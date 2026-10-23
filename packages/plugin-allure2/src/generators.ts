@@ -1,11 +1,11 @@
-import type { AttachmentLink, GlobalAttachmentLink, HistoryDataPoint, TestError } from "@allurereport/core-api";
+import type { GlobalAttachmentLink, HistoryDataPoint, TestError } from "@allurereport/core-api";
 import {
   createBaseUrlScript,
   createScriptTag,
   createStylesLinkTag,
   stringifyForInlineScript,
 } from "@allurereport/core-api";
-import type { ExitCode, ReportFiles, ResultFile } from "@allurereport/plugin-api";
+import type { ExitCode, ReportFiles } from "@allurereport/plugin-api";
 import { writeConcurrently } from "@allurereport/plugin-api/internal/report";
 import {
   copyReportStaticAssets,
@@ -450,28 +450,6 @@ export const generateCategoriesTrendData = async (
   };
 
   await writer.writeWidget("categories-trend.json", prependTrendItem(current, history));
-};
-
-export const generateAttachmentsData = async (
-  writer: Allure2DataWriter,
-  attachmentLinks: AttachmentLink[],
-  contentFunction: (id: string) => Promise<ResultFile | undefined>,
-): Promise<Map<string, string>> => {
-  const result = new Map<string, string>();
-  for (const { id, ext, ...link } of attachmentLinks) {
-    if (link.missed) {
-      continue;
-    }
-    const content = await contentFunction(id);
-    if (!content) {
-      continue;
-    }
-
-    const src = `${id}${ext}`;
-    await writer.writeAttachment(src, content);
-    result.set(id, src);
-  }
-  return result;
 };
 
 export const generateGlobalsData = async (

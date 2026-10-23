@@ -7,11 +7,10 @@ import {
   createPluginSummary,
 } from "@allurereport/plugin-api";
 import { preciseTreeLabels } from "@allurereport/plugin-api";
-import { generateHistoryDataPoints } from "@allurereport/plugin-api/internal/report";
+import { generateAttachmentsFiles, generateHistoryDataPoints } from "@allurereport/plugin-api/internal/report";
 
 import {
   generateAllCharts,
-  generateAttachmentsFiles,
   generateEnvironmentJson,
   generatePieChart,
   generateStaticFiles,

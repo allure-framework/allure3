@@ -1,5 +1,3 @@
-import type { Axis } from "d3-axis";
-import { axisBottom } from "d3-axis";
 import type { D3BrushEvent } from "d3-brush";
 import { brushX as d3BrushX } from "d3-brush";
 import type { ScaleTime } from "d3-scale";
@@ -7,7 +5,7 @@ import { select as d3Select } from "d3-selection";
 import type { FunctionComponent } from "preact";
 import { useEffect, useRef } from "preact/hooks";
 
-import { minPositive, useStateRef } from "./utils.js";
+import { d3AxisBottom, minPositive, useStateRef } from "./utils.js";
 
 import styles from "./styles.scss";
 
@@ -22,11 +20,6 @@ export type TimeOverviewProps = {
   onChange?: (selectionStart: Date, selectionEnd: Date) => void;
   onReset?: () => void;
   transitionDuration?: number;
-};
-
-const d3AxisBottom = (): Axis<Date> => {
-  // @ts-expect-error - d3AxisBottom can be called without scale initially
-  return axisBottom();
 };
 
 const DEFAULT_MARGINS = { top: 0, right: 0, bottom: 20, left: 0 };
@@ -85,8 +78,8 @@ export const TimeOverview: FunctionComponent<TimeOverviewProps> = (props) => {
   const onResetRef = useRef(onReset);
 
   // Initialize D3 elements that don't depend on DOM or props
-  const xGridAxisRef = useRef(d3AxisBottom().tickFormat(() => ""));
-  const xAxisAxisRef = useRef(d3AxisBottom().tickPadding(0));
+  const xGridAxisRef = useRef(d3AxisBottom<Date>().tickFormat(() => ""));
+  const xAxisAxisRef = useRef(d3AxisBottom<Date>().tickPadding(0));
   const brushBehaviorRef = useRef(
     d3BrushX<SVGGElement>()
       .handleSize(HANDLE_SIZE)
