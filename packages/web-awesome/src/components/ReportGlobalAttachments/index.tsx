@@ -17,8 +17,9 @@ export const ReportGlobalAttachments = () => {
   const [collapsedEnvs, setCollapsedEnvs] = useState<string[]>([]);
 
   const renderAttachmentList = (attachments: PluginGlobalAttachment[]) => {
+    // The displayed global attachment is referenced by this UI step; the stored link stays unchanged.
     const attachmentSteps: AttachmentTestStepResult[] = attachments.map((attachment) => ({
-      link: attachment,
+      link: { ...attachment, used: true },
       type: "attachment",
     }));
 

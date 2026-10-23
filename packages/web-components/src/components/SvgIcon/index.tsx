@@ -89,7 +89,7 @@ import styles from "./styles.scss";
 type SvgIconComponent = ComponentType<SVGAttributes<SVGSVGElement>>;
 type SvgIconSource = SvgIconComponent | string;
 
-const iconComponents = {
+const iconComponents: Partial<Record<string, ComponentType<SVGAttributes<SVGSVGElement>> | string>> = {
   "amazon": amazon,
   "arrows-chevron-down": arrowsChevronDown,
   "azure": azure,

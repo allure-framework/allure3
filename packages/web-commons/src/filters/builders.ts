@@ -255,5 +255,5 @@ const buildArrayIntersectionFilter = (key: string, values: string[], maxIndex: n
 };
 
 export const buildFilterPredicate = <Keys extends string = string>(filters: Filter<Keys>[]) => {
-  return createAqlPredicate(buildFieldFilters<Keys>(filters)) as (item: Record<Keys, any>) => boolean;
+  return createAqlPredicate(buildFieldFilters<Keys>(filters)) as (item: Partial<Record<Keys, unknown>>) => boolean;
 };

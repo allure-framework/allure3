@@ -283,7 +283,7 @@ export const CategoryTreeItem: FC<CategoryTreeItemProps> = ({ nodeId, store, ord
             retriesStatusChange:
               node.tooltips?.retriesStatusChange ??
               (node.retriesStatusChange ? tTransitions("description.retriesStatusChange") : undefined),
-            resolution: node.resolution ? tTransitions(`description.resolution.${node.resolution}`) : undefined,
+            resolution: node.tooltips?.resolution,
           }
         : node.tooltips;
     return (

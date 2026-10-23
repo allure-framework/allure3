@@ -5,6 +5,7 @@ import type { ComponentChildren, FunctionalComponent } from "preact";
 import * as styles from "./styles.scss";
 
 interface MetadataButtonProps {
+  className?: string;
   isOpened?: boolean;
   setIsOpen: (isOpen: boolean) => void;
   counter?: number;

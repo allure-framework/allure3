@@ -46,7 +46,7 @@ export const TreeList = () => {
       return;
     }
 
-    const node = document.querySelector(`[data-tree-node-id="${focusedId}"]`);
+    const node = document.querySelector<HTMLElement>(`[data-tree-node-id="${focusedId}"]`);
 
     if (!node) {
       return;

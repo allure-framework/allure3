@@ -1,6 +1,6 @@
 import { CodeViewer } from "@allurereport/web-components/CodeViewer";
 import { Button, Code } from "@allurereport/web-components/core";
-import type { Change } from "diff";
+import type { DiffCharsOptionsNonabortable, Change } from "diff";
 import { diffChars, diffLines, diffWords } from "diff";
 import { useState } from "preact/hooks";
 
@@ -8,11 +8,14 @@ import { useI18n } from "@/stores";
 
 import * as styles from "@/components/TestResult/TrError/styles.scss";
 
-const diffFunctions = {
+const diffFunctions: Record<
+  "chars" | "words" | "lines",
+  (expected: string, actual: string, options?: DiffCharsOptionsNonabortable) => Change[]
+> = {
   chars: diffChars,
   words: diffWords,
   lines: diffLines,
-} as const;
+};
 
 type DiffType = keyof typeof diffFunctions;
 type ViewMode = "unified" | "side-by-side";

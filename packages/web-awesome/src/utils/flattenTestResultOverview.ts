@@ -1,4 +1,5 @@
 import type { FlatTreeNode } from "@allurereport/web-commons";
+import type { StepTreeExpansion } from "types";
 
 import type { TrBodyItem } from "@/components/TestResult/bodyItems";
 import { hasTestLevelErrorContent } from "@/components/TestResult/bodyItems";
@@ -7,7 +8,6 @@ import {
   hasStepContent,
   isOpenByDefaultForPolicy,
   isStepOpenedByDefault,
-  type StepTreeExpansion,
 } from "@/components/TestResult/TrSteps/stepTreeExpansion";
 
 export type FlattenTestResultOverviewInput = {

@@ -26,10 +26,10 @@ export type LinkifiedTextProps<Tag extends keyof preact.JSX.IntrinsicElements = 
   text: string;
 };
 
-export const LinkifiedText = <Tag extends keyof preact.JSX.IntrinsicElements = "span">({
-  text,
-  ...textProps
-}: LinkifiedTextProps<Tag>) => {
+export function LinkifiedText<Tag extends keyof preact.JSX.IntrinsicElements = "span">(
+  props: LinkifiedTextProps<Tag>,
+): preact.JSX.Element;
+export function LinkifiedText({ text, ...textProps }: { text: string; [key: string]: unknown }) {
   if (!textContainsUrl(text)) {
     return <Text {...textProps}>{text}</Text>;
   }
@@ -67,4 +67,4 @@ export const LinkifiedText = <Tag extends keyof preact.JSX.IntrinsicElements = "
       })}
     </Text>
   );
-};
+}

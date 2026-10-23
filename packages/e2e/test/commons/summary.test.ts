@@ -135,7 +135,7 @@ test.describe("summary", () => {
     expect(context.pages()).toHaveLength(1);
     expect(context.pages()[0].url()).toBe(pageUrl);
 
-    const [newTab] = await Promise.all([context.waitForEvent("page"), await summaryPage.clickReportCard(0)]);
+    const [newTab] = await Promise.all([context.waitForEvent("page"), summaryPage.clickReportCard(0)]);
 
     expect(context.pages()[0].url()).toBe(pageUrl);
     expect(newTab.url()).not.toBe(`${pageUrl}awesome1/index.html`);

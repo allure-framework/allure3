@@ -166,7 +166,7 @@ const MetaRow = ({ name, value }: { name: string; value?: string }) =>
 
 const nonEmptyLineValue = (value: string | number | undefined) => value !== undefined && value !== "";
 
-const statusText = (status?: number, reason?: string) => [status, reason].filter(nonEmptyLineValue).join(" ");
+const statusText = (status?: string, reason?: string) => [status, reason].filter(nonEmptyLineValue).join(" ");
 
 const firstAvailableGroup = (groups: [string, number][]) => groups.find(([, count]) => count > 0)?.[0] ?? null;
 
