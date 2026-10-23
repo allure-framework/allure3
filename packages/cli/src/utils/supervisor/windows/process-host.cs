@@ -1194,11 +1194,15 @@ namespace Allure.Run.Supervisor.Windows
                 );
 
                 if (success)
+                {
                     return duplicate;
+                }
 
                 int error = Marshal.GetLastWin32Error();
                 if (error != Native.ERROR_INVALID_HANDLE)
+                {
                     throw new Failure("DuplicateHandle", error);
+                }
             }
 
             // If no stdin/stdout/stderr is available, open NUL for reading or writing.
@@ -1213,7 +1217,9 @@ namespace Allure.Run.Supervisor.Windows
             );
 
             if (nul == Native.InvalidHandle)
+            {
                 throw Win32("CreateFileW(NUL)");
+            }
 
             try
             {
@@ -1228,7 +1234,9 @@ namespace Allure.Run.Supervisor.Windows
                 );
 
                 if (!success)
+                {
                     throw Win32("DuplicateHandle(NUL)");
+                }
 
                 return duplicate;
             }
@@ -1454,6 +1462,7 @@ namespace Allure.Run.Supervisor.Windows
         {
             Native.BASIC_ACCOUNTING accounting;
             uint returned;
+
             if (!Native.QueryInformationJobObject(
                 job,
                 Native.JobObjectBasicAccountingInformation,
@@ -1463,6 +1472,7 @@ namespace Allure.Run.Supervisor.Windows
             {
                 throw Win32("QueryInformationJobObject(completion)");
             }
+
             return accounting.ActiveProcesses == 0;
         }
 
