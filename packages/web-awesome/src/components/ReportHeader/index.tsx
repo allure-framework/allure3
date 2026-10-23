@@ -63,14 +63,14 @@ export const ReportHeader = () => {
             const headerStatus = resolveHeaderStatus(errors, exitCode);
             let reportDate = formattedReportTime;
 
-            if (code !== undefined && exitCode.actual !== undefined) {
+            if (code !== undefined && exitCode?.actual !== undefined) {
               // Keep the existing i18n parameter name; the value can now be either a timestamp or run interval.
               reportDate = t("finishedAtBoth", {
                 formattedCreatedAt: formattedReportTime,
                 actual: exitCode.actual,
                 original: exitCode.original,
               });
-            } else if (code !== undefined) {
+            } else if (code !== undefined && exitCode) {
               reportDate = t("finishedAtOriginal", {
                 formattedCreatedAt: formattedReportTime,
                 original: exitCode.original,

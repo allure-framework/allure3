@@ -20,10 +20,10 @@ export const TrParameters: FunctionalComponent<TrParametersProps> = ({ id, param
   const { t } = useI18n("ui");
   const parametersId = id ? `${id}-parameters` : null;
   const parametersShowAllId = id !== null ? `${id}-parameters-showAll` : null;
-  const isOpened = !collapsedTrees.value.has(parametersId);
+  const isOpened = !(parametersId !== null && collapsedTrees.value.has(parametersId));
   const list = parameters ?? [];
   const totalCount = list.length;
-  const showAll = collapsedTrees.value.has(parametersShowAllId);
+  const showAll = parametersShowAllId !== null && collapsedTrees.value.has(parametersShowAllId);
   const visibleList = showAll ? list : list.slice(0, PARAMETERS_VISIBLE_LIMIT);
 
   return (

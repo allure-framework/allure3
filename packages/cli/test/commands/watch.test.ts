@@ -50,7 +50,7 @@ vi.mock("node:console", async (importOriginal) => ({
   error: vi.fn(),
 }));
 vi.mock("node:process", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("node:process")>();
+  const actual = await importOriginal<typeof import("node:process") & { default: typeof import("node:process") }>();
   const exitFn = (...args: unknown[]) => exitMock(...args);
   const processProxy = new Proxy(actual.default, {
     get: (target, prop, receiver) => (prop === "exit" ? exitFn : Reflect.get(target, prop, receiver)),

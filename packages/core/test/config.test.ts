@@ -793,7 +793,7 @@ describe("resolveConfig", () => {
       },
     });
 
-    expect(resolved.plugins.map(({ id }) => id)).toEqual(["awesome", "agent"]);
+    expect(resolved.plugins?.map(({ id }) => id)).toEqual(["awesome", "agent"]);
   });
 
   it("should not duplicate agent when explicitly configured", async () => {
@@ -810,7 +810,7 @@ describe("resolveConfig", () => {
       },
     });
 
-    expect(resolved.plugins.filter(({ id }) => id === "agent")).toHaveLength(1);
+    expect(resolved.plugins?.filter(({ id }) => id === "agent")).toHaveLength(1);
   });
 
   it("should honor disabled agent config", async () => {
@@ -964,7 +964,7 @@ describe("resolveConfig", () => {
     });
 
     expect(resolved.environment).toBe("default");
-    expect(Object.keys(resolved.environments)).toEqual(["foo"]);
+    expect(Object.keys(resolved.environments ?? {})).toEqual(["foo"]);
   });
 
   it("should accept environment ID in the public environment field", async () => {
@@ -979,7 +979,7 @@ describe("resolveConfig", () => {
     });
 
     expect(resolved.environment).toBe("qa_env");
-    expect(Object.keys(resolved.environments)).toEqual(["qa_env"]);
+    expect(Object.keys(resolved.environments ?? {})).toEqual(["qa_env"]);
     expect(resolved.environments?.qa_env?.name).toBe("QA Env");
   });
 
@@ -1007,7 +1007,7 @@ describe("resolveConfig", () => {
       },
     });
 
-    expect(Object.keys(resolved.environments)).toEqual(["compat_env"]);
+    expect(Object.keys(resolved.environments ?? {})).toEqual(["compat_env"]);
   });
 
   it("should reject duplicate display names across explicit environment ids", async () => {
@@ -1038,8 +1038,8 @@ describe("resolveConfig", () => {
       },
     });
 
-    expect(Object.keys(resolved.environments)).toEqual(["QA"]);
-    expect(resolved.environments.QA?.name).toBe("QA");
+    expect(Object.keys(resolved.environments ?? {})).toEqual(["QA"]);
+    expect(resolved.environments?.QA?.name).toBe("QA");
   });
 
   it("should reject duplicate ids after trimming surrounding spaces", async () => {

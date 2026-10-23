@@ -12,7 +12,7 @@ export type TestResultHistoryViewProps = {
 };
 
 const TestResultHistoryView: FunctionalComponent<TestResultHistoryViewProps> = ({ testResult }) => {
-  const { history } = testResult ?? {};
+  const { history = [] } = testResult ?? {};
   const { t } = useI18n("empty");
 
   return (

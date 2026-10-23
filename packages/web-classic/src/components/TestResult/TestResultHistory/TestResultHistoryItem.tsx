@@ -17,7 +17,7 @@ export const TestResultHistoryItem: FunctionalComponent<{
 }> = ({ testResultItem }) => {
   const { status, message, trace, stop, duration, id } = testResultItem;
   const [isOpened, setIsOpen] = useState(false);
-  const convertedStop = timestampToDate(stop);
+  const convertedStop = stop !== undefined ? timestampToDate(stop) : "";
   const formattedDuration = formatDuration(duration as number);
   const { t } = useI18n("controls");
 

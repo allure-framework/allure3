@@ -44,7 +44,8 @@ describe("report context", () => {
     const awesomeDir = join(output, "awesome");
     const classicDir = join(output, "classic");
     const widgetsDir = join(output, "awesome", "widgets");
-    const registry: TestResultRegistry = {
+    // This raw on-disk fixture deliberately contains malformed registry entries.
+    const registry = {
       byId: {
         "1": { id: "1", name: "passed", duration: 10, status: "passed", environment: "ubuntu" },
         "2": { id: "2", name: "failed", duration: 20, status: "failed", environment: "ubuntu" },

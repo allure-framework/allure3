@@ -29,7 +29,10 @@ const createTestResult = (
   ({
     id,
     name: `Test ${id}`,
-    retryHash,
+    retryHash: retryHash ?? null,
+    testCaseHash: null,
+    parametersHash: "",
+    environmentHash: null,
     status,
     duration,
     environment,
@@ -42,7 +45,7 @@ const createTestResult = (
     links: [],
     steps: [],
     sourceMetadata: { readerId: "", metadata: {} },
-  }) as TestResult;
+  }) satisfies TestResult;
 
 beforeEach(async () => {
   await epic("coverage");
@@ -54,7 +57,7 @@ beforeEach(async () => {
 
 describe("maxFailuresRule", () => {
   const setState = vi.fn();
-  const state: QualityGateRuleState<number> = {
+  const state: QualityGateRuleState = {
     getResult: () => 0,
     setResult: (value, testResults) => setState(value, testResults),
   };
@@ -119,7 +122,7 @@ describe("maxFailuresRule", () => {
 
 describe("minTestsCountRule", () => {
   const setState = vi.fn();
-  const state: QualityGateRuleState<number> = {
+  const state: QualityGateRuleState = {
     getResult: () => 0,
     setResult: (value, testResults) => setState(value, testResults),
   };
@@ -159,7 +162,7 @@ describe("minTestsCountRule", () => {
 
 describe("newTestsRule", () => {
   const setState = vi.fn();
-  const state: QualityGateRuleState<number> = {
+  const state: QualityGateRuleState = {
     getResult: () => 0,
     setResult: (value, testResults) => setState(value, testResults),
   };
@@ -205,9 +208,10 @@ describe("newTestsRule", () => {
 
   it("should keep passing when previous batches already found new tests", async () => {
     let count = 1;
-    const accumulatedState: QualityGateRuleState<number> = {
+    const accumulatedState: QualityGateRuleState = {
       getResult: () => count,
       setResult: (value, testResults) => {
+        if (typeof value !== "number") throw new TypeError("Expected a numeric quality gate count");
         count = value;
         setState(value, testResults);
       },
@@ -260,7 +264,7 @@ describe("successRateRule", () => {
   });
 
   const setState = vi.fn();
-  const state: QualityGateRuleState<{ totalCount: number; passedCount: number }> = {
+  const state: QualityGateRuleState = {
     getResult: () => ({ totalCount: 0, passedCount: 0 }),
     setResult: (value, testResults) => setState(value, testResults),
   };
@@ -336,7 +340,7 @@ describe("successRateRule", () => {
 
 describe("maxDurationRule", () => {
   const setState = vi.fn();
-  const state: QualityGateRuleState<number> = {
+  const state: QualityGateRuleState = {
     getResult: () => 0,
     setResult: (value, testResults) => setState(value, testResults),
   };
@@ -448,7 +452,7 @@ describe("maxDurationRule", () => {
 });
 
 describe("allTestsContainEnvRule", () => {
-  const state: QualityGateRuleState<number> = {
+  const state: QualityGateRuleState = {
     getResult: () => undefined,
     setResult: () => {},
   };
@@ -515,7 +519,7 @@ describe("allTestsContainEnvRule", () => {
 
 describe("environmentsTestedRule", () => {
   it("should pass when all required environments are present in the run", async () => {
-    const state: QualityGateRuleState<string[]> = {
+    const state: QualityGateRuleState = {
       getResult: () => undefined,
       setResult: () => {},
     };
@@ -535,7 +539,7 @@ describe("environmentsTestedRule", () => {
   });
 
   it("should fail when some required environments are missing", async () => {
-    const state: QualityGateRuleState<string[]> = {
+    const state: QualityGateRuleState = {
       getResult: () => undefined,
       setResult: () => {},
     };
@@ -555,7 +559,7 @@ describe("environmentsTestedRule", () => {
   });
 
   it("should fail when all required environments are missing", async () => {
-    const state: QualityGateRuleState<string[]> = {
+    const state: QualityGateRuleState = {
       getResult: () => undefined,
       setResult: () => {},
     };
@@ -572,7 +576,7 @@ describe("environmentsTestedRule", () => {
   });
 
   it("should pass when expected list is empty", async () => {
-    const state: QualityGateRuleState<string[]> = {
+    const state: QualityGateRuleState = {
       getResult: () => undefined,
       setResult: () => {},
     };
@@ -593,7 +597,7 @@ describe("environmentsTestedRule", () => {
       stored = value;
     });
 
-    const state: QualityGateRuleState<string[]> = {
+    const state: QualityGateRuleState = {
       getResult: () => stored,
       setResult: setState,
     };
@@ -674,13 +678,13 @@ describe("default rules success messages", () => {
 });
 
 describe("metric quality gate rules", () => {
-  const state: QualityGateRuleState<never> = {
+  const state: QualityGateRuleState = {
     getResult: () => undefined,
     setResult: () => {},
   };
   const basePayload = {
     trs: [] as TestResult[],
-    knownIssues: [] as KnownTestFailure[],
+    knownIssues: [] as TestResult[],
     state,
   };
 

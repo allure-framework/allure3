@@ -25,7 +25,7 @@ interface TreeItemProps {
   marked?: boolean;
   focused?: boolean;
   navigateTo: (id: string) => void;
-  tooltips?: Record<string, string>;
+  tooltips?: Partial<Record<string, string>>;
   parameters?: string[];
 }
 

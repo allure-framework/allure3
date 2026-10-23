@@ -9,7 +9,7 @@ import { AttachmentImage } from "@/components/TestResult/TestResultSteps/attachm
 import { AttachmentVideo } from "@/components/TestResult/TestResultSteps/attachmentVideo";
 import { HtmlAttachmentPreview } from "@/components/TestResult/TestResultSteps/HtmlAttachmentPreview";
 import { EmptyComponent } from "@/components/TestResult/TestResultSteps/wrongAttachment";
-import { type Attachments, attachmentType, fetchAttachment } from "@/utils/attachments";
+import { attachmentType, fetchAttachment } from "@/utils/attachments";
 
 import * as styles from "./styles.scss";
 
@@ -42,12 +42,14 @@ export const Attachment: FunctionalComponent<AttachmentTestStepResultProps> = ({
   const {
     link: { contentType, id, ext },
   } = item;
-  const [attachment, setAttachment] = useState<Attachments>(null);
+  const [attachment, setAttachment] = useState<Awaited<ReturnType<typeof fetchAttachment>> | null>(null);
   const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState(false);
   const attachmentComponent = attachmentType(contentType);
-  const CurrentComponent = componentsByAttachmentType[attachmentComponent.type];
-  const CurrentPreviewComponent = previewComponentsByAttachmentType[attachmentComponent.type];
+  const CurrentComponent = attachmentComponent.type ? componentsByAttachmentType[attachmentComponent.type] : undefined;
+  const CurrentPreviewComponent = attachmentComponent.type
+    ? previewComponentsByAttachmentType[attachmentComponent.type]
+    : undefined;
 
   useLayoutEffect(() => {
     let active = true;
@@ -99,7 +101,12 @@ export const Attachment: FunctionalComponent<AttachmentTestStepResultProps> = ({
     !!CurrentPreviewComponent &&
     (defaultRenderedPreview ? !previewable || modalData.value.preview : !!(previewable && modalData.value.preview));
 
-  if (DUAL_VIEW_ATTACHMENT_TYPES.has(attachmentComponent.type) && CurrentPreviewComponent && CurrentComponent) {
+  if (
+    attachmentComponent.type !== null &&
+    DUAL_VIEW_ATTACHMENT_TYPES.has(attachmentComponent.type) &&
+    CurrentPreviewComponent &&
+    CurrentComponent
+  ) {
     return (
       <div className={styles.attachmentViewStack}>
         <div className={styles.attachmentViewPane} hidden={showPreview}>

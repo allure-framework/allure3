@@ -1059,6 +1059,7 @@ __metadata:
     "@types/markdown-it": "npm:^14.1.2"
     "@types/md5": "npm:^2.3.6"
     "@types/node": "npm:^20.19.43"
+    "@types/postcss-import": "npm:^14.0.3"
     "@types/prismjs": "npm:^1.26.6"
     "@types/sortablejs": "npm:^1.15.9"
     "@vitest/coverage-istanbul": "npm:^5.0.5"
@@ -7157,6 +7158,15 @@ __metadata:
   dependencies:
     undici-types: "npm:~7.18.0"
   checksum: 10/cfa6ed1e16c4624d1e83b09aeb72a2f50a7e17d837bf5a1259a52e346f33a693afd289402d3b6118ce3abea7aff35f2a4f13a0284b96bc5807a50f0e22e1ec77
+  languageName: node
+  linkType: hard
+
+"@types/postcss-import@npm:^14.0.3":
+  version: 14.0.3
+  resolution: "@types/postcss-import@npm:14.0.3"
+  dependencies:
+    postcss: "npm:^8.0.0"
+  checksum: 10/f967b84c8921520e4ac7c481bc9ff90490139303796c940d4160621532f64c8be37e00bb3c2dddf322217001907bed6f886650585378dddbcdb596a40b09292b
   languageName: node
   linkType: hard
 
@@ -15703,7 +15713,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"postcss@npm:^8.4.40, postcss@npm:^8.5.25, postcss@npm:^8.5.28, postcss@npm:^8.5.29":
+"postcss@npm:^8.0.0, postcss@npm:^8.4.40, postcss@npm:^8.5.25, postcss@npm:^8.5.28, postcss@npm:^8.5.29":
   version: 8.5.31
   resolution: "postcss@npm:8.5.31"
   dependencies:

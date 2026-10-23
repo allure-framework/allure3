@@ -1,5 +1,6 @@
 import { copyToClipboard, getReportOptions } from "@allurereport/web-commons";
 import { cleanup, fireEvent, render, screen } from "@testing-library/preact";
+import type { ComponentChildren } from "preact";
 import { type Mock, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 import { ReportMetadata } from "@/components/ReportMetadata";
@@ -51,14 +52,14 @@ vi.mock("@/stores/locale", async (importOriginal) => {
 
 vi.mock("@allurereport/web-components/core", () => {
   const Menu = Object.assign(
-    (props: { children: unknown; menuTrigger: (props: { onClick: () => void }) => unknown }) => (
+    (props: { children: ComponentChildren; menuTrigger: (props: { onClick: () => void }) => unknown }) => (
       <>
         {props.menuTrigger({ onClick: vi.fn() })}
         {props.children}
       </>
     ),
     {
-      Section: (props: { children: unknown }) => <>{props.children}</>,
+      Section: (props: { children: ComponentChildren }) => <>{props.children}</>,
     },
   );
 
@@ -75,8 +76,8 @@ vi.mock("@allurereport/web-components/core", () => {
       props.renderData(props.transformData ? props.transformData(props.source.value?.data) : props.source.value?.data),
     Menu,
     SvgIcon: () => <span />,
-    Text: (props: { children: unknown }) => <span>{props.children}</span>,
-    TooltipWrapper: (props: { children: unknown }) => props.children,
+    Text: (props: { children: ComponentChildren }) => <span>{props.children}</span>,
+    TooltipWrapper: (props: { children: ComponentChildren }) => props.children,
     allureIcons: {
       lineGeneralCopy3: "copy",
       lineGeneralLinkExternal: "external",

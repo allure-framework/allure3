@@ -10,19 +10,9 @@ import { useI18n } from "@/stores/locale";
 
 import * as styles from "./styles.scss";
 
-const typeMap = {
-  step: TestResultStep,
-  attachment: TestResultAttachment,
-} as const;
-
 export type TestResultStepsProps = {
   steps: ReportTestResult["steps"];
 };
-
-type StepComponentProps = FunctionalComponent<{
-  item?: ReportTestStepResult;
-  stepIndex?: number;
-}>;
 
 export const TestResultSteps: FunctionalComponent<TestResultStepsProps> = ({ steps }) => {
   const [isOpened, setIsOpen] = useState(true);
@@ -40,9 +30,11 @@ export const TestResultSteps: FunctionalComponent<TestResultStepsProps> = ({ ste
       {isOpened && (
         <div className={styles["test-result-steps-root"]}>
           {steps?.map((item: ReportTestStepResult, index) => {
-            const { type } = item;
-            const StepComponent: StepComponentProps = typeMap[type];
-            return StepComponent ? <StepComponent item={item} stepIndex={index + 1} key={index} /> : null;
+            return item.type === "step" ? (
+              <TestResultStep item={item} stepIndex={index + 1} key={index} />
+            ) : (
+              <TestResultAttachment item={item} stepIndex={index + 1} key={index} />
+            );
           })}
         </div>
       )}

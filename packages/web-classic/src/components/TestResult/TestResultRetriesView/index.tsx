@@ -7,7 +7,7 @@ import { useI18n } from "@/stores";
 import * as styles from "@/components/TestResult/TestResultHistory/styles.scss";
 
 export const TestResultRetriesView: FunctionalComponent<{ testResult: ReportTestResult }> = ({ testResult }) => {
-  const { retries } = testResult ?? {};
+  const { retries = [] } = testResult ?? {};
   const { t } = useI18n("empty");
 
   return (

@@ -17,7 +17,7 @@ const App = () => (
   </div>
 );
 
-const rootElement = document.getElementById("app");
+const rootElement = document.getElementById("app")!;
 
 document.addEventListener("DOMContentLoaded", () => {
   if (isMac) {

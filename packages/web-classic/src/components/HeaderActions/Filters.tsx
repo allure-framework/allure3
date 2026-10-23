@@ -13,7 +13,7 @@ export const Filters = () => {
   return (
     <Menu
       menuTrigger={({ isOpened, onClick }) => (
-        <div className={hasFilter && styles.filtersBtnWithFilters}>
+        <div className={hasFilter ? styles.filtersBtnWithFilters : undefined}>
           <Button
             icon={allureIcons.lineGeneralSettings1}
             text={t("more-filters")}

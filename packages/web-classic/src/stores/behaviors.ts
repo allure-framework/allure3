@@ -1,4 +1,4 @@
-import { fetchReportJsonData } from "@allurereport/web-commons";
+import { errorMessageFromUnknown, fetchReportJsonData } from "@allurereport/web-commons";
 import { computed, signal } from "@preact/signals";
 import type { ReportStatus, ReportTree, ReportTreeGroup } from "types";
 
@@ -22,7 +22,7 @@ export const behaviorsStore = signal<StoreSignalState<ReportTree>>({
   data: undefined,
 });
 
-export const noTests = computed(() => !Object.keys(behaviorsStore?.value?.data?.leavesById).length);
+export const noTests = computed(() => !Object.keys(behaviorsStore.value.data?.leavesById ?? {}).length);
 
 export const behaviorsFiltersStore = signal<TreeFiltersState>({
   query: "",
@@ -37,7 +37,8 @@ export const behaviorsFiltersStore = signal<TreeFiltersState>({
 });
 
 export const filteredBehaviors = computed(() => {
-  const { root, leavesById, groupsById } = behaviorsStore.value.data;
+  // The consuming view renders this computed tree only after its Loadable has data.
+  const { root, leavesById, groupsById } = behaviorsStore.value.data!;
 
   return createRecursiveTree({
     group: root as ReportTreeGroup,
@@ -90,7 +91,7 @@ export const fetchBehaviorsData = async () => {
   } catch (e) {
     behaviorsStore.value = {
       ...behaviorsStore.value,
-      error: e.message,
+      error: errorMessageFromUnknown(e),
       loading: false,
     };
   }

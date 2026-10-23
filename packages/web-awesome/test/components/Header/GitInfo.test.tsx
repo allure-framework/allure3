@@ -1,6 +1,7 @@
 import { getReportOptions } from "@allurereport/web-commons";
 import { cleanup, render, screen } from "@testing-library/preact";
 import { epic, feature, label, story } from "allure-js-commons";
+import type { ComponentChildren } from "preact";
 import { type Mock, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 beforeEach(async () => {
@@ -15,16 +16,16 @@ import { GitInfo } from "@/components/Header/GitInfo";
 const COMMIT = "0a1b2c3d4e5f60718293a4b5c6d7e8f901234567";
 
 vi.mock("@allurereport/web-components/core", () => {
-  const Menu = (props: { menuTrigger: (p: object) => unknown; children: unknown }) => (
+  const Menu = (props: { menuTrigger: (p: object) => unknown; children: ComponentChildren }) => (
     <div>
       {props.menuTrigger({ isOpened: false, onClick: () => {} })}
       {props.children}
     </div>
   );
 
-  Menu.Section = (props: { children: unknown }) => <>{props.children}</>;
+  Menu.Section = (props: { children: ComponentChildren }) => <>{props.children}</>;
   Menu.Item = (props: {
-    children: unknown;
+    children: ComponentChildren;
     href?: string;
     onClick?: () => void;
     leadingIcon?: string;
@@ -57,7 +58,7 @@ vi.mock("@allurereport/web-components/core", () => {
         {props.text}
       </button>
     ),
-    Text: (props: { children: unknown }) => <span>{props.children}</span>,
+    Text: (props: { children: ComponentChildren }) => <span>{props.children}</span>,
     MiddleEllipsis: (props: { text: string }) => <span>{props.text}</span>,
     SvgIcon: (props: { "id": string; "data-testid"?: string }) => (
       <i data-testid={props["data-testid"]} data-id={props.id} />

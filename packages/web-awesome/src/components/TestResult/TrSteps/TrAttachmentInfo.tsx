@@ -14,7 +14,7 @@ import { isModalOpen, openModal } from "@/stores/modal";
 import * as styles from "@/components/TestResult/TrSteps/styles.scss";
 
 interface TrAttachmentInfo {
-  item?: AttachmentTestStepResult;
+  item: AttachmentTestStepResult;
   shouldExpand?: boolean;
   isPreviewable?: boolean;
   showPreview?: boolean;
@@ -84,8 +84,8 @@ export const TrAttachmentInfo: FunctionalComponent<TrAttachmentInfo> = ({
 
   return (
     <div className={styles["item-info"]}>
-      {Boolean(contentType) && <Text size={"s"}>{contentType}</Text>}
-      {Boolean(contentSize) && <Text size={"s"}>{contentSize}</Text>}
+      {!!contentType && <Text size={"s"}>{contentType}</Text>}
+      {!!contentSize && <Text size={"s"}>{contentSize}</Text>}
       <div className={styles["item-buttons"]}>
         {isPwTrace && <PwTraceButton link={item.link} />}
         {isPreviewable && onPreviewToggle && (

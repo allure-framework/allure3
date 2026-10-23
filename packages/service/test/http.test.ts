@@ -291,10 +291,9 @@ describe("uploadReport", () => {
 
     expect(fsMock.stat).toHaveBeenCalledTimes(3);
     expect(addReportFiles).toHaveBeenCalledTimes(2);
-    expect(addReportFiles.mock.calls.map(([payload]) => payload.files.map(({ filename }) => filename))).toEqual([
-      ["index.html"],
-      ["summary.json", "widgets/summary.json"],
-    ]);
+    expect(
+      addReportFiles.mock.calls.map(([payload]) => payload.files.map(({ filename }: { filename: string }) => filename)),
+    ).toEqual([["index.html"], ["summary.json", "widgets/summary.json"]]);
   });
 
   it("uses configured concurrency", async () => {

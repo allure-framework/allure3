@@ -7,10 +7,23 @@
     "esModuleInterop": true,
     "removeComments": true,
     "declaration": true,
-    "lib": ["ESNext"],
-    "types": ["node"],
+    "lib": [
+      "ESNext"
+    ],
+    "types": [
+      "node"
+    ],
     "module": "NodeNext",
     "target": "ES2020",
     "skipLibCheck": true
-  }
+  },
+  "files": [],
+  "references": [
+    {
+      "path": "./packages/web-components/tsconfig.test.json"
+    },
+    {
+      "path": "./packages/web-allure2/tsconfig.e2e.json"
+    }
+  ]
 }

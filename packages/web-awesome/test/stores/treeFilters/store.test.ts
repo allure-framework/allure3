@@ -1,6 +1,7 @@
 import { type ResolutionCategory, type TestStatus, type TestStatusTransition } from "@allurereport/core-api";
 import { buildFilterPredicate, setParams } from "@allurereport/web-commons";
 import { epic, feature, label, story } from "allure-js-commons";
+import type { ReportTreeLeaf } from "types";
 import { beforeEach, describe, expect, it } from "vite-plus/test";
 
 import type { ResolutionFilterValue } from "../../../src/stores/treeFilters/constants.js";
@@ -172,6 +173,7 @@ const leaf = (params: {
   retry?: boolean;
   resolution?: ResolutionCategory;
   resolutionStatus?: ResolutionFilterValue;
+  resolutionState?: ReportTreeLeaf["resolutionState"];
   transition?: TestStatusTransition;
 }) => ({
   nodeId: "node",

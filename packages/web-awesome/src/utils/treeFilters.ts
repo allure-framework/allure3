@@ -17,20 +17,19 @@ import type { SortBy } from "@/stores/treeSort";
 import type { ReportRecursiveTree, ReportTree, ReportTreeGroup, ReportTreeLeaf } from "../../types";
 
 const leafComparatorByTreeSortBy = (sortBy: SortBy = "status,asc"): Comparator<TreeLeaf<ReportTreeLeaf>> => {
-  const typedCompareBy = compareBy<TreeLeaf<ReportTreeLeaf>>;
   switch (sortBy) {
     case "order,asc":
     case "order,desc":
-      return typedCompareBy("groupOrder", ordinal());
+      return compareBy<TreeLeaf<ReportTreeLeaf>, "groupOrder">("groupOrder", ordinal());
     case "duration,asc":
     case "duration,desc":
-      return typedCompareBy("duration", ordinal());
+      return compareBy<TreeLeaf<ReportTreeLeaf>, "duration">("duration", ordinal());
     case "name,asc":
     case "name,desc":
-      return typedCompareBy("name", alphabetically());
+      return compareBy<TreeLeaf<ReportTreeLeaf>, "name">("name", alphabetically());
     case "status,asc":
     case "status,desc":
-      return typedCompareBy("status", byStatus());
+      return compareBy<TreeLeaf<ReportTreeLeaf>, "status">("status", byStatus());
     default:
       // eslint-disable-next-line no-console
       console.warn(`unsupported comparator ${sortBy as string}`);
@@ -39,20 +38,22 @@ const leafComparatorByTreeSortBy = (sortBy: SortBy = "status,asc"): Comparator<T
 };
 
 const groupComparatorByTreeSortBy = (sortBy: SortBy = "status,asc"): Comparator<ReportRecursiveTree> => {
-  const typedCompareBy = compareBy<ReportRecursiveTree>;
   switch (sortBy) {
     case "name,desc":
     case "name,asc":
-      return typedCompareBy("name", alphabetically());
+      return compareBy<ReportRecursiveTree, "name">("name", alphabetically());
     case "order,desc":
     case "order,asc":
-      return andThen([typedCompareBy("groupOrder", ordinal()), typedCompareBy("minStart", ordinal())]);
+      return andThen([
+        compareBy<ReportRecursiveTree, "groupOrder">("groupOrder", ordinal()),
+        compareBy<ReportRecursiveTree, "minStart">("minStart", ordinal()),
+      ]);
     case "duration,desc":
     case "duration,asc":
-      return typedCompareBy("duration", ordinal());
+      return compareBy<ReportRecursiveTree, "duration">("duration", ordinal());
     case "status,desc":
     case "status,asc":
-      return typedCompareBy("statistic", byStatistic());
+      return compareBy<ReportRecursiveTree, "statistic">("statistic", byStatistic());
     default:
       // eslint-disable-next-line no-console
       console.warn(`unsupported comparator ${sortBy as string}`);
@@ -153,10 +154,10 @@ export const createRecursiveTree = (payload: {
   });
 
   const duration =
-    leaves.reduce((acc, leaf) => acc + (leaf.duration ?? 0), 0) + trees.reduce((acc, rt) => acc + rt.duration, 0);
+    leaves.reduce((acc, leaf) => acc + (leaf.duration ?? 0), 0) + trees.reduce((acc, rt) => acc + rt.duration!, 0);
 
   const leafMinOrder = leaves.reduce((acc, leaf) => Math.min(acc, leaf.groupOrder ?? Infinity), Infinity);
-  const treeMinOrder = trees.reduce((acc, rt) => Math.min(acc, rt.groupOrder), Infinity);
+  const treeMinOrder = trees.reduce((acc, rt) => Math.min(acc, rt.groupOrder!), Infinity);
   const groupOrder = Math.min(leafMinOrder, treeMinOrder);
   const leafMinStart = leaves.reduce((acc, leaf) => Math.min(acc, leaf.start ?? Infinity), Infinity);
   const treeMinStart = trees.reduce((acc, rt) => Math.min(acc, rt.minStart ?? Infinity), Infinity);

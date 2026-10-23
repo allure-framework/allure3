@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 
 import type { TestResult } from "@allurereport/core-api";
-import { createElement, render } from "preact";
+import { createElement, render, type ComponentChildren } from "preact";
 import { act } from "preact/test-utils";
 import { afterEach, expect, it, vi } from "vite-plus/test";
 
@@ -10,9 +10,9 @@ import { TestResultRetriesItem } from "../src/components/TestResult/TestResultRe
 
 vi.mock("@allurereport/web-components", () => ({
   IconButton: () => null,
-  Text: ({ children }) => createElement("span", null, children),
-  Code: ({ children, ...props }) => createElement("code", props, children),
-  TooltipWrapper: ({ children }) => children,
+  Text: ({ children }: { children: ComponentChildren }) => createElement("span", null, children),
+  Code: ({ children, ...props }: { children: ComponentChildren }) => createElement("code", props, children),
+  TooltipWrapper: ({ children }: { children: ComponentChildren }) => children,
   allureIcons: {},
 }));
 vi.mock("@/components/Tree/TreeItemIcon", () => ({ default: () => null }));
@@ -48,7 +48,13 @@ it.each(["history", "retry"])("shows the stored error message and trace for a %s
     render(
       kind === "history"
         ? createElement(TestResultHistoryItem, {
-            testResultItem: { ...result, ...result.error, error: undefined, url: "#result" },
+            testResultItem: {
+              id: result.id,
+              name: result.name,
+              status: result.status,
+              ...result.error,
+              url: "#result",
+            },
           })
         : createElement(TestResultRetriesItem, { testResultItem: result, attempt: 1, totalAttempts: 2 }),
       container,

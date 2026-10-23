@@ -89,7 +89,7 @@ export const TrDiff = ({ expected, actual }: { expected: string; actual: string 
             {t("viewMode")}:
           </Code>
           <div className={styles["diff-view"]}>
-            {["unified", "side-by-side"].map((mode: ViewMode) => (
+            {(["unified", "side-by-side"] as const).map((mode: ViewMode) => (
               <Button
                 key={mode}
                 size={"s"}
@@ -104,7 +104,7 @@ export const TrDiff = ({ expected, actual }: { expected: string; actual: string 
           <Code size={"s"} className={styles["diff-buttons-title"]}>
             {t("compareBy")}:
           </Code>
-          {["chars", "words", "lines"].map((type: DiffType) => {
+          {(["chars", "words", "lines"] as const).map((type: DiffType) => {
             return (
               <Button
                 key={type}

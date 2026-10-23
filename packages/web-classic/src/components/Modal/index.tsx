@@ -16,8 +16,8 @@ import * as styles from "./styles.scss";
 export const isModalOpen = signal(false);
 
 interface ModalDataProps {
-  data: AttachmentTestStepResult;
-  component: VNode;
+  data: AttachmentTestStepResult | null;
+  component: VNode | null;
   preview?: boolean;
 }
 
@@ -58,7 +58,7 @@ const ModalThumb: FunctionalComponent<{ item: AttachmentTestStepResult }> = ({ i
 };
 
 export type ModalGalleryProps = {
-  attachments: AttachmentTestStepResult[];
+  attachments?: AttachmentTestStepResult[];
 };
 
 const ModalGallery: FunctionalComponent<ModalGalleryProps> = ({ attachments = [] }) => {
@@ -80,7 +80,7 @@ const ModalGallery: FunctionalComponent<ModalGalleryProps> = ({ attachments = []
 };
 
 export type ModalProps = {
-  testResult: ReportTestResult;
+  testResult?: ReportTestResult;
 };
 
 const Modal: FunctionalComponent<ModalProps> = ({ testResult }) => {
@@ -115,8 +115,7 @@ const Modal: FunctionalComponent<ModalProps> = ({ testResult }) => {
     }
   };
   const openInNewWindow = async () => {
-    const { id, ext, contentType } = link || {};
-    await openAttachmentInNewTab(id, ext, contentType);
+    if (link) await openAttachmentInNewTab(link.id, link.ext, link.contentType);
   };
 
   if (!isModalOpen.value) {
@@ -176,7 +175,7 @@ const Modal: FunctionalComponent<ModalProps> = ({ testResult }) => {
             </div>
           </div>
         </div>
-        <ModalGallery attachments={testResult.attachments} />
+        <ModalGallery attachments={testResult?.attachments} />
       </div>
     </div>
   );

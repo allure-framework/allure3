@@ -40,7 +40,7 @@ type AttachmentPayload = { id?: string; ext?: string; contentType?: string };
 const PLAYWRIGHT_TRACE_CONTENT_TYPE = "application/vnd.allure.playwright-trace";
 const PLAYWRIGHT_TRACE_DOWNLOAD_CONTENT_TYPE = "application/zip";
 
-const downloadContentType = (contentType: string) => {
+const downloadContentType = (contentType?: string) => {
   return normalizeAttachmentContentType(contentType) === PLAYWRIGHT_TRACE_CONTENT_TYPE
     ? PLAYWRIGHT_TRACE_DOWNLOAD_CONTENT_TYPE
     : contentType;
@@ -102,12 +102,12 @@ export const fetchAttachment = async (
   }
 };
 
-export const blobAttachment = async (id: string, ext: string, contentType: string) => {
+export const blobAttachment = async (id: string, ext: string, contentType?: string) => {
   const response = await fetchFromUrl({ id, ext, contentType: downloadContentType(contentType) });
   return await response.blob();
 };
 
-export const downloadAttachment = async (id: string, ext: string, contentType: string) => {
+export const downloadAttachment = async (id: string, ext: string, contentType?: string) => {
   if (!id && !ext) {
     return;
   }
@@ -122,7 +122,7 @@ export const downloadAttachment = async (id: string, ext: string, contentType: s
   URL.revokeObjectURL(linkUrl);
 };
 
-export const openAttachmentInNewTab = async (id: string, ext: string, contentType: string) => {
+export const openAttachmentInNewTab = async (id: string, ext: string, contentType?: string) => {
   if (!id && !ext) {
     return;
   }

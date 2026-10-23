@@ -37,7 +37,6 @@ test.describe("attachments", () => {
         reportConfig: {
           name: "Allure report with attachments",
           appendHistory: true,
-          knownIssuesPath: undefined,
         },
         testResults: [
           {
@@ -94,7 +93,6 @@ test.describe("attachments", () => {
         reportConfig: {
           name: "Allure report with attachments",
           appendHistory: true,
-          knownIssuesPath: undefined,
         },
         testResults: [
           {
@@ -176,7 +174,6 @@ test.describe("attachments", () => {
         reportConfig: {
           name: "Allure report with attachments",
           appendHistory: true,
-          knownIssuesPath: undefined,
         },
         testResults: [
           {
@@ -260,7 +257,6 @@ test.describe("attachments", () => {
         reportConfig: {
           name: "Allure report with attachments",
           appendHistory: true,
-          knownIssuesPath: undefined,
         },
         testResults: [
           {
@@ -342,7 +338,6 @@ test.describe("attachments", () => {
         reportConfig: {
           name: "Allure report with attachments",
           appendHistory: true,
-          knownIssuesPath: undefined,
         },
         testResults: [
           {
@@ -440,7 +435,6 @@ test.describe("attachments", () => {
         reportConfig: {
           name: "Allure report with Mermaid attachments",
           appendHistory: true,
-          knownIssuesPath: undefined,
         },
         testResults: [
           {
@@ -609,7 +603,6 @@ test.describe("attachments", () => {
         reportConfig: {
           name: "Allure report with HTTP Exchange attachments",
           appendHistory: true,
-          knownIssuesPath: undefined,
         },
         testResults: [
           {
@@ -740,7 +733,6 @@ test.describe("attachments", () => {
         reportConfig: {
           name: "Allure report with Playwright trace attachment",
           appendHistory: true,
-          knownIssuesPath: undefined,
         },
         testResults: [
           {

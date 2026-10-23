@@ -182,8 +182,8 @@ describe("attachment writing", () => {
     ...["missing", "one", "two"].map((id) => ({
       id,
       ext: ".txt",
-      missed: false,
-      used: true,
+      missed: false as const,
+      used: true as const,
       name: id,
       originalFileName: `${id}.txt`,
     })),

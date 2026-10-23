@@ -41,7 +41,9 @@ const TreeHeader: FunctionComponent<TreeHeaderProps> = ({
     <Loadable
       source={statsStore}
       renderData={(stats: Statistic) => {
-        const width = Math.floor(progress(statistic.total, stats.total) * (maxWidthTab - minWidthTab) + minWidthTab);
+        const width = Math.floor(
+          progress(statistic?.total ?? 0, stats.total) * (maxWidthTab - minWidthTab) + minWidthTab,
+        );
 
         const treeHeaderBar = statistic
           ? statusesList

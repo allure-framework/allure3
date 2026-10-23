@@ -127,7 +127,8 @@ const MainReport = () => {
     useEffect(() => {
       const routeMatches = rootTabRoute.value.matches;
       const routeTab = routeMatches ? rootTabRoute.value.params.rootTab : undefined;
-      const mapped = routeMatches ? (rootTabToReportTab[routeTab] ?? ReportRootTab.Results) : ReportRootTab.Results;
+      const mapped =
+        routeMatches && routeTab ? (rootTabToReportTab[routeTab] ?? ReportRootTab.Results) : ReportRootTab.Results;
       if (currentTab !== mapped) {
         setCurrentTab(mapped);
       }

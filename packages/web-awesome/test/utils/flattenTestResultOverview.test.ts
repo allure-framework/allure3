@@ -12,6 +12,9 @@ describe("flattenTestResultOverview", () => {
         {
           type: "step",
           item: {
+            type: "step",
+            steps: [],
+            parameters: [],
             stepId: "step-a",
             name: "Step A",
             status: "passed",
@@ -38,6 +41,9 @@ describe("flattenTestResultOverview", () => {
         {
           type: "step",
           item: {
+            type: "step",
+            steps: [],
+            parameters: [],
             stepId: "step-b",
             name: "Step B",
             status: "passed",
@@ -63,6 +69,9 @@ describe("flattenTestResultOverview", () => {
         {
           type: "step",
           item: {
+            type: "step",
+            steps: [],
+            parameters: [],
             stepId: "setup-fixture",
             name: "Setup fixture",
             status: "passed",
@@ -77,6 +86,9 @@ describe("flattenTestResultOverview", () => {
         {
           type: "step",
           item: {
+            type: "step",
+            steps: [],
+            parameters: [],
             stepId: "teardown-fixture",
             name: "Teardown fixture",
             status: "passed",

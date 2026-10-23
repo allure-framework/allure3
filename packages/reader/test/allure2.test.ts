@@ -468,9 +468,9 @@ describe("allure2 reader", () => {
     expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
     const tr = visitor.visitTestResult.mock.calls[0][0];
 
-    const step = tr.steps.find((item) => item.name === "Some step with parameters");
+    const step = tr.steps?.find((item) => "parameters" in item && item.name === "Some step with parameters");
 
-    expect(step?.parameters).toEqual(
+    expect(step && "parameters" in step ? step.parameters : undefined).toEqual(
       expect.arrayContaining([
         {
           name: "param 1",

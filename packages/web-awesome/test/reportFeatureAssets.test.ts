@@ -10,7 +10,7 @@ import { expect, it } from "vite-plus/test";
 import { ReportFeatureAssetsPlugin } from "../../../scripts/report-feature-assets.mjs";
 
 const require = createRequire(import.meta.url);
-const webpack = require("webpack");
+const webpack: typeof import("webpack") = require("webpack");
 const { WebpackManifestPlugin } = require("webpack-manifest-plugin");
 
 it.each(["valid", "missing-related", "no-features"])(
@@ -74,6 +74,7 @@ it.each(["valid", "missing-related", "no-features"])(
                     const group = compilation.namedChunkGroups.get("chart-pie");
                     if (!group) return;
                     const file = group.getFiles().find((name) => name.startsWith("chart-pie"));
+                    if (!file) throw new Error("Chart pie fixture asset not found");
                     compilation.updateAsset(file, (source) => source, {
                       related: { license: "pie.LICENSE.txt" },
                     });
@@ -90,7 +91,7 @@ it.each(["valid", "missing-related", "no-features"])(
         compiler.run((error, stats) => {
           compiler.close((closeError) => {
             if (error || closeError || stats?.hasErrors())
-              reject(error ?? closeError ?? new Error(stats.toString({ all: false, errors: true })));
+              reject(error ?? closeError ?? new Error(stats!.toString({ all: false, errors: true })));
             else resolve();
           });
         }),

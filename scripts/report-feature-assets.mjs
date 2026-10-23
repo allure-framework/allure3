@@ -1,6 +1,7 @@
 // Semantic async boundaries are named by the shared components. File names,
 // shared chunks and nested dependencies come from the completed compilation.
 export class ReportFeatureAssetsPlugin {
+  /** @param {import("webpack").Compiler} compiler */
   apply(compiler) {
     const name = "ReportFeatureAssetsPlugin";
     const { Compilation, sources } = compiler.webpack;

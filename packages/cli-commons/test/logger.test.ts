@@ -7,7 +7,7 @@ import { Logger, setGlobalLogLevel } from "../src/utils/logger.js";
 const stripAnsi = (value: string) => value.replace(new RegExp(`${String.fromCharCode(27)}\\[[0-9;]*m`, "g"), "");
 
 vi.mock("node:console", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("node:console")>();
+  const actual = await importOriginal<typeof import("node:console") & { default: typeof import("node:console") }>();
   const methods = {
     log: vi.fn(),
     debug: vi.fn(),

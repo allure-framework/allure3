@@ -17,7 +17,10 @@ import Timeline from "@/components/Timeline";
 import { currentLocale, getLocale } from "@/stores";
 import { handleHashChange, route } from "@/stores/router";
 
-const tabComponents = {
+const tabComponents: Record<
+  string,
+  preact.FunctionalComponent<{ params?: { id: string | null; testResultId: string | null } }>
+> = {
   overview: Overview,
   behaviors: Behaviors,
   categories: Categories,
@@ -58,7 +61,7 @@ const App = () => {
   );
 };
 
-const rootElement = document.getElementById("app");
+const rootElement = document.getElementById("app")!;
 
 (async () => {
   render(<App />, rootElement);

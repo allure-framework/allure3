@@ -1,4 +1,4 @@
-import { fetchReportJsonData } from "@allurereport/web-commons";
+import { errorMessageFromUnknown, fetchReportJsonData } from "@allurereport/web-commons";
 import { signal } from "@preact/signals";
 import type { ReportQualityGateResults } from "types";
 
@@ -22,7 +22,7 @@ export const fetchQualityGateResults = async () => {
   } catch (err) {
     qualityGateStore.value = {
       ...qualityGateStore.peek(),
-      error: err.message,
+      error: errorMessageFromUnknown(err),
       loading: false,
     };
   }

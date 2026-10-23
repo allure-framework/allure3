@@ -1,8 +1,8 @@
-import type { RecursiveTree } from "@allurereport/web-components/global";
 import { cleanup, fireEvent, render, screen } from "@testing-library/preact";
 import { attachment, step } from "allure-js-commons";
 import { afterEach, describe, expect, it, vi } from "vite-plus/test";
 
+import type { RecursiveTree } from "../../../global";
 import { Tree } from "./Tree";
 
 afterEach(() => {

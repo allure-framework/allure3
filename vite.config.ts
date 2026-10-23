@@ -42,8 +42,8 @@ export default defineConfig({
     },
     options: {
       typeAware: true,
-      // Compiler diagnostics run separately for production sources; tests keep typed linting.
-      typeCheck: false,
+      // Check source and test programs with their own strict tsconfig ownership.
+      typeCheck: true,
     },
     ignorePatterns: [
       "**/*",

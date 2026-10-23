@@ -12,7 +12,7 @@ import { useI18n } from "@/stores";
 import * as styles from "@/components/TestResult/TestResultSteps/styles.scss";
 
 interface TestResultAttachmentInfoProps {
-  item?: AttachmentTestStepResult;
+  item: AttachmentTestStepResult;
   shouldExpand?: boolean;
 }
 
@@ -56,8 +56,8 @@ export const TestResultAttachmentInfo: FunctionalComponent<TestResultAttachmentI
 
   return (
     <div className={styles["item-info"]}>
-      {Boolean(contentType) && <Text size={"s"}>{contentType}</Text>}
-      {Boolean(contentSize) && <Text size={"s"}>{contentSize}</Text>}
+      {!!contentType && <Text size={"s"}>{contentType}</Text>}
+      {!!contentSize && <Text size={"s"}>{contentSize}</Text>}
       <div className={styles["item-buttons"]}>
         {shouldExpand && (
           <TooltipWrapper tooltipText={tooltip("expand")}>

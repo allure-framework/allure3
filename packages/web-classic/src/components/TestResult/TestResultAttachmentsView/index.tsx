@@ -12,7 +12,7 @@ export type TestResultAttachmentViewProps = {
 };
 
 export const TestResultAttachmentView: FunctionalComponent<TestResultAttachmentViewProps> = ({ testResult }) => {
-  const { attachments } = testResult ?? {};
+  const { attachments = [] } = testResult ?? {};
   const { t } = useI18n("empty");
 
   return (

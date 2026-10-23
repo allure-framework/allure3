@@ -56,5 +56,6 @@ export type QualityGateRule<T = unknown, K = T> = {
 
 export type QualityGateConfig = {
   rules?: QualityGateRules[];
-  use?: QualityGateRule[];
+  // Each named rule has its own expected-value type, supplied by the dynamic rules map.
+  use?: QualityGateRule<any>[];
 };
