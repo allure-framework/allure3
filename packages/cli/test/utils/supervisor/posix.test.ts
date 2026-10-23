@@ -337,7 +337,11 @@ describe("PosixProcessSupervisor", { skip: process.platform === "win32", timeout
 
       const stopping = supervisor.stop(stopOptions);
 
-      await expect(fixture.readProcessId("level-0.sigint")).resolves.toBe(rootPid);
+      const signalledProcessIds = await Promise.all(
+        [0, 1, 2].map((level) => fixture.readProcessId(`level-${level}.sigint`)),
+      );
+
+      expect(signalledProcessIds).toEqual(processIds);
       await expect(
         Promise.race([stopping.then(() => "completed" as const), delay(50, "pending" as const)]),
       ).resolves.toBe("pending");
@@ -356,7 +360,7 @@ describe("PosixProcessSupervisor", { skip: process.platform === "win32", timeout
       expect(() => process.kill(-rootPid, 0)).toThrow(expect.objectContaining({ code: "ESRCH" }));
     };
 
-    it("stops gracefully after signalling only the root process", async ({ onTestFinished }) => {
+    it("stops gracefully after signalling the process group", async ({ onTestFinished }) => {
       const fixture = await SupervisorFixture.create();
       const treeScriptPath = fixture.resolvePath("three-level-tree.mjs");
       const supervisor = new PosixProcessSupervisor(process.execPath, {
@@ -377,18 +381,18 @@ describe("PosixProcessSupervisor", { skip: process.platform === "win32", timeout
 
       await supervisor.stop();
 
-      const signalledRootPid = await fixture.readProcessId("level-0.sigint");
+      const signalledProcessIds = await Promise.all(
+        [0, 1, 2].map((level) => fixture.readProcessId(`level-${level}.sigint`)),
+      );
 
-      expect(signalledRootPid).toBe(rootPid);
-      expect(fixture.fileExists("level-1.sigint")).toBe(false);
-      expect(fixture.fileExists("level-2.sigint")).toBe(false);
+      expect(signalledProcessIds).toEqual(processIds);
       await expect(supervisor.completion).resolves.toEqual({ code: 20, signal: null });
       expect(supervisor.completed).toBe(true);
       expectProcesses(processIds).toBeDead();
       expect(() => process.kill(-rootPid, 0)).toThrow(expect.objectContaining({ code: "ESRCH" }));
     });
 
-    it("supports escalation when the root process ignores SIGINT", async ({ onTestFinished }) => {
+    it("supports escalation when the process group ignores SIGINT", async ({ onTestFinished }) => {
       const fixture = await SupervisorFixture.create();
       const treeScriptPath = fixture.resolvePath("three-level-tree.mjs");
       const supervisor = new PosixProcessSupervisor(process.execPath, {
@@ -409,14 +413,50 @@ describe("PosixProcessSupervisor", { skip: process.platform === "win32", timeout
 
       await supervisor.stop({ escalate: true, escalationTimeout: 100 });
 
-      const signalledRootPid = await fixture.readProcessId("level-0.sigint");
+      const signalledProcessIds = await Promise.all(
+        [0, 1, 2].map((level) => fixture.readProcessId(`level-${level}.sigint`)),
+      );
 
-      expect(signalledRootPid).toBe(rootPid);
-      expect(fixture.fileExists("level-1.sigint")).toBe(false);
-      expect(fixture.fileExists("level-2.sigint")).toBe(false);
+      expect(signalledProcessIds).toEqual(processIds);
       await expect(supervisor.completion).resolves.toEqual({ code: null, signal: "SIGKILL" });
       expect(supervisor.completed).toBe(true);
       expectProcesses(processIds).toBeDead();
+      expect(() => process.kill(-rootPid, 0)).toThrow(expect.objectContaining({ code: "ESRCH" }));
+    });
+
+    it("delivers SIGINT to a test runner behind a shell", async ({ onTestFinished }) => {
+      const fixture = await SupervisorFixture.create();
+      const runnerScriptPath = fixture.resolvePath("runner.mjs");
+      const runnerReadyPath = "runner-ready.pid";
+      const runnerSigintPath = "runner-sigint.pid";
+      const supervisor = new PosixProcessSupervisor("/bin/sh", {
+        arguments: [
+          "-c",
+          '"$1" "$2" "$3" "$4"; exit $?',
+          "allure-test-shell",
+          process.execPath,
+          runnerScriptPath,
+          fixture.resolvePath(runnerReadyPath),
+          fixture.resolvePath(runnerSigintPath),
+        ],
+        silent: true,
+      });
+
+      onTestFinished(() => fixture.cleanup({ supervisor }));
+
+      await fixture.writeScript("runner.mjs", nodeScripts.sigintReporter);
+      await supervisor.start();
+
+      const rootPid = supervisor.process.pid!;
+      const runnerPid = await fixture.readProcessId(runnerReadyPath);
+
+      expectProcesses([rootPid, runnerPid]).toBeAlive();
+
+      await supervisor.stop();
+
+      await expect(fixture.readProcessId(runnerSigintPath)).resolves.toBe(runnerPid);
+      expect(supervisor.completed).toBe(true);
+      expectProcesses([rootPid, runnerPid]).toBeDead();
       expect(() => process.kill(-rootPid, 0)).toThrow(expect.objectContaining({ code: "ESRCH" }));
     });
 
@@ -444,7 +484,7 @@ describe("PosixProcessSupervisor", { skip: process.platform === "win32", timeout
 
       const rootPid = supervisor.process.pid!;
       const processIds = await Promise.all([0, 1, 2].map((level) => fixture.readProcessId(`level-${level}.pid`)));
-      const rootKillMock = vi.spyOn(supervisor.process, "kill");
+      const killMock = vi.spyOn(process, "kill");
 
       try {
         const firstStop = supervisor.stop();
@@ -455,14 +495,17 @@ describe("PosixProcessSupervisor", { skip: process.platform === "win32", timeout
         await firstStop;
 
         expect(supervisor.stop()).toBe(firstStop);
-        expect(rootKillMock).toHaveBeenCalledTimes(1);
-        expect(rootKillMock).toHaveBeenCalledWith("SIGINT");
-        expect(await fixture.readProcessId("level-0.sigint")).toBe(rootPid);
+        expect(killMock.mock.calls.filter(([pid, signal]) => pid === -rootPid && signal === "SIGINT")).toHaveLength(1);
+        const signalledProcessIds = await Promise.all(
+          [0, 1, 2].map((level) => fixture.readProcessId(`level-${level}.sigint`)),
+        );
+
+        expect(signalledProcessIds).toEqual(processIds);
         await expect(supervisor.completion).resolves.toEqual({ code: 20, signal: null });
         expect(supervisor.completed).toBe(true);
         expectProcesses(processIds).toBeDead();
       } finally {
-        rootKillMock.mockRestore();
+        killMock.mockRestore();
       }
     });
   });
