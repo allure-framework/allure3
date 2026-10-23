@@ -144,7 +144,7 @@ describe("Allure2Plugin", () => {
 
     const assets = await readReportStaticAssets(reportStaticArchive);
     for (const [file, content] of assets.files) {
-      expect(files.get(file)).toEqual(content);
+      expect(files.get(file)?.equals(content), `Static asset ${file} matches the archive`).toBe(true);
     }
     expect(files.has("feature-assets.json")).toBe(false);
     expect(mainAsset).toBeDefined();
