@@ -49,7 +49,7 @@ export const TrTeardown: FunctionalComponent<TrTeardownProps> = ({ teardown, id 
         <div className={styles["test-result-steps-root"]}>
           {teardown?.map((fixture, key) => (
             <div className={styles["test-result-step-root"]} key={fixture.id}>
-              <TrStep item={fixtureResultToTrStepItem(fixture)} stepIndex={key + 1} isTopLevel={true} />
+              <TrStep item={fixtureResultToTrStepItem(fixture)} stepIndex={key + 1} />
             </div>
           ))}
         </div>

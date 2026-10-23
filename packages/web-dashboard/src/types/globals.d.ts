@@ -9,3 +9,5 @@ declare module "*.scss" {
 
   export = content;
 }
+
+declare module "@allurereport/web-components/index.css";

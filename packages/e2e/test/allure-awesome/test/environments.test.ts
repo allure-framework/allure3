@@ -250,7 +250,7 @@ test.describe("environments", () => {
 
     const [newTab] = await Promise.all([
       context.waitForEvent("page"),
-      await envItems.nth(0).getByTestId("test-result-env-item-new-tab-button").click(),
+      envItems.nth(0).getByTestId("test-result-env-item-new-tab-button").click(),
     ]);
 
     expect(context.pages()[0].url()).toBe(pageUrl);

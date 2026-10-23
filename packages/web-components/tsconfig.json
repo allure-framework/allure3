@@ -17,11 +17,12 @@
     "declarationMap": true,
     "esModuleInterop": true,
     "lib": [
-      "ES2019",
+      "ES2022",
       "dom"
     ],
     "module": "esnext",
-    "moduleResolution": "node",
+    "moduleResolution": "Bundler",
+    "rootDir": "./src",
     "outDir": "./dist",
     "declarationDir": "./dist",
     "paths": {
@@ -35,10 +36,5 @@
     "types": [],
     "jsx": "react-jsx",
     "jsxImportSource": "preact"
-  },
-  "references": [
-    {
-      "path": "./tsconfig.node.json"
-    }
-  ]
+  }
 }

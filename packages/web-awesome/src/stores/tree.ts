@@ -6,8 +6,8 @@ import {
   loadFromLocalStorage,
   type SubtreeNodeState,
 } from "@allurereport/web-commons";
-import type { RecursiveTree } from "@allurereport/web-components/global";
 import { batch, computed, effect, signal } from "@preact/signals";
+import type { ReportRecursiveTree as RecursiveTree } from "types";
 import type { ReportTree, ReportTreeGroup } from "types";
 
 import type { StoreSignalState } from "@/stores/types";

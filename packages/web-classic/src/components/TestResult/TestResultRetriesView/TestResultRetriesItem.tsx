@@ -23,7 +23,8 @@ export const TestResultRetriesItem: FunctionalComponent<TrRetriesItemProps> = ({
   attempt,
   totalAttempts,
 }) => {
-  const { id, status, message, trace, stop, duration } = testResultItem;
+  const { id, status, error, stop, duration } = testResultItem;
+  const { message, trace } = error ?? {};
   const [isOpened, setIsOpen] = useState(false);
   const { t } = useI18n("ui");
 

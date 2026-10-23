@@ -9,8 +9,8 @@ import {
   scrollTreePaneToTop,
   type SubtreeToggleState,
 } from "@allurereport/web-commons";
-import type { RecursiveTree } from "@allurereport/web-components/global";
 import { computed } from "@preact/signals";
+import type { ReportRecursiveTree as RecursiveTree } from "types";
 
 import { collapsedEnvironments, currentEnvironment, environmentsStore } from "@/stores/env";
 import {

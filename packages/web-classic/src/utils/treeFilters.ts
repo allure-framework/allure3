@@ -60,7 +60,7 @@ const withDirection = <T extends { name: string }>(
 ): Comparator<T> => {
   const isStatusSort = filterOptions.sortBy === "status";
   const isDescending = filterOptions.direction === "desc";
-  const nameComparator = compareBy<T>("name", alphabetically());
+  const nameComparator = compareBy<T, "name">("name", alphabetically());
 
   // Status sort always prioritizes severity. Direction only affects name-based tie-breaking.
   return andThen([

@@ -92,7 +92,7 @@ export const LabelTreeItem: FC<LabelTreeItemProps> = ({
       : transitionValue
         ? (tTransitions(transitionValue) ?? transitionValue)
         : transitionValue;
-  const isFlakyValue = node.value === true || node.value === "true";
+  const isFlakyValue = node.value === "true";
   const flakyLabel =
     node.value === "<Empty>" ? tEmpty("no-flaky") : isFlakyValue ? tFilters("flaky") : tFilters("nonFlaky");
   const flakyIcon = isFlakyValue ? allureIcons.lineIconBomb2 : undefined;

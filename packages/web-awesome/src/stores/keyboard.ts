@@ -7,8 +7,8 @@ import {
   type MoveFocusResult,
   type SubtreeToggleState,
 } from "@allurereport/web-commons";
-import type { RecursiveTree } from "@allurereport/web-components/global";
 import { computed, effect, signal } from "@preact/signals";
+import type { ReportRecursiveTree as RecursiveTree } from "types";
 
 import { statsByEnvStore } from "@/stores";
 import { collapsedEnvironments, currentEnvironment, environmentsStore } from "@/stores/env";
@@ -194,7 +194,7 @@ const buildEnvSections = () => {
 };
 
 const flattenTreeForKeyboard = (options: {
-  tree: Parameters<typeof flattenVisibleTree>[0]["tree"];
+  tree?: Parameters<typeof flattenVisibleTree>[0]["tree"];
   isRoot?: boolean;
   rootStatistic?: Parameters<typeof flattenVisibleTree>[0]["rootStatistic"];
   envSections?: Parameters<typeof flattenVisibleTree>[0]["envSections"];

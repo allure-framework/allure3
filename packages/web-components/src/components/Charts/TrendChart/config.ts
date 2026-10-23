@@ -4,6 +4,8 @@ import type { LegendProps } from "@nivo/legends";
 import type { LineSvgProps } from "@nivo/line";
 import type { ScaleSpec } from "@nivo/scales";
 
+import type { Serie } from "./types";
+
 export const defaultTrendChartLegendConfig: LegendProps = {
   anchor: "right",
   direction: "column",
@@ -48,7 +50,7 @@ export const defaultTrendChartXScaleConfig: ScaleSpec = { type: "point" };
 
 export const defaultTrendChartYScaleConfig: ScaleSpec = { type: "linear", min: "auto", max: "auto", reverse: false };
 
-export const defaultTrendChartConfig: Partial<LineSvgProps> = {
+export const defaultTrendChartConfig: Partial<LineSvgProps<Serie>> = {
   margin: defaultTrendChartMarginConfig,
   xScale: defaultTrendChartXScaleConfig,
   yScale: defaultTrendChartYScaleConfig,

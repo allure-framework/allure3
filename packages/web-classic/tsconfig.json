@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "strict": false,
     "paths": {
       "@/*": ["./src/*"],
       "types": ["./types"],
@@ -10,7 +11,7 @@
     "jsxImportSource": "preact",
     "target": "ESNext",
     "module": "ESNext",
-    "moduleResolution": "node",
+    "moduleResolution": "Bundler",
     "allowSyntheticDefaultImports": true,
     "useUnknownInCatchVariables": false,
     "noEmit": true,

@@ -19,7 +19,7 @@ const SEARCH_FIELDS: (keyof ReportSearchDocument)[] = [
   "retryHash",
 ];
 
-const STORE_FIELDS: (keyof ReportSearchDocument)[] = ["nodeId", "name"];
+const STORE_FIELDS = ["nodeId", "name"] as const satisfies readonly (keyof ReportSearchDocument)[];
 
 const isFuzzySearchTerm = (term: string) => /^\p{L}+$/u.test(term) && term.length > 3;
 const normalizeSearchValue = (value: string) => value.toLocaleLowerCase();

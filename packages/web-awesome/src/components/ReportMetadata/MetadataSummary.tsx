@@ -24,7 +24,12 @@ export interface MetadataSummaryProps {
   statusCounts?: Partial<Record<TestStatus, number>>;
 }
 
-const metadataTestsTypes = ["flaky", "new", "retries", "retriesStatusChange"] as const as (keyof Statistic)[];
+const metadataTestsTypes = [
+  "flaky",
+  "new",
+  "retries",
+  "retriesStatusChange",
+] as const satisfies readonly (keyof Statistic)[];
 const emptyMetadataCount = "-";
 
 const applyTotalFilter = () => {

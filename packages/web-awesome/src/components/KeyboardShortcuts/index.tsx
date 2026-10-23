@@ -1,4 +1,4 @@
-import { Button, Code, Text, allureIcons } from "@allurereport/web-components/core";
+import { Button, IconButton, Code, Text, allureIcons } from "@allurereport/web-components/core";
 import clsx from "clsx";
 
 import { useI18n } from "@/stores";
@@ -33,7 +33,7 @@ export const KeyboardShortcuts = () => {
             <Text size="m" bold>
               {t("title")}
             </Text>
-            <Button
+            <IconButton
               style="ghost"
               size="xs"
               icon={allureIcons.lineGeneralXClose}
