@@ -1,6 +1,6 @@
 {
   "name": "@allurereport/plugin-xray",
-  "version": "3.22.0",
+  "version": "3.22.1",
   "description": "Allure Plugin to export test statuses to Xray (Jira Server/Data Center)",
   "keywords": [
     "allure",

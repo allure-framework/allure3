@@ -1,6 +1,6 @@
 {
   "name": "@allurereport/plugin-metrics",
-  "version": "3.22.0",
+  "version": "3.22.1",
   "description": "Allure Prometheus and InfluxDB metrics export",
   "keywords": [
     "allure",
