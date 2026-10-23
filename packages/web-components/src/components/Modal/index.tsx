@@ -144,6 +144,7 @@ export const Modal = ({
               {isImageAttachment && (
                 <Button
                   style={"outline"}
+                  isDisabled={link?.missed}
                   onClick={openInNewWindow}
                   icon={allureIcons.lineGeneralLinkExternal}
                   text={openInNewTabButton}
@@ -179,6 +180,8 @@ export const Modal = ({
                     style={"outline"}
                     size={"m"}
                     iconSize={"s"}
+                    data-testid="attachment-download-button"
+                    isDisabled={link?.missed}
                     icon={allureIcons.lineGeneralDownloadCloud}
                     onClick={(e: MouseEvent) => downloadData(e)}
                   />

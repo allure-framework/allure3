@@ -8,6 +8,7 @@ import Prism from "prismjs";
 import type { ReportTestResult } from "types";
 
 import { Attachment } from "@/components/TestResult/TestResultSteps/attachment";
+import { useI18n } from "@/stores";
 import { attachmentType } from "@/utils/attachments";
 
 import * as styles from "./styles.scss";
@@ -83,6 +84,8 @@ export type ModalProps = {
 };
 
 const Modal: FunctionalComponent<ModalProps> = ({ testResult }) => {
+  const { t: tooltip } = useI18n("controls");
+  const { t: tErrors } = useI18n("errors");
   const { link } = modalData.value.data || {};
   const attachName = link?.name ? `${link?.name}` : `${link?.id}${link?.ext}`;
 
@@ -130,6 +133,7 @@ const Modal: FunctionalComponent<ModalProps> = ({ testResult }) => {
               {isImageAttachment && (
                 <Button
                   style={"outline"}
+                  isDisabled={link?.missed}
                   onClick={openInNewWindow}
                   icon={allureIcons.lineGeneralLinkExternal}
                   text={"Open in new tab"}
@@ -151,11 +155,14 @@ const Modal: FunctionalComponent<ModalProps> = ({ testResult }) => {
                   />
                 </TooltipWrapper>
               )}
-              <TooltipWrapper tooltipText={"Download attachment"}>
+              <TooltipWrapper tooltipText={link?.missed ? tErrors("missedAttachment") : tooltip("downloadAttachment")}>
                 <IconButton
                   style={"outline"}
                   size={"m"}
                   iconSize={"s"}
+                  data-testid="attachment-download-button"
+                  isDisabled={link?.missed}
+                  aria-label={tooltip("downloadAttachment")}
                   icon={allureIcons.lineGeneralDownloadCloud}
                   onClick={(e: MouseEvent) => downloadData(e)}
                 />
