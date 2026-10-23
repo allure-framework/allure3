@@ -12,7 +12,7 @@ export type RecursiveTree = DefaultTreeGroup & {
 };
 
 export type TreeLeaf = {
-  id: string;
+  id?: string;
   nodeId: string;
   name: string;
   status?: TestStatus;

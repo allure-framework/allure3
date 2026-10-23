@@ -1,9 +1,0 @@
-{
-  "extends": "./tsconfig.json",
-  "include": ["./vite.config.ts", "./src", "./test/**/*.ts", "./test/**/*.tsx"],
-  "compilerOptions": {
-    "composite": true,
-    "noEmit": false,
-    "types": ["@testing-library/jest-dom/vitest"]
-  }
-}

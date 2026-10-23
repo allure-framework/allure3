@@ -33,7 +33,7 @@ type BarChartProps<T extends BarDatum> = {
   formatIndexBy?: (value: T, indexBy: Extract<keyof T, string>) => string;
   renderBottomTick?: (props: AxisTickProps<number | string>) => any;
   bottomTickSize?: number;
-  onBarClick?: (value: ComputedDatum<T>) => void;
+  onBarClick?: (value: { data: T }) => void;
   padding?: number;
   hasValueFn?: (data: T) => boolean;
   currentLocale?: string;

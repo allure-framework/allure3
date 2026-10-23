@@ -1,4 +1,4 @@
-import type { RecursiveTree } from "@allurereport/web-components/global";
+import type { ReportRecursiveTree as RecursiveTree } from "types";
 import type { ReportTreeLeaf } from "types";
 
 type Localizer = (data: string, params?: Record<string, unknown>) => string;

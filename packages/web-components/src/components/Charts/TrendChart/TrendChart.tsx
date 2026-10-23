@@ -6,7 +6,7 @@ import { useCallback, useMemo } from "preact/hooks";
 import { EmptyDataStub } from "../EmptyDataStub";
 import { defaultTrendChartAxisBottomConfig, defaultTrendChartConfig } from "./config";
 import { nivoTheme } from "./theme";
-import type { MeshTrendChartProps, Slice, SlicesTrendChartProps, TrendChartProps } from "./types";
+import type { MeshTrendChartProps, Serie, Slice, SlicesTrendChartProps, TrendChartProps } from "./types";
 import { TrendChartKind } from "./types";
 import { getKindConfig } from "./utils";
 
@@ -24,9 +24,9 @@ export const TrendChart: FunctionalComponent<TrendChartProps> = ({
   const kindConfig = getKindConfig(kind);
 
   const handleClick = useCallback(
-    (data: Point | Slice, event: MouseEvent): void => {
+    (data: Point<Serie> | Slice, event: MouseEvent): void => {
       if (kind === TrendChartKind.Mesh) {
-        (restProps as MeshTrendChartProps)?.onClick?.(data as Point, event);
+        (restProps as MeshTrendChartProps)?.onClick?.(data as Point<Serie>, event);
       } else if ([TrendChartKind.SlicesX, TrendChartKind.SlicesY].includes(kind)) {
         (restProps as SlicesTrendChartProps)?.onSliceClick?.(data as Slice, event);
       }
@@ -35,9 +35,9 @@ export const TrendChart: FunctionalComponent<TrendChartProps> = ({
   );
 
   const handleTouchEnd = useCallback(
-    (data: Point | Slice, event: TouchEvent): void => {
+    (data: Point<Serie> | Slice, event: TouchEvent): void => {
       if (kind === TrendChartKind.Mesh) {
-        (restProps as MeshTrendChartProps)?.onTouchEnd?.(data as Point, event);
+        (restProps as MeshTrendChartProps)?.onTouchEnd?.(data as Point<Serie>, event);
       } else if ([TrendChartKind.SlicesX, TrendChartKind.SlicesY].includes(kind)) {
         (restProps as SlicesTrendChartProps)?.onSliceTouchEnd?.(data as Slice, event);
       }

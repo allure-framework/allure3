@@ -1,6 +1,6 @@
 import { allureIcons } from "@allurereport/web-components/core";
 import { useComputed } from "@preact/signals";
-import type { AwesomeTree } from "types";
+import type { ReportTree } from "types";
 
 import { useI18n } from "@/stores";
 import { currentEnvironment } from "@/stores/env";
@@ -20,7 +20,7 @@ const resolutionOptions = [
 const emptyResolutionCounts = Object.freeze({ issue: 0, muted: 0, accepted: 0, [NO_RESOLUTION]: 0 });
 
 const getResolutionCounts = (
-  trees: Record<string, AwesomeTree> | undefined,
+  trees: Record<string, ReportTree> | undefined,
   selectedEnvironment: string,
 ): Record<ResolutionFilterValue, number> => {
   if (!trees) {

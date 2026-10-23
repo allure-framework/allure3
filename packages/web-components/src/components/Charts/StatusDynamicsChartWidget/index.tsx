@@ -1,6 +1,5 @@
-import type { Statistic } from "@allurereport/core-api";
+import type { Statistic, TestStatus } from "@allurereport/core-api";
 import { statusesList } from "@allurereport/core-api";
-import type { BarDatum } from "@nivo/bar";
 import type { FunctionalComponent } from "preact";
 
 import { EmptyView } from "@/components/EmptyView";
@@ -13,22 +12,24 @@ import type { LegendItemValue } from "../Legend/LegendItem/types";
 import { getColorFromStatus } from "../utils";
 import type { Props } from "./types";
 
+type StatusDatum = {
+  id: string;
+  name: string;
+  timestamp: number;
+  url?: string;
+} & Pick<Statistic, TestStatus | "total">;
+
 export const StatusDynamicsChartWidget: FunctionalComponent<Props> = (props) => {
   const { title, data, statuses = statusesList, i18n } = props;
 
   const currentData = data.find((item) => item.id === "current");
-  const legend: LegendItemValue<BarDatum>[] = statuses.map((status) => ({
+  const legend: LegendItemValue<StatusDatum>[] = statuses.map((status) => ({
     id: status,
     label: i18n(`status.${status}`),
     color: getColorFromStatus(status, "chartFill"),
   }));
 
-  const chartData: ({
-    id: string;
-    name: string;
-    timestamp: number;
-    url?: string;
-  } & Statistic)[] = data.map((item) => ({
+  const chartData: StatusDatum[] = data.map((item) => ({
     id: item.id,
     name: item.name,
     timestamp: item.timestamp,
@@ -67,7 +68,7 @@ export const StatusDynamicsChartWidget: FunctionalComponent<Props> = (props) => 
 
   return (
     <Widget title={title}>
-      <BarChart
+      <BarChart<StatusDatum>
         groupMode="stacked"
         data={chartData}
         legend={legend}

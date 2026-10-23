@@ -1,14 +1,14 @@
 import { getReportOptions } from "@allurereport/web-commons";
 import { computed, effect } from "@preact/signals";
 
-import type { AwesomeReportOptions } from "../../types.js";
+import type { ReportOptions } from "../../types.js";
 import { navigateToRoot, navigateToSection, SECTION_ROUTE_NAMES, sectionRoute, type SectionRouteName } from "./router";
 
 const DEFAULT_SECTION = "default";
 
 type Section = SectionRouteName | "default";
 
-const reportOptions = getReportOptions<AwesomeReportOptions>();
+const reportOptions = getReportOptions<ReportOptions>();
 
 const isKnownSection = (value: unknown): value is SectionRouteName =>
   SECTION_ROUTE_NAMES.includes(value as SectionRouteName);

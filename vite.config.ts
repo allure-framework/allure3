@@ -15,7 +15,7 @@ export default defineConfig({
       "!package.json",
       "!vite.config.ts",
       "!**/package.json",
-      "!{.github,packages,scripts}/**/*.{js,mjs,ts,tsx}",
+      "!{.github,packages,scripts}/**/*.{js,mjs,ts,tsx,mts}",
       "!packages/*/{src,test,features}/**/*.json",
       "!packages/web-allure2/src/main/javascript/**/*.{mts,css,scss}",
       "!packages/web-allure2/scripts/*.mts",
@@ -41,14 +41,14 @@ export default defineConfig({
       node: true,
     },
     options: {
-      // TODO: fix errors produced by type checks and re-enable
-      typeAware: false,
+      typeAware: true,
+      // Compiler diagnostics run separately for production sources; tests keep typed linting.
       typeCheck: false,
     },
     ignorePatterns: [
       "**/*",
       "!**/",
-      "!{.github,packages,scripts}/**/*.{js,mjs,ts,tsx}",
+      "!{.github,packages,scripts}/**/*.{js,mjs,ts,tsx,mts}",
       "**/.yarn/**",
       "**/node_modules/**",
       "**/dist/**",
@@ -64,6 +64,7 @@ export default defineConfig({
     ],
     rules: {
       "vite-plus/prefer-vite-plus-imports": "error",
+      "typescript/await-thenable": "error",
     },
   },
 });

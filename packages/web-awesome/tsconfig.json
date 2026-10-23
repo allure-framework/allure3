@@ -1,7 +1,9 @@
 {
   "compilerOptions": {
+    "strict": false,
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "types": ["./types"]
     },
     "jsx": "preserve",
     "jsxFactory": "h",
@@ -9,23 +11,18 @@
     "jsxImportSource": "preact",
     "target": "ESNext",
     "module": "ESNext",
-    "moduleResolution": "node",
+    "moduleResolution": "Bundler",
     "allowSyntheticDefaultImports": true,
     "useUnknownInCatchVariables": false,
     "noEmit": true,
     "noImplicitAny": true,
     "resolveJsonModule": true,
     "esModuleInterop": true,
-    "lib": ["ES2019", "dom", "dom.iterable"],
+    "lib": ["ES2022", "dom", "dom.iterable"],
     // node types should not be used in web-commons
     "types": [],
     "skipLibCheck": true
   },
   "include": ["src"],
-  "exclude": ["node_modules", "dist"],
-  "references": [
-    {
-      "path": "./tsconfig.node.json"
-    }
-  ]
+  "exclude": ["node_modules", "dist"]
 }

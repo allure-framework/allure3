@@ -241,7 +241,7 @@ export const TrBreadcrumbs = ({ testResult }: TrBreadcrumbs) => {
       {fallbackBreadcrumbs.map((item, key) => (
         <div className={styles["test-result-breadcrumb"]} key={key}>
           {breadcrumbArrow}
-          <BreadcrumbTitle text={item} />
+          <BreadcrumbTitle text={Array.isArray(item) ? item.join("") : item} />
         </div>
       ))}
       <div className={clsx(styles["test-result-breadcrumb"], styles["test-result-breadcrumb-name"])}>

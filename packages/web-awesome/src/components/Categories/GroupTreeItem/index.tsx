@@ -1,7 +1,8 @@
 import type { CategoryNode, CategoryNodeProps, Statistic } from "@allurereport/core-api";
 import { TreeHeader } from "@allurereport/web-components/core";
 import clsx from "clsx";
-import type { ComponentChildren, FC } from "preact/compat";
+import type { ComponentChildren } from "preact";
+import type { FC } from "preact/compat";
 
 import { createCategoriesStickyStyle } from "@/components/Categories/sticky";
 import { useI18n } from "@/stores";

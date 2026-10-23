@@ -276,7 +276,7 @@ export const MultipleChoiceFieldFilter = (props: {
   );
 };
 
-const ResetSearchOnClose = (props: { isOpened: boolean; onReset: () => void }) => {
+const ResetSearchOnClose = (props: { isOpened: boolean; onReset: () => void }): null => {
   const { isOpened, onReset } = props;
 
   useEffect(() => {

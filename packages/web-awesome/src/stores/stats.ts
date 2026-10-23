@@ -4,8 +4,6 @@ import { signal } from "@preact/signals";
 
 import type { StoreSignalState } from "@/stores/types";
 
-import type { ReportTree } from "../../types";
-
 export const reportStatsStore = signal<StoreSignalState<Statistic>>({
   loading: true,
   error: undefined,
@@ -60,7 +58,7 @@ export const fetchEnvStats = async (envs: string[]) => {
 
   try {
     const data = await Promise.all(
-      envsToFetch.map((env) => fetchReportJsonData<ReportTree>(`widgets/${env}/statistic.json`, { bustCache: true })),
+      envsToFetch.map((env) => fetchReportJsonData<Statistic>(`widgets/${env}/statistic.json`, { bustCache: true })),
     );
     const previous = statsByEnvStore.peek().data;
 

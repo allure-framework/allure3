@@ -34,8 +34,8 @@ jobs:
         uses: ./.github/actions/build
         with:
           save-cache: "true"
-      - name: Lint Project
-        run: yarn check --quiet
+      - name: Check formatting, typed lint and production types
+        run: yarn verify
 
   test:
     needs: lint
