@@ -128,6 +128,10 @@ export abstract class ProcessSupervisorBase {
     return this.completion.then(({ signal }) => signal);
   }
 
+  get stopInProgress(): boolean {
+    return Boolean(this.#gracefulStopAbortController);
+  }
+
   async start() {
     if (this.#process !== undefined) {
       throw new Error("The process has already been started.");
@@ -237,8 +241,8 @@ export abstract class ProcessSupervisorBase {
   protected abstract readonly detached: boolean;
   protected abstract readonly monitor: JobMonitor;
 
-  protected abstract requestRootStop(signal: AbortSignal): void | Promise<void>;
-  protected abstract requestTermination(): void | Promise<void>;
+  protected abstract requestGracefulStop(signal: AbortSignal): void | Promise<void>;
+  protected abstract requestForcedTermination(): void | Promise<void>;
   protected abstract getStartupInfo(): ProcessStartupInfo | undefined;
 
   protected reportInterruption() {
@@ -411,7 +415,7 @@ export abstract class ProcessSupervisorBase {
   }
 
   private async stopOnceDontEscalate(signal: AbortSignal) {
-    await this.requestRootStop(signal);
+    await this.requestGracefulStop(signal);
     await this.completion;
   }
 
@@ -420,7 +424,7 @@ export abstract class ProcessSupervisorBase {
 
     const requestStopAndWait = async () => {
       try {
-        await this.requestRootStop(signal);
+        await this.requestGracefulStop(signal);
       } catch (stopError) {
         signal.throwIfAborted();
 
@@ -461,7 +465,7 @@ export abstract class ProcessSupervisorBase {
     }
 
     this.diagnostic("requesting forced termination");
-    await this.requestTermination();
+    await this.requestForcedTermination();
     await this.completion;
   }
 }

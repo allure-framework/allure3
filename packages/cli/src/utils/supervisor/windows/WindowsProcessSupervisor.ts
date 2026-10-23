@@ -272,7 +272,7 @@ export class WindowsProcessSupervisor extends ProcessSupervisorBase {
     return this.#startupInfo;
   }
 
-  protected override async requestRootStop(signal: AbortSignal) {
+  protected override async requestGracefulStop(signal: AbortSignal) {
     const control = this.#getRequestControl();
     if (!control) {
       return;
@@ -307,7 +307,7 @@ export class WindowsProcessSupervisor extends ProcessSupervisorBase {
     }
   }
 
-  protected override async requestTermination() {
+  protected override async requestForcedTermination() {
     const control = this.#getRequestControl();
     if (!control) {
       return;

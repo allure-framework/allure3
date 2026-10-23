@@ -18,7 +18,7 @@ export class PosixProcessSupervisor extends ProcessSupervisorBase {
 
   protected readonly monitor: JobMonitor;
 
-  #sigintReceived: boolean = false;
+  #sigintSeen: boolean = false;
   #forceTerminated: boolean = false;
 
   constructor(command: string, options: SupervisedCommandOptions = {}) {
@@ -102,14 +102,22 @@ export class PosixProcessSupervisor extends ProcessSupervisorBase {
     }
   }
 
-  protected override requestRootStop(_: AbortSignal) {
-    // Does not throw if the process already finished.
-    // Returns `false` instead (which is ignored).
-    // Completion (monitor.wait) will still wait for the process group to finish.
-    this.process.kill("SIGINT");
+  protected override requestGracefulStop(_: AbortSignal) {
+    const pid = this.process.pid;
+    if (pid === undefined) {
+      return;
+    }
+
+    try {
+      process.kill(-pid, "SIGINT");
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== "ESRCH") {
+        throw error;
+      }
+    }
   }
 
-  protected override requestTermination() {
+  protected override requestForcedTermination() {
     if (this.completed) {
       return;
     }
@@ -137,10 +145,12 @@ export class PosixProcessSupervisor extends ProcessSupervisorBase {
   }
 
   readonly #onSigint = () => {
-    if (!this.#sigintReceived) {
+    if (!this.#sigintSeen) {
+      this.#sigintSeen = true;
       // First SIGINT is forwarded to the process group.
-      this.#sigintReceived = true;
-      this.sendSigintToGroup();
+      this.stop({ escalate: false }).catch((error) => {
+        this.error("Unable to gracefully stop the process. Press CTRL+C again to force termination.", error);
+      });
       this.reportInterruption();
       return;
     }
@@ -185,20 +195,5 @@ export class PosixProcessSupervisor extends ProcessSupervisorBase {
 
     // The group is running or kept alive by zombie processes.
     return true;
-  }
-
-  private sendSigintToGroup() {
-    const pid = this.process.pid;
-    if (pid === undefined) {
-      return;
-    }
-
-    try {
-      process.kill(-pid, "SIGINT");
-    } catch (error) {
-      if ((error as NodeJS.ErrnoException).code !== "ESRCH") {
-        throw error;
-      }
-    }
   }
 }
