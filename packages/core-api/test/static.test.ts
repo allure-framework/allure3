@@ -1,7 +1,10 @@
+import { runInNewContext } from "node:vm";
+
 import { epic, feature, label, story } from "allure-js-commons";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 import {
+  createBaseUrlScript,
   createReportDataScript,
   injectReportDataScript,
   reportDataScriptPlaceholder,
@@ -114,5 +117,21 @@ describe("stringifyForInlineScript", () => {
     const out = stringifyForInlineScript("a\u2028b\u2029c");
 
     expect(out).toBe('"a\\u2028b\\u2029c"');
+  });
+});
+
+describe("createBaseUrlScript", () => {
+  it.each([
+    "https://example.test/reports/index.html?v=1#/charts",
+    "file:///tmp/report%20folder/index.html#/charts",
+    "file:///C:/reports/index.html?version=1#/testresult/id",
+  ])("sets the document base without query or fragment for %s", (href) => {
+    const base = { href: "" };
+    const document = { createElement: vi.fn(() => base), head: { appendChild: vi.fn() } };
+    const script = createBaseUrlScript().match(/<script>([\s\S]*)<\/script>/i)![1];
+    runInNewContext(script, { URL, document, window: { location: new URL(href), document } });
+    expect(base.href).toBe(href.split(/[?#]/)[0]);
+    expect(document.createElement).toHaveBeenCalledWith("base");
+    expect(document.head.appendChild).toHaveBeenCalledWith(base);
   });
 });

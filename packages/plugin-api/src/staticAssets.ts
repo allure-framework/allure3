@@ -10,7 +10,56 @@ export type ReportStaticManifest = Record<string, string>;
 
 export type ReportStaticAssets = {
   manifest: ReportStaticManifest;
+  featureAssets?: ReportFeatureAssets;
   files: ReadonlyMap<string, Buffer>;
+};
+
+export type ReportFeatureAssets = {
+  // Schema version shared by the build plugin and archive reader.
+  version: 1;
+  initial: string[];
+  base: string[];
+  features: Record<string, string[]>;
+};
+
+const parseFeatureAssets = (
+  content: Buffer,
+  files: ReadonlyMap<string, Buffer>,
+  mainJs: string,
+): ReportFeatureAssets => {
+  let value: unknown;
+  try {
+    value = JSON.parse(content.toString("utf8"));
+  } catch (error) {
+    throw new Error("The report static archive contains an invalid feature-assets.json", { cause: error });
+  }
+  const isRecord = (candidate: unknown): candidate is Record<string, unknown> =>
+    !!candidate && typeof candidate === "object" && !Array.isArray(candidate);
+  const isExistingFileList = (candidate: unknown): candidate is string[] =>
+    Array.isArray(candidate) && candidate.every((file) => typeof file === "string" && files.has(file));
+  if (!isRecord(value)) {
+    throw new Error("Invalid report feature-assets.json: expected an object");
+  }
+  if (value.version !== 1) {
+    throw new Error(`Unsupported report feature-assets.json version: ${JSON.stringify(value.version)}; expected 1`);
+  }
+  if (
+    !isExistingFileList(value.initial) ||
+    !isExistingFileList(value.base) ||
+    !isRecord(value.features) ||
+    !Object.entries(value.features).every(([key, refs]) => key.length > 0 && isExistingFileList(refs))
+  ) {
+    throw new Error("Invalid report feature-assets.json or missing referenced asset");
+  }
+  const result = value as ReportFeatureAssets;
+  if (!result.initial.includes(mainJs) || !result.initial.every((file) => result.base.includes(file))) {
+    throw new Error("Initial report assets must include main.js and belong to the base set");
+  }
+  const classified = new Set([...result.base, ...Object.values(result.features).flat()]);
+  for (const file of files.keys()) {
+    if (!classified.has(file)) throw new Error(`Unclassified report feature asset: ${file}`);
+  }
+  return result;
 };
 
 const validateEntryName = (name: string) => {
@@ -123,7 +172,18 @@ export const readReportStaticAssets = async (archive: string | URL): Promise<Rep
     }
   }
 
-  return { manifest, files };
+  const featureContent = files.get("feature-assets.json");
+  // Archives without feature metadata retain the full asset set.
+  // Present metadata must be valid before assets can be selected.
+  if (!featureContent) return { manifest, files };
+
+  // Build metadata is retained in the package archive, not published as a report asset.
+  files.delete("feature-assets.json");
+  for (const [key, file] of Object.entries(manifest)) {
+    if (file === "feature-assets.json") delete manifest[key];
+  }
+  const featureAssets = parseFeatureAssets(featureContent, files, manifest["main.js"]);
+  return { manifest, files, featureAssets };
 };
 
 export const getReportStaticAsset = (assets: ReportStaticAssets, fileName: string): Buffer => {

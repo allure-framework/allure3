@@ -4,6 +4,8 @@ import { fileURLToPath } from "node:url";
 
 import { appLoaderFaviconDataUri, appLoaderLogoSvg, appLoaderStyles } from "@allurereport/core-api";
 
+import { ReportFeatureAssetsPlugin } from "../../scripts/report-feature-assets.mjs";
+
 const require = createRequire(import.meta.url);
 const ForkTsCheckerPlugin = require("fork-ts-checker-webpack-plugin");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
@@ -103,6 +105,7 @@ export default (_env, argv) => {
     },
     plugins: [
       new ForkTsCheckerPlugin(),
+      ...(!devMode ? [new ReportFeatureAssetsPlugin()] : []),
       new webpack.DefinePlugin({
         DEVELOPMENT: devMode,
       }),

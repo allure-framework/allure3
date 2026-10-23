@@ -2,6 +2,8 @@ import { createRequire } from "node:module";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { ReportFeatureAssetsPlugin } from "../../scripts/report-feature-assets.mjs";
+
 const require = createRequire(import.meta.url);
 const ForkTsCheckerPlugin = require("fork-ts-checker-webpack-plugin");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
@@ -71,6 +73,7 @@ export default (env, argv) => {
     },
     plugins: [
       new ForkTsCheckerPlugin(),
+      ...(!devMode ? [new ReportFeatureAssetsPlugin()] : []),
       new webpack.DefinePlugin({
         DEVELOPMENT: devMode,
       }),

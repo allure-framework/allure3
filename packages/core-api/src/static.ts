@@ -81,8 +81,9 @@ export const createAppLoaderMarkup = () => {
 export const createBaseUrlScript = () => {
   return `
     <script>
-      const { origin, pathname } = window.location; 
-      const url = new URL(pathname, origin);
+      const url = new URL(window.location.href);
+      url.search = "";
+      url.hash = "";
       const baseEl = document.createElement("base");
       
       baseEl.href = url.toString();
