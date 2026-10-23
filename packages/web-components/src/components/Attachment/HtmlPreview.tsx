@@ -26,24 +26,10 @@ export const HtmlPreview: FunctionalComponent<HtmlAttachmentPreviewProps> = ({ a
   const [height, setHeight] = useState(0);
 
   const rawText = attachment.text ?? "";
-  const [src, setSrc] = useState("");
-
-  // The document is served from a blob URL rather than `srcdoc`: `about:srcdoc` documents cannot call
-  // `history.pushState`, which self-contained pages (e.g. bundled by Zundler) rely on.
-  // The URL is revoked as soon as the frame has loaded, so the attachment cannot hand it to the user
-  // (e.g. as a link to open in a new tab), where it would run with the origin of the report.
-  useEffect(() => {
-    if (rawText.length === 0) {
-      setSrc("");
-      return undefined;
-    }
-
-    const html = createHtmlPreviewDocument(rawText, token, isDarkTheme());
-    const url = URL.createObjectURL(new Blob([html], { type: "text/html" }));
-    setSrc(url);
-
-    return () => URL.revokeObjectURL(url);
-  }, [rawText, token]);
+  const srcDoc = useMemo(
+    () => (rawText.length > 0 ? createHtmlPreviewDocument(rawText, token, isDarkTheme()) : ""),
+    [rawText, token],
+  );
 
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
@@ -64,7 +50,7 @@ export const HtmlPreview: FunctionalComponent<HtmlAttachmentPreviewProps> = ({ a
     return () => window.removeEventListener("message", handleMessage);
   }, [token]);
 
-  if (!src) {
+  if (!srcDoc) {
     return null;
   }
 
@@ -73,8 +59,7 @@ export const HtmlPreview: FunctionalComponent<HtmlAttachmentPreviewProps> = ({ a
       <iframe
         ref={iframeRef}
         title="HTML attachment"
-        src={src}
-        onLoad={() => URL.revokeObjectURL(src)}
+        srcDoc={srcDoc}
         width="100%"
         height={height || undefined}
         frameBorder="0"

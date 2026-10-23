@@ -67,8 +67,8 @@ test.describe("Generic Attachments", () => {
       await expect(iframe).toBeVisible();
       await expect(iframe).toHaveAttribute("sandbox", "allow-scripts");
       await expect(iframe).toHaveAttribute("referrerpolicy", "no-referrer");
-      await expect(iframe).toHaveAttribute("src", /^blob:/);
-      await expect(iframe).not.toHaveAttribute("srcdoc", /.+/);
+      await expect(iframe).toHaveAttribute("srcdoc", /Content-Security-Policy/);
+      await expect(iframe).not.toHaveAttribute("src", /.+/);
       await expect(
         page.frameLocator(".attachment-row__preview .attachment-preview__frame").locator(".status"),
       ).toHaveText("Script rendered graph controls");

@@ -37,35 +37,13 @@ const getHtmlAttachmentFrameTitle = ({ name, source }: AttachmentPreviewOptions[
 const HtmlFrameAttachmentPreviewView = ({ attachment, fullScreen, previewData }: AttachmentPreviewOptions) => {
   const htmlContent = typeof previewData === "string" ? previewData : "";
   const htmlPreviewToken = `${attachment.uid || attachment.source}-${Math.random().toString(36).slice(2)}`;
-  const htmlPreviewDocument = createHtmlPreviewSrcDoc(htmlContent, htmlPreviewToken);
-  let htmlPreviewUrl = "";
-  let htmlPreviewLoaded = false;
-
-  // The document is served from a blob URL rather than `srcdoc`: `about:srcdoc` documents cannot call
-  // `history.pushState`, which self-contained pages (e.g. bundled by Zundler) rely on.
-  // The URL is revoked as soon as the frame has loaded, so the attachment cannot hand it to the user
-  // (e.g. as a link to open in a new tab), where it would run with the origin of the report.
-  const createHtmlPreviewUrl = () => {
-    if (htmlPreviewUrl) {
-      URL.revokeObjectURL(htmlPreviewUrl);
-    }
-    htmlPreviewLoaded = false;
-    htmlPreviewUrl = URL.createObjectURL(new Blob([htmlPreviewDocument], { type: "text/html" }));
-    return htmlPreviewUrl;
-  };
-  const revokeHtmlPreviewUrl = () => {
-    if (htmlPreviewUrl) {
-      URL.revokeObjectURL(htmlPreviewUrl);
-      htmlPreviewUrl = "";
-    }
-  };
   const frame = createElement("iframe", {
     attrs: {
       "data-html-preview-token": htmlPreviewToken,
       "frameborder": "0",
       "referrerpolicy": "no-referrer",
       "sandbox": "allow-scripts",
-      "src": createHtmlPreviewUrl(),
+      "srcdoc": createHtmlPreviewSrcDoc(htmlContent, htmlPreviewToken),
       "style": fullScreen ? null : `height: ${HTML_PREVIEW_INITIAL_HEIGHT}px`,
       "title": getHtmlAttachmentFrameTitle(attachment),
     },
@@ -73,11 +51,6 @@ const HtmlFrameAttachmentPreviewView = ({ attachment, fullScreen, previewData }:
       b("attachment-preview", { html: true }),
       b("attachment-preview", "frame", { fullscreen: fullScreen }),
     ),
-  });
-
-  frame.addEventListener("load", () => {
-    htmlPreviewLoaded = true;
-    revokeHtmlPreviewUrl();
   });
 
   if (fullScreen) {
@@ -113,11 +86,6 @@ const HtmlFrameAttachmentPreviewView = ({ attachment, fullScreen, previewData }:
   return defineMountableElement(frame, {
     render: () => frame,
     attachToDom() {
-      // A frame that is moved in the DOM reloads its source, which is already revoked by then.
-      if (htmlPreviewLoaded) {
-        frame.setAttribute("src", createHtmlPreviewUrl());
-      }
-
       if (releaseMessages) {
         return;
       }
@@ -133,7 +101,6 @@ const HtmlFrameAttachmentPreviewView = ({ attachment, fullScreen, previewData }:
     },
     destroy() {
       releaseMessages?.();
-      revokeHtmlPreviewUrl();
       frame.remove();
     },
   });
