@@ -10,6 +10,8 @@ import {
   type DefaultLabelsConfig,
   DEFAULT_ENVIRONMENT,
   DEFAULT_ENVIRONMENT_IDENTITY,
+  UNRESOLVED_ENVIRONMENT,
+  type DynamicEnvironmentResolver,
   type EnvironmentIdentity,
   type EnvironmentsConfig,
   type FlakyDetectionConfig,
@@ -70,6 +72,8 @@ import { createResolutionIssue, getResolutionByRules, isIgnoredFailure } from ".
 import {
   environmentIdentityById,
   normalizeEnvironmentDescriptorMap,
+  resolveDynamicEnvironmentIdentity,
+  type DynamicEnvironmentIdentity,
   resolveEnvironmentIdentity,
   resolveStoredEnvironmentIdentity,
   validateAllowedEnvironmentId,
@@ -79,6 +83,8 @@ import { getStatusTransition } from "../utils/new.js";
 import { measurePerfAggregateSync, PERF_METRIC_NAMES } from "../utils/perf.js";
 import { testFixtureResultRawToState, testResultRawToState } from "./convert.js";
 import { RetrySubstore } from "./retrySubstore.js";
+
+const DYNAMIC_ENVIRONMENTS_WARN_THRESHOLD = 50;
 
 const index = <T>(indexMap: Map<string, T[]>, key: string | null | undefined, ...items: T[]) => {
   if (key) {
@@ -144,6 +150,12 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   readonly #defaultLabels: DefaultLabelsConfig = {};
   readonly #environment: EnvironmentIdentity | undefined;
   readonly #environmentsConfig: EnvironmentsConfig = {};
+  readonly #dynamicEnvironments: DynamicEnvironmentResolver | undefined;
+  // the original values of the dynamic environments by id, to reject different values normalized to the same id
+  readonly #dynamicEnvironmentSources: Map<string, string> = new Map();
+  readonly #dynamicEnvironmentIds: Set<string> = new Set();
+  readonly #unusableDynamicEnvironmentValues: Set<string> = new Set();
+  #dynamicEnvironmentsWarned = false;
   readonly #reportVariables: ReportVariables = {};
   readonly #realtimeDispatcher?: RealtimeEventsDispatcher;
   readonly #realtimeSubscriber?: RealtimeSubscriber;
@@ -185,6 +197,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     environment?: string;
     allowedEnvironments?: string[];
     environmentsConfig?: EnvironmentsConfig;
+    dynamicEnvironments?: DynamicEnvironmentResolver;
     reportVariables?: ReportVariables;
     performance?: PerformanceConfig;
   }) {
@@ -198,6 +211,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       environment,
       allowedEnvironments,
       environmentsConfig = {},
+      dynamicEnvironments,
       reportVariables = {},
       performance = {},
     } = params ?? {};
@@ -219,6 +233,16 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     );
 
     errors.push(...forcedEnvironment.errors);
+
+    if (
+      dynamicEnvironments &&
+      (UNRESOLVED_ENVIRONMENT in normalizedEnvironmentsConfig ||
+        forcedEnvironment.identity?.id === UNRESOLVED_ENVIRONMENT)
+    ) {
+      errors.push(
+        `the environment id ${JSON.stringify(UNRESOLVED_ENVIRONMENT)} is reserved for the dynamic environments fallback`,
+      );
+    }
 
     const resolvedEnvironment = forcedEnvironment.identity;
 
@@ -247,6 +271,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     this.#realtimeSubscriber = realtimeSubscriber;
     this.#defaultLabels = defaultLabels;
     this.#environmentsConfig = normalizedEnvironmentsConfig;
+    this.#dynamicEnvironments = dynamicEnvironments;
     this.#environment = resolvedEnvironment;
     this.#reportVariables = reportVariables;
     this.#allowedEnvironmentIds = new Set(allowedEnvironments ?? []);
@@ -403,6 +428,96 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     );
   }
 
+  #warnUnusableDynamicEnvironmentValue(value: string) {
+    if (this.#unusableDynamicEnvironmentValues.has(value)) {
+      return;
+    }
+
+    this.#unusableDynamicEnvironmentValues.add(value);
+    // eslint-disable-next-line no-console
+    console.warn(
+      `Allure: dynamic environment value ${JSON.stringify(value)} can not be used as an environment id, ` +
+        `the results with this value are put into the ${UNRESOLVED_ENVIRONMENT} environment`,
+    );
+  }
+
+  /**
+   * The original values are not a part of the dump, but the resolver is deterministic over the labels,
+   * so the mapping is rebuilt from the restored results to keep the collision checks working
+   */
+  #rebuildDynamicEnvironmentSources() {
+    if (!this.#dynamicEnvironments || this.#environment) {
+      return;
+    }
+
+    for (const testResult of this.#testResults.values()) {
+      const environmentId = this.#environmentIdByTestResult(testResult);
+
+      if (!environmentId) {
+        continue;
+      }
+
+      let dynamic: DynamicEnvironmentIdentity | undefined;
+
+      try {
+        const labels = testResult.labels.filter(
+          ({ name }) => name !== "ALLURE_ID" && name !== fallbackTestCaseIdLabelName,
+        );
+
+        // the same precedence as on ingest: a result matched by a static matcher was not assigned dynamically
+        if (Object.values(this.#environmentsConfig).some(({ matcher }) => matcher({ labels }))) {
+          continue;
+        }
+
+        dynamic = resolveDynamicEnvironmentIdentity(this.#dynamicEnvironments, { labels }, this.#environmentsConfig);
+      } catch {
+        // the resolver can not handle this result anymore, there is nothing to rebuild from it
+        continue;
+      }
+
+      if (dynamic?.source === undefined || dynamic.id !== environmentId || dynamic.id === UNRESOLVED_ENVIRONMENT) {
+        continue;
+      }
+
+      // every restored result is compared with what is already known, so dumps restored one by one are checked too
+      this.#trackDynamicEnvironmentSource(dynamic.id, dynamic.source);
+      this.#dynamicEnvironmentIds.add(dynamic.id);
+    }
+  }
+
+  #trackDynamicEnvironmentSource(id: string, source: string) {
+    const knownSource = this.#dynamicEnvironmentSources.get(id);
+
+    if (knownSource !== undefined && knownSource !== source) {
+      throw new Error(
+        `dynamic environment values ${JSON.stringify(knownSource)} and ${JSON.stringify(source)} are both normalized to the environment id ${JSON.stringify(id)}`,
+      );
+    }
+
+    this.#dynamicEnvironmentSources.set(id, source);
+  }
+
+  #registerDynamicEnvironment(dynamic: DynamicEnvironmentIdentity): EnvironmentIdentity {
+    const { source, ...identity } = dynamic;
+
+    if (source !== undefined) {
+      this.#trackDynamicEnvironmentSource(identity.id, source);
+    }
+
+    this.#dynamicEnvironmentIds.add(identity.id);
+
+    if (!this.#dynamicEnvironmentsWarned && this.#dynamicEnvironmentIds.size > DYNAMIC_ENVIRONMENTS_WARN_THRESHOLD) {
+      this.#dynamicEnvironmentsWarned = true;
+      // eslint-disable-next-line no-console
+      console.warn(
+        `Allure: more than ${DYNAMIC_ENVIRONMENTS_WARN_THRESHOLD} dynamic environments were created. ` +
+          "Make sure dynamicEnvironments returns stable values with a small set of variants (not ids, timestamps or hostnames of short-lived agents)",
+      );
+    }
+
+    return identity;
+  }
+
   #addEnvironments(envs: EnvironmentIdentity[]) {
     if (this.#environments.length === 0) {
       this.#environments.push(DEFAULT_ENVIRONMENT_IDENTITY);
@@ -441,6 +556,11 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       return;
     }
 
+    // the fallback environment of the dynamic environments is technical, like default
+    if (this.#dynamicEnvironments && environmentId === UNRESOLVED_ENVIRONMENT) {
+      return;
+    }
+
     const error = validateAllowedEnvironmentId(environmentId, this.#allowedEnvironmentIds, sourcePath);
 
     if (error) {
@@ -462,6 +582,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     const identity = resolveStoredEnvironmentIdentity(params, this.#environmentsConfig, {
       forcedEnvironment: this.#environment,
       fallbackToMatch: options?.fallbackToMatch,
+      dynamicEnvironments: this.#dynamicEnvironments,
     });
     const environmentKey =
       identity?.id ??
@@ -955,14 +1076,30 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
         : Object.entries(this.#environmentsConfig).find(([, { matcher }]) =>
             matcher({ labels: environmentMatcherLabels }),
           );
-      const namedEnvironmentIdentity =
-        this.#environment ??
-        (environmentMatch
-          ? {
-              id: environmentMatch[0],
-              name: environmentMatch[1].name ?? environmentMatch[0],
-            }
-          : undefined);
+      let namedEnvironmentIdentity: EnvironmentIdentity | undefined;
+
+      if (this.#environment) {
+        namedEnvironmentIdentity = this.#environment;
+      } else if (environmentMatch) {
+        namedEnvironmentIdentity = {
+          id: environmentMatch[0],
+          name: environmentMatch[1].name ?? environmentMatch[0],
+        };
+      } else {
+        const dynamic = resolveDynamicEnvironmentIdentity(
+          this.#dynamicEnvironments,
+          { labels: environmentMatcherLabels },
+          this.#environmentsConfig,
+          (value) => this.#warnUnusableDynamicEnvironmentValue(value),
+        );
+
+        if (dynamic) {
+          this.#assertAllowedEnvironmentId(dynamic.id, "dynamic environment");
+
+          namedEnvironmentIdentity = this.#registerDynamicEnvironment(dynamic);
+        }
+      }
+
       const identity = namedEnvironmentIdentity ?? DEFAULT_ENVIRONMENT_IDENTITY;
 
       testResult.environment = identity.id;
@@ -1992,6 +2129,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     });
     this.#rebuildIdentityIndexes();
     this.#rebuildEnvironmentIndexes();
+    this.#rebuildDynamicEnvironmentSources();
     this.#rebuildRetrySubstore();
 
     for (const testResult of this.#testResults.values()) {
