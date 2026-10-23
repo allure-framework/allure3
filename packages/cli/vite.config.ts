@@ -2,7 +2,10 @@ import { defaultTasksConfig, defaultVitestConfig } from "@allurereport/common-co
 import { defineConfig, mergeConfig } from "vite-plus";
 
 const packageRoot = import.meta.dirname;
-const nonParallelFiles = ["./test/commands/run.integration.test.ts"];
+const nonParallelFiles = [
+  "./test/utils/supervisor/posix.test.ts", // asserts process listeners;
+  "./test/utils/supervisor/windows.test.ts", // asserts process listeners;
+];
 
 export default defineConfig(
   mergeConfig(defaultVitestConfig(packageRoot, { include: [] }), {

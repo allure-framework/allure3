@@ -2,7 +2,7 @@ import * as console from "node:console";
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
-import { Logger, setGlobalLogLevel } from "../src/utils/logger.js";
+import { Logger, setGlobalLogLevel, type LogLevel } from "../src/utils/logger.js";
 
 const stripAnsi = (value: string) => value.replace(new RegExp(`${String.fromCharCode(27)}\\[[0-9;]*m`, "g"), "");
 
@@ -140,5 +140,82 @@ describe("Logger", () => {
 
     expect(stripAnsi(logged)).toContain("name: 'circular'");
     expect(stripAnsi(logged)).toContain("[Circular");
+  });
+
+  it.each<[LogLevel, { [k in LogLevel]?: boolean }, boolean]>([
+    ["silent", {}, false],
+    ["error", { error: true }, true],
+    ["warn", { error: true, warn: true }, true],
+    ["info", { error: true, warn: true, info: true }, true],
+    ["debug", { error: true, warn: true, info: true, debug: true }, true],
+    ["verbose", { error: true, warn: true, info: true, debug: true, verbose: true }, true],
+  ])(
+    "set level flags from %s global level",
+    (level: LogLevel, { error = false, warn = false, info = false, debug = false, verbose = false }, enabled) => {
+      vi.stubEnv("ALLURE_LOG_LEVEL", level);
+
+      const logger = new Logger("AllureRun");
+
+      expect(logger.enabled).toBe(enabled);
+      expect(logger.errorEnabled).toBe(error);
+      expect(logger.warnEnabled).toBe(warn);
+      expect(logger.infoEnabled).toBe(info);
+      expect(logger.debugEnabled).toBe(debug);
+      expect(logger.verboseEnabled).toBe(verbose);
+    },
+  );
+
+  it.each<[LogLevel, { [k in LogLevel]?: boolean }, boolean]>([
+    ["silent", {}, false],
+    ["error", { error: true }, true],
+    ["warn", { error: true, warn: true }, true],
+    ["info", { error: true, warn: true, info: true }, true],
+    ["debug", { error: true, warn: true, info: true, debug: true }, true],
+    ["verbose", { error: true, warn: true, info: true, debug: true, verbose: true }, true],
+  ])(
+    "set level flags from %s constructor level",
+    (level: LogLevel, { error = false, warn = false, info = false, debug = false, verbose = false }, enabled) => {
+      const logger = new Logger("AllureRun", level);
+
+      expect(logger.enabled).toBe(enabled);
+      expect(logger.errorEnabled).toBe(error);
+      expect(logger.warnEnabled).toBe(warn);
+      expect(logger.infoEnabled).toBe(info);
+      expect(logger.debugEnabled).toBe(debug);
+      expect(logger.verboseEnabled).toBe(verbose);
+    },
+  );
+
+  it.each<[LogLevel, { [k in LogLevel]?: boolean }, boolean]>([
+    ["silent", {}, false],
+    ["error", { error: true }, true],
+    ["warn", { error: true, warn: true }, true],
+    ["info", { error: true, warn: true, info: true }, true],
+    ["debug", { error: true, warn: true, info: true, debug: true }, true],
+    ["verbose", { error: true, warn: true, info: true, debug: true, verbose: true }, true],
+  ])(
+    "set level flags from setLogLevel(%s)",
+    (level: LogLevel, { error = false, warn = false, info = false, debug = false, verbose = false }, enabled) => {
+      const logger = new Logger("AllureRun");
+
+      logger.setLogLevel(level);
+
+      expect(logger.enabled).toBe(enabled);
+      expect(logger.errorEnabled).toBe(error);
+      expect(logger.warnEnabled).toBe(warn);
+      expect(logger.infoEnabled).toBe(info);
+      expect(logger.debugEnabled).toBe(debug);
+      expect(logger.verboseEnabled).toBe(verbose);
+    },
+  );
+
+  it("set level flags from global level", () => {
+    const logger = new Logger("AllureRun");
+
+    logger.debug("Test plan path");
+    logger.info("Attempt started");
+
+    expect(console.debug).not.toHaveBeenCalled();
+    expect(console.info).toHaveBeenCalledTimes(1);
   });
 });
