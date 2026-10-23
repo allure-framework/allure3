@@ -383,3 +383,46 @@ describe("report markdown", () => {
     expect(markdown).toContain("- <code>a | b</code> &mdash; <code>&lt;path&gt;</code>");
   });
 });
+
+describe("publication warnings", () => {
+  const report = (name: string, published?: boolean) => ({
+    name,
+    published,
+    stats: { total: 1, passed: 1 },
+    status: "passed" as const,
+    duration: 1,
+  });
+
+  it("lists only unpublished reports after statistics and keeps successful links", () => {
+    const markdown = renderReportSummaryMarkdown(
+      context({
+        reports: [
+          { ...report("Awesome", true), remoteHref: "https://example.org/report" },
+          report("Dashboard", false),
+          report("Local"),
+        ],
+      }),
+    );
+    expect(markdown).toContain('href="https://example.org/report"');
+    expect(markdown).toContain("**⚠ Expected reports were not published**");
+    expect(markdown).toContain("- <code>Dashboard</code>");
+    expect(markdown).not.toContain("- <code>Awesome</code>");
+    expect(markdown).not.toContain("- <code>Local</code>");
+    expect(markdown).not.toContain('href="Dashboard');
+    expect(markdown.indexOf("Expected reports")).toBeGreaterThan(markdown.indexOf("All tests"));
+  });
+
+  it("warns when all reports are unpublished, including filtered reports, and escapes their names", () => {
+    const markdown = renderReportSummaryMarkdown(
+      context({ reports: [report("<Dashboard>", false), { ...report("Filtered", false), filtered: true }] }),
+    );
+    expect(markdown).toContain("- <code>&lt;Dashboard&gt;</code>");
+    expect(markdown).toContain("- <code>Filtered</code>");
+  });
+
+  it("does not change legacy output when publication succeeds or was not requested", () => {
+    const legacy = renderReportSummaryMarkdown(context({ reports: [report("Awesome")] }));
+    expect(renderReportSummaryMarkdown(context({ reports: [report("Awesome", true)] }))).toBe(legacy);
+    expect(renderReportSummaryMarkdown(context())).not.toContain("Expected reports");
+  });
+});

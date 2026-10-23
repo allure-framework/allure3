@@ -1,16 +1,17 @@
 import { proseStyles, resolveCssVarDeclarations, sanitizeIframeHtml, themeStore } from "@allurereport/web-commons";
 import type { FunctionalComponent } from "preact";
 import { useMemo, useState } from "preact/hooks";
-import type { ReportTestResult } from "types";
 
 import { MetadataButton } from "@/components/MetadataButton";
+import { useI18n } from "@/stores/locale";
 import { collapsedTrees, toggleTree } from "@/stores/tree";
 
 import * as styles from "./styles.scss";
 
-export type TrDescriptionProps = {
-  id?: string;
-  descriptionHtml: ReportTestResult["descriptionHtml"];
+export type TrRichTextSectionProps = {
+  id: string;
+  section: "description" | "precondition" | "expectedResult";
+  html?: string;
 };
 
 const getIframeContentHeight = (iframe: HTMLIFrameElement) => {
@@ -22,13 +23,15 @@ const getIframeContentHeight = (iframe: HTMLIFrameElement) => {
   return Math.ceil(Math.max(bodyRectHeight, scrollHeight));
 };
 
-export const TrDescription: FunctionalComponent<TrDescriptionProps> = ({ id, descriptionHtml }) => {
-  const descriptionId = typeof id === "string" ? `${id}-description` : null;
-  const isOpen = !collapsedTrees.value.has(descriptionId);
+export const TrRichTextSection: FunctionalComponent<TrRichTextSectionProps> = ({ id, html, section }) => {
+  const { t } = useI18n("ui");
+  const title = t(section);
+  const sectionId = `${id}-${section}`;
+  const isOpen = !collapsedTrees.value.has(sectionId);
   const [height, setHeight] = useState(0);
   const currentTheme = themeStore.value.current;
 
-  const sanitized = useMemo(() => (descriptionHtml ? sanitizeIframeHtml(descriptionHtml) : ""), [descriptionHtml]);
+  const sanitized = useMemo(() => (html ? sanitizeIframeHtml(html) : ""), [html]);
 
   const iframeContent = useMemo(() => {
     if (!sanitized) {
@@ -54,23 +57,20 @@ export const TrDescription: FunctionalComponent<TrDescriptionProps> = ({ id, des
   };
 
   return (
-    <div className={styles["test-result-description"]} data-testid="test-result-description">
-      <div className={styles["test-result-description-wrapper"]}>
+    <div className={styles["test-result-rich-text-section"]} data-testid={`test-result-${section}`}>
+      <div className={styles["test-result-rich-text-section-wrapper"]}>
         <MetadataButton
-          title="Description"
-          setIsOpen={() => {
-            if (descriptionId !== null) {
-              toggleTree(descriptionId);
-            }
-          }}
+          title={title}
+          aria-expanded={isOpen}
+          setIsOpen={() => toggleTree(sectionId)}
           isOpened={isOpen}
         />
         {isOpen && (
-          <div className={styles["test-result-description-text"]}>
+          <div className={styles["test-result-rich-text-section-text"]}>
             {iframeContent && (
               <iframe
-                data-testid="test-result-description-frame"
-                title="Description"
+                data-testid={`test-result-${section}-frame`}
+                title={title}
                 srcDoc={iframeContent}
                 width="100%"
                 height={String(height)}

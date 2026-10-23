@@ -77,6 +77,8 @@ export type SummaryCheckResult = Pick<AllureCheckResult, "id" | "name" | "status
 export type { GlobalAttachmentLink } from "@allurereport/core-api";
 
 export interface PluginSummary {
+  /** Whether requested publication completed. Omitted when publication was not requested. */
+  published?: boolean;
   href?: string;
   remoteHref?: string;
   jobHref?: string;

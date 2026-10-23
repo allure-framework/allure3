@@ -162,6 +162,8 @@
     "parameters": "Parametrlər",
     "category": "Kateqoriya",
     "description": "Təsvir",
+    "precondition": "İlkin şərt",
+    "expectedResult": "Gözlənilən nəticə",
     "links": "Keçidlər",
     "relatedTestResults": "Əlaqəli test nəticələri ({{count}})",
     "overview": "Ümumi baxış",

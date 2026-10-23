@@ -17,6 +17,8 @@ export const mockAllureStore = () => {
     attachmentContentById = vi.fn().mockResolvedValue(undefined);
     fixturesByTrId = vi.fn().mockResolvedValue([]);
     qualityGateResults = vi.fn().mockResolvedValue([]);
+    allVariables = vi.fn().mockResolvedValue({});
+    envVariablesByEnvironmentId = vi.fn().mockResolvedValue({});
   }
 
   return vi.mocked<AllureStore>(new AllureStoreMock() as any);
@@ -68,6 +70,10 @@ export const mockRequests = () => {
     .fn<(...args: AxiosPostArgs) => Promise<AxiosResponse<void>>>()
     .mockResolvedValue({} as AxiosResponse);
 
+  // returns nothing by default, so the mock answers with ids for every uploaded result; may be overridden to fail
+  const uploadTestResultsRequest = vi.fn<(...args: AxiosPostArgs) => Promise<AxiosResponse | undefined> | undefined>();
+  const reopenLaunchRequest = vi.fn().mockResolvedValue({} as AxiosResponse);
+
   const axiosTestInstanse = axios.create({
     baseURL: "https://allurereport.org",
   });
@@ -83,12 +89,20 @@ export const mockRequests = () => {
       return getLaunchRequest(url, undefined, config);
     }
 
+    if (/^\/api\/launch\/\d+\/progress$/.test(url)) {
+      return Promise.resolve({ data: { ready: true } } as AxiosResponse);
+    }
+
     return Promise.resolve({ data: {} } as AxiosResponse);
   });
 
   vi.spyOn(axiosTestInstanse, "post").mockImplementation((...[url, data, config]: AxiosPostArgs) => {
     if (url.startsWith("/api/launch/") && url.endsWith("/close")) {
       return closeLaunchRequest(url, data, config);
+    }
+
+    if (url.startsWith("/api/launch/") && url.endsWith("/reopen")) {
+      return reopenLaunchRequest(url, data, config);
     }
 
     if (url === "/api/launch/category/bulk") {
@@ -128,14 +142,18 @@ export const mockRequests = () => {
     }
 
     if (url === "/api/upload/test-result") {
-      return Promise.resolve({
-        data: {
-          results: (data?.results ?? []).map((result: { id: string }, idx: number) => ({
-            id: idx + 1,
-            uuid: result.id,
-          })),
-        },
-      } as AxiosResponse<{ results: { id: number; uuid: string }[] }>);
+      return Promise.resolve(uploadTestResultsRequest(url, data, config)).then(
+        (response) =>
+          response ??
+          ({
+            data: {
+              results: (data?.results ?? []).map((result: { uuid: string }, idx: number) => ({
+                id: idx + 1,
+                uuid: result.uuid,
+              })),
+            },
+          } as AxiosResponse<{ results: { id: number; uuid: string }[] }>),
+      );
     }
 
     if (url.startsWith("/api/upload/test-result/") && url.endsWith("/attachment")) {
@@ -150,6 +168,7 @@ export const mockRequests = () => {
   return {
     getLaunchRequest,
     closeLaunchRequest,
+    reopenLaunchRequest,
     createLaunchCategoriesBulkRequest,
     startUploadRequest,
     stopUploadRequest,
@@ -159,6 +178,7 @@ export const mockRequests = () => {
     uploadGlobalAttachmentsRequest,
     uploadGlobalErrorsRequest,
     uploadQualityGateResultsRequest,
+    uploadTestResultsRequest,
     uploadAttachmentsForResultRequest,
     uploadFixturesForResultRequest,
   };

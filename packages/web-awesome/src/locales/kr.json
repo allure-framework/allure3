@@ -162,6 +162,8 @@
     "parameters": "매개변수",
     "category": "카테고리",
     "description": "설명",
+    "precondition": "사전 조건",
+    "expectedResult": "예상 결과",
     "links": "링크",
     "relatedTestResults": "관련 테스트 결과 ({{count}})",
     "overview": "개요",

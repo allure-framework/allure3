@@ -93,15 +93,7 @@ export interface ReportCategory {
 
 export type ReportTestResult = Omit<
   TestResult,
-  | "runSelector"
-  | "sourceMetadata"
-  | "expectedResult"
-  | "expectedResultHtml"
-  | "precondition"
-  | "preconditionHtml"
-  | "steps"
-  | "categories"
-  | "environment"
+  "runSelector" | "sourceMetadata" | "expectedResult" | "precondition" | "steps" | "categories" | "environment"
 > & {
   isRetry: boolean;
   setup: ReportFixtureResult[];

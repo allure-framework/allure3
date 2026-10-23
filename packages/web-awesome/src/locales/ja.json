@@ -162,6 +162,8 @@
     "parameters": "パラメータ",
     "category": "カテゴリ",
     "description": "説明",
+    "precondition": "事前条件",
+    "expectedResult": "期待される結果",
     "links": "リンク",
     "relatedTestResults": "関連するテスト結果（{{count}}）",
     "overview": "概要",

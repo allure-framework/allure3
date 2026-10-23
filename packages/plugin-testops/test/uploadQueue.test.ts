@@ -74,6 +74,46 @@ describe("UploadQueue", () => {
       expect(onDeferred).toHaveBeenCalledWith();
     });
 
+    it("keeps an older pending task and reports the name as failed when a newer run fails terminally", async () => {
+      const queue = new UploadQueue();
+
+      await queue.run("test-results", vi.fn().mockRejectedValue(axiosError(503)), { baseDelayMs: 0, maxRetries: 0 });
+      await expect(
+        queue.run("test-results", vi.fn().mockRejectedValue(axiosError(400)), { baseDelayMs: 0, maxRetries: 0 }),
+      ).rejects.toEqual(axiosError(400));
+
+      expect(queue.pendingNames).toEqual(["test-results"]);
+      expect(queue.failedNames).toEqual(["test-results"]);
+    });
+
+    it("clears a failed name when a later run of it succeeds or is deferred", async () => {
+      const queue = new UploadQueue();
+      const fail = () =>
+        queue.run("a", vi.fn().mockRejectedValue(axiosError(400)), { baseDelayMs: 0 }).catch(() => undefined);
+
+      await fail();
+      await queue.run("a", vi.fn().mockResolvedValue("ok"), { baseDelayMs: 0 });
+
+      expect(queue.failedNames).toEqual([]);
+
+      await fail();
+      await queue.run("a", vi.fn().mockRejectedValue(axiosError(503)), { baseDelayMs: 0, maxRetries: 0 });
+
+      expect(queue.failedNames).toEqual([]);
+    });
+
+    it("keeps the position of a name deferred again", async () => {
+      const queue = new UploadQueue();
+      const defer = (name: string) =>
+        queue.run(name, vi.fn().mockRejectedValue(axiosError(503)), { baseDelayMs: 0, maxRetries: 0 });
+
+      await defer("test-results");
+      await defer("quality-gate");
+      await defer("test-results");
+
+      expect(queue.pendingNames).toEqual(["test-results", "quality-gate"]);
+    });
+
     it("replaces a pending task for the same name instead of appending", async () => {
       const queue = new UploadQueue();
       const closedLaunchError = axiosError(423, "Launch is closed");

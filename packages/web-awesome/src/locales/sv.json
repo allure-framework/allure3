@@ -162,6 +162,8 @@
     "parameters": "Parametrar",
     "category": "Kategori",
     "description": "Beskrivning",
+    "precondition": "Förutsättning",
+    "expectedResult": "Förväntat resultat",
     "links": "Länkar",
     "relatedTestResults": "Relaterade testresultat ({{count}})",
     "overview": "Översikt",

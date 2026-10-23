@@ -125,33 +125,27 @@ describe("Quality Gate upload", () => {
       limit: 10,
     });
 
-    const store = {
-      allTestResults: vi.fn().mockResolvedValue([
-        {
-          id: "tr-1",
-          name: "Sample test",
-          fullName: "suite Sample test",
-          status: "passed",
-          stage: "finished",
-          start: 1,
-          stop: 2,
-          steps: [],
-        } as unknown as TestResult,
-      ]),
-      allGlobalAttachments: vi.fn().mockResolvedValue([]),
-      allGlobalErrors: vi.fn().mockResolvedValue([]),
-      allEnvironmentIdentities: vi.fn().mockResolvedValue([]),
-      environmentIdByTrId: vi.fn().mockResolvedValue(undefined),
-      attachmentsByTrId: vi.fn().mockResolvedValue([]),
-      fixturesByTrId: vi.fn().mockResolvedValue([]),
-      qualityGateResults: vi.fn().mockResolvedValue([
-        {
-          rule: "coverage",
-          message: "Coverage is OK",
-          success: true,
-        } as QualityGateValidationResult,
-      ]),
-    } as unknown as AllureStore;
+    const store = mockAllureStore();
+
+    store.allTestResults.mockResolvedValue([
+      {
+        id: "tr-1",
+        name: "Sample test",
+        fullName: "suite Sample test",
+        status: "passed",
+        stage: "finished",
+        start: 1,
+        stop: 2,
+        steps: [],
+      } as unknown as TestResult,
+    ]);
+    store.qualityGateResults.mockResolvedValue([
+      {
+        rule: "coverage",
+        message: "Coverage is OK",
+        success: true,
+      } as QualityGateValidationResult,
+    ]);
 
     await plugin.start(
       {
