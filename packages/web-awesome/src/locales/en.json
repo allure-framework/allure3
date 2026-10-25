@@ -335,7 +335,8 @@
         "unknown": "$t(statuses:unknown, capitalize)"
       },
       "percentage": "{{percentage}}%",
-      "of": "of {{total}}",
+      "of": "of all {{total}} tests",
+      "successRate": "success rate",
       "total": "total",
       "tests": {
         "new_zero": "No new tests",

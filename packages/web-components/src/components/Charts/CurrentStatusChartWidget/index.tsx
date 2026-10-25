@@ -72,6 +72,7 @@ export const CurrentStatusChartWidget: FunctionalComponent<Props> = (props) => {
                       metric={metric}
                       isEmpty={isEmpty}
                       total={totalCount}
+                      data={data}
                     />
                   ),
                 ]}
