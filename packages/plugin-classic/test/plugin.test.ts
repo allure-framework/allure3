@@ -3,7 +3,7 @@ import type { AllureStore, PluginContext } from "@allurereport/plugin-api";
 import { epic, feature, label, story } from "allure-js-commons";
 import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
-import { generateTestResults } from "../src/generators.js";
+import { generateAllCharts, generateTestResults } from "../src/generators.js";
 import { ClassicPlugin } from "../src/plugin.js";
 
 vi.mock("../src/generators.js", () => ({
@@ -67,6 +67,21 @@ describe("ClassicPlugin", () => {
       "Product defects",
       "Test defects",
     ]);
+  });
+
+  it("should build the categories trend from the same categories as the test results", async () => {
+    const plugin = new ClassicPlugin();
+    const context = createContext();
+    const store = createStore({ allure2_categories: [{ name: "Legacy category", matchedStatuses: ["broken"] }] });
+
+    await plugin.start(context);
+    await plugin.done(context, store);
+
+    const chartCategories = vi.mocked(generateAllCharts).mock.calls[0][4];
+    const [, , options] = vi.mocked(generateTestResults).mock.calls[0];
+
+    expect(chartCategories?.map(({ name }) => name)).toContain("Legacy category");
+    expect(chartCategories).toEqual(options?.categories);
   });
 
   it("should apply the filter option to statistic and test results", async () => {

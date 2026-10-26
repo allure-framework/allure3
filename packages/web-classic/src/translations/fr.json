@@ -163,6 +163,18 @@
       "slice": "{{count}} tests ({{percent}}% de tous les tests)",
       "slice_many": "{{count}} tests ({{percent}}% de tous les tests)",
       "noEligibleResults": "Aucun test réussi, échoué ou en erreur. Les tests ignorés et de statut inconnu sont exclus du taux de réussite."
+    },
+    "durationTrend": {
+      "title": "Tendance de la durée"
+    },
+    "retriesTrend": {
+      "title": "Tendance des tentatives"
+    },
+    "categoriesTrend": {
+      "title": "Tendance des catégories"
+    },
+    "runTrend": {
+      "empty": "Il n'y a rien à montrer"
     }
   },
   "timeline": {

@@ -232,6 +232,18 @@
       "slice": "{{count}} testov ({{percent}}% vsih testov)",
       "slice_few": "{{count}} testy ({{percent}}% vsih testov)",
       "slice_many": "{{count}} testov ({{percent}}% vsih testov)"
+    },
+    "durationTrend": {
+      "title": "Trend trvanja"
+    },
+    "retriesTrend": {
+      "title": "Trend povtornyh prob"
+    },
+    "categoriesTrend": {
+      "title": "Trend kategorij"
+    },
+    "runTrend": {
+      "empty": "Nema informacije"
     }
   }
 }

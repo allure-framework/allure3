@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 
-import { defaultChartsConfig } from "@allurereport/charts-api";
+import { type ChartOptions, ChartType, defaultChartsConfig } from "@allurereport/charts-api";
 import {
   type CategoryDefinition,
   type EnvironmentItem,
@@ -234,14 +234,37 @@ export const generatePieChart = async (writer: ClassicDataWriter, statistic: Sta
   await writer.writeWidget("allure_pie_chart.json", chartData);
 };
 
+/**
+ * Allure 2 keeps the trends of the last 20 runs
+ */
+const CLASSIC_TREND_LIMIT = 20;
+
+/**
+ * Charts of the classic Graphs page: the default charts and the Allure 2 trends missing among them
+ */
+export const classicChartsConfig: ChartOptions[] = [
+  ...defaultChartsConfig,
+  { type: ChartType.DurationTrend, limit: CLASSIC_TREND_LIMIT },
+  { type: ChartType.RetriesTrend, limit: CLASSIC_TREND_LIMIT },
+  { type: ChartType.CategoriesTrend, limit: CLASSIC_TREND_LIMIT },
+];
+
 export const generateAllCharts = async (
   writer: ClassicDataWriter,
   store: AllureStore,
   options: ClassicOptions,
   context: PluginContext,
+  categories?: CategoryDefinition[],
 ) => {
   const { filter } = options;
-  const generatedChartsData = await generateCharts(defaultChartsConfig, store, context.reportName, randomUUID, filter);
+  const generatedChartsData = await generateCharts(
+    classicChartsConfig,
+    store,
+    context.reportName,
+    randomUUID,
+    filter,
+    categories,
+  );
 
   if (Object.keys(generatedChartsData.general).length > 0) {
     await writer.writeWidget("charts.json", generatedChartsData);

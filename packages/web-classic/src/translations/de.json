@@ -158,7 +158,19 @@
   },
   "charts": {
     "retry": "Erneut versuchen",
-    "loadError": "Diagramm konnte nicht geladen werden"
+    "loadError": "Diagramm konnte nicht geladen werden",
+    "durationTrend": {
+      "title": "Dauer Trend"
+    },
+    "retriesTrend": {
+      "title": "Wiederholungen Trend"
+    },
+    "categoriesTrend": {
+      "title": "Kategorien Trend"
+    },
+    "runTrend": {
+      "empty": "Hier gibt es nichts zu zeigen"
+    }
   },
   "timeline": {
     "empty": "Keine Daten",

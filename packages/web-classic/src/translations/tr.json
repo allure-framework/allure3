@@ -162,6 +162,18 @@
       "statusSlice": "{{count}} {{status}} (tüm testlerin %{{percent}} kadarı)",
       "slice": "{{count}} test (tüm testlerin %{{percent}} kadarı)",
       "noEligibleResults": "Başarılı, başarısız veya bozuk test yok. Atlanan ve durumu bilinmeyen testler başarı oranına dahil edilmez."
+    },
+    "durationTrend": {
+      "title": "Süre trendi"
+    },
+    "retriesTrend": {
+      "title": "Tekrar trendi"
+    },
+    "categoriesTrend": {
+      "title": "Kategoriler trendi"
+    },
+    "runTrend": {
+      "empty": "Gösterilecek bir şey yok"
     }
   },
   "timeline": {

@@ -163,6 +163,18 @@
       "slice": "{{count}} בדיקות ({{percent}}% מכל הבדיקות)",
       "slice_two": "{{count}} בדיקות ({{percent}}% מכל הבדיקות)",
       "noEligibleResults": "אין בדיקות שעברו, נכשלו או נשברו. בדיקות שדולגו ובדיקות במצב לא ידוע אינן נכללות בשיעור ההצלחה."
+    },
+    "durationTrend": {
+      "title": "מגמת זמן ריצה"
+    },
+    "retriesTrend": {
+      "title": "מגמת חזרות על ריצה"
+    },
+    "categoriesTrend": {
+      "title": "מגמת ריצה על קטגוריות"
+    },
+    "runTrend": {
+      "empty": "אין דבר להציג"
     }
   },
   "timeline": {

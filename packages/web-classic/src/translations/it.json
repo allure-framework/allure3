@@ -163,6 +163,18 @@
       "slice": "{{count}} test ({{percent}}% di tutti i test)",
       "slice_many": "{{count}} test ({{percent}}% di tutti i test)",
       "noEligibleResults": "Non ci sono test superati, falliti o con errori. I test saltati e con stato sconosciuto sono esclusi dalla percentuale di successo."
+    },
+    "durationTrend": {
+      "title": "Tendenza delle durate"
+    },
+    "retriesTrend": {
+      "title": "Tendenza dei tentativi"
+    },
+    "categoriesTrend": {
+      "title": "Tendenza delle categorie"
+    },
+    "runTrend": {
+      "empty": "Non c'è nulla da mostrare"
     }
   },
   "timeline": {

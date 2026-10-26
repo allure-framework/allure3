@@ -157,7 +157,19 @@
   },
   "charts": {
     "retry": "Կրկին փորձել",
-    "loadError": "Չհաջողվեց բեռնել գծապատկերը"
+    "loadError": "Չհաջողվեց բեռնել գծապատկերը",
+    "durationTrend": {
+      "title": "Տևողության թրենդ"
+    },
+    "retriesTrend": {
+      "title": "Կրկնությունների թրենդ"
+    },
+    "categoriesTrend": {
+      "title": "Կատեգորիաներ թրենդ"
+    },
+    "runTrend": {
+      "empty": "Տվյալներ չկան"
+    }
   },
   "attachments": {
     "imageDiff": {

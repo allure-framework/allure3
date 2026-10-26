@@ -350,6 +350,30 @@
       "layer": "Layer: {{layer}}",
       "statusSlice": "{{count}} {{status}} ({{percent}}% of all tests)",
       "slice": "{{count}} tests ({{percent}}% of all tests)"
+    },
+    "durationTrend": {
+      "title": "Duration trend",
+      "duration": "Duration",
+      "value": "{{duration, format_duration}}"
+    },
+    "retriesTrend": {
+      "title": "Retries trend",
+      "run": "Tests",
+      "retry": "Retries"
+    },
+    "categoriesTrend": {
+      "title": "Categories trend"
+    },
+    "runTrend": {
+      "empty": "There is nothing to show",
+      "tooltips": {
+        "current": "Latest report ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "Report from {{timestamp, timestamp_long_no_seconds}}"
+      },
+      "ticks": {
+        "current": "Latest",
+        "history": "{{timestamp, timestamp_date}}"
+      }
     }
   },
   "transitions": {

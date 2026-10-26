@@ -163,6 +163,18 @@
       "slice": "{{count}} pruebas ({{percent}}% de todas las pruebas)",
       "slice_many": "{{count}} pruebas ({{percent}}% de todas las pruebas)",
       "noEligibleResults": "No hay pruebas exitosas, fallidas ni con errores. Las omitidas y las de estado desconocido se excluyen de la tasa de éxito."
+    },
+    "durationTrend": {
+      "title": "Tendencia de duraciones"
+    },
+    "retriesTrend": {
+      "title": "Tendencia de reintentos"
+    },
+    "categoriesTrend": {
+      "title": "Tendencia de categorías"
+    },
+    "runTrend": {
+      "empty": "No hay nada para mostrar"
     }
   },
   "timeline": {

@@ -175,6 +175,18 @@
       "statusSlice": "{{count}} {{status}} (bütün testlərin {{percent}}%-i)",
       "slice": "{{count}} test (bütün testlərin {{percent}}%-i)",
       "noEligibleResults": "Uğurlu, uğursuz və ya nasaz testlər yoxdur. Ötürülmüş və statusu naməlum testlər uğur faizinə daxil edilmir."
+    },
+    "durationTrend": {
+      "title": "Müddət trendi"
+    },
+    "retriesTrend": {
+      "title": "Yenidən cəhdlər trendi"
+    },
+    "categoriesTrend": {
+      "title": "Kateqoriyalar trendi"
+    },
+    "runTrend": {
+      "empty": "Göstəriləcək heç nə yoxdur"
     }
   },
   "timeline": {

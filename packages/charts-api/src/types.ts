@@ -1,4 +1,11 @@
-import type { HistoryDataPoint, SeverityLevel, Statistic, TestResult, TestStatus } from "@allurereport/core-api";
+import type {
+  CategoryDefinition,
+  HistoryDataPoint,
+  SeverityLevel,
+  Statistic,
+  TestResult,
+  TestStatus,
+} from "@allurereport/core-api";
 
 // Chart types and enums
 export enum ChartType {
@@ -15,6 +22,9 @@ export enum ChartType {
   CoverageDiff = "coverageDiff",
   SuccessRateDistribution = "successRateDistribution",
   ProblemsDistribution = "problemsDistribution",
+  DurationTrend = "durationTrend",
+  RetriesTrend = "retriesTrend",
+  CategoriesTrend = "categoriesTrend",
 }
 
 export enum ChartDataType {
@@ -310,6 +320,46 @@ export type DurationDynamicsChartData = {
   }[];
 };
 
+/**
+ * A single run on the Allure 2 like trend charts (history points first, the current run last)
+ */
+export type RunTrendPoint = {
+  id: string;
+  name: string;
+  timestamp: number;
+};
+
+export type DurationTrendChartData = {
+  type: ChartType.DurationTrend;
+  title?: string;
+  /**
+   * The time the run took from the start of the first test to the end of the last one, in milliseconds
+   */
+  data: (RunTrendPoint & { duration: number })[];
+};
+
+export type RetriesTrendChartData = {
+  type: ChartType.RetriesTrend;
+  title?: string;
+  /**
+   * `run` is the number of tests, `retry` is the number of their earlier attempts
+   */
+  data: (RunTrendPoint & { run: number; retry: number })[];
+};
+
+export type CategoriesTrendChartData = {
+  type: ChartType.CategoriesTrend;
+  title?: string;
+  /**
+   * The number of tests in each category by category name
+   */
+  data: (RunTrendPoint & { categories: Record<string, number> })[];
+  /**
+   * Names of the categories present in the data, in the order the categories are matched
+   */
+  categories: string[];
+};
+
 // Union types for generated chart data
 export type GeneratedChartData =
   | TrendChartData
@@ -324,7 +374,10 @@ export type GeneratedChartData =
   | HeatMapChartData
   | TestingPyramidChartData
   | TrSeveritiesChartData
-  | DurationDynamicsChartData;
+  | DurationDynamicsChartData
+  | DurationTrendChartData
+  | RetriesTrendChartData
+  | CategoriesTrendChartData;
 
 export type GeneratedChartsData = Record<ChartId, GeneratedChartData>;
 
@@ -514,6 +567,17 @@ export type DurationDynamicsChartOptions = {
   limit?: number;
 };
 
+export type RunTrendChartOptions = {
+  type: ChartType.DurationTrend | ChartType.RetriesTrend | ChartType.CategoriesTrend;
+  title?: string;
+  /**
+   * Limit of runs shown on the chart, including the current one
+   *
+   * @default 10
+   */
+  limit?: number;
+};
+
 export type TreeMapChartOptions = {
   type: ChartType.CoverageDiff | ChartType.SuccessRateDistribution;
   title?: string;
@@ -543,7 +607,8 @@ export type ChartOptions =
   | StatusAgePyramidChartOptions
   | TestBaseGrowthDynamicsChartOptions
   | TrSeveritiesChartOptions
-  | DurationDynamicsChartOptions;
+  | DurationDynamicsChartOptions
+  | RunTrendChartOptions;
 
 export interface AllureChartsStoreData {
   historyDataPoints: HistoryDataPoint[];
@@ -551,6 +616,10 @@ export interface AllureChartsStoreData {
   /** Current results including retries, after the same environment and chart filters as testResults. */
   allTestResults?: TestResult[];
   statistic: Statistic;
+  /**
+   * Categories the test results are matched to, in matching order; the default categories when not set
+   */
+  categories?: CategoryDefinition[];
 }
 
 export interface TrendDataAccessor<T extends TrendDataType> {
