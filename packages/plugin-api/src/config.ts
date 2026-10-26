@@ -4,7 +4,7 @@ import type {
   Matcher,
   DefaultLabelsConfig,
   DynamicEnvironmentsConfig,
-  EnvironmentsConfig,
+  EnvironmentDescriptor,
   FlakyDetectionConfig,
   PerformanceConfig,
   ReportVariables,
@@ -19,6 +19,12 @@ export type CategoryRuleConfig = Omit<CategoryRule, "matchers"> & {
 };
 
 export type CategoriesConfigInput = false | CategoryRuleConfig[] | { rules: CategoryRuleConfig[] };
+
+export type EnvironmentDescriptorConfig = Omit<EnvironmentDescriptor, "matcher"> & {
+  matcher: EnvironmentDescriptor["matcher"] | string;
+};
+
+export type EnvironmentsConfigInput = Record<string, EnvironmentDescriptorConfig>;
 
 export interface Config {
   name?: string;
@@ -44,7 +50,7 @@ export interface Config {
    */
   environment?: string;
   allowedEnvironments?: string[];
-  environments?: EnvironmentsConfig;
+  environments?: EnvironmentsConfigInput;
   /**
    * Derives an environment from test result labels as results arrive, so environments
    * don't have to be listed upfront. Statically configured `environments` take priority.

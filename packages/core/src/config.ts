@@ -9,6 +9,7 @@ import { parse } from "yaml";
 
 import type { FullConfig, PluginInstance } from "./api.js";
 import { resolveCategories } from "./config/categories.js";
+import { resolveEnvironments } from "./config/environments.js";
 import { resolveHideLabels } from "./config/hideLabels.js";
 import { FileSystemReportFiles } from "./plugin.js";
 import { DEFAULT_KNOWN_ISSUES_PATH, resolveExactIssuesFilePath, validateResolutionsConfig } from "./resolutions.js";
@@ -256,7 +257,7 @@ const resolveConfigEnvironments = (config: Config) => {
     errors: allowedEnvironmentErrors,
   } = validateAllowedEnvironmentIds(config.allowedEnvironments, "config.allowedEnvironments");
   const { normalized: environments, errors: environmentErrors } = normalizeEnvironmentDescriptorMap(
-    config.environments ?? {},
+    resolveEnvironments(config.environments) ?? {},
     "config.environments",
   );
   let environment: string | undefined;
