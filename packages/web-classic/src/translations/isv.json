@@ -69,7 +69,8 @@
     "collapse": "Minimizuj",
     "expand": "Razširi",
     "fullscreen": "Na cěly ekran",
-    "language": "Izměni jezyk"
+    "language": "Izměni jezyk",
+    "theme": "Měnjati temu"
   },
   "errors": {
     "missedAttachment": "Priloga ne najdena",

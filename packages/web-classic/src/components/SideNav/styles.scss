@@ -51,9 +51,57 @@
   .item {
     display: block;
   }
+  .brand-logo {
+    flex: none;
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
+  }
+
+  .brand-text {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+
   .language-picker {
     display: flex;
     justify-content: center;
+  }
+
+  .theme-button {
+    display: flex;
+    justify-content: center;
+    color: $text-muted-color;
+
+    button,
+    button:hover,
+    svg {
+      color: inherit;
+    }
+
+    &:hover {
+      color: $sidebar-hover-text-color;
+    }
+  }
+
+  .report-info {
+    padding: 8px 8px 0 16px;
+    color: $text-muted-color;
+  }
+
+  .report-info-line {
+    display: block;
+    overflow-wrap: anywhere;
   }
 
   .link,
@@ -133,6 +181,10 @@
 
     .collapse-icon {
       transform: rotate(-90deg);
+    }
+
+    .report-info {
+      display: none;
     }
 
     .text,

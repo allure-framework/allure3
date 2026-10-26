@@ -94,7 +94,8 @@
     "showMore": "Показать больше",
     "copy": "Скопировать",
     "attempt": "Попытка {{attempt}} из {{total}}",
-    "at": "в"
+    "at": "в",
+    "generated": "Сгенерировано"
   },
   "controls": {
     "backToOverview": "Вернуться к обзору",
@@ -110,7 +111,8 @@
     "expand": "Развернуть",
     "fullscreen": "На весь экран",
     "language": "Сменить язык",
-    "openInNewTab": "Открыть в новой вкладке"
+    "openInNewTab": "Открыть в новой вкладке",
+    "theme": "Сменить тему"
   },
   "errors": {
     "missedAttachment": "Вложение не найдено"
@@ -134,5 +136,13 @@
       "slice_few": "{{count}} теста ({{percent}}% всех тестов)",
       "slice_many": "{{count}} тестов ({{percent}}% всех тестов)"
     }
+  },
+  "timeline": {
+    "empty": "Нет данных",
+    "selected_one": "Выбран {{ count }} тест ({{ percentage }}%) с длительностью более {{ minDuration }} и менее {{ maxDuration }}",
+    "selected_few": "Выбрано {{ count }} теста ({{ percentage }}%) с длительностью более {{ minDuration }} и менее {{ maxDuration }}",
+    "selected_many": "Выбрано {{ count }} тестов ({{ percentage }}%) с длительностью более {{ minDuration }} и менее {{ maxDuration }}",
+    "selected_other": "Выбрано {{ count }} тестов ({{ percentage }}%) с длительностью более {{ minDuration }} и менее {{ maxDuration }}",
+    "host": "Хост: {{ host }}"
   }
 }

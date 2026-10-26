@@ -13,6 +13,9 @@ export type ClassicOptions = {
     name: string;
   };
   filter?: (tr: TestResult) => boolean;
+  timeline?: {
+    minDuration?: number;
+  };
 };
 
 export type ClassicPluginOptions = ClassicOptions;

@@ -96,7 +96,8 @@
     "showMore": "더 보기",
     "copy": "복사",
     "attempt": "시도 {{attempt}}/{{total}}",
-    "at": "에서"
+    "at": "에서",
+    "generated": "생성됨"
   },
   "controls": {
     "backToOverview": "개요로 돌아가기",
@@ -112,7 +113,8 @@
     "expand": "펼치기",
     "fullscreen": "전체 화면",
     "language": "언어 변경",
-    "openInNewTab": "새 탭에서 열기"
+    "openInNewTab": "새 탭에서 열기",
+    "theme": "테마 변경"
   },
   "errors": {
     "missedAttachment": "첨부파일을 찾을 수 없습니다"
@@ -134,5 +136,11 @@
       "statusSlice": "{{count}} {{status}} (전체 테스트의 {{percent}}%)",
       "slice": "테스트 {{count}}개 (전체 테스트의 {{percent}}%)"
     }
+  },
+  "timeline": {
+    "empty": "데이터 없음",
+    "selected_one": "{{ count }}개의 테스트({{ percentage }}%)가 {{ minDuration }}보다 길고 {{ maxDuration }}보다 짧은 지속 시간으로 선택되었습니다",
+    "selected_other": "{{ count }}개의 테스트({{ percentage }}%)가 {{ minDuration }}보다 길고 {{ maxDuration }}보다 짧은 지속 시간으로 선택되었습니다",
+    "host": "호스트: {{ host }}"
   }
 }

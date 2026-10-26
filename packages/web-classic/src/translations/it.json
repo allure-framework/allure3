@@ -96,7 +96,8 @@
     "showMore": "Mostra di più",
     "copy": "Copia",
     "attempt": "Tentativo {{attempt}} di {{total}}",
-    "at": "a"
+    "at": "a",
+    "generated": "Generato"
   },
   "controls": {
     "backToOverview": "Torna alla panoramica",
@@ -112,7 +113,8 @@
     "expand": "Espandi",
     "fullscreen": "Schermo intero",
     "language": "Cambia lingua",
-    "openInNewTab": "Apri in una nuova scheda"
+    "openInNewTab": "Apri in una nuova scheda",
+    "theme": "Cambia tema"
   },
   "errors": {
     "missedAttachment": "Allegato non trovato"
@@ -135,5 +137,11 @@
       "slice": "{{count}} test ({{percent}}% di tutti i test)",
       "slice_many": "{{count}} test ({{percent}}% di tutti i test)"
     }
+  },
+  "timeline": {
+    "empty": "Nessun dato",
+    "selected_one": "{{ count }} test ({{ percentage }}%) con durata superiore a {{ minDuration }} e inferiore a {{ maxDuration }} selezionato",
+    "selected_other": "{{ count }} test ({{ percentage }}%) con durata superiore a {{ minDuration }} e inferiore a {{ maxDuration }} selezionati",
+    "host": "Host: {{ host }}"
   }
 }

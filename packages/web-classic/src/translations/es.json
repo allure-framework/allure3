@@ -96,7 +96,8 @@
     "showMore": "Mostrar más",
     "copy": "Copiar",
     "attempt": "Intento {{attempt}} de {{total}}",
-    "at": "a las"
+    "at": "a las",
+    "generated": "Generado"
   },
   "controls": {
     "backToOverview": "Volver al resumen",
@@ -112,7 +113,8 @@
     "expand": "Expandir",
     "fullscreen": "Pantalla completa",
     "language": "Cambiar idioma",
-    "openInNewTab": "Abrir en nueva pestaña"
+    "openInNewTab": "Abrir en nueva pestaña",
+    "theme": "Cambiar tema"
   },
   "errors": {
     "missedAttachment": "Adjunto no encontrado"
@@ -135,5 +137,11 @@
       "slice": "{{count}} pruebas ({{percent}}% de todas las pruebas)",
       "slice_many": "{{count}} pruebas ({{percent}}% de todas las pruebas)"
     }
+  },
+  "timeline": {
+    "empty": "Sin datos",
+    "selected_one": "{{ count }} prueba ({{ percentage }}%) con duración superior a {{ minDuration }} e inferior a {{ maxDuration }} seleccionada",
+    "selected_other": "{{ count }} pruebas ({{ percentage }}%) con duración superior a {{ minDuration }} e inferior a {{ maxDuration }} seleccionadas",
+    "host": "Host: {{ host }}"
   }
 }

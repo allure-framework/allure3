@@ -4,6 +4,8 @@ import { defaultChartsConfig } from "@allurereport/charts-api";
 import {
   type CategoryDefinition,
   type EnvironmentItem,
+  appLoaderFaviconDataUri,
+  createFaviconLinkTag,
   type Statistic,
   type TreeGroup,
   type TreeLeaf,
@@ -53,7 +55,7 @@ const template = `<!DOCTYPE html>
 <head>
     <meta charset="utf-8">
     <title> {{ reportName }} </title>
-    <link rel="icon" href="favicon.ico">
+    ${createFaviconLinkTag(appLoaderFaviconDataUri)}
     {{{ headTags }}}
     <script>
       window.allureReportOptions = {{{ reportOptions }}}

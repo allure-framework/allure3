@@ -96,7 +96,8 @@
     "showMore": "もっと見る",
     "copy": "コピー",
     "attempt": "試行 {{attempt}} 回目（全 {{total}} 回）",
-    "at": "時"
+    "at": "時",
+    "generated": "生成日時"
   },
   "controls": {
     "backToOverview": "概要に戻る",
@@ -112,7 +113,8 @@
     "expand": "展開",
     "fullscreen": "全画面",
     "language": "言語を変更",
-    "openInNewTab": "新しいタブで開く"
+    "openInNewTab": "新しいタブで開く",
+    "theme": "テーマを切り替え"
   },
   "errors": {
     "missedAttachment": "添付ファイルが見つかりません"
@@ -134,5 +136,11 @@
       "statusSlice": "{{count}} {{status}} （全テストの {{percent}}%）",
       "slice": "{{count}} 件のテスト（全テストの {{percent}}%）"
     }
+  },
+  "timeline": {
+    "empty": "データなし",
+    "selected_one": "{{ count }} 件のテスト（{{ percentage }}%）が選択されました。期間は {{ minDuration }} より長く、{{ maxDuration }} より短い",
+    "selected_other": "{{ count }} 件のテスト（{{ percentage }}%）が選択されました。期間は {{ minDuration }} より長く、{{ maxDuration }} より短い",
+    "host": "ホスト: {{ host }}"
   }
 }

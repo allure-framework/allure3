@@ -96,7 +96,8 @@
     "showMore": "Montrer plus",
     "copy": "Copier",
     "attempt": "Tentative {{attempt}} sur {{total}}",
-    "at": "à"
+    "at": "à",
+    "generated": "Généré"
   },
   "controls": {
     "backToOverview": "Retour à l'aperçu",
@@ -112,7 +113,8 @@
     "expand": "Agrandir",
     "fullscreen": "Plein écran",
     "language": "Changer la langue",
-    "openInNewTab": "Ouvrir dans un nouvel onglet"
+    "openInNewTab": "Ouvrir dans un nouvel onglet",
+    "theme": "Changer de thème"
   },
   "errors": {
     "missedAttachment": "Pièce jointe non trouvée"
@@ -135,5 +137,11 @@
       "slice": "{{count}} tests ({{percent}}% de tous les tests)",
       "slice_many": "{{count}} tests ({{percent}}% de tous les tests)"
     }
+  },
+  "timeline": {
+    "empty": "Aucune donnée",
+    "selected_one": "{{ count }} test ({{ percentage }}%) avec une durée supérieure à {{ minDuration }} et inférieure à {{ maxDuration }} sélectionné",
+    "selected_other": "{{ count }} tests ({{ percentage }}%) avec une durée supérieure à {{ minDuration }} et inférieure à {{ maxDuration }} sélectionnés",
+    "host": "Hôte : {{ host }}"
   }
 }

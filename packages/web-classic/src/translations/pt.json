@@ -96,7 +96,8 @@
     "showMore": "Mostrar mais",
     "copy": "Copiar",
     "attempt": "Tentativa {{attempt}} de {{total}}",
-    "at": "em"
+    "at": "em",
+    "generated": "Gerado"
   },
   "controls": {
     "backToOverview": "Voltar para a visão geral",
@@ -112,7 +113,8 @@
     "expand": "Expandir",
     "fullscreen": "Tela cheia",
     "language": "Alterar idioma",
-    "openInNewTab": "Abrir em nova aba"
+    "openInNewTab": "Abrir em nova aba",
+    "theme": "Alterar tema"
   },
   "errors": {
     "missedAttachment": "Anexo não encontrado"
@@ -135,5 +137,11 @@
       "slice": "{{count}} testes ({{percent}}% de todos os testes)",
       "slice_many": "{{count}} testes ({{percent}}% de todos os testes)"
     }
+  },
+  "timeline": {
+    "empty": "Sem dados",
+    "selected_one": "{{ count }} teste ({{ percentage }}%) com duração superior a {{ minDuration }} e inferior a {{ maxDuration }} selecionado",
+    "selected_other": "{{ count }} testes ({{ percentage }}%) com duração superior a {{ minDuration }} e inferior a {{ maxDuration }} selecionados",
+    "host": "Host: {{ host }}"
   }
 }

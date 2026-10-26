@@ -96,7 +96,8 @@
     "showMore": "显示更多",
     "copy": "复制",
     "attempt": "第 {{attempt}} 次尝试，共 {{total}} 次",
-    "at": "在"
+    "at": "在",
+    "generated": "已生成"
   },
   "controls": {
     "backToOverview": "返回概览",
@@ -112,7 +113,8 @@
     "expand": "展开",
     "fullscreen": "全屏",
     "language": "更改语言",
-    "openInNewTab": "在新标签页中打开"
+    "openInNewTab": "在新标签页中打开",
+    "theme": "切换主题"
   },
   "errors": {
     "missedAttachment": "未找到附件"
@@ -134,5 +136,11 @@
       "statusSlice": "{{count}} {{status}} （占全部测试的 {{percent}}%）",
       "slice": "{{count}} 个测试（占全部测试的 {{percent}}%）"
     }
+  },
+  "timeline": {
+    "empty": "无数据",
+    "selected_one": "已选择 {{ count }} 个测试（{{ percentage }}%），持续时间大于 {{ minDuration }} 且小于 {{ maxDuration }}",
+    "selected_other": "已选择 {{ count }} 个测试（{{ percentage }}%），持续时间大于 {{ minDuration }} 且小于 {{ maxDuration }}",
+    "host": "主机: {{ host }}"
   }
 }

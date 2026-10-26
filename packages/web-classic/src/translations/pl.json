@@ -94,7 +94,8 @@
     "showMore": "Pokaż więcej",
     "copy": "Skopuj",
     "attempt": "Próba {{attempt}} z {{total}}",
-    "at": "w"
+    "at": "w",
+    "generated": "Wygenerowano"
   },
   "controls": {
     "backToOverview": "Wróć do przeglądu",
@@ -110,7 +111,8 @@
     "expand": "Poszerzyć",
     "fullscreen": "Pełny ekran",
     "language": "Zmień język",
-    "openInNewTab": "Otwórz w nowej karcie"
+    "openInNewTab": "Otwórz w nowej karcie",
+    "theme": "Zmień motyw"
   },
   "errors": {
     "missedAttachment": "Nie znaleziono załącznika"
@@ -134,5 +136,13 @@
       "slice_few": "{{count}} testy ({{percent}}% wszystkich testów)",
       "slice_many": "{{count}} testów ({{percent}}% wszystkich testów)"
     }
+  },
+  "timeline": {
+    "empty": "Brak danych",
+    "selected_one": "Wybrano {{ count }} test ({{ percentage }}%) z czasem trwania większym niż {{ minDuration }} i mniejszym niż {{ maxDuration }}",
+    "selected_few": "Wybrano {{ count }} testy ({{ percentage }}%) z czasem trwania większym niż {{ minDuration }} i mniejszym niż {{ maxDuration }}",
+    "selected_many": "Wybrano {{ count }} testów ({{ percentage }}%) z czasem trwania większym niż {{ minDuration }} i mniejszym niż {{ maxDuration }}",
+    "selected_other": "Wybrano {{ count }} testów ({{ percentage }}%) z czasem trwania większym niż {{ minDuration }} i mniejszym niż {{ maxDuration }}",
+    "host": "Host: {{ host }}"
   }
 }

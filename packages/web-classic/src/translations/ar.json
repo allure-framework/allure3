@@ -97,7 +97,8 @@
     "showMore": "عرض المزيد",
     "copy": "نسخ",
     "attempt": "المحاولة {{attempt}} من {{total}}",
-    "at": "في"
+    "at": "في",
+    "generated": "تم الإنشاء"
   },
   "controls": {
     "backToOverview": "العودة إلى النظرة العامة",
@@ -113,7 +114,8 @@
     "expand": "توسيع",
     "fullscreen": "ملء الشاشة",
     "language": "اللغة",
-    "openInNewTab": "فتح في علامة تبويب جديدة"
+    "openInNewTab": "فتح في علامة تبويب جديدة",
+    "theme": "تغيير السمة"
   },
   "errors": {
     "missedAttachment": "المرفق غير موجود"
@@ -152,5 +154,11 @@
       "slice_few": "{{count}} اختبارات ({{percent}}% من جميع الاختبارات)",
       "slice_many": "{{count}} اختبارًا ({{percent}}% من جميع الاختبارات)"
     }
+  },
+  "timeline": {
+    "empty": "لا توجد بيانات",
+    "selected_one": "تم تحديد {{ count }} اختبار ({{ percentage }}%) بمدة أكثر من {{ minDuration }} وأقل من {{ maxDuration }}",
+    "selected_other": "تم تحديد {{ count }} اختبارات ({{ percentage }}%) بمدة أكثر من {{ minDuration }} وأقل من {{ maxDuration }}",
+    "host": "المضيف: {{ host }}"
   }
 }

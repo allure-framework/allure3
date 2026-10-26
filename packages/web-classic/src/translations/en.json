@@ -97,7 +97,8 @@
     "showMore": "Show more",
     "copy": "Copy",
     "attempt": "Attempt {{attempt}} of {{total}}",
-    "at": "at"
+    "at": "at",
+    "generated": "Generated"
   },
   "controls": {
     "backToOverview": "Back to overview",
@@ -113,7 +114,8 @@
     "expand": "Expand",
     "fullscreen": "Full screen",
     "language": "Change language",
-    "openInNewTab": "Open in new tab"
+    "openInNewTab": "Open in new tab",
+    "theme": "Change theme"
   },
   "errors": {
     "missedAttachment": "Attachment not found"
@@ -329,5 +331,11 @@
     "fixed": "fixed",
     "regressed": "regressed",
     "malfunctioned": "malfunctioned"
+  },
+  "timeline": {
+    "empty": "No data",
+    "selected_one": "Selected {{ count }} test ({{ percentage }}%) with duration more than {{ minDuration }} and less than {{ maxDuration }}",
+    "selected_other": "Selected {{ count }} tests ({{ percentage }}%) with duration more than {{ minDuration }} and less than {{ maxDuration }}",
+    "host": "Host: {{ host }}"
   }
 }

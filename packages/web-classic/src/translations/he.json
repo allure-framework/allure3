@@ -96,7 +96,8 @@
     "showMore": "הצג עוד",
     "copy": "העתק",
     "attempt": "ניסיון {{attempt}} מתוך {{total}}",
-    "at": "ב-"
+    "at": "ב-",
+    "generated": "נוצר"
   },
   "controls": {
     "backToOverview": "חזרה לסקירה",
@@ -112,7 +113,8 @@
     "expand": "הרחב",
     "fullscreen": "מסך מלא",
     "language": "שנה שפה",
-    "openInNewTab": "פתח בכרטיסייה חדשה"
+    "openInNewTab": "פתח בכרטיסייה חדשה",
+    "theme": "החלף ערכת נושא"
   },
   "errors": {
     "missedAttachment": "הקובץ המצורף לא נמצא"
@@ -135,5 +137,11 @@
       "slice": "{{count}} בדיקות ({{percent}}% מכל הבדיקות)",
       "slice_two": "{{count}} בדיקות ({{percent}}% מכל הבדיקות)"
     }
+  },
+  "timeline": {
+    "empty": "אין נתונים",
+    "selected_one": "{{ count }} בדיקה ({{ percentage }}%) עם משך זמן יותר מ-{{ minDuration }} ופחות מ-{{ maxDuration }} נבחרה",
+    "selected_other": "{{ count }} בדיקות ({{ percentage }}%) עם משך זמן יותר מ-{{ minDuration }} ופחות מ-{{ maxDuration }} נבחרו",
+    "host": "מארח: {{ host }}"
   }
 }

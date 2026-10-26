@@ -97,7 +97,8 @@
     "showMore": "Daha çox göstər",
     "copy": "Kopyala",
     "attempt": "Cəhd {{attempt}} / {{total}}",
-    "at": "saat"
+    "at": "saat",
+    "generated": "Yaradıldı"
   },
   "controls": {
     "backToOverview": "İcmala qayıt",
@@ -113,7 +114,8 @@
     "expand": "Genişləndir",
     "fullscreen": "Tam ekran",
     "language": "Dili dəyiş",
-    "openInNewTab": "Yeni tabda aç"
+    "openInNewTab": "Yeni tabda aç",
+    "theme": "Mövzunu dəyiş"
   },
   "errors": {
     "missedAttachment": "Qoşma tapılmadı"
@@ -148,5 +150,11 @@
       "statusSlice": "{{count}} {{status}} (bütün testlərin {{percent}}%-i)",
       "slice": "{{count}} test (bütün testlərin {{percent}}%-i)"
     }
+  },
+  "timeline": {
+    "empty": "Məlumat yoxdur",
+    "selected_one": "{{ count }} test ({{ percentage }}%) {{ minDuration }}-dan çox və {{ maxDuration }}-dan az müddətlə seçildi",
+    "selected_other": "{{ count }} test ({{ percentage }}%) {{ minDuration }}-dan çox və {{ maxDuration }}-dan az müddətlə seçildi",
+    "host": "Host: {{ host }}"
   }
 }

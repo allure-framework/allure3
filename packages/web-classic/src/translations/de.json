@@ -96,7 +96,8 @@
     "showMore": "Mehr anzeigen",
     "copy": "Kopieren",
     "attempt": "Versuch {{attempt}} von {{total}}",
-    "at": "bei"
+    "at": "bei",
+    "generated": "Generiert"
   },
   "controls": {
     "backToOverview": "Zurück zur Übersicht",
@@ -112,7 +113,8 @@
     "expand": "Ausklappen",
     "fullscreen": "Vollbild",
     "language": "Sprache ändern",
-    "openInNewTab": "In neuem Tab öffnen"
+    "openInNewTab": "In neuem Tab öffnen",
+    "theme": "Design wechseln"
   },
   "errors": {
     "missedAttachment": "Anhang nicht gefunden"
@@ -130,5 +132,11 @@
   "charts": {
     "retry": "Erneut versuchen",
     "loadError": "Diagramm konnte nicht geladen werden"
+  },
+  "timeline": {
+    "empty": "Keine Daten",
+    "selected_one": "{{ count }} Test ({{ percentage }}%) mit Dauer mehr als {{ minDuration }} und weniger als {{ maxDuration }} ausgewählt",
+    "selected_other": "{{ count }} Tests ({{ percentage }}%) mit Dauer mehr als {{ minDuration }} und weniger als {{ maxDuration }} ausgewählt",
+    "host": "Host: {{ host }}"
   }
 }
