@@ -127,9 +127,8 @@
     "loadError": "Kan de grafiek niet laden",
     "successRate": {
       "successRate": "Slagingspercentage: {{rate}}",
-      "successRateDescription": "Berekend op basis van geslaagde, mislukte en defecte tests. Overgeslagen tests en tests met onbekende status zijn uitgesloten.",
+      "successRateDescription": "Aandeel geslaagde tests van alle tests.",
       "noResults": "Er zijn geen testresultaten.",
-      "noEligibleResults": "Er zijn geen geslaagde, mislukte of defecte tests. Overgeslagen tests en tests met onbekende status tellen niet mee voor het slagingspercentage.",
       "slice_one": "{{count}} test ({{percent}}% van alle tests)",
       "slice_other": "{{count}} tests ({{percent}}% van alle tests)",
       "layer": "Laag: {{layer}}",

@@ -305,22 +305,6 @@ export const generateSearchIndex = async (
   await writer.writeWidget(filename, searchDocuments);
 };
 
-export const getRunSummary = (testResults: Pick<TestResult, "start" | "stop">[]): ReportRunSummary | undefined => {
-  let start = Infinity;
-  let stop = -Infinity;
-
-  for (const { start: s, stop: e } of testResults) {
-    if (typeof s === "number" && Number.isFinite(s) && typeof e === "number" && Number.isFinite(e)) {
-      start = Math.min(start, s);
-      stop = Math.max(stop, e);
-    }
-  }
-
-  return Number.isFinite(start) && Number.isFinite(stop)
-    ? { start, stop, duration: Math.max(0, stop - start) }
-    : undefined;
-};
-
 export const generateTree = async (
   writer: AwesomeDataWriter,
   treeFilename: string,

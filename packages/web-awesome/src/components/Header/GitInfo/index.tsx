@@ -1,33 +1,23 @@
-import { sanitizeExternalUrl } from "@allurereport/core-api";
-import { getReportOptions } from "@allurereport/web-commons";
+import { getCiGitInfo, getReportOptions } from "@allurereport/web-commons";
 import { DropdownButton, Menu, MiddleEllipsis, SvgIcon, allureIcons } from "@allurereport/web-components/core";
 
 import { useI18n } from "@/stores/locale";
 
 import type { ReportOptions } from "../../../../types";
-import { getCiIconId, getCiLabel } from "../CiInfo";
-import { getGitLinks } from "./links";
+import { getCiIconId } from "../CiInfo";
 
 import * as styles from "./styles.scss";
 
 const SHORT_COMMIT_LENGTH = 7;
-
-// the local CI descriptor has HEAD instead of the branch in the detached head, it is not a branch
-const isKnownBranch = (name?: string): name is string => Boolean(name) && name !== "HEAD";
 
 const externalLinkIcon = <SvgIcon id={allureIcons.lineGeneralLinkExternal} data-testid="git-info-external-icon" />;
 
 export const GitInfo = () => {
   const { t } = useI18n("ui");
   const { ci, git } = getReportOptions<ReportOptions>() ?? {};
-  const branch = [ci?.sourceBranch, ci?.jobRunBranch, git?.branch].find(isKnownBranch);
-  const commit = git?.commit;
-  const { branchUrl, commitUrl } = getGitLinks(ci, branch, commit);
-  const ciUrl = ci?.pullRequestUrl || ci?.jobRunUrl || ci?.jobUrl;
-  const ciLabel = getCiLabel(ci, ciUrl);
-  const safeCiUrl = sanitizeExternalUrl(ciUrl);
+  const { ciLabel, ciUrl: safeCiUrl, isPullRequest, branch, branchUrl, commit, commitUrl } = getCiGitInfo(ci, git);
   const ciIconId = getCiIconId(ci?.type);
-  const openCiLabel = ci?.pullRequestUrl ? t("openPullRequest") : t("openJobRun");
+  const openCiLabel = isPullRequest ? t("openPullRequest") : t("openJobRun");
   const triggerText = ciLabel || branch || commit?.slice(0, SHORT_COMMIT_LENGTH);
 
   if (!triggerText) {

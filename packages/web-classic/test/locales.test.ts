@@ -31,4 +31,16 @@ describe("classic locales", () => {
       });
     });
   });
+
+  it("defines every overview label of the English locale in the Russian locale", () => {
+    const readLocale = (file: string) => JSON.parse(readFileSync(join(localesDir, file), "utf8"));
+    const en = readLocale("en.json");
+    const ru = readLocale("ru.json");
+    const baseKey = (key: string) => key.replace(/_(zero|one|two|few|many|other)$/, "");
+    const enKeys = [...new Set(Object.keys(en.overview).map(baseKey))];
+    const ruKeys = new Set(Object.keys(ru.overview).map(baseKey));
+
+    expect(enKeys.length).toBeGreaterThan(0);
+    enKeys.forEach((key) => expect(ruKeys.has(key), key).toBe(true));
+  });
 });

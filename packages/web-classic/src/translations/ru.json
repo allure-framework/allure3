@@ -144,5 +144,32 @@
     "selected_many": "Выбрано {{ count }} тестов ({{ percentage }}%) с длительностью более {{ minDuration }} и менее {{ maxDuration }}",
     "selected_other": "Выбрано {{ count }} тестов ({{ percentage }}%) с длительностью более {{ minDuration }} и менее {{ maxDuration }}",
     "host": "Хост: {{ host }}"
+  },
+  "overview": {
+    "summary": "Сводка",
+    "dates": "{{start, timestamp_long}} – {{stop, timestamp_long}}",
+    "duration": "Длительность: {{duration, format_duration}}",
+    "testCases_one": "{{count}} тест-кейс",
+    "testCases_few": "{{count}} тест-кейса",
+    "testCases_many": "{{count}} тест-кейсов",
+    "testCases_other": "{{count}} тест-кейса",
+    "suites": "Наборы тестов",
+    "features": "Функциональность",
+    "categories": "Категории",
+    "environment": "Окружение",
+    "executors": "Исполнители",
+    "itemsTotal_one": "Всего {{count}} элемент",
+    "itemsTotal_few": "Всего {{count}} элемента",
+    "itemsTotal_many": "Всего {{count}} элементов",
+    "itemsTotal_other": "Всего {{count}} элемента",
+    "showAll": "Показать все",
+    "noItems": "Нет элементов",
+    "noEnvironment": "Нет переменных окружения",
+    "noExecutors": "Нет информации об исполнителях тестов",
+    "build": "Сборка",
+    "ciBuild": "Сборка CI",
+    "pullRequest": "Пул-реквест",
+    "branch": "Ветка",
+    "commit": "Коммит"
   }
 }

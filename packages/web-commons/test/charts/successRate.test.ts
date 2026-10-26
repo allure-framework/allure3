@@ -5,7 +5,7 @@ import { attachment, step } from "allure-js-commons";
 import { describe, expect, it } from "vite-plus/test";
 
 import { createSuccessRateDistributionTreeMap } from "../../src/charts/accessors/successRateDistributionTreeMapAccessor.js";
-import { getPieChartValues } from "../../src/charts/d3pie.js";
+import { getPassedRate, getPieChartValues } from "../../src/charts/d3pie.js";
 import { generateTestingPyramidChart } from "../../src/charts/generateTestingPyramidChart.js";
 
 const testResults = (statuses: TestStatus[], feature: string = "Feature"): TestResult[] =>
@@ -35,6 +35,16 @@ describe("success rate charts", () => {
       expect(chart.slices.find((slice) => slice.status === "skipped")?.count).toBe(95);
       expect(chart.slices.find((slice) => slice.status === "unknown")?.count).toBe(10);
     });
+  });
+  it("computes passed out of all tests when given the passed rate", async () => {
+    const stats = { total: 676, passed: 390, failed: 121, broken: 110, skipped: 50, unknown: 5 };
+
+    expect(getPieChartValues(stats).percentage).toBe(62.8);
+    expect(getPieChartValues(stats, getPassedRate).percentage).toBe(57.69);
+    expect(getPassedRate({ total: 0 })).toBe(0);
+  });
+  it("does not lose a hundredth to floating point noise", () => {
+    expect(getPieChartValues({ total: 100, passed: 29, failed: 71 }).percentage).toBe(29);
   });
   it.each([
     {

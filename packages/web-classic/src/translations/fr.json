@@ -127,9 +127,8 @@
     "loadError": "Échec du chargement du graphique",
     "successRate": {
       "successRate": "Taux de réussite : {{rate}}",
-      "successRateDescription": "Calculé à partir des tests réussis, échoués et en erreur. Les tests ignorés et de statut inconnu sont exclus.",
+      "successRateDescription": "Part des tests réussis parmi tous les tests.",
       "noResults": "Aucun résultat de test.",
-      "noEligibleResults": "Aucun test réussi, échoué ou en erreur. Les tests ignorés et de statut inconnu sont exclus du taux de réussite.",
       "slice_one": "{{count}} test ({{percent}}% de tous les tests)",
       "slice_other": "{{count}} tests ({{percent}}% de tous les tests)",
       "layer": "Niveau : {{layer}}",

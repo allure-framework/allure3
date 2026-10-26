@@ -127,9 +127,8 @@
     "loadError": "Impossibile caricare il grafico",
     "successRate": {
       "successRate": "Percentuale di successo: {{rate}}",
-      "successRateDescription": "Calcolata sui test superati, falliti e con errori. I test saltati e con stato sconosciuto sono esclusi.",
+      "successRateDescription": "Quota di test superati sul totale dei test.",
       "noResults": "Non ci sono risultati dei test.",
-      "noEligibleResults": "Non ci sono test superati, falliti o con errori. I test saltati e con stato sconosciuto sono esclusi dalla percentuale di successo.",
       "slice_one": "{{count}} test ({{percent}}% di tutti i test)",
       "slice_other": "{{count}} test ({{percent}}% di tutti i test)",
       "layer": "Livello: {{layer}}",

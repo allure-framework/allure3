@@ -15,8 +15,15 @@ const d3Pie = pie<BasePieSlice>()
 const d3Arc = createD3ArcGenerator();
 const d3ArcFull = createD3ArcGenerator().padAngle(0).cornerRadius(0);
 
+/** Share of passed tests among all tests, as Allure 2 computes it in the summary widget and the status pie. */
+export const getPassedRate = (stats: Partial<Statistic>): number =>
+  stats.total ? (stats.passed ?? 0) / stats.total : 0;
+
 // TODO: Check the possibility to move it further to the plugin-consumers
-export const getPieChartValues = (stats: Statistic): PieChartValues => {
+export const getPieChartValues = (
+  stats: Statistic,
+  getRate: (stats: Statistic) => number = getSuccessRate,
+): PieChartValues => {
   // Handle empty state - return a full circle with __empty__ status
   if (!stats?.total) {
     const emptySlice: BasePieSlice = { status: "__empty__", count: 1 };
@@ -57,7 +64,8 @@ export const getPieChartValues = (stats: Statistic): PieChartValues => {
       };
     })
     .filter((item) => item !== null);
-  const percentage = Math.floor(getSuccessRate(stats) * 10000) / 100;
+  // Nudge before flooring so float noise does not drop a hundredth: 29 / 100 * 10000 is 2899.9999999999995
+  const percentage = Math.floor(getRate(stats) * 10000 + 1e-7) / 100;
 
   return {
     slices,

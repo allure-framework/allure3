@@ -17,6 +17,7 @@ import {
   type PluginContext,
   type PluginSummary,
   createPluginSummary,
+  getRunSummary,
 } from "@allurereport/plugin-api";
 import { preciseTreeLabels } from "@allurereport/plugin-api";
 import { generateHistoryDataPoints } from "@allurereport/plugin-api/internal/report";
@@ -43,7 +44,6 @@ import {
   generateTree,
   generateTreeFilters,
   generateVariables,
-  getRunSummary,
 } from "./generators.js";
 import type { AwesomePluginOptions } from "./model.js";
 import { type AwesomeDataWriter, InMemoryReportDataWriter, ReportFileDataWriter } from "./writer.js";

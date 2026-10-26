@@ -379,6 +379,7 @@ __metadata:
     "@allurereport/charts-api": "workspace:*"
     "@allurereport/common-config": "workspace:*"
     "@allurereport/core-api": "workspace:*"
+    "@allurereport/git": "workspace:*"
     "@allurereport/plugin-api": "workspace:*"
     "@allurereport/web-classic": "workspace:*"
     "@allurereport/web-commons": "workspace:*"
@@ -906,6 +907,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@allurereport/web-classic@workspace:packages/web-classic"
   dependencies:
+    "@allurereport/charts-api": "workspace:*"
     "@allurereport/common-config": "workspace:*"
     "@allurereport/core-api": "workspace:*"
     "@allurereport/plugin-api": "workspace:*"

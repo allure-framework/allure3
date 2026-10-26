@@ -337,5 +337,28 @@
     "selected_one": "Selected {{ count }} test ({{ percentage }}%) with duration more than {{ minDuration }} and less than {{ maxDuration }}",
     "selected_other": "Selected {{ count }} tests ({{ percentage }}%) with duration more than {{ minDuration }} and less than {{ maxDuration }}",
     "host": "Host: {{ host }}"
+  },
+  "overview": {
+    "summary": "Summary",
+    "dates": "{{start, timestamp_long}} – {{stop, timestamp_long}}",
+    "duration": "Duration: {{duration, format_duration}}",
+    "testCases_one": "{{count}} test case",
+    "testCases_other": "{{count}} test cases",
+    "suites": "Suites",
+    "features": "Features by stories",
+    "categories": "Categories",
+    "environment": "Environment",
+    "executors": "Executors",
+    "itemsTotal_one": "{{count}} item total",
+    "itemsTotal_other": "{{count}} items total",
+    "showAll": "Show all",
+    "noItems": "There are no items",
+    "noEnvironment": "There are no environment variables",
+    "noExecutors": "There is no information about test executors",
+    "build": "Build",
+    "ciBuild": "CI build",
+    "pullRequest": "Pull request",
+    "branch": "Branch",
+    "commit": "Commit"
   }
 }

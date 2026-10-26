@@ -127,9 +127,8 @@
     "loadError": "Não foi possível carregar o gráfico",
     "successRate": {
       "successRate": "Taxa de sucesso: {{rate}}",
-      "successRateDescription": "Calculada a partir dos testes aprovados, reprovados e com erros. Os testes ignorados e com estado desconhecido são excluídos.",
+      "successRateDescription": "Proporção de testes aprovados entre todos os testes.",
       "noResults": "Não há resultados de testes.",
-      "noEligibleResults": "Não há testes aprovados, reprovados ou com erros. Os testes ignorados e com estado desconhecido são excluídos da taxa de sucesso.",
       "slice_one": "{{count}} teste ({{percent}}% de todos os testes)",
       "slice_other": "{{count}} testes ({{percent}}% de todos os testes)",
       "layer": "Camada: {{layer}}",
