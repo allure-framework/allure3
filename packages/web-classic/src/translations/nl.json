@@ -62,12 +62,12 @@
   "empty": {
     "no-results": "Geen resultaten",
     "no-tests-found": "Geen resultaten gevonden",
+    "no-message-provided": "Geen bericht opgegeven",
     "clear-filters": "Filters wissen",
     "no-attachments-results": "Geen bijlageninformatie beschikbaar",
     "no-history-results": "Geen geschiedenisinformatie beschikbaar",
     "no-retries-results": "Geen herhalingsinformatie beschikbaar",
-    "no-test-steps-results": "Geen informatie over teststappen beschikbaar",
-    "no-message-provided": "Geen bericht opgegeven"
+    "no-test-steps-results": "Geen informatie over teststappen beschikbaar"
   },
   "severity": {
     "blocker": "blokkerend",
@@ -147,40 +147,268 @@
     "missedAttachment": "Bijlage niet gevonden"
   },
   "nav": {
+    "overview": "Overzicht",
+    "behaviors": "Gedragingen",
+    "categories": "Categorieën",
+    "graphs": "Grafieken",
+    "packages": "Pakketten",
+    "suites": "Suites",
+    "timeline": "Tijdlijn",
     "comingSoon": "Binnenkort"
   },
   "charts": {
     "retry": "Opnieuw proberen",
     "loadError": "Kan de grafiek niet laden",
+    "currentStatus": {
+      "title": "Huidige status",
+      "status": {
+        "passed": "$t(statuses:passed, capitalize)",
+        "failed": "$t(statuses:failed, capitalize)",
+        "broken": "$t(statuses:broken, capitalize)",
+        "skipped": "$t(statuses:skipped, capitalize)",
+        "unknown": "$t(statuses:unknown, capitalize)"
+      },
+      "percentage": "{{percentage}}%",
+      "of": "van {{total}}",
+      "total": "totaal",
+      "tests": {
+        "new_zero": "Geen nieuwe tests",
+        "new_one": "{{count}} nieuwe test",
+        "new_other": "{{count}} nieuwe tests",
+        "flaky_zero": "Geen instabiele tests",
+        "flaky_one": "{{count}} instabiele test",
+        "flaky_other": "{{count}} instabiele tests",
+        "retries_zero": "Geen herhaalde tests",
+        "retries_one": "{{count}} herhaalde test",
+        "retries_other": "{{count}} herhaalde tests"
+      }
+    },
+    "statusDynamics": {
+      "title": "Statusdynamiek",
+      "status": {
+        "passed": "$t(statuses:passed, capitalize)",
+        "failed": "$t(statuses:failed, capitalize)",
+        "broken": "$t(statuses:broken, capitalize)",
+        "skipped": "$t(statuses:skipped, capitalize)",
+        "unknown": "$t(statuses:unknown, capitalize)"
+      },
+      "no-history": "$t(empty:no-history-results)",
+      "no-results": "$t(empty:no-results)",
+      "tooltips": {
+        "current": "Laatste rapport ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "Rapport van {{timestamp, timestamp_long_no_seconds}}"
+      },
+      "ticks": {
+        "current": "Laatste",
+        "history": "{{timestamp, timestamp_date}}"
+      }
+    },
+    "statusTransitions": {
+      "title": "Statusovergangen",
+      "legend": {
+        "trend": "Correctieratio"
+      },
+      "transitions": {
+        "new": "$t(transitions:new, capitalize)",
+        "fixed": "$t(transitions:fixed, capitalize)",
+        "regressed": "$t(transitions:regressed, capitalize)",
+        "malfunctioned": "$t(transitions:malfunctioned, capitalize)"
+      },
+      "no-history": "$t(empty:no-history-results)",
+      "no-results": "$t(empty:no-results)",
+      "tooltips": {
+        "current": "Laatste rapport ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "Rapport van {{timestamp, timestamp_long_no_seconds}}"
+      },
+      "ticks": {
+        "current": "Laatste",
+        "history": "{{timestamp, timestamp_date}}"
+      }
+    },
+    "durations": {
+      "title": "Histogram van duur per {{groupBy}}",
+      "title_none": "Histogram van duur",
+      "no-results": "$t(empty:no-results)",
+      "groupBy": {
+        "none": "Geen",
+        "layer": "Laag"
+      },
+      "ticks": {
+        "durationRange": "{{from, format_duration}} - {{to, format_duration}}"
+      },
+      "tooltips": {
+        "durationRange": "{{from, format_duration}} - {{to, format_duration}}"
+      },
+      "legend": {
+        "value": "{{value}}",
+        "total": "Aantal tests"
+      }
+    },
+    "stabilityDistribution": {
+      "title": "Stabiliteitsverdeling",
+      "no-results": "$t(empty:no-results)",
+      "legend": {
+        "stabilityRate": "Stabiliteitspercentage"
+      }
+    },
+    "testBaseGrowthDynamics": {
+      "title": "Groeodynamiek van testbasis",
+      "status": {
+        "newpassed": "Nieuw $t(statuses:passed)",
+        "newfailed": "Nieuw $t(statuses:failed)",
+        "newbroken": "Nieuw $t(statuses:broken)",
+        "newskipped": "Nieuw $t(statuses:skipped)",
+        "newunknown": "Nieuw $t(statuses:unknown)",
+        "removedpassed": "Verwijderd $t(statuses:passed)",
+        "removedfailed": "Verwijderd $t(statuses:failed)",
+        "removedbroken": "Verwijderd $t(statuses:broken)",
+        "removedskipped": "Verwijderd $t(statuses:skipped)",
+        "removedunknown": "Verwijderd $t(statuses:unknown)"
+      },
+      "legend": {
+        "trend": "Groeitrend"
+      },
+      "no-history": "$t(empty:no-history-results)",
+      "no-results": "$t(empty:no-results)",
+      "tooltips": {
+        "current": "Laatste rapport ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "Rapport van {{timestamp, timestamp_long_no_seconds}}"
+      },
+      "ticks": {
+        "current": "Laatste",
+        "history": "{{timestamp, timestamp_date}}"
+      }
+    },
+    "statusAgePyramid": {
+      "title": "Leeftijdspiramide per status",
+      "status": {
+        "passed": "$t(statuses:passed, capitalize)",
+        "failed": "$t(statuses:failed, capitalize)",
+        "broken": "$t(statuses:broken, capitalize)",
+        "skipped": "$t(statuses:skipped, capitalize)",
+        "unknown": "$t(statuses:unknown, capitalize)"
+      },
+      "no-history": "$t(empty:no-history-results)",
+      "no-results": "$t(empty:no-results)",
+      "tooltips": {
+        "current": "Laatste rapport ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "Rapport van {{timestamp, timestamp_long_no_seconds}}"
+      },
+      "ticks": {
+        "current": "Laatste",
+        "history": "{{timestamp, timestamp_date}}"
+      }
+    },
+    "trSeverities": {
+      "title": "Testresultaten per ernst",
+      "no-results": "$t(empty:no-results)",
+      "status": {
+        "passed": "$t(statuses:passed, capitalize)",
+        "failed": "$t(statuses:failed, capitalize)",
+        "broken": "$t(statuses:broken, capitalize)",
+        "skipped": "$t(statuses:skipped, capitalize)",
+        "unknown": "$t(statuses:unknown, capitalize)"
+      },
+      "severity": {
+        "blocker": "$t(severity:blocker, capitalize)",
+        "critical": "$t(severity:critical, capitalize)",
+        "normal": "$t(severity:normal, capitalize)",
+        "minor": "$t(severity:minor, capitalize)",
+        "trivial": "$t(severity:trivial, capitalize)",
+        "unset": "Geen ernst"
+      }
+    },
+    "durationDynamics": {
+      "title": "Duurdynamiek",
+      "durations": {
+        "sequential": "Sequentiële duur",
+        "duration": "Testduur",
+        "speedup": "Versnelling"
+      },
+      "no-results": "$t(empty:no-results)",
+      "tooltips": {
+        "current": "Laatste rapport ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "Rapport van {{timestamp, timestamp_long_no_seconds}}"
+      },
+      "ticks": {
+        "current": "Laatste",
+        "history": "{{timestamp, timestamp_date}}"
+      },
+      "legend": {
+        "duration": "{{duration, format_duration}}",
+        "speedup": "{{speedup}}x"
+      }
+    },
     "successRate": {
       "successRate": "Slagingspercentage: {{rate}}",
       "successRateDescription": "Aandeel geslaagde tests van alle tests.",
       "noResults": "Er zijn geen testresultaten.",
+      "notAvailable": "n.v.t.",
       "slice_one": "{{count}} test ({{percent}}% van alle tests)",
       "slice_other": "{{count}} tests ({{percent}}% van alle tests)",
       "layer": "Laag: {{layer}}",
       "statusSlice": "{{count}} {{status}} ({{percent}}% van alle tests)",
-      "slice": "{{count}} tests ({{percent}}% van alle tests)",
-      "noEligibleResults": "Er zijn geen geslaagde, mislukte of defecte tests. Overgeslagen tests en tests met onbekende status tellen niet mee voor het slagingspercentage."
+      "slice": "{{count}} tests ({{percent}}% van alle tests)"
     },
     "durationTrend": {
-      "title": "Trend duur"
+      "title": "Trend duur",
+      "duration": "Duur",
+      "value": "{{duration, format_duration}}"
     },
     "retriesTrend": {
-      "title": "Trend nieuwe pogingen"
+      "title": "Trend nieuwe pogingen",
+      "retry": "Herhalingen",
+      "run": "Tests"
     },
     "categoriesTrend": {
       "title": "Trend categorieën"
     },
     "runTrend": {
-      "empty": "Er is niets te tonen"
+      "empty": "Er is niets te tonen",
+      "ticks": {
+        "current": "Laatste",
+        "history": "{{timestamp, timestamp_date}}"
+      },
+      "tooltips": {
+        "current": "Laatste rapport ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "Rapport van {{timestamp, timestamp_long_no_seconds}}"
+      }
     }
+  },
+  "transitions": {
+    "new": "Nieuw",
+    "fixed": "Opgelost",
+    "regressed": "Teruggevallen",
+    "malfunctioned": "Defect"
   },
   "timeline": {
     "empty": "Geen gegevens",
     "selected_one": "{{ count }} test ({{ percentage }}%) met duur meer dan {{ minDuration }} en minder dan {{ maxDuration }} geselecteerd",
     "selected_other": "{{ count }} tests ({{ percentage }}%) met duur meer dan {{ minDuration }} en minder dan {{ maxDuration }} geselecteerd",
     "host": "Host: {{ host }}"
+  },
+  "overview": {
+    "summary": "Samenvatting",
+    "dates": "{{start, timestamp_long}} – {{stop, timestamp_long}}",
+    "duration": "Duur: {{duration, format_duration}}",
+    "testCases_one": "{{count}} testcase",
+    "testCases_other": "{{count}} testcases",
+    "suites": "Suites",
+    "features": "Functies per verhaal",
+    "categories": "Categorieën",
+    "environment": "Omgeving",
+    "executors": "Uitvoerders",
+    "itemsTotal_one": "{{count}} item in totaal",
+    "itemsTotal_other": "{{count}} items in totaal",
+    "showAll": "Alles tonen",
+    "noItems": "Geen items",
+    "noEnvironment": "Geen omgevingsvariabelen",
+    "noExecutors": "Geen informatie over testuitvoerders",
+    "build": "Build",
+    "ciBuild": "CI-build",
+    "pullRequest": "Pull request",
+    "branch": "Branch",
+    "commit": "Commit"
   },
   "attachments": {
     "imageDiff": {

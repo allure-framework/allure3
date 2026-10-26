@@ -62,12 +62,12 @@
   "empty": {
     "no-results": "Inga resultat",
     "no-tests-found": "Inga resultat hittades",
+    "no-message-provided": "Inget meddelande angavs",
     "clear-filters": "Rensa filter",
     "no-attachments-results": "Ingen bilaga information tillgänglig",
     "no-history-results": "Ingen historik information tillgänglig",
     "no-retries-results": "Ingen omtagningar information tillgänglig",
-    "no-test-steps-results": "Ingen information om teststeg tillgänglig",
-    "no-message-provided": "Inget meddelande angavs"
+    "no-test-steps-results": "Ingen information om teststeg tillgänglig"
   },
   "severity": {
     "blocker": "blockerare",
@@ -147,40 +147,268 @@
     "missedAttachment": "Bilaga hittades inte"
   },
   "nav": {
+    "overview": "Översikt",
+    "behaviors": "Beteenden",
+    "categories": "Kategorier",
+    "graphs": "Grafer",
+    "packages": "Paket",
+    "suites": "Sviter",
+    "timeline": "Tidslinje",
     "comingSoon": "Kommer snart"
   },
   "charts": {
     "retry": "Försök igen",
     "loadError": "Det gick inte att ladda diagrammet",
+    "currentStatus": {
+      "title": "Nuvarande status",
+      "status": {
+        "passed": "$t(statuses:passed, capitalize)",
+        "failed": "$t(statuses:failed, capitalize)",
+        "broken": "$t(statuses:broken, capitalize)",
+        "skipped": "$t(statuses:skipped, capitalize)",
+        "unknown": "$t(statuses:unknown, capitalize)"
+      },
+      "percentage": "{{percentage}}%",
+      "of": "av {{total}}",
+      "total": "totalt",
+      "tests": {
+        "new_zero": "Inga nya tester",
+        "new_one": "{{count}} nytt test",
+        "new_other": "{{count}} nya tester",
+        "flaky_zero": "Inga instabila tester",
+        "flaky_one": "{{count}} instabilt test",
+        "flaky_other": "{{count}} instabila tester",
+        "retries_zero": "Inga försökta tester",
+        "retries_one": "{{count}} försökt test",
+        "retries_other": "{{count}} försökta tester"
+      }
+    },
+    "statusDynamics": {
+      "title": "Statusdynamik",
+      "status": {
+        "passed": "$t(statuses:passed, capitalize)",
+        "failed": "$t(statuses:failed, capitalize)",
+        "broken": "$t(statuses:broken, capitalize)",
+        "skipped": "$t(statuses:skipped, capitalize)",
+        "unknown": "$t(statuses:unknown, capitalize)"
+      },
+      "no-history": "$t(empty:no-history-results)",
+      "no-results": "$t(empty:no-results)",
+      "tooltips": {
+        "current": "Senaste rapporten ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "Rapport från {{timestamp, timestamp_long_no_seconds}}"
+      },
+      "ticks": {
+        "current": "Senast",
+        "history": "{{timestamp, timestamp_date}}"
+      }
+    },
+    "statusTransitions": {
+      "title": "Statusövergångar",
+      "legend": {
+        "trend": "Korrigeringsgrad"
+      },
+      "transitions": {
+        "new": "$t(transitions:new, capitalize)",
+        "fixed": "$t(transitions:fixed, capitalize)",
+        "regressed": "$t(transitions:regressed, capitalize)",
+        "malfunctioned": "$t(transitions:malfunctioned, capitalize)"
+      },
+      "no-history": "$t(empty:no-history-results)",
+      "no-results": "$t(empty:no-results)",
+      "tooltips": {
+        "current": "Senaste rapporten ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "Rapport från {{timestamp, timestamp_long_no_seconds}}"
+      },
+      "ticks": {
+        "current": "Senast",
+        "history": "{{timestamp, timestamp_date}}"
+      }
+    },
+    "durations": {
+      "title": "Varaktighetshistogram efter {{groupBy}}",
+      "title_none": "Varaktighetshistogram",
+      "no-results": "$t(empty:no-results)",
+      "groupBy": {
+        "none": "Ingen",
+        "layer": "Lager"
+      },
+      "ticks": {
+        "durationRange": "{{from, format_duration}} - {{to, format_duration}}"
+      },
+      "tooltips": {
+        "durationRange": "{{from, format_duration}} - {{to, format_duration}}"
+      },
+      "legend": {
+        "value": "{{value}}",
+        "total": "Antal tester"
+      }
+    },
+    "stabilityDistribution": {
+      "title": "Stabilitetsfördelning",
+      "no-results": "$t(empty:no-results)",
+      "legend": {
+        "stabilityRate": "Stabilitetsgrad"
+      }
+    },
+    "testBaseGrowthDynamics": {
+      "title": "Tillväxtdynamik för testbas",
+      "status": {
+        "newpassed": "Ny $t(statuses:passed)",
+        "newfailed": "Ny $t(statuses:failed)",
+        "newbroken": "Ny $t(statuses:broken)",
+        "newskipped": "Ny $t(statuses:skipped)",
+        "newunknown": "Ny $t(statuses:unknown)",
+        "removedpassed": "Borttagen $t(statuses:passed)",
+        "removedfailed": "Borttagen $t(statuses:failed)",
+        "removedbroken": "Borttagen $t(statuses:broken)",
+        "removedskipped": "Borttagen $t(statuses:skipped)",
+        "removedunknown": "Borttagen $t(statuses:unknown)"
+      },
+      "legend": {
+        "trend": "Tillväxttrend"
+      },
+      "no-history": "$t(empty:no-history-results)",
+      "no-results": "$t(empty:no-results)",
+      "tooltips": {
+        "current": "Senaste rapport ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "Rapport från {{timestamp, timestamp_long_no_seconds}}"
+      },
+      "ticks": {
+        "current": "Senaste",
+        "history": "{{timestamp, timestamp_date}}"
+      }
+    },
+    "statusAgePyramid": {
+      "title": "Ålderspyramid per status",
+      "status": {
+        "passed": "$t(statuses:passed, capitalize)",
+        "failed": "$t(statuses:failed, capitalize)",
+        "broken": "$t(statuses:broken, capitalize)",
+        "skipped": "$t(statuses:skipped, capitalize)",
+        "unknown": "$t(statuses:unknown, capitalize)"
+      },
+      "no-history": "$t(empty:no-history-results)",
+      "no-results": "$t(empty:no-results)",
+      "tooltips": {
+        "current": "Senaste rapport ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "Rapport från {{timestamp, timestamp_long_no_seconds}}"
+      },
+      "ticks": {
+        "current": "Senaste",
+        "history": "{{timestamp, timestamp_date}}"
+      }
+    },
+    "trSeverities": {
+      "title": "Testresultat per allvarlighetsgrad",
+      "no-results": "$t(empty:no-results)",
+      "status": {
+        "passed": "$t(statuses:passed, capitalize)",
+        "failed": "$t(statuses:failed, capitalize)",
+        "broken": "$t(statuses:broken, capitalize)",
+        "skipped": "$t(statuses:skipped, capitalize)",
+        "unknown": "$t(statuses:unknown, capitalize)"
+      },
+      "severity": {
+        "blocker": "$t(severity:blocker, capitalize)",
+        "critical": "$t(severity:critical, capitalize)",
+        "normal": "$t(severity:normal, capitalize)",
+        "minor": "$t(severity:minor, capitalize)",
+        "trivial": "$t(severity:trivial, capitalize)",
+        "unset": "Ingen allvarlighetsgrad"
+      }
+    },
+    "durationDynamics": {
+      "title": "Varaktighetsdynamik",
+      "durations": {
+        "sequential": "Sekventiell varaktighet",
+        "duration": "Testvaraktighet",
+        "speedup": "Snabbhet"
+      },
+      "no-results": "$t(empty:no-results)",
+      "tooltips": {
+        "current": "Senaste rapporten ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "Rapport från {{timestamp, timestamp_long_no_seconds}}"
+      },
+      "ticks": {
+        "current": "Senast",
+        "history": "{{timestamp, timestamp_date}}"
+      },
+      "legend": {
+        "duration": "{{duration, format_duration}}",
+        "speedup": "{{speedup}}x"
+      }
+    },
     "successRate": {
       "successRate": "Andel godkända: {{rate}}",
       "successRateDescription": "Andel godkända tester av alla tester.",
       "noResults": "Det finns inga testresultat.",
+      "notAvailable": "Ej tillgängligt",
       "slice_one": "{{count}} test ({{percent}}% av alla tester)",
       "slice_other": "{{count}} tester ({{percent}}% av alla tester)",
       "layer": "Nivå: {{layer}}",
       "statusSlice": "{{count}} {{status}} ({{percent}}% av alla tester)",
-      "slice": "{{count}} tester ({{percent}}% av alla tester)",
-      "noEligibleResults": "Det finns inga godkända, underkända eller trasiga tester. Överhoppade tester och tester med okänd status utesluts från andelen godkända."
+      "slice": "{{count}} tester ({{percent}}% av alla tester)"
     },
     "durationTrend": {
-      "title": "Varaktighet trend"
+      "title": "Varaktighet trend",
+      "duration": "Varaktighet",
+      "value": "{{duration, format_duration}}"
     },
     "retriesTrend": {
-      "title": "Återförsöks trend"
+      "title": "Återförsöks trend",
+      "retry": "Omtagningar",
+      "run": "Tester"
     },
     "categoriesTrend": {
       "title": "Kategorier trend"
     },
     "runTrend": {
-      "empty": "Det finns ingenting att visa här"
+      "empty": "Det finns ingenting att visa här",
+      "ticks": {
+        "current": "Senast",
+        "history": "{{timestamp, timestamp_date}}"
+      },
+      "tooltips": {
+        "current": "Senaste rapporten ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "Rapport från {{timestamp, timestamp_long_no_seconds}}"
+      }
     }
+  },
+  "transitions": {
+    "new": "Ny",
+    "fixed": "Åtgärdad",
+    "regressed": "Regresserad",
+    "malfunctioned": "Felaktig"
   },
   "timeline": {
     "empty": "Inga data",
     "selected_one": "{{ count }} test ({{ percentage }}%) med varaktighet mer än {{ minDuration }} och mindre än {{ maxDuration }} vald",
     "selected_other": "{{ count }} tester ({{ percentage }}%) med varaktighet mer än {{ minDuration }} och mindre än {{ maxDuration }} valda",
     "host": "Värd: {{ host }}"
+  },
+  "overview": {
+    "summary": "Sammanfattning",
+    "dates": "{{start, timestamp_long}} – {{stop, timestamp_long}}",
+    "duration": "Varaktighet: {{duration, format_duration}}",
+    "testCases_one": "{{count}} testfall",
+    "testCases_other": "{{count}} testfall",
+    "suites": "Sviter",
+    "features": "Funktioner per berättelse",
+    "categories": "Kategorier",
+    "environment": "Miljö",
+    "executors": "Körare",
+    "itemsTotal_one": "{{count}} objekt totalt",
+    "itemsTotal_other": "{{count}} objekt totalt",
+    "showAll": "Visa alla",
+    "noItems": "Inga objekt",
+    "noEnvironment": "Inga miljövariabler",
+    "noExecutors": "Ingen information om testkörare",
+    "build": "Bygge",
+    "ciBuild": "CI-bygge",
+    "pullRequest": "Pull request",
+    "branch": "Gren",
+    "commit": "Commit"
   },
   "attachments": {
     "imageDiff": {

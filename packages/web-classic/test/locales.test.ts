@@ -47,6 +47,29 @@ describe("classic locales", () => {
   });
 });
 
+describe("classic locale completeness", () => {
+  const PLURAL_SUFFIX = /_(zero|one|two|few|many|other)$/;
+  const baseKeys = (node: Record<string, unknown>, prefix = ""): string[] =>
+    Object.entries(node).flatMap(([key, value]) =>
+      value && typeof value === "object"
+        ? baseKeys(value as Record<string, unknown>, `${prefix}${key}.`)
+        : [`${prefix}${key}`.replace(PLURAL_SUFFIX, "")],
+    );
+  const readLocale = (locale: string) => JSON.parse(readFileSync(join(localesDir, `${locale}.json`), "utf8"));
+
+  it.each(AVAILABLE_LOCALES.filter((locale) => locale !== "en" && locale !== "en-iso"))(
+    "defines every english key in the %s locale",
+    (locale) => {
+      const expected = new Set(baseKeys(readLocale("en")));
+      const actual = new Set(baseKeys(readLocale(locale)));
+      const missing = [...expected].filter((key) => !actual.has(key));
+
+      expect(expected.size).toBeGreaterThan(0);
+      expect(missing).toEqual([]);
+    },
+  );
+});
+
 describe("classic test result page locales", () => {
   it("defines test result page labels in every locale that translates the ui section", () => {
     // partial locales without a ui section fall back to english for the whole section
