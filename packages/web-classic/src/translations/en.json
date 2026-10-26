@@ -405,5 +405,15 @@
         "expected": "Expected"
       }
     }
+  },
+  "tree": {
+    "collapse-all": "Collapse all groups",
+    "expand-all": "Expand all groups",
+    "show-groups-info": "Show groups info",
+    "hide-groups-info": "Hide groups info",
+    "download-csv": "Download CSV",
+    "flaky": "Flaky",
+    "retries_one": "{{count}} retry",
+    "retries_other": "{{count}} retries"
   }
 }

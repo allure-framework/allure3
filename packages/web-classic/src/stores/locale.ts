@@ -31,6 +31,7 @@ const namespaces = [
   "timeline",
   "overview",
   "attachments",
+  "tree",
 ];
 
 export const currentLocale = signal<LangLocale>("" as LangLocale);

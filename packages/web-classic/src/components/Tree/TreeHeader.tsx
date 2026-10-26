@@ -5,7 +5,8 @@ import { type FunctionComponent } from "preact";
 
 import { ArrowButton } from "@/components/ArrowButton";
 import { statsStore } from "@/stores";
-import { treeFiltersStore } from "@/stores/tree";
+
+import { useTreeStore } from "./context";
 
 import * as styles from "./styles.scss";
 
@@ -35,7 +36,8 @@ const TreeHeader: FunctionComponent<TreeHeaderProps> = ({
   statistic,
   ...rest
 }) => {
-  const { status: statusFilter } = treeFiltersStore.value;
+  const { filters, showGroupsInfo } = useTreeStore();
+  const { status: statusFilter } = filters.value;
 
   return (
     <Loadable
@@ -45,24 +47,25 @@ const TreeHeader: FunctionComponent<TreeHeaderProps> = ({
           progress(statistic?.total ?? 0, stats.total) * (maxWidthTab - minWidthTab) + minWidthTab,
         );
 
-        const treeHeaderBar = statistic
-          ? statusesList
-              .map((status) => ({ status, value: statistic[status] }))
-              .filter(
-                ({ status, value }) =>
-                  value !== undefined && (statusFilter === "total" || (statusFilter === status && value > 0)),
-              )
-              .map(({ status, value }) => {
-                const className = clsx(styles["tree-header-bar-item"], styles[status]);
-                const style = { flexGrow: value };
+        const treeHeaderBar =
+          statistic && showGroupsInfo.value
+            ? statusesList
+                .map((status) => ({ status, value: statistic[status] }))
+                .filter(
+                  ({ status, value }) =>
+                    value !== undefined && (statusFilter === "total" || (statusFilter === status && value > 0)),
+                )
+                .map(({ status, value }) => {
+                  const className = clsx(styles["tree-header-bar-item"], styles[status]);
+                  const style = { flexGrow: value };
 
-                return (
-                  <div key={status} className={className} style={style}>
-                    {value}
-                  </div>
-                );
-              })
-          : null;
+                  return (
+                    <div key={status} className={className} style={style}>
+                      {value}
+                    </div>
+                  );
+                })
+            : null;
 
         return (
           <div data-testid="tree-header" {...rest} className={styles["tree-header"]} onClick={toggleTree}>
@@ -71,7 +74,11 @@ const TreeHeader: FunctionComponent<TreeHeaderProps> = ({
               {categoryTitle}
             </Text>
             {treeHeaderBar && (
-              <div className={styles["tree-header-bar"]} style={{ minWidth: `${width}px` }}>
+              <div
+                data-testid="tree-header-bar"
+                className={styles["tree-header-bar"]}
+                style={{ minWidth: `${width}px` }}
+              >
                 {treeHeaderBar}
               </div>
             )}

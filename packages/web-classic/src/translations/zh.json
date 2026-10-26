@@ -188,5 +188,14 @@
         "expected": "预期"
       }
     }
+  },
+  "tree": {
+    "collapse-all": "折叠所有分组",
+    "expand-all": "展开所有分组",
+    "show-groups-info": "显示分组信息",
+    "hide-groups-info": "隐藏分组信息",
+    "download-csv": "下载 CSV",
+    "flaky": "不稳定",
+    "retries": "重试次数：{{count}}"
   }
 }

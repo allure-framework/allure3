@@ -201,5 +201,14 @@
         "expected": "Gözlənilən"
       }
     }
+  },
+  "tree": {
+    "collapse-all": "Bütün qrupları yığ",
+    "expand-all": "Bütün qrupları aç",
+    "show-groups-info": "Qrup məlumatını göstər",
+    "hide-groups-info": "Qrup məlumatını gizlət",
+    "download-csv": "CSV yüklə",
+    "flaky": "Qeyri-sabit",
+    "retries": "Təkrarlar: {{count}}"
   }
 }

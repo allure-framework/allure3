@@ -188,5 +188,14 @@
         "expected": "Förväntad"
       }
     }
+  },
+  "tree": {
+    "collapse-all": "Fäll ihop alla grupper",
+    "expand-all": "Fäll ut alla grupper",
+    "show-groups-info": "Visa gruppinfo",
+    "hide-groups-info": "Dölj gruppinfo",
+    "download-csv": "Ladda ner CSV",
+    "flaky": "Ostadig",
+    "retries": "Omkörningar: {{count}}"
   }
 }

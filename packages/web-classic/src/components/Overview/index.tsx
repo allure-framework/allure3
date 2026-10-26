@@ -4,11 +4,9 @@ import { computed } from "@preact/signals";
 import { useEffect } from "preact/hooks";
 
 import { useI18n } from "@/stores";
-import { behaviorsStore, fetchBehaviorsData } from "@/stores/behaviors";
-import { categoriesStore, fetchCategoriesData } from "@/stores/categories";
 import { fetchChartsData } from "@/stores/charts";
 import { fetchEnvironmentData } from "@/stores/environment";
-import { fetchTreeData, treeStore } from "@/stores/tree";
+import { behaviorsTree, categoriesTree, suitesTree } from "@/stores/tree";
 
 import type { ReportOptions } from "../../../types.js";
 import { EnvironmentWidget } from "./widgets/EnvironmentWidget";
@@ -31,9 +29,9 @@ const Overview = () => {
 
   useEffect(() => {
     fetchChartsData();
-    fetchTreeData();
-    fetchBehaviorsData();
-    fetchCategoriesData();
+    suitesTree.fetchData();
+    behaviorsTree.fetchData();
+    categoriesTree.fetchData();
     fetchEnvironmentData();
   }, []);
 
@@ -43,18 +41,23 @@ const Overview = () => {
         <div className={styles["overview-columns"]}>
           <div className={styles["overview-column"]}>
             <SummaryWidget reportOptions={reportOptions} />
-            <TreeWidget title={t("suites")} source={treeStore} tabName="suites" testId="overview-suites" />
+            <TreeWidget title={t("suites")} source={suitesTree.data} tabName="suites" testId="overview-suites" />
             <EnvironmentWidget />
           </div>
           <div className={styles["overview-column"]}>
             <TrendWidget />
             <TreeWidget
               title={t("categories")}
-              source={categoriesStore}
+              source={categoriesTree.data}
               tabName="categories"
               testId="overview-categories"
             />
-            <TreeWidget title={t("features")} source={behaviorsStore} tabName="behaviors" testId="overview-features" />
+            <TreeWidget
+              title={t("features")}
+              source={behaviorsTree.data}
+              tabName="behaviors"
+              testId="overview-features"
+            />
             <ExecutorsWidget executor={reportOptions?.executor} />
           </div>
         </div>

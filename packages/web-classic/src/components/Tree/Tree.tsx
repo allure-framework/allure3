@@ -7,6 +7,7 @@ import type { ReportRecursiveTree, ReportStatus } from "types";
 import TreeItem from "@/components/Tree/TreeItem";
 import { route } from "@/stores/router";
 
+import { useTreeStore } from "./context";
 import TreeHeader from "./TreeHeader";
 
 import * as styles from "./styles.scss";
@@ -23,9 +24,20 @@ const Tree: FunctionComponent<TreeProps> = ({ tree, statusFilter, root, name, st
   const { params } = route.value;
   const { id: parentId, testResultId } = params;
 
-  const [isOpened, setIsOpen] = useState(
-    parentId === tree.nodeId || statistic === undefined || !!statistic.failed || !!statistic.broken,
-  );
+  const { expansion } = useTreeStore();
+  const [isOpened, setIsOpen] = useState(() => {
+    const { mode } = expansion.peek();
+
+    if (root || mode === "expanded") {
+      return true;
+    }
+
+    if (mode === "collapsed") {
+      return false;
+    }
+
+    return parentId === tree.nodeId || statistic === undefined || !!statistic.failed || !!statistic.broken;
+  });
   const toggleTree = () => {
     setIsOpen(!isOpened);
   };
@@ -61,6 +73,9 @@ const Tree: FunctionComponent<TreeProps> = ({ tree, statusFilter, root, name, st
           status={leaf.status}
           groupOrder={leaf.groupOrder}
           duration={leaf.duration}
+          flaky={leaf.flaky}
+          retriesCount={leaf.retriesCount}
+          transition={leaf.transition}
           parentNodeId={tree.nodeId}
           isMarked={leaf.nodeId === testResultId}
         />

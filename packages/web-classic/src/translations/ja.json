@@ -188,5 +188,14 @@
         "expected": "期待値"
       }
     }
+  },
+  "tree": {
+    "collapse-all": "すべてのグループを折りたたむ",
+    "expand-all": "すべてのグループを展開",
+    "show-groups-info": "グループ情報を表示",
+    "hide-groups-info": "グループ情報を非表示",
+    "download-csv": "CSVをダウンロード",
+    "flaky": "不安定",
+    "retries": "再試行: {{count}}"
   }
 }
