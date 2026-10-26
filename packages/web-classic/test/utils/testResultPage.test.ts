@@ -1,6 +1,7 @@
 import { epic, feature, label, story } from "allure-js-commons";
 import { beforeEach, describe, expect, it } from "vite-plus/test";
 
+import { parseRoute, route } from "../../src/stores/router.js";
 import {
   isTestResultTabAvailable,
   resolveTestResultTab,
@@ -82,8 +83,9 @@ describe("stores > test result tab", () => {
   });
 
   it("keeps the selected tab for the next result when it is available and falls back to overview otherwise", () => {
-    selectedTestResultTab.value = "history";
+    route.value = parseRoute("#suites/node-1/a/history");
 
+    expect(selectedTestResultTab.value).toBe("history");
     expect(
       resolveTestResultTab(
         selectedTestResultTab.value,
@@ -99,6 +101,8 @@ describe("stores > test result tab", () => {
       ),
     ).toBe("overview");
 
-    selectedTestResultTab.value = "overview";
+    route.value = parseRoute("#suites/node-1/a");
+
+    expect(selectedTestResultTab.value).toBe("overview");
   });
 });

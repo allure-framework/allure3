@@ -111,10 +111,16 @@ a.overview-ci-value {
   gap: 12px;
   padding: 6px 0;
   border-bottom: 1px solid var(--color-border-subtle);
+  color: inherit;
+  text-decoration: none;
 
-  &:last-child {
-    border-bottom: none;
+  &:hover {
+    background: var(--color-control-bg-ghost-hover);
   }
+}
+
+li:last-child > .overview-tree-widget-item {
+  border-bottom: none;
 }
 
 .overview-tree-widget-name {
