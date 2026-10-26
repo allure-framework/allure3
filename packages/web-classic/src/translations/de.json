@@ -62,12 +62,12 @@
   "empty": {
     "no-results": "Keine Ergebnisse",
     "no-tests-found": "Keine Ergebnisse gefunden",
+    "no-message-provided": "Keine Nachricht vorhanden",
     "clear-filters": "Filter löschen",
     "no-attachments-results": "Keine Anhängeinformationen verfügbar",
     "no-history-results": "Keine Verlaufsinformationen verfügbar",
     "no-retries-results": "Keine Wiederholungsinformationen verfügbar",
-    "no-test-steps-results": "Keine Informationen zu Testschritten verfügbar",
-    "no-message-provided": "Keine Nachricht vorhanden"
+    "no-test-steps-results": "Keine Informationen zu Testschritten verfügbar"
   },
   "severity": {
     "blocker": "Blocker",
@@ -159,24 +159,256 @@
   "charts": {
     "retry": "Erneut versuchen",
     "loadError": "Diagramm konnte nicht geladen werden",
+    "currentStatus": {
+      "title": "Aktueller Status",
+      "status": {
+        "passed": "$t(statuses:passed, capitalize)",
+        "failed": "$t(statuses:failed, capitalize)",
+        "broken": "$t(statuses:broken, capitalize)",
+        "skipped": "$t(statuses:skipped, capitalize)",
+        "unknown": "$t(statuses:unknown, capitalize)"
+      },
+      "percentage": "{{percentage}}%",
+      "of": "von {{total}}",
+      "total": "gesamt",
+      "tests": {
+        "new_zero": "Keine neuen Tests",
+        "new_one": "{{count}} neuer Test",
+        "new_other": "{{count}} neue Tests",
+        "flaky_zero": "Keine instabilen Tests",
+        "flaky_one": "{{count}} instabiler Test",
+        "flaky_other": "{{count}} instabile Tests",
+        "retries_zero": "Keine wiederholten Tests",
+        "retries_one": "{{count}} wiederholter Test",
+        "retries_other": "{{count}} wiederholte Tests"
+      }
+    },
+    "statusDynamics": {
+      "title": "Statusdynamik",
+      "status": {
+        "passed": "$t(statuses:passed, capitalize)",
+        "failed": "$t(statuses:failed, capitalize)",
+        "broken": "$t(statuses:broken, capitalize)",
+        "skipped": "$t(statuses:skipped, capitalize)",
+        "unknown": "$t(statuses:unknown, capitalize)"
+      },
+      "no-history": "$t(empty:no-history-results)",
+      "no-results": "$t(empty:no-results)",
+      "tooltips": {
+        "current": "Neuester Bericht ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "Bericht vom {{timestamp, timestamp_long_no_seconds}}"
+      },
+      "ticks": {
+        "current": "Neueste",
+        "history": "{{timestamp, timestamp_date}}"
+      }
+    },
+    "statusTransitions": {
+      "title": "Statusübergänge",
+      "legend": {
+        "trend": "Korrekturrate"
+      },
+      "transitions": {
+        "new": "$t(transitions:new, capitalize)",
+        "fixed": "$t(transitions:fixed, capitalize)",
+        "regressed": "$t(transitions:regressed, capitalize)",
+        "malfunctioned": "$t(transitions:malfunctioned, capitalize)"
+      },
+      "no-history": "$t(empty:no-history-results)",
+      "no-results": "$t(empty:no-results)",
+      "tooltips": {
+        "current": "Neuester Bericht ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "Bericht vom {{timestamp, timestamp_long_no_seconds}}"
+      },
+      "ticks": {
+        "current": "Neueste",
+        "history": "{{timestamp, timestamp_date}}"
+      }
+    },
+    "durations": {
+      "title": "Histogramm der Dauer nach {{groupBy}}",
+      "title_none": "Histogramm der Dauer",
+      "no-results": "$t(empty:no-results)",
+      "groupBy": {
+        "none": "Keine",
+        "layer": "Schicht"
+      },
+      "ticks": {
+        "durationRange": "{{from, format_duration}} - {{to, format_duration}}"
+      },
+      "tooltips": {
+        "durationRange": "{{from, format_duration}} - {{to, format_duration}}"
+      },
+      "legend": {
+        "value": "{{value}}",
+        "total": "Anzahl der Tests"
+      }
+    },
+    "stabilityDistribution": {
+      "title": "Stabilitätsverteilung",
+      "no-results": "$t(empty:no-results)",
+      "legend": {
+        "stabilityRate": "Stabilitätsrate"
+      }
+    },
+    "testBaseGrowthDynamics": {
+      "title": "Wachstumsdynamik der Testbasis",
+      "status": {
+        "newpassed": "Neu $t(statuses:passed)",
+        "newfailed": "Neu $t(statuses:failed)",
+        "newbroken": "Neu $t(statuses:broken)",
+        "newskipped": "Neu $t(statuses:skipped)",
+        "newunknown": "Neu $t(statuses:unknown)",
+        "removedpassed": "Entfernt $t(statuses:passed)",
+        "removedfailed": "Entfernt $t(statuses:failed)",
+        "removedbroken": "Entfernt $t(statuses:broken)",
+        "removedskipped": "Entfernt $t(statuses:skipped)",
+        "removedunknown": "Entfernt $t(statuses:unknown)"
+      },
+      "legend": {
+        "trend": "Wachstumstrend"
+      },
+      "no-history": "$t(empty:no-history-results)",
+      "no-results": "$t(empty:no-results)",
+      "tooltips": {
+        "current": "Neuester Bericht ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "Bericht vom {{timestamp, timestamp_long_no_seconds}}"
+      },
+      "ticks": {
+        "current": "Neueste",
+        "history": "{{timestamp, timestamp_date}}"
+      }
+    },
+    "statusAgePyramid": {
+      "title": "Alterspyramide nach Status",
+      "status": {
+        "passed": "$t(statuses:passed, capitalize)",
+        "failed": "$t(statuses:failed, capitalize)",
+        "broken": "$t(statuses:broken, capitalize)",
+        "skipped": "$t(statuses:skipped, capitalize)",
+        "unknown": "$t(statuses:unknown, capitalize)"
+      },
+      "no-history": "$t(empty:no-history-results)",
+      "no-results": "$t(empty:no-results)",
+      "tooltips": {
+        "current": "Neuester Bericht ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "Bericht vom {{timestamp, timestamp_long_no_seconds}}"
+      },
+      "ticks": {
+        "current": "Neueste",
+        "history": "{{timestamp, timestamp_date}}"
+      }
+    },
+    "trSeverities": {
+      "title": "Testergebnisse nach Schweregrad",
+      "no-results": "$t(empty:no-results)",
+      "status": {
+        "passed": "$t(statuses:passed, capitalize)",
+        "failed": "$t(statuses:failed, capitalize)",
+        "broken": "$t(statuses:broken, capitalize)",
+        "skipped": "$t(statuses:skipped, capitalize)",
+        "unknown": "$t(statuses:unknown, capitalize)"
+      },
+      "severity": {
+        "blocker": "$t(severity:blocker, capitalize)",
+        "critical": "$t(severity:critical, capitalize)",
+        "normal": "$t(severity:normal, capitalize)",
+        "minor": "$t(severity:minor, capitalize)",
+        "trivial": "$t(severity:trivial, capitalize)",
+        "unset": "Kein Schweregrad"
+      }
+    },
+    "durationDynamics": {
+      "title": "Dauerdynamik",
+      "durations": {
+        "sequential": "Sequentielle Dauer",
+        "duration": "Testdauer",
+        "speedup": "Beschleunigung"
+      },
+      "no-results": "$t(empty:no-results)",
+      "tooltips": {
+        "current": "Neuester Bericht ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "Bericht vom {{timestamp, timestamp_long_no_seconds}}"
+      },
+      "ticks": {
+        "current": "Neueste",
+        "history": "{{timestamp, timestamp_date}}"
+      },
+      "legend": {
+        "duration": "{{duration, format_duration}}",
+        "speedup": "{{speedup}}x"
+      }
+    },
+    "successRate": {
+      "successRate": "Erfolgsquote: {{rate}}",
+      "successRateDescription": "Berechnet aus erfolgreichen, fehlgeschlagenen und defekten Tests. Übersprungene Tests und Tests mit unbekanntem Status sind ausgeschlossen.",
+      "noResults": "Es gibt keine Testergebnisse.",
+      "notAvailable": "k. A.",
+      "slice_one": "{{count}} Test ({{percent}}% aller Tests)",
+      "slice_other": "{{count}} Tests ({{percent}}% aller Tests)",
+      "layer": "Ebene: {{layer}}",
+      "statusSlice": "{{count}} {{status}} ({{percent}}% aller Tests)",
+      "slice": "{{count}} Tests ({{percent}}% aller Tests)"
+    },
     "durationTrend": {
-      "title": "Dauer Trend"
+      "title": "Dauer Trend",
+      "duration": "Dauer",
+      "value": "{{duration, format_duration}}"
     },
     "retriesTrend": {
-      "title": "Wiederholungen Trend"
+      "title": "Wiederholungen Trend",
+      "retry": "Wiederholungen",
+      "run": "Tests"
     },
     "categoriesTrend": {
       "title": "Kategorien Trend"
     },
     "runTrend": {
-      "empty": "Hier gibt es nichts zu zeigen"
+      "empty": "Hier gibt es nichts zu zeigen",
+      "ticks": {
+        "current": "Neueste",
+        "history": "{{timestamp, timestamp_date}}"
+      },
+      "tooltips": {
+        "current": "Neuester Bericht ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "Bericht vom {{timestamp, timestamp_long_no_seconds}}"
+      }
     }
+  },
+  "transitions": {
+    "new": "Neu",
+    "fixed": "Behoben",
+    "regressed": "Regressiert",
+    "malfunctioned": "Defekt"
   },
   "timeline": {
     "empty": "Keine Daten",
     "selected_one": "{{ count }} Test ({{ percentage }}%) mit Dauer mehr als {{ minDuration }} und weniger als {{ maxDuration }} ausgewählt",
     "selected_other": "{{ count }} Tests ({{ percentage }}%) mit Dauer mehr als {{ minDuration }} und weniger als {{ maxDuration }} ausgewählt",
     "host": "Host: {{ host }}"
+  },
+  "overview": {
+    "summary": "Zusammenfassung",
+    "dates": "{{start, timestamp_long}} – {{stop, timestamp_long}}",
+    "duration": "Dauer: {{duration, format_duration}}",
+    "testCases_one": "{{count}} Testfall",
+    "testCases_other": "{{count}} Testfälle",
+    "suites": "Suiten",
+    "features": "Features nach Stories",
+    "categories": "Kategorien",
+    "environment": "Umgebung",
+    "executors": "Ausführer",
+    "itemsTotal_one": "{{count}} Element insgesamt",
+    "itemsTotal_other": "{{count}} Elemente insgesamt",
+    "showAll": "Alle anzeigen",
+    "noItems": "Keine Elemente vorhanden",
+    "noEnvironment": "Keine Umgebungsvariablen vorhanden",
+    "noExecutors": "Keine Informationen zu Testausführern vorhanden",
+    "build": "Build",
+    "ciBuild": "CI-Build",
+    "pullRequest": "Pull-Request",
+    "branch": "Branch",
+    "commit": "Commit"
   },
   "attachments": {
     "imageDiff": {

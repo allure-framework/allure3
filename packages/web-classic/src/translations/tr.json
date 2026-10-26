@@ -62,12 +62,12 @@
   "empty": {
     "no-results": "Sonuç yok",
     "no-tests-found": "Sonuç bulunamadı",
+    "no-message-provided": "Mesaj belirtilmedi",
     "clear-filters": "Filtreleri temizle",
     "no-attachments-results": "Ek bilgisi mevcut değil",
     "no-history-results": "Geçmiş bilgisi mevcut değil",
     "no-retries-results": "Tekrar deneme bilgisi mevcut değil",
-    "no-test-steps-results": "Test adımları hakkında bilgi mevcut değil",
-    "no-message-provided": "Mesaj belirtilmedi"
+    "no-test-steps-results": "Test adımları hakkında bilgi mevcut değil"
   },
   "severity": {
     "blocker": "engelleyici",
@@ -147,40 +147,268 @@
     "missedAttachment": "Ek bulunamadı"
   },
   "nav": {
+    "overview": "Genel bakış",
+    "behaviors": "Davranışlar",
+    "categories": "Kategoriler",
+    "graphs": "Grafikler",
+    "packages": "Paketler",
+    "suites": "Takımlar",
+    "timeline": "Zaman çizelgesi",
     "comingSoon": "Yakında"
   },
   "charts": {
     "retry": "Yeniden dene",
     "loadError": "Grafik yüklenemedi",
+    "currentStatus": {
+      "title": "Mevcut Durum",
+      "status": {
+        "passed": "$t(statuses:passed, capitalize)",
+        "failed": "$t(statuses:failed, capitalize)",
+        "broken": "$t(statuses:broken, capitalize)",
+        "skipped": "$t(statuses:skipped, capitalize)",
+        "unknown": "$t(statuses:unknown, capitalize)"
+      },
+      "percentage": "{{percentage}}%",
+      "of": "{{total}} içinden",
+      "total": "toplam",
+      "tests": {
+        "new_zero": "Yeni test yok",
+        "new_one": "{{count}} yeni test",
+        "new_other": "{{count}} yeni test",
+        "flaky_zero": "Kararsız test yok",
+        "flaky_one": "{{count}} kararsız test",
+        "flaky_other": "{{count}} kararsız test",
+        "retries_zero": "Yeniden denenmiş test yok",
+        "retries_one": "{{count}} yeniden denenmiş test",
+        "retries_other": "{{count}} yeniden denenmiş test"
+      }
+    },
+    "statusDynamics": {
+      "title": "Durum dinamikleri",
+      "status": {
+        "passed": "$t(statuses:passed, capitalize)",
+        "failed": "$t(statuses:failed, capitalize)",
+        "broken": "$t(statuses:broken, capitalize)",
+        "skipped": "$t(statuses:skipped, capitalize)",
+        "unknown": "$t(statuses:unknown, capitalize)"
+      },
+      "no-history": "$t(empty:no-history-results)",
+      "no-results": "$t(empty:no-results)",
+      "tooltips": {
+        "current": "Son rapor ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "{{timestamp, timestamp_long_no_seconds}} tarihli rapor"
+      },
+      "ticks": {
+        "current": "Son",
+        "history": "{{timestamp, timestamp_date}}"
+      }
+    },
+    "statusTransitions": {
+      "title": "Durum geçişleri",
+      "legend": {
+        "trend": "Düzeltme oranı"
+      },
+      "transitions": {
+        "new": "$t(transitions:new, capitalize)",
+        "fixed": "$t(transitions:fixed, capitalize)",
+        "regressed": "$t(transitions:regressed, capitalize)",
+        "malfunctioned": "$t(transitions:malfunctioned, capitalize)"
+      },
+      "no-history": "$t(empty:no-history-results)",
+      "no-results": "$t(empty:no-results)",
+      "tooltips": {
+        "current": "Son rapor ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "{{timestamp, timestamp_long_no_seconds}} tarihli rapor"
+      },
+      "ticks": {
+        "current": "Son",
+        "history": "{{timestamp, timestamp_date}}"
+      }
+    },
+    "durations": {
+      "title": "{{groupBy}} göre süre histogramı",
+      "title_none": "Süre histogramı",
+      "no-results": "$t(empty:no-results)",
+      "groupBy": {
+        "none": "Yok",
+        "layer": "Katman"
+      },
+      "ticks": {
+        "durationRange": "{{from, format_duration}} - {{to, format_duration}}"
+      },
+      "tooltips": {
+        "durationRange": "{{from, format_duration}} - {{to, format_duration}}"
+      },
+      "legend": {
+        "value": "{{value}}",
+        "total": "Test sayısı"
+      }
+    },
+    "stabilityDistribution": {
+      "title": "Kararlılık dağılımı",
+      "no-results": "$t(empty:no-results)",
+      "legend": {
+        "stabilityRate": "Kararlılık oranı"
+      }
+    },
+    "testBaseGrowthDynamics": {
+      "title": "Test tabanı büyüme dinamikleri",
+      "status": {
+        "newpassed": "Yeni $t(statuses:passed)",
+        "newfailed": "Yeni $t(statuses:failed)",
+        "newbroken": "Yeni $t(statuses:broken)",
+        "newskipped": "Yeni $t(statuses:skipped)",
+        "newunknown": "Yeni $t(statuses:unknown)",
+        "removedpassed": "Kaldırılan $t(statuses:passed)",
+        "removedfailed": "Kaldırılan $t(statuses:failed)",
+        "removedbroken": "Kaldırılan $t(statuses:broken)",
+        "removedskipped": "Kaldırılan $t(statuses:skipped)",
+        "removedunknown": "Kaldırılan $t(statuses:unknown)"
+      },
+      "legend": {
+        "trend": "Büyüme trendi"
+      },
+      "no-history": "$t(empty:no-history-results)",
+      "no-results": "$t(empty:no-results)",
+      "tooltips": {
+        "current": "Son rapor ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "{{timestamp, timestamp_long_no_seconds}} tarihli rapor"
+      },
+      "ticks": {
+        "current": "Son",
+        "history": "{{timestamp, timestamp_date}}"
+      }
+    },
+    "statusAgePyramid": {
+      "title": "Durum yaş piramidi",
+      "status": {
+        "passed": "$t(statuses:passed, capitalize)",
+        "failed": "$t(statuses:failed, capitalize)",
+        "broken": "$t(statuses:broken, capitalize)",
+        "skipped": "$t(statuses:skipped, capitalize)",
+        "unknown": "$t(statuses:unknown, capitalize)"
+      },
+      "no-history": "$t(empty:no-history-results)",
+      "no-results": "$t(empty:no-results)",
+      "tooltips": {
+        "current": "Son rapor ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "{{timestamp, timestamp_long_no_seconds}} tarihli rapor"
+      },
+      "ticks": {
+        "current": "Son",
+        "history": "{{timestamp, timestamp_date}}"
+      }
+    },
+    "trSeverities": {
+      "title": "Önem derecesine göre test sonuçları",
+      "no-results": "$t(empty:no-results)",
+      "status": {
+        "passed": "$t(statuses:passed, capitalize)",
+        "failed": "$t(statuses:failed, capitalize)",
+        "broken": "$t(statuses:broken, capitalize)",
+        "skipped": "$t(statuses:skipped, capitalize)",
+        "unknown": "$t(statuses:unknown, capitalize)"
+      },
+      "severity": {
+        "blocker": "$t(severity:blocker, capitalize)",
+        "critical": "$t(severity:critical, capitalize)",
+        "normal": "$t(severity:normal, capitalize)",
+        "minor": "$t(severity:minor, capitalize)",
+        "trivial": "$t(severity:trivial, capitalize)",
+        "unset": "Önem derecesi yok"
+      }
+    },
+    "durationDynamics": {
+      "title": "Süre dinamikleri",
+      "durations": {
+        "sequential": "Sıralı süre",
+        "duration": "Test süresi",
+        "speedup": "Hızlanma"
+      },
+      "no-results": "$t(empty:no-results)",
+      "tooltips": {
+        "current": "Son rapor ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "{{timestamp, timestamp_long_no_seconds}} tarihli rapor"
+      },
+      "ticks": {
+        "current": "Son",
+        "history": "{{timestamp, timestamp_date}}"
+      },
+      "legend": {
+        "duration": "{{duration, format_duration}}",
+        "speedup": "{{speedup}}x"
+      }
+    },
     "successRate": {
       "successRate": "Başarı oranı: {{rate}}",
       "successRateDescription": "Tüm testler içinde başarılı testlerin oranı.",
       "noResults": "Test sonucu yok.",
+      "notAvailable": "Yok",
       "slice_one": "{{count}} test (tüm testlerin %{{percent}} kadarı)",
       "slice_other": "{{count}} test (tüm testlerin %{{percent}} kadarı)",
       "layer": "Katman: {{layer}}",
       "statusSlice": "{{count}} {{status}} (tüm testlerin %{{percent}} kadarı)",
-      "slice": "{{count}} test (tüm testlerin %{{percent}} kadarı)",
-      "noEligibleResults": "Başarılı, başarısız veya bozuk test yok. Atlanan ve durumu bilinmeyen testler başarı oranına dahil edilmez."
+      "slice": "{{count}} test (tüm testlerin %{{percent}} kadarı)"
     },
     "durationTrend": {
-      "title": "Süre trendi"
+      "title": "Süre trendi",
+      "duration": "Süre",
+      "value": "{{duration, format_duration}}"
     },
     "retriesTrend": {
-      "title": "Tekrar trendi"
+      "title": "Tekrar trendi",
+      "retry": "Tekrar Denemeler",
+      "run": "Testler"
     },
     "categoriesTrend": {
       "title": "Kategoriler trendi"
     },
     "runTrend": {
-      "empty": "Gösterilecek bir şey yok"
+      "empty": "Gösterilecek bir şey yok",
+      "ticks": {
+        "current": "Son",
+        "history": "{{timestamp, timestamp_date}}"
+      },
+      "tooltips": {
+        "current": "Son rapor ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "{{timestamp, timestamp_long_no_seconds}} tarihli rapor"
+      }
     }
+  },
+  "transitions": {
+    "new": "Yeni",
+    "fixed": "Düzeltildi",
+    "regressed": "Geri Döndü",
+    "malfunctioned": "Bozuk"
   },
   "timeline": {
     "empty": "Veri yok",
     "selected_one": "{{ count }} test ({{ percentage }}%) {{ minDuration }}'dan fazla ve {{ maxDuration }}'dan az süreyle seçildi",
     "selected_other": "{{ count }} test ({{ percentage }}%) {{ minDuration }}'dan fazla ve {{ maxDuration }}'dan az süreyle seçildi",
     "host": "Ana bilgisayar: {{ host }}"
+  },
+  "overview": {
+    "summary": "Özet",
+    "dates": "{{start, timestamp_long}} – {{stop, timestamp_long}}",
+    "duration": "Süre: {{duration, format_duration}}",
+    "testCases_one": "{{count}} test senaryosu",
+    "testCases_other": "{{count}} test senaryosu",
+    "suites": "Takımlar",
+    "features": "Hikayelere göre özellikler",
+    "categories": "Kategoriler",
+    "environment": "Ortam",
+    "executors": "Çalıştırıcılar",
+    "itemsTotal_one": "Toplam {{count}} öğe",
+    "itemsTotal_other": "Toplam {{count}} öğe",
+    "showAll": "Tümünü göster",
+    "noItems": "Öğe yok",
+    "noEnvironment": "Ortam değişkeni yok",
+    "noExecutors": "Test çalıştırıcıları hakkında bilgi yok",
+    "build": "Derleme",
+    "ciBuild": "CI derlemesi",
+    "pullRequest": "Pull request",
+    "branch": "Dal",
+    "commit": "Commit"
   },
   "attachments": {
     "imageDiff": {
