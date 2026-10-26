@@ -223,7 +223,8 @@
     "loadError": "Ne udalo sę zagruziti graf",
     "successRate": {
       "successRate": "Procent uspěha: {{rate}}",
-      "successRateDescription": "Dolja uspěšnyh testov sredi vsih testov.",
+      "successRateDescription": "Izračunano iz uspěšnyh, neuspěšnyh i slomanyh testov. Propustjene testy i testy s neznanym statusom sut izključene.",
+      "noEligibleResults": "Nema uspěšnyh, neuspěšnyh ili slomanyh testov. Propustjene testy i testy s neznanym statusom sut izključene iz procenta uspěha.",
       "noResults": "Nema rezultatov testov.",
       "slice_one": "{{count}} test ({{percent}}% vsih testov)",
       "slice_other": "{{count}} testov ({{percent}}% vsih testov)",

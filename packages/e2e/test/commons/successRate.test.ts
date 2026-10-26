@@ -97,7 +97,7 @@ for (const scenario of scenarios) {
 
     for (const frontend of ["awesome", "classic", "dashboard"]) {
       test(`${frontend} charts use the same eligible denominator`, async ({ page }, testInfo) => {
-        await page.goto(`${report.url}/${frontend}/index.html${frontend === "classic" ? "#overview" : ""}`);
+        await page.goto(`${report.url}/${frontend}/index.html${frontend === "classic" ? "#graphs" : ""}`);
 
         if (frontend === "awesome") {
           const caption = page.getByRole("img", { name: `Success rate: ${scenario.rate}`, exact: true });
@@ -136,7 +136,7 @@ for (const scenario of scenarios) {
         }
 
         if (scenario.total > 0) {
-          // Classic displays these charts on its overview route.
+          // Classic displays these charts on its graphs route.
           const node = page.locator("rect[aria-label]");
           const target = page.getByRole("img", {
             name: new RegExp(`^Checkout: Success rate: ${scenario.distributionRate.replace(".", "\\.")}`),

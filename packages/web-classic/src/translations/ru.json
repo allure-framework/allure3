@@ -348,7 +348,8 @@
     },
     "successRate": {
       "successRate": "Доля успешных: {{rate}}",
-      "successRateDescription": "Доля успешных тестов среди всех тестов.",
+      "successRateDescription": "Рассчитывается по успешным, упавшим и сломанным тестам. Пропущенные тесты и тесты с неизвестным статусом исключены.",
+      "noEligibleResults": "Нет успешных, упавших или сломанных тестов. Пропущенные тесты и тесты с неизвестным статусом исключены из расчёта доли успешных.",
       "noResults": "Нет результатов тестов.",
       "notAvailable": "Н/Д",
       "slice_one": "{{count}} тест ({{percent}}% всех тестов)",
@@ -400,6 +401,7 @@
   },
   "overview": {
     "summary": "Сводка",
+    "successRateDescription": "Доля успешных тестов среди всех тестов.",
     "dates": "{{start, timestamp_long}} – {{stop, timestamp_long}}",
     "duration": "Длительность: {{duration, format_duration}}",
     "testCases_one": "{{count}} тест-кейс",

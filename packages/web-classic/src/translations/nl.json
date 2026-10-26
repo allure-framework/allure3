@@ -341,7 +341,8 @@
     },
     "successRate": {
       "successRate": "Slagingspercentage: {{rate}}",
-      "successRateDescription": "Aandeel geslaagde tests van alle tests.",
+      "successRateDescription": "Berekend op basis van geslaagde, mislukte en defecte tests. Overgeslagen tests en tests met onbekende status zijn uitgesloten.",
+      "noEligibleResults": "Er zijn geen geslaagde, mislukte of defecte tests. Overgeslagen tests en tests met onbekende status tellen niet mee voor het slagingspercentage.",
       "noResults": "Er zijn geen testresultaten.",
       "notAvailable": "n.v.t.",
       "slice_one": "{{count}} test ({{percent}}% van alle tests)",
@@ -389,6 +390,7 @@
   },
   "overview": {
     "summary": "Samenvatting",
+    "successRateDescription": "Aandeel geslaagde tests van alle tests.",
     "dates": "{{start, timestamp_long}} – {{stop, timestamp_long}}",
     "duration": "Duur: {{duration, format_duration}}",
     "testCases_one": "{{count}} testcase",

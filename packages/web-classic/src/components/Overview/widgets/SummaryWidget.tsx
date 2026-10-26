@@ -56,10 +56,11 @@ export const SummaryWidget = ({ reportOptions }: { reportOptions?: ReportOptions
                       }
 
                       // Classic counts the rate over all tests, so skipped or unknown ones never leave it undefined
-                      return charts(
-                        `successRate.${key === "noEligibleResults" ? "successRateDescription" : key}`,
-                        values,
-                      );
+                      if (key === "successRateDescription" || key === "noEligibleResults") {
+                        return t("successRateDescription");
+                      }
+
+                      return charts(`successRate.${key}`, values);
                     }}
                   />
                 ) : null

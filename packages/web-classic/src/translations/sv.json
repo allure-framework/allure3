@@ -341,7 +341,8 @@
     },
     "successRate": {
       "successRate": "Andel godkända: {{rate}}",
-      "successRateDescription": "Andel godkända tester av alla tester.",
+      "successRateDescription": "Beräknas från godkända, underkända och trasiga tester. Överhoppade tester och tester med okänd status utesluts.",
+      "noEligibleResults": "Det finns inga godkända, underkända eller trasiga tester. Överhoppade tester och tester med okänd status utesluts från andelen godkända.",
       "noResults": "Det finns inga testresultat.",
       "notAvailable": "Ej tillgängligt",
       "slice_one": "{{count}} test ({{percent}}% av alla tester)",
@@ -389,6 +390,7 @@
   },
   "overview": {
     "summary": "Sammanfattning",
+    "successRateDescription": "Andel godkända tester av alla tester.",
     "dates": "{{start, timestamp_long}} – {{stop, timestamp_long}}",
     "duration": "Varaktighet: {{duration, format_duration}}",
     "testCases_one": "{{count}} testfall",

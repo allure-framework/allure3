@@ -341,7 +341,8 @@
     },
     "successRate": {
       "successRate": "成功率: {{rate}}",
-      "successRateDescription": "全テストに占める成功したテストの割合です。",
+      "successRateDescription": "成功、失敗、異常終了のテストから算出します。スキップされたテストとステータス不明のテストは除外します。",
+      "noEligibleResults": "成功、失敗、異常終了のテストはありません。スキップされたテストとステータス不明のテストは成功率から除外します。",
       "noResults": "テスト結果はありません。",
       "notAvailable": "該当なし",
       "slice_one": "{{count}} 件のテスト（全テストの {{percent}}%）",
@@ -389,6 +390,7 @@
   },
   "overview": {
     "summary": "サマリー",
+    "successRateDescription": "全テストに占める成功したテストの割合です。",
     "dates": "{{start, timestamp_long}} – {{stop, timestamp_long}}",
     "duration": "所要時間: {{duration, format_duration}}",
     "testCases_other": "{{count}} 件のテストケース",

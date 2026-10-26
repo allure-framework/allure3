@@ -341,7 +341,8 @@
     },
     "successRate": {
       "successRate": "نسبة النجاح: {{rate}}",
-      "successRateDescription": "نسبة الاختبارات الناجحة من بين جميع الاختبارات.",
+      "successRateDescription": "تُحسب من الاختبارات الناجحة والفاشلة والمتعطلة. تُستبعد الاختبارات المتخطاة وذات الحالة غير المعروفة.",
+      "noEligibleResults": "لا توجد اختبارات ناجحة أو فاشلة أو متعطلة. تُستبعد الاختبارات المتخطاة وذات الحالة غير المعروفة من نسبة النجاح.",
       "noResults": "لا توجد نتائج اختبارات.",
       "notAvailable": "غير متاح",
       "slice_one": "{{count}} اختبار ({{percent}}% من جميع الاختبارات)",
@@ -399,6 +400,7 @@
   },
   "overview": {
     "summary": "الملخص",
+    "successRateDescription": "نسبة الاختبارات الناجحة من بين جميع الاختبارات.",
     "dates": "{{start, timestamp_long}} – {{stop, timestamp_long}}",
     "duration": "المدة: {{duration, format_duration}}",
     "testCases_one": "حالة اختبار واحدة",
