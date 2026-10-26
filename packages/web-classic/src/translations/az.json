@@ -66,7 +66,8 @@
     "clear-filters": "Filtrləri təmizlə",
     "no-attachments-results": "Qoşmalar haqqında məlumat yoxdur",
     "no-history-results": "Tarixçə haqqında məlumat yoxdur",
-    "no-retries-results": "Təkrar cəhdlər haqqında məlumat yoxdur"
+    "no-retries-results": "Təkrar cəhdlər haqqında məlumat yoxdur",
+    "no-test-steps-results": "Test addımları haqqında məlumat yoxdur"
   },
   "severity": {
     "blocker": "bloklayıcı",
@@ -124,7 +125,23 @@
     "fullscreen": "Tam ekran",
     "language": "Dili dəyiş",
     "openInNewTab": "Yeni tabda aç",
-    "theme": "Mövzunu dəyiş"
+    "theme": "Mövzunu dəyiş",
+    "showDiff": "Fərqi göstər",
+    "comparison": "Müqayisə",
+    "expected": "Gözlənilən",
+    "actual": "Faktiki",
+    "viewMode": "Görünüş rejimi",
+    "unified": "Birləşdirilmiş",
+    "side-by-side": "Yan-yana",
+    "compareBy": "Müqayisə növü",
+    "chars": "simvollar",
+    "words": "sözlər",
+    "lines": "sətirlər",
+    "loadComparisonError": "Müqayisəni yükləmək mümkün olmadı",
+    "retry": "Yenidən cəhd et",
+    "loadAttachmentViewerError": "Qoşma görüntüləyicisini yükləmək mümkün olmadı",
+    "previewAttachment": "Önizləmə",
+    "viewCode": "Kodu göstər"
   },
   "errors": {
     "missedAttachment": "Qoşma tapılmadı"
@@ -165,5 +182,24 @@
     "selected_one": "{{ count }} test ({{ percentage }}%) {{ minDuration }}-dan çox və {{ maxDuration }}-dan az müddətlə seçildi",
     "selected_other": "{{ count }} test ({{ percentage }}%) {{ minDuration }}-dan çox və {{ maxDuration }}-dan az müddətlə seçildi",
     "host": "Host: {{ host }}"
+  },
+  "attachments": {
+    "imageDiff": {
+      "mode": {
+        "diff": "Fərq",
+        "actual": "Faktiki",
+        "expected": "Gözlənilən",
+        "side-by-side": "Yan-yana",
+        "overlay": "Üst-üstə"
+      },
+      "empty": {
+        "failed-to-load": "Şəkil müqayisəsini yükləmək mümkün olmadı"
+      },
+      "image": {
+        "diff": "Fərq",
+        "actual": "Faktiki",
+        "expected": "Gözlənilən"
+      }
+    }
   }
 }

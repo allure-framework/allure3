@@ -65,7 +65,9 @@
     "clear-filters": "フィルターをクリア",
     "no-attachments-results": "添付ファイル情報が利用できません",
     "no-history-results": "履歴情報が利用できません",
-    "no-retries-results": "再試行情報が利用できません"
+    "no-retries-results": "再試行情報が利用できません",
+    "no-test-steps-results": "テスト手順の情報は利用できません",
+    "no-message-provided": "メッセージが提供されていません"
   },
   "severity": {
     "blocker": "ブロッカー",
@@ -123,7 +125,23 @@
     "fullscreen": "全画面",
     "language": "言語を変更",
     "openInNewTab": "新しいタブで開く",
-    "theme": "テーマを切り替え"
+    "theme": "テーマを切り替え",
+    "showDiff": "違いを表示",
+    "comparison": "比較",
+    "expected": "予想",
+    "actual": "実際",
+    "viewMode": "表示モード",
+    "unified": "統一",
+    "side-by-side": "並列",
+    "compareBy": "比較基準",
+    "chars": "文字",
+    "words": "単語",
+    "lines": "行",
+    "loadComparisonError": "比較を読み込めませんでした",
+    "retry": "再試行",
+    "loadAttachmentViewerError": "添付ファイルビューアーを読み込めませんでした",
+    "previewAttachment": "プレビュー",
+    "viewCode": "コードを表示"
   },
   "errors": {
     "missedAttachment": "添付ファイルが見つかりません"
@@ -151,5 +169,24 @@
     "selected_one": "{{ count }} 件のテスト（{{ percentage }}%）が選択されました。期間は {{ minDuration }} より長く、{{ maxDuration }} より短い",
     "selected_other": "{{ count }} 件のテスト（{{ percentage }}%）が選択されました。期間は {{ minDuration }} より長く、{{ maxDuration }} より短い",
     "host": "ホスト: {{ host }}"
+  },
+  "attachments": {
+    "imageDiff": {
+      "mode": {
+        "diff": "差分",
+        "actual": "実際",
+        "expected": "期待値",
+        "side-by-side": "並列",
+        "overlay": "オーバーレイ"
+      },
+      "empty": {
+        "failed-to-load": "画像比較の読み込みに失敗しました"
+      },
+      "image": {
+        "diff": "差分",
+        "actual": "実際",
+        "expected": "期待値"
+      }
+    }
   }
 }

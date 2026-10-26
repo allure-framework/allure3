@@ -159,6 +159,7 @@ export const fixtureResultToTrStepItem = (fixture: ReportFixtureResult): TrStepI
       message: err?.message,
       trace: err?.trace,
       error: err,
+      hasSimilarErrorInSubSteps: fixture.hasSimilarErrorInSubSteps,
     },
     bodyItems: getStepBodyItems(fixture.steps),
     suppressInlineError: false,

@@ -65,7 +65,9 @@
     "clear-filters": "Cancella i filtri",
     "no-attachments-results": "Nessuna informazione sugli allegati disponibile",
     "no-history-results": "Nessuna informazione sulla cronologia disponibile",
-    "no-retries-results": "Nessuna informazione sui ritentativi disponibile"
+    "no-retries-results": "Nessuna informazione sui ritentativi disponibile",
+    "no-test-steps-results": "Nessuna informazione disponibile sui passaggi del test",
+    "no-message-provided": "Nessun messaggio fornito"
   },
   "severity": {
     "blocker": "bloccante",
@@ -123,7 +125,23 @@
     "fullscreen": "Schermo intero",
     "language": "Cambia lingua",
     "openInNewTab": "Apri in una nuova scheda",
-    "theme": "Cambia tema"
+    "theme": "Cambia tema",
+    "showDiff": "Mostra differenza",
+    "comparison": "Confronto",
+    "expected": "Previsto",
+    "actual": "Attuale",
+    "viewMode": "Modalità di visualizzazione",
+    "unified": "Unificato",
+    "side-by-side": "Affiancato",
+    "compareBy": "Confronta per",
+    "chars": "caratteri",
+    "words": "parole",
+    "lines": "righe",
+    "loadComparisonError": "Impossibile caricare il confronto",
+    "retry": "Riprova",
+    "loadAttachmentViewerError": "Impossibile caricare il visualizzatore degli allegati",
+    "previewAttachment": "Anteprima",
+    "viewCode": "Visualizza codice"
   },
   "errors": {
     "missedAttachment": "Allegato non trovato"
@@ -152,5 +170,24 @@
     "selected_one": "{{ count }} test ({{ percentage }}%) con durata superiore a {{ minDuration }} e inferiore a {{ maxDuration }} selezionato",
     "selected_other": "{{ count }} test ({{ percentage }}%) con durata superiore a {{ minDuration }} e inferiore a {{ maxDuration }} selezionati",
     "host": "Host: {{ host }}"
+  },
+  "attachments": {
+    "imageDiff": {
+      "mode": {
+        "diff": "Diff",
+        "actual": "Attuale",
+        "expected": "Previsto",
+        "side-by-side": "Affiancato",
+        "overlay": "Sovrapposizione"
+      },
+      "empty": {
+        "failed-to-load": "Impossibile caricare il confronto delle immagini"
+      },
+      "image": {
+        "diff": "Diff",
+        "actual": "Attuale",
+        "expected": "Previsto"
+      }
+    }
   }
 }

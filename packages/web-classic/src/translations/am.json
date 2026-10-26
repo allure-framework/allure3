@@ -65,7 +65,9 @@
     "clear-filters": "Մաքրել ֆիլտրները",
     "no-attachments-results": "Կցորդների մասին տեղեկություններ չկան",
     "no-history-results": "Պատմության մասին տեղեկություններ չկան",
-    "no-retries-results": "Կրկնությունների մասին տեղեկություններ չկան"
+    "no-retries-results": "Կրկնությունների մասին տեղեկություններ չկան",
+    "no-message-provided": "Հաղորդագրություն չի տրամադրվել",
+    "no-test-steps-results": "Թեստի քայլերի մասին տեղեկատվությունը հասանելի չէ։"
   },
   "severity": {
     "blocker": "արգելափակում",
@@ -122,7 +124,23 @@
     "fullscreen": "Լրիվ էկրան",
     "language": "Փոխել լեզուն",
     "openInNewTab": "Բացել նոր ներդիրում",
-    "theme": "Փոխել թեման"
+    "theme": "Փոխել թեման",
+    "showDiff": "Ցուցադրել տարբերությունը",
+    "comparison": "Համեմատություն",
+    "expected": "Սպասվող",
+    "actual": "Իրական",
+    "viewMode": "Դիտման ռեժիմ",
+    "unified": "Միավորված",
+    "side-by-side": "Կողք կողքի",
+    "compareBy": "Համեմատել ըստ",
+    "chars": "սիմվոլներ",
+    "words": "բառեր",
+    "lines": "տողեր",
+    "loadComparisonError": "Չհաջողվեց բեռնել համեմատությունը",
+    "retry": "Կրկին փորձել",
+    "loadAttachmentViewerError": "Չհաջողվեց բեռնել կցորդների դիտարկիչը",
+    "previewAttachment": "Նախադիտում",
+    "viewCode": "Ցուցադրել կոդ"
   },
   "errors": {
     "missedAttachment": "Կցորդը չի գտնվել"
@@ -140,5 +158,24 @@
   "charts": {
     "retry": "Կրկին փորձել",
     "loadError": "Չհաջողվեց բեռնել գծապատկերը"
+  },
+  "attachments": {
+    "imageDiff": {
+      "mode": {
+        "diff": "Տարբերություն",
+        "actual": "Իրական",
+        "expected": "Ակնկալվող",
+        "side-by-side": "Կողք կողքի",
+        "overlay": "Ծածկույթ"
+      },
+      "empty": {
+        "failed-to-load": "Չհաջողվեց բեռնել պատկերների համեմատությունը"
+      },
+      "image": {
+        "diff": "Տարբերություն",
+        "actual": "Իրական",
+        "expected": "Ակնկալվող"
+      }
+    }
   }
 }

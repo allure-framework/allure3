@@ -14,7 +14,41 @@
     position: absolute;
     left: 0;
     top: 0;
-    background: var(--color-status-failed-border);
+  }
+}
+
+.tr-status-failed {
+  background-color: var(--color-status-failed-bg-subtle);
+  &:before {
+    background-color: var(--color-status-failed-chart);
+  }
+}
+
+.tr-status-broken {
+  background-color: var(--color-status-broken-bg-subtle);
+  &:before {
+    background-color: var(--color-status-broken-chart);
+  }
+}
+
+.tr-status-skipped {
+  background-color: var(--color-status-skipped-bg-subtle);
+  &:before {
+    background-color: var(--color-status-skipped-chart);
+  }
+}
+
+.tr-status-unknown {
+  background-color: var(--color-status-unknown-bg-subtle);
+  &:before {
+    background-color: var(--color-status-unknown-chart);
+  }
+}
+
+.tr-status-passed {
+  background-color: var(--color-status-passed-bg-subtle);
+  &:before {
+    background-color: var(--color-status-passed-chart);
   }
 }
 
@@ -28,6 +62,26 @@
   margin-bottom: 8px;
   padding-left: 8px;
   color: var(--color-status-failed-text);
+  margin-right: auto;
+}
+
+.tr-color-failed {
+  color: var(--color-status-failed-text);
+}
+
+.tr-color-broken {
+  color: var(--color-status-broken-text);
+}
+
+.tr-color-skipped {
+  color: var(--color-status-skipped-text);
+}
+
+.tr-color-passed {
+  color: var(--color-status-passed-text);
+}
+.tr-color-unknown {
+  color: var(--color-status-unknown-text);
 }
 
 .test-result-error-trace {
@@ -53,10 +107,112 @@
   color: inherit;
   cursor: pointer;
   font: inherit;
-  text-align: left;
   transition: background-color 300ms;
+  text-align: left;
+  margin-bottom: 4px;
 
   &:hover {
-    background: var(--color-status-failed-bg-subtle);
+    background: inherit;
   }
+
+  pre {
+    white-space: pre-wrap;
+  }
+}
+
+.diff {
+  width: 100%;
+  line-height: 1.28;
+  padding: 0 16px 16px;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+
+  .side {
+    flex: 1 1 auto;
+    gap: 4px;
+    height: 100%;
+    overflow: hidden;
+  }
+
+  .unified {
+    flex: 1 1 auto;
+    overflow: auto;
+  }
+
+  .diff-screen {
+    min-height: 320px;
+    height: 100%;
+    overflow: auto;
+    padding-bottom: 48px;
+  }
+}
+
+.diff-green {
+  color: var(--color-intent-success-text);
+  background: var(--color-intent-success-bg-subtle);
+}
+
+.diff-grey {
+  color: var(--color-text-secondary);
+  margin-bottom: 4px;
+}
+
+.diff-red {
+  color: var(--color-intent-danger-text);
+  background: var(--color-intent-danger-bg-subtle);
+}
+
+.diff-buttons {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  line-height: 24px;
+  margin-bottom: 4px;
+}
+
+.expected {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  align-items: center;
+  line-height: 24px;
+}
+
+.side-title {
+  line-height: 24px;
+  margin-bottom: 4px;
+  display: block;
+}
+
+.diff-controls {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  margin-bottom: 4px;
+  justify-content: space-between;
+}
+
+.diff-view {
+  display: flex;
+  gap: 4px;
+  align-items: flex-start;
+}
+
+.side-by-side {
+  display: flex;
+  gap: 4px;
+  height: 100%;
+  overflow: hidden;
+}
+
+.diff-buttons-title {
+  color: var(--color-text-secondary);
+  margin-right: 8px;
+}
+
+.test-result-error-empty {
+  padding: 0 8px 8px;
+  color: var(--color-text-secondary);
 }

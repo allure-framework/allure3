@@ -62,7 +62,9 @@
     "clear-filters": "Очистить фильтры",
     "no-attachments-results": "Информация о вложениях отсутствует",
     "no-history-results": "Информация об истории отсутствует",
-    "no-retries-results": "Информация о перезапусках отсутствует"
+    "no-retries-results": "Информация о перезапусках отсутствует",
+    "no-test-steps-results": "Нет информации о шагах тестирования",
+    "no-message-provided": "Сообщение не предоставлено"
   },
   "severity": {
     "name": "Важность",
@@ -121,7 +123,23 @@
     "fullscreen": "На весь экран",
     "language": "Сменить язык",
     "openInNewTab": "Открыть в новой вкладке",
-    "theme": "Сменить тему"
+    "theme": "Сменить тему",
+    "showDiff": "Показать разницу",
+    "comparison": "Сравнение",
+    "expected": "Ожидаемое",
+    "actual": "Фактическое",
+    "viewMode": "Режим просмотра",
+    "unified": "Объединённый",
+    "side-by-side": "Рядом",
+    "compareBy": "Сравнивать по",
+    "chars": "символам",
+    "words": "словам",
+    "lines": "строкам",
+    "loadComparisonError": "Не удалось загрузить сравнение",
+    "retry": "Повторить",
+    "loadAttachmentViewerError": "Не удалось загрузить просмотр вложения",
+    "previewAttachment": "Превью",
+    "viewCode": "Показать код"
   },
   "errors": {
     "missedAttachment": "Вложение не найдено"
@@ -180,5 +198,24 @@
     "pullRequest": "Пул-реквест",
     "branch": "Ветка",
     "commit": "Коммит"
+  },
+  "attachments": {
+    "imageDiff": {
+      "mode": {
+        "diff": "Разница",
+        "actual": "Фактический",
+        "expected": "Ожидаемый",
+        "side-by-side": "Рядом",
+        "overlay": "Наложение"
+      },
+      "empty": {
+        "failed-to-load": "Не удалось загрузить сравнение изображений"
+      },
+      "image": {
+        "diff": "Разница",
+        "actual": "Фактический",
+        "expected": "Ожидаемый"
+      }
+    }
   }
 }

@@ -17,7 +17,7 @@ export const TestResultAttachmentView: FunctionalComponent<TestResultAttachmentV
 
   return (
     <div className={styles["test-result-attachments-view"]}>
-      {attachments.length ? (
+      {attachments?.length ? (
         attachments?.map((attach, key) => (
           <TestResultAttachment item={attach as AttachmentTestStepResult} key={key} stepIndex={key + 1} />
         ))

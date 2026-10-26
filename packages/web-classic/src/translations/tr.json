@@ -65,7 +65,9 @@
     "clear-filters": "Filtreleri temizle",
     "no-attachments-results": "Ek bilgisi mevcut değil",
     "no-history-results": "Geçmiş bilgisi mevcut değil",
-    "no-retries-results": "Tekrar deneme bilgisi mevcut değil"
+    "no-retries-results": "Tekrar deneme bilgisi mevcut değil",
+    "no-test-steps-results": "Test adımları hakkında bilgi mevcut değil",
+    "no-message-provided": "Mesaj belirtilmedi"
   },
   "severity": {
     "blocker": "engelleyici",
@@ -123,7 +125,23 @@
     "fullscreen": "Tam ekran",
     "language": "Dili değiştir",
     "openInNewTab": "Yeni sekmede aç",
-    "theme": "Temayı değiştir"
+    "theme": "Temayı değiştir",
+    "showDiff": "Farkı göster",
+    "comparison": "Karşılaştırma",
+    "expected": "Beklenen",
+    "actual": "Gerçek",
+    "viewMode": "Görünüm modu",
+    "unified": "Birleştirilmiş",
+    "side-by-side": "Yan yana",
+    "compareBy": "Karşılaştırma ölçütü",
+    "chars": "karakterler",
+    "words": "kelimeler",
+    "lines": "satırlar",
+    "loadComparisonError": "Karşılaştırma yüklenemedi",
+    "retry": "Yeniden dene",
+    "loadAttachmentViewerError": "Ek görüntüleyicisi yüklenemedi",
+    "previewAttachment": "Önizleme",
+    "viewCode": "Kodu görüntüle"
   },
   "errors": {
     "missedAttachment": "Ek bulunamadı"
@@ -151,5 +169,24 @@
     "selected_one": "{{ count }} test ({{ percentage }}%) {{ minDuration }}'dan fazla ve {{ maxDuration }}'dan az süreyle seçildi",
     "selected_other": "{{ count }} test ({{ percentage }}%) {{ minDuration }}'dan fazla ve {{ maxDuration }}'dan az süreyle seçildi",
     "host": "Ana bilgisayar: {{ host }}"
+  },
+  "attachments": {
+    "imageDiff": {
+      "mode": {
+        "diff": "Fark",
+        "actual": "Gerçek",
+        "expected": "Beklenen",
+        "side-by-side": "Yan yana",
+        "overlay": "Üst üste"
+      },
+      "empty": {
+        "failed-to-load": "Görüntü karşılaştırması yüklenemedi"
+      },
+      "image": {
+        "diff": "Fark",
+        "actual": "Gerçek",
+        "expected": "Beklenen"
+      }
+    }
   }
 }
