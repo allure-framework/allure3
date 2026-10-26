@@ -1,6 +1,7 @@
 import "@/assets/scss/index.scss";
 
 export { allureIcons } from "./components/SvgIcon";
+export { getCiIconId } from "./components/SvgIcon/ciIcons";
 
 export { DropdownButton, Button, IconButton, ButtonLink } from "./components/Button";
 export { OverviewLink } from "./components/OverviewLink";

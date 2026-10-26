@@ -23,6 +23,7 @@ import {
   generateTreeByCategories,
 } from "./generators.js";
 import type { ClassicCategory, ClassicPluginOptions } from "./model.js";
+import { collectOverviewOptions } from "./overview.js";
 import { type ClassicDataWriter, InMemoryReportDataWriter, ReportFileDataWriter } from "./writer.js";
 
 export class ClassicPlugin implements Plugin {
@@ -76,6 +77,7 @@ export class ClassicPlugin implements Plugin {
       await generateAttachmentsFiles(this.#writer!, attachments, (id) => store.attachmentContentById(id));
     }
 
+    const overviewOptions = await collectOverviewOptions(context, store, convertedTrs);
     const reportDataFiles = singleFile ? (this.#writer! as InMemoryReportDataWriter).reportFiles() : [];
 
     await generateStaticFiles({
@@ -86,6 +88,7 @@ export class ClassicPlugin implements Plugin {
       reportUuid: context.reportUuid,
       reportName: context.reportName,
       overviewHref: context.overviewHref,
+      ...overviewOptions,
     });
   };
 

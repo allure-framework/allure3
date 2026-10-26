@@ -40,12 +40,13 @@ import {
   getReportStaticAsset,
   readReportStaticAssets,
 } from "@allurereport/plugin-api/static-assets";
-import { generateCharts, getPieChartValues } from "@allurereport/web-commons";
+import { generateCharts, getPassedRate, getPieChartValues } from "@allurereport/web-commons";
 import Handlebars from "handlebars";
 
 import { matchClassicCategories, toCategoriesTreeItems } from "./categories.js";
 import { convertTestResult } from "./converters.js";
 import type { ClassicOptions } from "./model.js";
+import type { ClassicOverviewOptions } from "./overview.js";
 import type { ClassicDataWriter, ReportFile } from "./writer.js";
 
 const reportStaticArchive = new URL("../dist/static/report.tar", import.meta.url);
@@ -216,7 +217,8 @@ export const generateStatistic = async (writer: ClassicDataWriter, statistic: St
 };
 
 export const generatePieChart = async (writer: ClassicDataWriter, statistic: Statistic) => {
-  const chartData = getPieChartValues(statistic);
+  // Allure 2 shows passed out of all tests, the same share as the Graphs "Current status" pie
+  const chartData = getPieChartValues(statistic, getPassedRate);
 
   await writer.writeWidget("allure_pie_chart.json", chartData);
 };
@@ -236,14 +238,15 @@ export const generateAllCharts = async (
 };
 
 export const generateStaticFiles = async (
-  payload: ClassicOptions & {
-    allureVersion: string;
-    reportFiles: ReportFiles;
-    reportDataFiles: ReportFile[];
-    reportUuid: string;
-    reportName: string;
-    overviewHref?: string;
-  },
+  payload: Omit<ClassicOptions, "ci"> &
+    Partial<ClassicOverviewOptions> & {
+      allureVersion: string;
+      reportFiles: ReportFiles;
+      reportDataFiles: ReportFile[];
+      reportUuid: string;
+      reportName: string;
+      overviewHref?: string;
+    },
 ) => {
   const {
     reportName = "Allure Report",
@@ -256,6 +259,10 @@ export const generateStaticFiles = async (
     reportUuid,
     allureVersion,
     overviewHref,
+    ci,
+    git,
+    executor,
+    runSummary,
   } = payload;
   const staticAssets = await readReportStaticAssets(reportStaticArchive);
   const { manifest } = staticAssets;
@@ -306,6 +313,10 @@ export const generateStaticFiles = async (
     allureVersion,
     cacheKey: now.toString(),
     overviewHref,
+    ci,
+    git,
+    executor,
+    runSummary,
   };
 
   try {

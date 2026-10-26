@@ -125,9 +125,8 @@
     "loadError": "Nie udało się załadować wykresu",
     "successRate": {
       "successRate": "Współczynnik powodzenia: {{rate}}",
-      "successRateDescription": "Obliczany na podstawie testów zaliczonych, niezaliczonych i uszkodzonych. Testy pominięte i o nieznanym statusie są wykluczone.",
+      "successRateDescription": "Odsetek testów zaliczonych spośród wszystkich testów.",
       "noResults": "Brak wyników testów.",
-      "noEligibleResults": "Brak testów zaliczonych, niezaliczonych lub uszkodzonych. Testy pominięte i o nieznanym statusie są wykluczone ze współczynnika powodzenia.",
       "slice_one": "{{count}} test ({{percent}}% wszystkich testów)",
       "slice_other": "{{count}} testów ({{percent}}% wszystkich testów)",
       "layer": "Warstwa: {{layer}}",

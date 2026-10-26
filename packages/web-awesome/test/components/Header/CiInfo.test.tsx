@@ -23,20 +23,11 @@ const fixtures = {
   jobRunName: "Run #456",
 };
 
-vi.mock("@allurereport/web-components/core", async () => {
+vi.mock("@allurereport/web-components/core", async (importOriginal) => {
   return {
+    ...(await importOriginal()),
     Text: (props: { children: string }) => <span>{props.children}</span>,
     SvgIcon: (props: { id: string; size?: string }) => <span data-testid="icon">{props.id}</span>,
-    allureIcons: {
-      amazon: "amazon",
-      azure: "azure",
-      bitbucket: "bitbucket",
-      circleci: "circle",
-      drone: "drone",
-      github: "github",
-      gitlab: "gitlab",
-      jenkins: "jenkins",
-    },
   };
 });
 vi.mock("@allurereport/web-commons", async (importOriginal) => {
@@ -250,7 +241,7 @@ describe("components > Header > CiInfo helpers", () => {
     expect(getCiIconId(CiType.Amazon)).toBe("amazon");
     expect(getCiIconId(CiType.Azure)).toBe("azure");
     expect(getCiIconId(CiType.Bitbucket)).toBe("bitbucket");
-    expect(getCiIconId(CiType.Circle)).toBe("circle");
+    expect(getCiIconId(CiType.Circle)).toBe("circleci");
     expect(getCiIconId(CiType.Drone)).toBe("drone");
     expect(getCiIconId(CiType.Github)).toBe("github");
     expect(getCiIconId(CiType.Gitlab)).toBe("gitlab");
