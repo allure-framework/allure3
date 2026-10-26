@@ -17,6 +17,7 @@ import {
   type PluginContext,
   type PluginSummary,
   createPluginSummary,
+  generateTimeline,
   getRunSummary,
 } from "@allurereport/plugin-api";
 import { preciseTreeLabels } from "@allurereport/plugin-api";
@@ -24,7 +25,6 @@ import { generateHistoryDataPoints } from "@allurereport/plugin-api/internal/rep
 import { validateChartsOptions } from "@allurereport/web-commons";
 
 import { applyCategoriesToTestResults, generateCategories } from "./categories.js";
-import { generateTimeline } from "./generateTimeline.js";
 import {
   generateAllCharts,
   generateAttachmentsFiles,
@@ -310,13 +310,13 @@ export class AwesomePlugin implements Plugin {
     const hasGroupBy = groupBy.length > 0;
 
     await measure("timeline", () =>
-      generateTimeline(
-        this.#writer!,
-        allTrs,
-        this.options,
-        envIdByTrId,
-        new Map(environments.map(({ id, name }) => [id, name])),
-      ),
+      generateTimeline(this.#writer!, allTrs, {
+        minDuration: this.options.timeline?.minDuration,
+        environments: {
+          idByTrId: envIdByTrId,
+          nameById: new Map(environments.map(({ id, name }) => [id, name])),
+        },
+      }),
     );
 
     const treeLabels = hasGroupBy

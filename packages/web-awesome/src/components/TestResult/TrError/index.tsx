@@ -1,25 +1,14 @@
 import type { TestError, TestStatus } from "@allurereport/core-api";
-import { ansiSemanticColors, ansiToHTML, normalizeAnsiForegroundColors } from "@allurereport/web-commons";
-import { copyToClipboard } from "@allurereport/web-commons";
 import {
-  Button,
-  Code,
   LazyComponent,
-  IconButton,
   Spinner,
-  Text,
-  TooltipWrapper,
-  allureIcons,
+  TestResultError,
+  type TestResultErrorI18nKey,
 } from "@allurereport/web-components/core";
-import clsx from "clsx";
 import { type FunctionalComponent } from "preact";
-import { useState } from "preact/hooks";
 
-import { hasErrorDiff } from "@/components/TestResult/bodyItems";
 import { useI18n } from "@/stores/locale";
 import { openModal } from "@/stores/modal";
-
-import * as styles from "./styles.scss";
 
 const loadComparison = () =>
   import(/* webpackChunkName: "error-diff" */ "./TrDiff").then((module) => ({ default: module.TrDiff }));
@@ -37,122 +26,27 @@ const Comparison = (props: Pick<TestError, "actual" | "expected">) => {
   );
 };
 
-const ansiStatusDetailsToHTML = (text: string) =>
-  ansiToHTML(normalizeAnsiForegroundColors(text), {
-    fg: "var(--color-text-primary)",
-    bg: "none",
-    colors: ansiSemanticColors,
-  });
-
-const TrErrorTrace = ({ trace }: { trace: string }) => {
-  const sanitizedTrace = ansiStatusDetailsToHTML(trace);
-
-  return (
-    <div data-testid="test-result-error-trace" className={styles["test-result-error-trace"]}>
-      <Code size={"s"} type={"ui"}>
-        {/* eslint-disable-next-line react/no-danger */}
-        <pre dangerouslySetInnerHTML={{ __html: sanitizedTrace }} />
-      </Code>
-    </div>
-  );
-};
-
 export const TrError: FunctionalComponent<
   TestError & { className?: string; status?: TestStatus; showMessage?: boolean; title?: string }
-> = ({ className, message = "", trace, actual, expected, status, showMessage = true, title, ...rest }) => {
-  const [isOpen, setIsOpen] = useState(false);
+> = (props) => {
   const { t } = useI18n("ui");
   const { t: tooltip } = useI18n("controls");
   const { t: empty } = useI18n("empty");
-  const hasTrace = Boolean(trace?.length);
-  const hasDiff = hasErrorDiff({ actual, expected });
-  const toggleTrace = () => setIsOpen((open) => !open);
+  const { actual, expected } = props;
+  const i18n = (key: TestResultErrorI18nKey) =>
+    ({
+      error: t("error"),
+      noMessage: empty("no-message-provided"),
+      copy: tooltip("clipboard"),
+      copied: tooltip("clipboardSuccess"),
+      showDiff: tooltip("showDiff"),
+    })[key];
   const openDiff = () =>
     openModal({
       title: tooltip("comparison"),
       data: { actual, expected },
       component: <Comparison actual={actual} expected={expected} />,
     });
-  const sanitizedMessage = showMessage && message ? ansiStatusDetailsToHTML(message) : "";
 
-  return (
-    <div
-      data-testid="test-result-error"
-      className={clsx(styles["test-result-error"], styles[`tr-status-${status}`], className)}
-      {...rest}
-    >
-      {showMessage && message ? (
-        <>
-          <div data-testid="test-result-error-header" className={styles["test-result-error-header"]}>
-            <Text
-              tag={"p"}
-              size={"m"}
-              bold
-              className={clsx(styles["test-result-error-text"], styles[`tr-color-${status}`])}
-            >
-              {title ?? t("error")}
-            </Text>
-            <TooltipWrapper tooltipText={tooltip("clipboard")} tooltipTextAfterClick={tooltip("clipboardSuccess")}>
-              <IconButton
-                style={"ghost"}
-                size={"s"}
-                icon={allureIcons.lineGeneralCopy3}
-                onClick={() => {
-                  copyToClipboard(trace || message);
-                }}
-              />
-            </TooltipWrapper>
-          </div>
-          <button
-            type="button"
-            className={styles["test-result-error-message"]}
-            aria-label={t("error")}
-            onClick={toggleTrace}
-          >
-            <Code data-testid="test-result-error-message" size={"s"}>
-              {/* eslint-disable-next-line react/no-danger */}
-              <pre dangerouslySetInnerHTML={{ __html: sanitizedMessage }} />
-            </Code>
-          </button>
-        </>
-      ) : showMessage ? (
-        empty("no-message-provided")
-      ) : null}
-      {!showMessage && message && (
-        <div className={styles["test-result-error-header"]}>
-          {hasDiff ? (
-            <Button
-              style={"flat"}
-              data-testId={"test-result-diff-button"}
-              size={"s"}
-              text={tooltip("showDiff")}
-              onClick={openDiff}
-            />
-          ) : (
-            <span />
-          )}
-          <TooltipWrapper tooltipText={tooltip("clipboard")} tooltipTextAfterClick={tooltip("clipboardSuccess")}>
-            <IconButton
-              style={"ghost"}
-              size={"s"}
-              icon={allureIcons.lineGeneralCopy3}
-              onClick={() => {
-                copyToClipboard(trace || message);
-              }}
-            />
-          </TooltipWrapper>
-        </div>
-      )}
-      {(showMessage || !message) && hasDiff && (
-        <Button
-          style={"flat"}
-          data-testId={"test-result-diff-button"}
-          size={"s"}
-          text={tooltip("showDiff")}
-          onClick={openDiff}
-        />
-      )}
-      {(isOpen || !showMessage) && hasTrace && <TrErrorTrace trace={trace} />}
-    </div>
-  );
+  return <TestResultError {...props} i18n={i18n} onShowDiff={openDiff} />;
 };

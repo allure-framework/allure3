@@ -1,6 +1,13 @@
 import type { TestLabel, TestLink } from "@allurereport/core-api";
 
-import type { IdeaLinksOptions } from "./model.js";
+export type IdeaLinksOptions = {
+  /** Port of the IDEA built-in server. Default: 63342 */
+  port?: number;
+  /** Extension of the test source file, with or without a leading dot. Default: "java" */
+  fileExtension?: string;
+  /** Path of the sources root relative to the project root, e.g. "src/test/java". Default: none */
+  sourceRoot?: string;
+};
 
 // dot-separated identifiers only, so that suite names and other non-class values do not produce broken links
 const javaClassNameRegexp = /^[\p{L}_$][\p{L}\p{N}_$]*(\.[\p{L}_$][\p{L}\p{N}_$]*)*$/u;

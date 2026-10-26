@@ -1,9 +1,9 @@
+import { isDisplayableTestError } from "@allurereport/web-commons";
 import type { FunctionalComponent } from "preact";
 import type { ReportTestResult } from "types";
 
 import { TestResultDescription } from "@/components/TestResult/TestResultDescription";
 import { TestResultError } from "@/components/TestResult/TestResultError";
-import { isDisplayableTestError } from "@/components/TestResult/TestResultError/errorDetails";
 import { TestResultLinks } from "@/components/TestResult/TestResultLinks";
 import { TestResultMetadata } from "@/components/TestResult/TestResultMetadata";
 import { TestResultParameters } from "@/components/TestResult/TestResultParameters";

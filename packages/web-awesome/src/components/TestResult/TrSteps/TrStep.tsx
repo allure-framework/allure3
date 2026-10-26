@@ -2,6 +2,7 @@ import {
   getNextSubtreeToggleState,
   getSubtreeToggleAction,
   getSubtreeToggleIcon,
+  hasErrorDiff,
   isSubtreeFirstLevelOnlyOpened,
   type SubtreeToggleState,
 } from "@allurereport/web-commons";
@@ -11,7 +12,7 @@ import { useState } from "preact/hooks";
 
 import { MetadataList } from "@/components/Metadata";
 import { type MetadataItem } from "@/components/ReportMetadata";
-import { hasErrorDiff, type TrStepItem } from "@/components/TestResult/bodyItems";
+import { type TrStepItem } from "@/components/TestResult/bodyItems";
 import { TrError } from "@/components/TestResult/TrError";
 import {
   collectExpandableStepNodes,

@@ -5,12 +5,12 @@ import {
   type PluginContext,
   type PluginSummary,
   createPluginSummary,
+  generateTimeline,
 } from "@allurereport/plugin-api";
 import { generateAttachmentsFiles, generateHistoryDataPoints } from "@allurereport/plugin-api/internal/report";
 
 import { resolveClassicCategories } from "./categories.js";
 import { generateTreeCsvFiles } from "./csv.js";
-import { generateTimeline } from "./generateTimeline.js";
 import {
   generateAllCharts,
   generateEnvironmentJson,
@@ -65,7 +65,9 @@ export class ClassicPlugin implements Plugin {
     await generateTree(this.#writer!, "packages", packagesLabels, convertedTrs);
     await generateTreeCsvFiles(this.#writer!, convertedTrs);
     await generateHistoryDataPoints(this.#writer!, store);
-    await generateTimeline(this.#writer!, await store.allTestResults({ includeRetries: true, filter }), this.options);
+    await generateTimeline(this.#writer!, await store.allTestResults({ includeRetries: true, filter }), {
+      minDuration: this.options.timeline?.minDuration,
+    });
 
     await generateEnvironmentJson(this.#writer!, environmentItems ?? []);
 

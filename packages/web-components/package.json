@@ -29,6 +29,9 @@
       "CodeViewer": [
         "dist/CodeViewer.d.ts"
       ],
+      "ErrorDiff": [
+        "dist/ErrorDiff.d.ts"
+      ],
       "Grid": [
         "dist/Grid.d.ts"
       ],
@@ -102,6 +105,10 @@
     "./CodeViewer": {
       "types": "./dist/CodeViewer.d.ts",
       "import": "./dist/CodeViewer.js"
+    },
+    "./ErrorDiff": {
+      "types": "./dist/ErrorDiff.d.ts",
+      "import": "./dist/ErrorDiff.js"
     },
     "./Grid": {
       "types": "./dist/Grid.d.ts",
@@ -212,6 +219,7 @@
     "d3-shape": "^3.2.0",
     "d3-tip": "^0.9.1",
     "d3-transition": "^3.0.1",
+    "diff": "^8.0.3",
     "lodash": "^4.18.1",
     "markdown-it": "^15.0.3",
     "mermaid": "^11.17.2",
