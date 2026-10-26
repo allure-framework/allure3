@@ -16,6 +16,12 @@ import type { SortBy } from "@/stores/treeSort";
 
 import type { ReportRecursiveTree, ReportTree, ReportTreeGroup, ReportTreeLeaf } from "../../types";
 
+type ComputedRecursiveTree = ReportRecursiveTree & {
+  duration: number;
+  groupOrder: number;
+  trees: ComputedRecursiveTree[];
+};
+
 const leafComparatorByTreeSortBy = (sortBy: SortBy = "status,asc"): Comparator<TreeLeaf<ReportTreeLeaf>> => {
   switch (sortBy) {
     case "order,asc":
@@ -112,7 +118,7 @@ export const createRecursiveTree = (payload: {
   leavesById: ReportTree["leavesById"];
   filterPredicate: (item: ReportTreeLeaf) => boolean;
   sortBy: SortBy;
-}): ReportRecursiveTree => {
+}): ComputedRecursiveTree => {
   const { group, groupsById, leavesById, filterPredicate, sortBy } = payload;
   const groupLeaves: string[] = group.leaves ?? [];
 
@@ -154,10 +160,10 @@ export const createRecursiveTree = (payload: {
   });
 
   const duration =
-    leaves.reduce((acc, leaf) => acc + (leaf.duration ?? 0), 0) + trees.reduce((acc, rt) => acc + rt.duration!, 0);
+    leaves.reduce((acc, leaf) => acc + (leaf.duration ?? 0), 0) + trees.reduce((acc, rt) => acc + rt.duration, 0);
 
   const leafMinOrder = leaves.reduce((acc, leaf) => Math.min(acc, leaf.groupOrder ?? Infinity), Infinity);
-  const treeMinOrder = trees.reduce((acc, rt) => Math.min(acc, rt.groupOrder!), Infinity);
+  const treeMinOrder = trees.reduce((acc, rt) => Math.min(acc, rt.groupOrder), Infinity);
   const groupOrder = Math.min(leafMinOrder, treeMinOrder);
   const leafMinStart = leaves.reduce((acc, leaf) => Math.min(acc, leaf.start ?? Infinity), Infinity);
   const treeMinStart = trees.reduce((acc, rt) => Math.min(acc, rt.minStart ?? Infinity), Infinity);

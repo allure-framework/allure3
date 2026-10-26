@@ -106,7 +106,7 @@ export const TrInfo: FunctionalComponent<TrInfoProps> = ({ testResult }) => {
                 return groupId ? groups?.[groupId] : undefined;
               }}
               renderData={(group) => {
-                const envsCount = group ? getRealEnvsCount(group) : 0;
+                const envsCount = getRealEnvsCount(group);
 
                 return (
                   <TrTab id="environments">

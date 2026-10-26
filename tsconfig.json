@@ -20,6 +20,9 @@
   "files": [],
   "references": [
     {
+      "path": "./tsconfig.root.json"
+    },
+    {
       "path": "./packages/web-components/tsconfig.test.json"
     },
     {

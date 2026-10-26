@@ -212,11 +212,13 @@ export const bootstrapReport = async (
 
 export class AwesomePluginWithoutSummary implements Plugin {
   readonly start: AwesomePlugin["start"];
+  readonly update: AwesomePlugin["update"];
   readonly done: AwesomePlugin["done"];
 
   constructor(options: ConstructorParameters<typeof AwesomePlugin>[0]) {
     const plugin = new AwesomePlugin(options);
     this.start = plugin.start;
+    this.update = plugin.update;
     this.done = plugin.done;
   }
 }

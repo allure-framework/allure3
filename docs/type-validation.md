@@ -15,6 +15,10 @@ Browser production projects retain browser-only ambient types. DOM and Node type
 
 ## Deliberate boundaries
 
+Root TypeScript configuration and scripts belong to `tsconfig.root.json`. It is referenced by the solution config so compiler diagnostics also cover `vite.config.ts`.
+
+Public `ReportTreeLeaf.tooltips` values are optional: strict consumers must handle `string | undefined` when reading a tooltip by key. This reflects the existing sparse tooltip payloads.
+
 `strict` does not enable every optional TypeScript check; options such as `noUncheckedIndexedAccess` are separate decisions. Existing typed-lint warnings remain visible without `--quiet` and are not counted as fixed by this migration. JavaScript remains in the lint scope; compiler coverage follows each TypeScript project's JS settings.
 
 Category resolution-tooltip propagation and the difference between flattened historical errors and current-result errors remain separate behavior changes. This validation work does not unify those data formats.

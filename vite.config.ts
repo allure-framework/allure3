@@ -48,6 +48,7 @@ export default defineConfig({
     ignorePatterns: [
       "**/*",
       "!**/",
+      "!vite.config.ts",
       "!{.github,packages,scripts}/**/*.{js,mjs,ts,tsx,mts}",
       "**/.yarn/**",
       "**/node_modules/**",

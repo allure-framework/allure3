@@ -54,8 +54,16 @@ export type QualityGateRule<T = unknown, K = T> = {
   }) => Promise<QualityGateRuleResult<K>>;
 };
 
+// Registry callbacks accept independently typed rules while inline callbacks
+// still receive unknown values. Individual QualityGateRule<T, K> retains its input/result types.
+interface RegisteredQualityGateRule {
+  rule: string;
+  message(this: void, ...args: Parameters<QualityGateRule["message"]>): string;
+  successMessage?(this: void, ...args: Parameters<NonNullable<QualityGateRule["successMessage"]>>): string;
+  validate(this: void, ...args: Parameters<QualityGateRule["validate"]>): ReturnType<QualityGateRule["validate"]>;
+}
+
 export type QualityGateConfig = {
   rules?: QualityGateRules[];
-  // Each named rule has its own expected-value type, supplied by the dynamic rules map.
-  use?: QualityGateRule<any>[];
+  use?: RegisteredQualityGateRule[];
 };
