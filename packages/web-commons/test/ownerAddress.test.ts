@@ -1,7 +1,7 @@
 import { epic, feature, label, story } from "allure-js-commons";
 import { beforeEach, describe, expect, it } from "vite-plus/test";
 
-import { parseOwnerAddress } from "../../src/utils/ownerAddress.js";
+import { parseOwnerAddress } from "../src/ownerAddress.js";
 
 beforeEach(async () => {
   await epic("coverage");

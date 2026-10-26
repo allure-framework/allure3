@@ -1,6 +1,5 @@
 import type { TestError, TestStatus, TestStepResult } from "@allurereport/core-api";
-
-type TestErrorLike = Pick<TestError, "message" | "trace" | "actual" | "expected">;
+import { isDisplayableTestError, normalizeErrorText } from "@allurereport/web-commons";
 
 /**
  * Anything rendered as a step row: a regular step or a setup/teardown fixture.
@@ -14,18 +13,6 @@ export type StepWithError = {
   hasSimilarErrorInSubSteps?: boolean;
   steps?: TestStepResult[];
 };
-
-// Same pattern as @allurereport/web-commons stripAnsi, kept inline so the helper stays dependency free.
-// eslint-disable-next-line no-control-regex
-const ansiRegex = /\x1B\[[0-9;?]*[ -/]*[@-~]/g;
-
-const normalizeErrorText = (value?: string) => (typeof value === "string" ? value.replace(ansiRegex, "").trim() : "");
-
-export const hasErrorDiff = (error?: TestErrorLike) =>
-  Boolean(error?.actual) && error.actual !== "undefined" && Boolean(error?.expected) && error.expected !== "undefined";
-
-export const isDisplayableTestError = (error?: TestErrorLike) =>
-  Boolean(normalizeErrorText(error?.message)) || Boolean(normalizeErrorText(error?.trace)) || hasErrorDiff(error);
 
 export const getStepError = (step: StepWithError): TestError => ({
   message: step.message ?? step.error?.message,

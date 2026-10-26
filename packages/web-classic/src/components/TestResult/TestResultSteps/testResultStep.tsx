@@ -38,7 +38,7 @@ export const TestResultStepsContent = (props: { item: TestResultStepItem }) => {
 
   return (
     <div data-testid="test-result-step-content" className={styles["test-result-step-content"]}>
-      {Boolean(parameters?.length) && <TestResultStepParameters parameters={parameters} />}
+      {parameters && parameters.length > 0 && <TestResultStepParameters parameters={parameters} />}
       {shouldShowStepError(item) && (
         <div className={styles["test-result-step-error"]}>
           <TestResultError {...getStepError(item)} status={item.status} />

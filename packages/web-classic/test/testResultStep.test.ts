@@ -11,7 +11,9 @@ import { TestResultStep } from "../src/components/TestResult/TestResultSteps/tes
 
 const { openModal } = vi.hoisted(() => ({ openModal: vi.fn() }));
 
-vi.mock("@allurereport/web-components", () => {
+vi.mock("@allurereport/web-components", async (importOriginal) => {
+  const { TestResultError: TestResultErrorBlock } =
+    await importOriginal<typeof import("@allurereport/web-components")>();
   const passthrough = ({ children, tag, ...rest }: { "children"?: unknown; "tag"?: string; "data-testid"?: string }) =>
     createElement(tag ?? "span", { "data-testid": rest["data-testid"] }, children as never);
 
@@ -27,6 +29,7 @@ vi.mock("@allurereport/web-components", () => {
     Menu: () => null,
     Spinner: () => null,
     SvgIcon: () => null,
+    TestResultError: TestResultErrorBlock,
     Text: passthrough,
     TooltipWrapper: passthrough,
   };

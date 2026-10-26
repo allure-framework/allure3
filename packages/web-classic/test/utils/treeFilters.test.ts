@@ -173,23 +173,18 @@ describe("utils > treeFilters", () => {
       const baseDate = Date.now();
       const leaves = ["a1", "b2", "c3"];
       const leavesById = {
-        a1: {
-          name: "a1",
-          start: baseDate,
-          transition: "new",
-        } as ReportTestResult,
-        b2: {
-          name: "b2",
-          start: baseDate + 1000,
-          transition: "fixed",
-        } as ReportTestResult,
-        c3: {
-          name: "c3",
-          start: baseDate + 2000,
-        } as ReportTestResult,
+        a1: makeLeaf({ name: "a1", start: baseDate, transition: "new" }),
+        b2: makeLeaf({ name: "b2", start: baseDate + 1000, transition: "fixed" }),
+        c3: makeLeaf({ name: "c3", start: baseDate + 2000 }),
       };
       const result = filterLeaves(leaves, leavesById, {
+        query: "",
+        status: "total",
+        sortBy: "order",
+        direction: "asc",
         filter: {
+          flaky: false,
+          retry: false,
           new: true,
         },
       });
@@ -199,11 +194,15 @@ describe("utils > treeFilters", () => {
 
     it("keeps every leaf when the new filter is disabled", () => {
       const leavesById = {
-        a1: { name: "a1", start: 1, transition: "new" } as ReportTestResult,
-        b2: { name: "b2", start: 2 } as ReportTestResult,
+        a1: makeLeaf({ name: "a1", start: 1, transition: "new" }),
+        b2: makeLeaf({ name: "b2", start: 2 }),
       };
       const result = filterLeaves(["a1", "b2"], leavesById, {
+        query: "",
+        status: "total",
         filter: {
+          flaky: false,
+          retry: false,
           new: false,
         },
         sortBy: "order",

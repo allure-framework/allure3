@@ -1,9 +1,9 @@
+import { parseOwnerAddress } from "@allurereport/web-commons";
 import { Tag, Text } from "@allurereport/web-components";
 import type { FunctionalComponent } from "preact";
 import type { ReportTestResult } from "types";
 
 import { useI18n } from "@/stores/locale";
-import { parseOwnerAddress } from "@/utils/ownerAddress";
 
 import * as styles from "./styles.scss";
 

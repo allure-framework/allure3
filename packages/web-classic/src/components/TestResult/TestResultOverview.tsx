@@ -1,9 +1,9 @@
+import { isDisplayableTestError } from "@allurereport/web-commons";
 import type { FunctionalComponent } from "preact";
 import type { ReportTestResult } from "types";
 
 import { TestResultDescription } from "@/components/TestResult/TestResultDescription";
 import { TestResultError } from "@/components/TestResult/TestResultError";
-import { isDisplayableTestError } from "@/components/TestResult/TestResultError/errorDetails";
 import { TestResultLinks } from "@/components/TestResult/TestResultLinks";
 import { TestResultMetadata } from "@/components/TestResult/TestResultMetadata";
 import { TestResultParameters } from "@/components/TestResult/TestResultParameters";
@@ -43,13 +43,13 @@ export const TestResultOverview: FunctionalComponent<TestResultOverviewProps> = 
       {Boolean(groupedLabels && Object.keys(groupedLabels || {})?.length) && (
         <TestResultMetadata testResult={testResult} />
       )}
-      {Boolean(links?.length) && <TestResultLinks links={links} />}
+      {links && links.length > 0 && <TestResultLinks links={links} />}
       {Boolean(descriptionHtml) && <TestResultDescription section="description" html={descriptionHtml} />}
       {Boolean(preconditionHtml) && <TestResultDescription section="precondition" html={preconditionHtml} />}
       <div className={styles["test-results"]}>
-        {Boolean(setup?.length) && <TestResultSetup setup={setup} />}
-        {Boolean(steps?.length || (!setup?.length && !teardown?.length)) && <TestResultSteps steps={steps} />}
-        {Boolean(teardown?.length) && <TestResultTeardown teardown={teardown} />}
+        {setup && setup.length > 0 && <TestResultSetup setup={setup} />}
+        {Boolean(steps?.length || (!setup?.length && !teardown?.length)) && <TestResultSteps steps={steps ?? []} />}
+        {teardown && teardown.length > 0 && <TestResultTeardown teardown={teardown} />}
       </div>
       {Boolean(expectedResultHtml) && <TestResultDescription section="expectedResult" html={expectedResultHtml} />}
     </>

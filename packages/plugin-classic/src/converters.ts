@@ -1,10 +1,7 @@
 import { type TestLabel, type TestResult, redactParameters } from "@allurereport/core-api";
-import type { ReportTestResult } from "@allurereport/plugin-api";
+import { type IdeaLinksOptions, type ReportTestResult, createIdeaLink } from "@allurereport/plugin-api";
 import { convertTestStepResult } from "@allurereport/plugin-api/internal/report";
 import MarkdownIt from "markdown-it";
-
-import { createIdeaLink } from "./ideaLinks.js";
-import type { IdeaLinksOptions } from "./model.js";
 
 const md = new MarkdownIt();
 const markdownToHtml = (value?: string): string | undefined => (value ? md.render(value) : undefined);

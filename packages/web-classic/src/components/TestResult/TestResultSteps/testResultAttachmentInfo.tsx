@@ -30,6 +30,7 @@ export const TestResultAttachmentInfo: FunctionalComponent<TestResultAttachmentI
   const { id, ext, contentType } = item.link;
   const { t: tooltip } = useI18n("controls");
   const i18n = useAttachmentI18n();
+  const { t: tErrors } = useI18n("errors");
   const contentLength = item.link.missed === false ? item.link.contentLength : undefined;
   const contentSize = contentLength
     ? filesize(contentLength, {
@@ -137,7 +138,7 @@ export const TestResultAttachmentInfo: FunctionalComponent<TestResultAttachmentI
             />
           </TooltipWrapper>
         )}
-        <TooltipWrapper tooltipText={tooltip("downloadAttachment")}>
+        <TooltipWrapper tooltipText={item.link.missed ? tErrors("missedAttachment") : tooltip("downloadAttachment")}>
           <IconButton
             style={"ghost"}
             size={"s"}

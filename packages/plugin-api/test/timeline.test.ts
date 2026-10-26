@@ -1,15 +1,7 @@
 import type { TestResult } from "@allurereport/core-api";
-import { epic, feature, label, story } from "allure-js-commons";
-import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
+import { describe, expect, it, vi } from "vite-plus/test";
 
-import { createTimelineData, generateTimeline } from "../src/generateTimeline.js";
-
-beforeEach(async () => {
-  await epic("coverage");
-  await feature("report-output");
-  await story("timeline");
-  await label("coverage", "report-output");
-});
+import { createTimelineData, generateTimeline } from "../src/utils/timeline.js";
 
 const mockTestResult = (overrides: Partial<TestResult> = {}): TestResult =>
   ({
@@ -90,7 +82,7 @@ describe("createTimelineData", () => {
   it("should respect the configured min duration", () => {
     const result = createTimelineData(
       [mockTestResult({ id: "short", duration: 50 }), mockTestResult({ id: "long", duration: 200 })],
-      { timeline: { minDuration: 100 } },
+      { minDuration: 100 },
     );
 
     expect(result.map(({ id }) => id)).toEqual(["long"]);
@@ -125,5 +117,38 @@ describe("generateTimeline", () => {
     await generateTimeline({ writeWidget }, []);
 
     expect(writeWidget).toHaveBeenCalledWith("timeline.json", []);
+  });
+
+  it("should write configured environment ids and names without changing the test result", async () => {
+    const writeWidget = vi.fn();
+    const result = {
+      id: "result",
+      name: "test",
+      status: "passed",
+      start: 1,
+      stop: 5,
+      duration: 4,
+      environment: "qa-eu",
+      labels: [
+        { name: "host", value: "host" },
+        { name: "thread", value: "thread" },
+      ],
+      retryHash: "case.params.env",
+      isRetry: false,
+    } as TestResult;
+    await generateTimeline({ writeWidget }, [result], {
+      environments: {
+        idByTrId: new Map([["result", "qa-eu"]]),
+        nameById: new Map([["qa-eu", "Quality Assurance"]]),
+      },
+    });
+    expect(writeWidget).toHaveBeenCalledWith("timeline.json", [
+      expect.objectContaining({
+        environment: "qa-eu",
+        environmentName: "Quality Assurance",
+        retryHash: result.retryHash,
+      }),
+    ]);
+    expect(result.environment).toBe("qa-eu");
   });
 });
