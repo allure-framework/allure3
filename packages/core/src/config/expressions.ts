@@ -5,44 +5,43 @@ export const isExpression = (value: string): boolean => value.trimStart().starts
 type Variables = Record<string, "string" | "map">;
 type Predicate = (context: Record<string, unknown>) => boolean;
 
-/** Copy only bounded plain data into the evaluator, never live objects or capabilities. */
+/** Copy only plain data into the evaluator, never live objects or capabilities. */
 const snapshotContext = (context: Record<string, unknown>, variables: Variables): Record<string, unknown> => {
-  let values = 0;
-  let characters = 0;
+  const ancestors = new Set<object>();
 
-  const copy = (value: unknown, depth: number): unknown => {
-    values += 1;
-    if (values > 2048 || depth > 8) {
-      throw new Error("expression context exceeds structural limits");
-    }
-    if (typeof value === "string") {
-      characters += value.length;
-      if (value.length > 16384 || characters > 131072) {
-        throw new Error("expression context exceeds string limits");
-      }
+  const copy = (value: unknown): unknown => {
+    if (
+      value === null ||
+      typeof value === "string" ||
+      typeof value === "boolean" ||
+      (typeof value === "number" && Number.isFinite(value))
+    ) {
       return value;
-    }
-    if (value === null || typeof value === "boolean" || (typeof value === "number" && Number.isFinite(value))) {
-      return value;
-    }
-    if (Array.isArray(value)) {
-      return value.map((item) => copy(item, depth + 1));
     }
     if (
-      typeof value === "object" &&
-      value !== null &&
-      [Object.prototype, null].includes(Object.getPrototypeOf(value))
+      typeof value !== "object" ||
+      value === null ||
+      ancestors.has(value) ||
+      (!Array.isArray(value) && ![Object.prototype, null].includes(Object.getPrototypeOf(value)))
     ) {
+      throw new Error("expression context must contain only finite numbers and plain data");
+    }
+    ancestors.add(value);
+    try {
+      if (Array.isArray(value)) {
+        return value.map(copy);
+      }
       return Object.fromEntries(
         Object.entries(value)
           .filter(([, item]) => item !== undefined)
-          .map(([key, item]) => [key, copy(item, depth + 1)]),
+          .map(([key, item]) => [key, copy(item)]),
       );
+    } finally {
+      ancestors.delete(value);
     }
-    throw new Error("expression context must contain only finite numbers and plain data");
   };
 
-  return Object.fromEntries(Object.keys(variables).map((key) => [key, copy(context[key], 0)]));
+  return Object.fromEntries(Object.keys(variables).map((key) => [key, copy(context[key])]));
 };
 
 /** Compile a synchronous boolean expression once; malformed predicates never match. */
@@ -62,12 +61,8 @@ export const compilePredicate = (input: string, path: string, variables: Variabl
       throw new Error("expected an expression wrapped in ${{ ... }}");
     }
     const source = wrapped.slice(3, -2).trim();
-    if (source.length > 4096) {
-      throw new Error("expression exceeds 4096 characters");
-    }
     const environment = new Environment({
       unlistedVariablesAreDyn: false,
-      limits: { maxAstNodes: 1000, maxDepth: 32, maxListElements: 100, maxMapEntries: 100, maxCallArguments: 16 },
     });
     for (const [name, type] of Object.entries(variables)) {
       environment.registerVariable(name, type);

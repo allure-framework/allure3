@@ -79,18 +79,17 @@ hideLabels:
         name.matches('^internal_\\d+$') }}
 ```
 
-### Errors and limits
+### Errors and resource use
 
 A malformed expression, failed evaluation, or non-boolean result produces a warning containing its
 configuration path and evaluates to `false`. Warnings are emitted at most once per configured
 predicate. A runtime failure does not disable future evaluations. Invalid category predicates never
 become match-all conditions; other OR matchers can still match.
 
-Only bounded plain-data snapshots are supplied to expressions, with no environment variables,
-filesystem, network, imports, plugin instances, or custom functions. Source expressions are limited
-to 4096 characters, 1000 AST nodes, depth 32, 100 entries per list/map literal, and 16 call arguments.
-Each evaluation's input is limited to depth 8, 2048 values, 16384 characters per string, and 131072
-string characters in total. Exceeding a limit produces the same warning-and-false behavior.
+Only plain-data snapshots are supplied to expressions, with no environment variables, filesystem,
+network, imports, plugin instances, or custom functions. Non-finite numbers, cycles, and non-plain
+data are rejected.
 
-These limits are not a hard execution-time sandbox. Nested collection macros and regex backtracking
-can still be expensive. Use trusted configuration and avoid pathological expressions and patterns.
+Expressions are not an execution-time sandbox: nested collection macros and regex backtracking can
+be expensive.
+Use trusted configuration and avoid pathological expressions and patterns.
