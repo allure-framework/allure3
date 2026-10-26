@@ -64,7 +64,7 @@ const withDirection = <T extends { name: string }>(cmp: Comparator<T>, sortBy: S
   const sortParams = sortBy.split(",");
   const isStatusSort = sortParams.includes("status");
   const isDescending = sortParams.includes("desc");
-  const nameComparator = compareBy<T>("name", alphabetically());
+  const nameComparator = compareBy<T, "name">("name", alphabetically());
 
   return andThen([
     isDescending && !isStatusSort ? reverse(cmp) : cmp,

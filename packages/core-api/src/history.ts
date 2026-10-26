@@ -13,6 +13,9 @@ export interface HistoryTestResult {
 
   status: TestStatus;
   retries?: TestStatus[];
+  // Local history persists error details as top-level fields.
+  message?: string;
+  trace?: string;
   error?: TestError;
 
   start?: number;

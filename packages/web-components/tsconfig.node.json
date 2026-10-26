@@ -1,8 +1,0 @@
-{
-  "extends": "./tsconfig.json",
-  "include": ["./src", "./stories", "./.storybook", "./vite.config.ts", "./**/*.test.tsx", "./**/*.test.ts"],
-  "exclude": [],
-  "compilerOptions": {
-    "composite": true
-  }
-}

@@ -521,7 +521,7 @@ const createBindings = (): HotkeyBinding[] => [
   },
 ];
 
-export const HotkeysProvider = () => {
+export const HotkeysProvider = (): null => {
   useEffect(() => {
     const controller = createHotkeyController({
       getActiveScope: getHotkeyScope,

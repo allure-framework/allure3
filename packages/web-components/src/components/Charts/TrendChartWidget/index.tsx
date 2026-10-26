@@ -69,7 +69,7 @@ export const TrendChartWidget = ({
         emptyLabel={emptyLabel}
         emptyAriaLabel={emptyLabel}
         rootAriaLabel={rootAriaLabel}
-        colors={({ color }: { color: string }) => color}
+        colors={{ datum: "color" }}
         yScale={yScale}
         yFormat={yFormat}
         onSliceClick={handleSliceClick}
