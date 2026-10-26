@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 
 import { defaultChartsConfig } from "@allurereport/charts-api";
 import {
+  type CategoryDefinition,
   type EnvironmentItem,
   type Statistic,
   type TreeGroup,
@@ -40,9 +41,9 @@ import {
 import { generateCharts, getPieChartValues } from "@allurereport/web-commons";
 import Handlebars from "handlebars";
 
-import { matchCategories } from "./categories.js";
+import { matchClassicCategories, toCategoriesTreeItems } from "./categories.js";
 import { convertTestResult } from "./converters.js";
-import type { ClassicCategory, ClassicOptions } from "./model.js";
+import type { ClassicOptions } from "./model.js";
 import type { ClassicDataWriter, ReportFile } from "./writer.js";
 
 const reportStaticArchive = new URL("../dist/static/report.tar", import.meta.url);
@@ -115,10 +116,14 @@ const createBreadcrumbs = (convertedTr: ReportTestResult) => {
   }, [] as string[][]);
 };
 
-export const generateTestResults = async (writer: ClassicDataWriter, store: AllureStore) => {
-  const allTr = await store.allTestResults({ includeRetries: true });
+export const generateTestResults = async (
+  writer: ClassicDataWriter,
+  store: AllureStore,
+  options: { filter?: ClassicOptions["filter"]; categories?: CategoryDefinition[] } = {},
+) => {
+  const { filter, categories = [] } = options;
+  const allTr = await store.allTestResults({ includeRetries: true, filter });
   const related = await store.relatedByTestResultIds(allTr.map(({ id }) => id));
-  const categories: ClassicCategory[] = (await store.metadataByKey("allure2_categories")) ?? [];
   let convertedTrs: ReportTestResult[] = [];
 
   for (const tr of allTr) {
@@ -127,15 +132,8 @@ export const generateTestResults = async (writer: ClassicDataWriter, store: Allu
       .sort(nullsLast(compareBy("start", ordinal())))
       .map(convertFixtureResult);
     const convertedTr: ReportTestResult = convertTestResult(tr);
-    const { error, status, flaky } = convertedTr;
-    const matchedCategories = matchCategories(categories, {
-      message: error?.message,
-      trace: error?.trace,
-      status,
-      flaky,
-    });
 
-    convertedTr.categories = matchedCategories;
+    convertedTr.categories = matchClassicCategories(categories, convertedTr);
     convertedTr.history = related.historyByTrId.get(tr.id) ?? [];
     convertedTr.retries = related.retriesByTrId.get(tr.id) ?? [];
     convertedTr.retry = convertedTr.retries.length > 0;
@@ -314,7 +312,7 @@ export const generateStaticFiles = async (
       bodyTags: bodyTags.join("\n"),
       reportFilesScript: reportDataScriptPlaceholder,
       reportOptions: stringifyForInlineScript(reportOptions),
-      analyticsEnable: true,
+      analyticsEnable: process.env.ALLURE_NO_ANALYTICS?.toLowerCase() !== "true",
       allureVersion,
       reportUuid,
       reportName,
@@ -338,10 +336,8 @@ export const generateTreeByCategories = async (
   treeName: string,
   tests: ReportTestResult[],
 ) => {
-  const visibleTests = tests.filter((test) => !test.isRetry);
-
   const tree = createTreeByCategories<ReportTestResult, ReportTreeLeaf, ReportTreeGroup>(
-    visibleTests,
+    toCategoriesTreeItems(tests),
     ({ id, name, status, duration, flaky, transition, start, retries }: ReportTestResult) => {
       const retriesCount = retries?.length ?? 0;
 

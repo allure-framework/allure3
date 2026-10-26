@@ -9,6 +9,7 @@ import {
 import { preciseTreeLabels } from "@allurereport/plugin-api";
 import { generateAttachmentsFiles, generateHistoryDataPoints } from "@allurereport/plugin-api/internal/report";
 
+import { resolveClassicCategories } from "./categories.js";
 import {
   generateAllCharts,
   generateEnvironmentJson,
@@ -19,7 +20,7 @@ import {
   generateTree,
   generateTreeByCategories,
 } from "./generators.js";
-import type { ClassicPluginOptions } from "./model.js";
+import type { ClassicCategory, ClassicPluginOptions } from "./model.js";
 import { type ClassicDataWriter, InMemoryReportDataWriter, ReportFileDataWriter } from "./writer.js";
 
 export class ClassicPlugin implements Plugin {
@@ -28,16 +29,18 @@ export class ClassicPlugin implements Plugin {
   constructor(readonly options: ClassicPluginOptions = {}) {}
 
   #generate = async (context: PluginContext, store: AllureStore) => {
-    const { singleFile, groupBy = [] } = this.options ?? {};
+    const { singleFile, groupBy = [], filter } = this.options ?? {};
     const environmentItems = await store.metadataByKey<EnvironmentItem[]>("allure_environment");
-    const statistic = await store.testsStatistic();
+    const statistic = await store.testsStatistic(filter);
     const attachments = await store.allAttachments();
 
     await generateStatistic(this.#writer!, statistic);
     await generatePieChart(this.#writer!, statistic);
     await generateAllCharts(this.#writer!, store, this.options, context);
 
-    const convertedTrs = await generateTestResults(this.#writer!, store);
+    const legacyCategories = await store.metadataByKey<ClassicCategory[]>("allure2_categories");
+    const categories = resolveClassicCategories(context.categories, legacyCategories ?? []);
+    const convertedTrs = await generateTestResults(this.#writer!, store, { filter, categories });
 
     const treeLabels = preciseTreeLabels(
       !groupBy.length ? ["parentSuite", "suite", "subSuite"] : groupBy,
@@ -54,7 +57,6 @@ export class ClassicPlugin implements Plugin {
     );
 
     await generateTreeByCategories(this.#writer!, "categories", convertedTrs);
-    // await generateCategoriesData(this.#writer!, treeLabels, convertedTrs);
     await generateTree(this.#writer!, "tree", treeLabels, convertedTrs);
     await generateTree(this.#writer!, "behaviors", behaviorLabels, convertedTrs);
     await generateTree(this.#writer!, "packages", packagesLabels, convertedTrs);
