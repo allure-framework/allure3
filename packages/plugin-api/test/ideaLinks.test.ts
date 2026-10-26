@@ -21,6 +21,12 @@ describe("createIdeaLink", () => {
     expect(link.url).toBe("http://localhost:1234/api/file?file=src%2Ftest%2Fkotlin%2Forg%2Fexample%2FFooTest.kt");
   });
 
+  it("should treat a source root of only slashes as no source root", () => {
+    const [link] = createIdeaLink(labels, { sourceRoot: "/".repeat(100_000) });
+
+    expect(link.url).toBe("http://localhost:63342/api/file?file=org%2Fexample%2FFooTest.java");
+  });
+
   it("should point nested classes to the outer class file", () => {
     const [link] = createIdeaLink([{ name: "testClass", value: "org.example.FooTest$Inner" }], {});
 

@@ -12,6 +12,16 @@ export type IdeaLinksOptions = {
 // dot-separated identifiers only, so that suite names and other non-class values do not produce broken links
 const javaClassNameRegexp = /^[\p{L}_$][\p{L}\p{N}_$]*(\.[\p{L}_$][\p{L}\p{N}_$]*)*$/u;
 
+const trimSlashes = (value: string) => {
+  let start = 0;
+  let end = value.length;
+
+  while (start < end && value[start] === "/") start++;
+  while (end > start && value[end - 1] === "/") end--;
+
+  return value.slice(start, end);
+};
+
 export const createIdeaLink = (labels: TestLabel[], options: boolean | IdeaLinksOptions): TestLink[] => {
   const { port = 63342, fileExtension = "java", sourceRoot = "" } = options === true ? {} : options || {};
   const testClass = labels.find(({ name, value }) => name === "testClass" && value)?.value;
@@ -22,7 +32,7 @@ export const createIdeaLink = (labels: TestLabel[], options: boolean | IdeaLinks
     return [];
   }
 
-  const root = sourceRoot.replace(/^\/+|\/+$/g, "");
+  const root = trimSlashes(sourceRoot);
   const file = `${root ? `${root}/` : ""}${classPath}.${fileExtension.replace(/^\./, "")}`;
 
   return [
