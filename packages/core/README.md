@@ -91,6 +91,115 @@ variables or process environment variables. Missing labels are supplied as an em
 Environment expressions must return a boolean. Invalid expressions and evaluation failures throw
 with their configuration path; they do not fall through to another environment or `default`.
 
+### Quality gates
+
+Quality-gate configuration supports CEL filters and computed values, plus inline JavaScript custom
+validators. The same syntax works in JSON; YAML's block scalars are easier to read for scripts.
+Configuration stays self-contained: `use` accepts built-in rule names or inline definitions, not
+module/export references or external rule files.
+
+```yaml
+qualityGate:
+  enabled: "${{ has(env.CI) && env.CI != '' }}"
+  rules:
+    - id: critical
+      maxFailures: >-
+        ${{ has(env.MAX_FAILURES) ? int(env.MAX_FAILURES) : 0 }}
+      fastFail: true
+      filter: >-
+        ${{ test.labels.exists(l,
+          l.name == 'severity' && l.value == 'critical') }}
+    - count: 100
+  use:
+    - rule: maxFailures
+      message: "${{ 'Critical failures: ' + string(actual) }}"
+      successMessage: 'No unexpected critical failures'
+    - rule: count
+      message: "${{ 'Expected ' + string(expected) + ', got ' + string(actual) }}"
+      validate: |
+        const actual = Number(state.getResult() ?? 0) + trs.length;
+        state.setResult(actual, []);
+        return { success: actual === expected, actual, testResults: [] };
+```
+
+`rules[].filter` receives a plain-data `test` snapshot of the full test result and `env`, the same
+configuration-time environment snapshot used by enablement and expected-value expressions. Filters
+must return a boolean; guard missing fields and variables with `has(...)`. For example:
+
+```yaml
+filter: >-
+  ${{ has(env.COMPONENT) && test.labels.exists(l,
+    l.name == 'component' && l.value == env.COMPONENT) }}
+```
+
+Retries, ignored failures, ruleset order, `fastFail`, live-test deduplication, and final recomputation
+retain their existing behavior.
+
+`enabled` accepts a literal boolean or a boolean CEL expression; it defaults to `true`. `false`
+omits the gate before compiling its rules. Expected rule values, including leaves inside arrays or
+objects, may use CEL expressions. Enablement and expected-value expressions run once during config
+resolution against `env`, a snapshot of defined process environment variables. Missing variables are
+absent, not empty strings; guard access with `has(env.NAME)` and convert strings explicitly with
+`int(...)` or `double(...)`. IDs and `fastFail` stay literal; filters are evaluated per test. Unmarked
+strings stay literal. CEL map literals are homogeneous; use YAML/JSON objects with individual expression values
+for heterogeneous expected structures.
+
+Computed expected values must be JSON-compatible, with finite numbers and lossless conversion of CEL integers to JavaScript numbers. Built-in
+values must also match the rule's expected domain: counts/duration are nonnegative numbers, success
+rate is between 0 and 100, `newTests` is boolean, environment rules use strings/lists of strings, and
+metric rules use a metric descriptor with a numeric `value`. Custom rules accept JSON-compatible
+expected structures. Existing literal values and native JavaScript callbacks retain their contracts.
+
+Omitting `use` retains the default built-ins. Supplying `use` selects exactly those rules; include
+built-in names such as `maxFailures` explicitly alongside custom definitions. An object with a known
+built-in `rule` may override `message` or `successMessage` without repeating its validator. Custom
+rules require a name, validator, and failure message. Plain message strings are literal; marked CEL
+messages must return strings. Message expressions receive only `expected` and `actual`, not mutable
+state, test batches, or `env`.
+
+#### Inline validators
+
+`validate` is a JavaScript **async function body**, without a surrounding function declaration and
+without `${{ ... }}` delimiters. It is compiled once and may use `await`. The injected arguments are
+`trs`, `expected`, `state`, `metrics`, `previousHistory`, and `environment`, matching the native
+validator payload. For example, a failure counter can persist its accumulated value and related IDs:
+
+```yaml
+validate: |
+  const failed = trs.filter(tr => ['failed', 'broken'].includes(tr.status));
+  const actual = Number(state.getResult() ?? 0) + failed.length;
+  const testResults = failed.map(tr => tr.id);
+  state.setResult(actual, testResults);
+  return { success: actual <= expected, actual, testResults };
+```
+
+Return `{ success, actual, testResults }`: `success` must be boolean, `actual` must be JSON-compatible,
+and `testResults` must be a list of string IDs. `state.getResult()` returns this rule's previous value
+or `undefined`; `state.setResult(value, ids)` stores the rule's value and related IDs through the existing state API. Allure
+owns rule isolation, persistence and ID accumulation. Scripts retain the existing imperative state
+lifecycle; state writes are not transactional. A final full-snapshot evaluation starts with fresh
+state, as does a separately created live state. Metrics, previous history, and environment are
+available directly; no parallel CEL state-transition format is needed.
+
+**Inline scripts are trusted Node.js code, not a sandbox.** Like `actions/github-script`, they can
+access globals, process environment variables, the filesystem/network, and dynamic imports. Do not
+run configuration from untrusted authors.
+No separate module reference, custom loader, or `require` helper is supplied.
+
+#### Quality-gate errors and data
+
+Quality-gate conditions and validators fail closed: syntax/type errors,
+evaluation errors, malformed script results, and script exceptions stop gate evaluation with a
+configuration-path diagnostic. They never silently drop a filter, disable a gate, or turn a broken
+rule into success. Message syntax/type errors fail configuration loading. A runtime message error
+warns once per configured message and falls back to the inherited message or a generic message with
+the rule identity and outcome; it never changes the gate result. CLI threshold flags still replace
+configured gate rules and custom definitions; configuration is resolved before that replacement,
+so invalid enabled configuration is still an error.
+
+Computed expected values and script result values must be JSON-compatible: non-finite numbers,
+cycles, and non-plain data are rejected.
+
 ### Regular expressions and escaping
 
 Use the built-in `value.matches(pattern)` function. The pinned `@marcbachmann/cel-js` evaluator uses
@@ -115,7 +224,7 @@ Evaluation failures and dynamically incompatible result types also throw with th
 boolean `false` is a normal predicate non-match; errors do not fall through to other matchers.
 Guard optional fields explicitly, for example `has(data.message) && data.message.contains('timeout')`.
 
-Only plain-data snapshots are supplied to expressions, with no environment variables, filesystem,
-network, imports, plugin instances, or custom functions. Non-finite numbers, cycles, and non-plain
-data are rejected.
+Only plain-data snapshots are supplied to these matching predicates, with no environment variables,
+filesystem, network, imports, plugin instances, or custom functions. Non-finite numbers, cycles, and
+non-plain data are rejected.
 

@@ -11,8 +11,8 @@ import type {
   ResolutionsConfig,
 } from "@allurereport/core-api";
 
+import type { QualityGateConfigInput } from "./config/qualityGate.js";
 import type { PluginDescriptor } from "./plugin.js";
-import type { QualityGateConfig } from "./qualityGate.js";
 
 export type CategoryRuleConfig = Omit<CategoryRule, "matchers"> & {
   matchers?: Matcher | string | readonly (Matcher | string)[];
@@ -91,7 +91,7 @@ export interface Config {
    */
   plugins?: Record<string, PluginDescriptor>;
   appendHistory?: boolean;
-  qualityGate?: QualityGateConfig;
+  qualityGate?: QualityGateConfigInput;
   performance?: PerformanceConfig;
   allureService?: AllureServiceConfig;
   categories?: CategoriesConfigInput;
