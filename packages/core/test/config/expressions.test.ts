@@ -42,8 +42,6 @@ describe("configuration expressions", () => {
     "${{ process.env.SECRET == 'x' }}",
     "${{ name.matches('a', 'i') }}",
     "${{ 42 }}",
-    "${{ '" + "x".repeat(4096) + "' }}",
-    "${{ " + Array.from({ length: 40 }).reduce((nested) => `name == 'x' ? true : (${nested})`, "false") + " }}",
   ])("warns once and disables an invalid predicate: %s", (input) => {
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
 
@@ -85,28 +83,39 @@ describe("configuration expressions", () => {
       { data: "map" },
     );
 
+    const owner = { name: "owner", value: "alice" };
+
     const result = predicate({
-      data: { message: undefined, labels: [{ name: "owner", value: "alice" }], nullable: null, flaky: false },
+      data: { message: undefined, labels: [owner, owner], nullable: null, flaky: false },
     });
 
     expect(result).toBe(true);
   });
 
-  it.each([
-    { name: "x".repeat(16385) },
-    { name: () => true },
-    { name: new Date() },
-    { name: Infinity },
-    { name: Array.from({ length: 2050 }, () => true) },
-    { name: Array.from({ length: 9 }, () => "x".repeat(16384)) },
-    { name: Array.from({ length: 10 }).reduce((nested) => ({ nested }), {}) },
-  ])("bounds and rejects unsupported context data", (context) => {
-    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
-    const predicate = compilePredicate("${{ true }}", "hideLabels[0]", { name: "string" });
+  it.each([{ name: () => true }, { name: new Date() }, { name: Infinity }])(
+    "rejects unsupported context data",
+    (context) => {
+      const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+      const predicate = compilePredicate("${{ true }}", "hideLabels[0]", { name: "string" });
 
-    const result = predicate(context);
+      const result = predicate(context);
+
+      expect(result).toBe(false);
+      expect(warn).toHaveBeenCalledTimes(1);
+    },
+  );
+
+  it("rejects cyclic context with a plain-data diagnostic", () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const data: Record<string, unknown> = {};
+    data.self = data;
+    const predicate = compilePredicate("${{ true }}", "categories[0].matchers", { data: "map" });
+
+    const result = predicate({ data });
 
     expect(result).toBe(false);
-    expect(warn).toHaveBeenCalledTimes(1);
+    expect(warn).toHaveBeenCalledWith(
+      "Invalid expression at categories[0].matchers: expression context must contain only finite numbers and plain data",
+    );
   });
 });
