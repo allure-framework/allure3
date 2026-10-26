@@ -1,4 +1,4 @@
-import { ChartType } from "@allurereport/charts-api";
+import { chartRenderers } from "@allurereport/web-commons";
 import type { ComponentType } from "preact";
 import { useEffect, useState } from "preact/hooks";
 
@@ -9,32 +9,13 @@ import type { ChartWidgetProps } from "./ChartWidget.types";
 
 export type { ChartWidgetProps } from "./ChartWidget.types";
 
-const chartRenderers: Record<ChartType, Renderer> = {
-  [ChartType.CurrentStatus]: "pie",
-  [ChartType.StatusDynamics]: "bar",
-  [ChartType.StatusTransitions]: "bar",
-  [ChartType.Durations]: "bar",
-  [ChartType.StabilityDistribution]: "bar",
-  [ChartType.TestBaseGrowthDynamics]: "bar",
-  [ChartType.StatusAgePyramid]: "bar",
-  [ChartType.TrSeverities]: "bar",
-  [ChartType.DurationDynamics]: "bar",
-  [ChartType.CoverageDiff]: "treemap",
-  [ChartType.SuccessRateDistribution]: "treemap",
-  [ChartType.ProblemsDistribution]: "heatmap",
-  [ChartType.TestingPyramid]: "funnel",
-  [ChartType.DurationTrend]: "runTrend",
-  [ChartType.RetriesTrend]: "runTrend",
-  [ChartType.CategoriesTrend]: "runTrend",
-};
-
 const rendererLoaders = {
-  pie: () => import(/* webpackChunkName: "chart-pie" */ "./PieChartRenderer"),
-  bar: () => import(/* webpackChunkName: "chart-bar" */ "./BarChartRenderer"),
-  treemap: () => import(/* webpackChunkName: "chart-treemap" */ "./TreeMapChartRenderer"),
-  heatmap: () => import(/* webpackChunkName: "chart-heatmap" */ "./HeatMapChartRenderer"),
-  funnel: () => import(/* webpackChunkName: "chart-funnel" */ "./FunnelChartRenderer"),
-  runTrend: () => import(/* webpackChunkName: "chart-run-trend" */ "./RunTrendChartRenderer"),
+  "pie": () => import(/* webpackChunkName: "chart-pie" */ "./PieChartRenderer"),
+  "bar": () => import(/* webpackChunkName: "chart-bar" */ "./BarChartRenderer"),
+  "treemap": () => import(/* webpackChunkName: "chart-treemap" */ "./TreeMapChartRenderer"),
+  "heatmap": () => import(/* webpackChunkName: "chart-heatmap" */ "./HeatMapChartRenderer"),
+  "funnel": () => import(/* webpackChunkName: "chart-funnel" */ "./FunnelChartRenderer"),
+  "run-trend": () => import(/* webpackChunkName: "chart-run-trend" */ "./RunTrendChartRenderer"),
 };
 type Renderer = keyof typeof rendererLoaders;
 const rendererCache = new Map<Renderer, ComponentType<ChartWidgetProps>>();

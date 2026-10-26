@@ -128,7 +128,7 @@ describe("createBaseUrlScript", () => {
   ])("sets the document base without query or fragment for %s", (href) => {
     const base = { href: "" };
     const document = { createElement: vi.fn(() => base), head: { appendChild: vi.fn() } };
-    const script = createBaseUrlScript().match(/<script>([\s\S]*)<\/script>/i)![1];
+    const script = createBaseUrlScript().match(/<script\b[^>]*>([\s\S]*?)<\/script\b[^>]*>/i)![1];
     runInNewContext(script, { URL, document, window: { location: new URL(href), document } });
     expect(base.href).toBe(href.split(/[?#]/)[0]);
     expect(document.createElement).toHaveBeenCalledWith("base");

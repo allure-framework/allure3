@@ -26,5 +26,6 @@ export * from "./gitLinks.js";
 export * from "./ciInfo.js";
 export * from "./ownerAddress.js";
 export * from "./testErrors.js";
+export * from "./errors.js";
 
 export { loadFromLocalStorage } from "./storage.js";

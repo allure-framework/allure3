@@ -1,7 +1,8 @@
 import { epic, feature, label, story } from "allure-js-commons";
 import { beforeEach, describe, expect, it } from "vite-plus/test";
 
-import { hasErrorDiff, isDisplayableTestError, normalizeErrorText } from "../src/testErrors.js";
+import { hasErrorDiff } from "../src/errors.js";
+import { isDisplayableTestError, normalizeErrorText } from "../src/testErrors.js";
 
 beforeEach(async () => {
   await epic("coverage");

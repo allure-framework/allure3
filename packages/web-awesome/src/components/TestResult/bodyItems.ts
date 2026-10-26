@@ -43,6 +43,8 @@ const getTestLevelErrorTitle = (message?: string) => {
   );
 };
 
+export { hasErrorDiff } from "@allurereport/web-commons";
+
 export const hasTestLevelErrorContent = (error?: TestErrorLike) =>
   Boolean(normalizeErrorText(error?.trace).length) || hasErrorDiff(error);
 

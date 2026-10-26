@@ -73,6 +73,7 @@ import {
   copyReportStaticAssets,
   getReportStaticAsset,
   readReportStaticAssets,
+  selectReportStaticFiles,
 } from "@allurereport/plugin-api/static-assets";
 import { generateCharts, getPieChartValues } from "@allurereport/web-commons";
 import Handlebars from "handlebars";
@@ -728,6 +729,7 @@ export const generateGlobals = async (
   }
 
   await writer.writeWidget("globals.json", globals);
+  return globals;
 };
 
 export const generateQualityGateResults = async (
@@ -770,6 +772,7 @@ export const generateStaticFiles = async (
     allureVersion: string;
     reportFiles: ReportFiles;
     reportDataFiles: ReportFile[];
+    requiredAssetFeatures?: readonly string[];
     reportUuid: string;
     reportName: string;
     overviewHref?: string;
@@ -835,7 +838,9 @@ export const generateStaticFiles = async (
       headTags.push(createStylesLinkTag(`data:text/css;base64,${mainCssContent.toString("base64")}`));
     }
 
-    bodyTags.push(createSingleFileScripts(staticAssets.files, mainJs));
+    bodyTags.push(
+      createSingleFileScripts(selectReportStaticFiles(staticAssets, payload.requiredAssetFeatures), mainJs),
+    );
   }
 
   const now = Date.now();
