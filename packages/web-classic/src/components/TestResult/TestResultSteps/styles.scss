@@ -87,7 +87,8 @@
   color: var(--color-text-secondary);
   align-items: center;
   flex: 0 1 auto;
-  min-width: 0;
+  // Never narrower than the duration, or it spills over the step title on narrow screens
+  min-width: 56px;
 }
 
 .item-info-content-type {

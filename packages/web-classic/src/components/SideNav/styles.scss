@@ -1,5 +1,27 @@
 @import "../../variables.scss";
 
+@mixin icon-bar {
+  width: $sidebar-collapsed;
+  min-width: $sidebar-collapsed;
+
+  .report-info {
+    display: none;
+  }
+
+  .text,
+  .brand-text,
+  .badge {
+    visibility: hidden;
+    opacity: 0;
+    white-space: nowrap;
+  }
+
+  .collapse,
+  .link {
+    white-space: nowrap;
+  }
+}
+
 .side-nav {
   background: $app-nav-bg;
   width: $sidebar-full-width;
@@ -176,28 +198,19 @@
   }
 
   &.collapsed {
-    width: $sidebar-collapsed;
-    min-width: $sidebar-collapsed;
+    @include icon-bar;
 
     .collapse-icon {
       transform: rotate(-90deg);
     }
+  }
 
-    .report-info {
+  // Phones get the icon bar only: the expanded nav would take half the screen
+  @media (max-width: $narrow-max-width) {
+    @include icon-bar;
+
+    .collapse {
       display: none;
-    }
-
-    .text,
-    .brand-text,
-    .badge {
-      visibility: hidden;
-      opacity: 0;
-      white-space: nowrap;
-    }
-
-    .collapse,
-    .link {
-      white-space: nowrap;
     }
   }
 
