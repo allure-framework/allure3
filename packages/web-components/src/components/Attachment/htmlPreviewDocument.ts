@@ -21,6 +21,24 @@ const HTML_PREVIEW_CSP = [
 const DARK_STYLE =
   ":root,html,body{background:#1c1c1e !important;color:#e5e5e7 !important;}body *{border-color:rgba(255,255,255,0.12) !important;}";
 
+// The preview is an `about:srcdoc` document, whose URL cannot be rewritten: `history.pushState` and
+// `history.replaceState` throw there. Self-contained pages (e.g. bundled by Zundler) call them while
+// loading and stop on the exception, so the calls are made harmless instead.
+const HISTORY_GUARD_SCRIPT = `
+(() => {
+  for (const name of ["pushState", "replaceState"]) {
+    const original = history[name];
+    history[name] = function (...args) {
+      try {
+        return original.apply(this, args);
+      } catch {
+        return undefined;
+      }
+    };
+  }
+})();
+`;
+
 const createResizeScript = (token: string) => `
 (() => {
   const type = ${JSON.stringify(HTML_PREVIEW_RESIZE_MESSAGE_TYPE)};
@@ -76,6 +94,7 @@ export const createHtmlPreviewDocument = (html: string, token: string, dark: boo
     createMeta(doc, { charset: "utf-8" }),
     createMeta(doc, { "http-equiv": "Content-Security-Policy", "content": HTML_PREVIEW_CSP }),
     createMeta(doc, { name: "referrer", content: "no-referrer" }),
+    createElementWithText(doc, "script", HISTORY_GUARD_SCRIPT),
   );
   if (dark) {
     doc.head.append(createElementWithText(doc, "style", DARK_STYLE));

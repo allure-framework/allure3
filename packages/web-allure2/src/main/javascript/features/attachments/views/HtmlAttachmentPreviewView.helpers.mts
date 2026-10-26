@@ -103,6 +103,24 @@ const createHtmlPreviewResizeScript = (token: string) => `
 })();
 `;
 
+// The preview is an `about:srcdoc` document, whose URL cannot be rewritten: `history.pushState` and
+// `history.replaceState` throw there. Self-contained pages (e.g. bundled by Zundler) call them while
+// loading and stop on the exception, so the calls are made harmless instead.
+const HISTORY_GUARD_SCRIPT = `
+(() => {
+  for (const name of ["pushState", "replaceState"]) {
+    const original = history[name];
+    history[name] = function (...args) {
+      try {
+        return original.apply(this, args);
+      } catch {
+        return undefined;
+      }
+    };
+  }
+})();
+`;
+
 const removePreviewControlElements = (doc: Document) => {
   doc.querySelectorAll("base").forEach((element) => element.remove());
   doc.querySelectorAll("meta[http-equiv]").forEach((element) => {
@@ -125,6 +143,10 @@ const prependPreviewMeta = (doc: Document) => {
   const charset = doc.createElement("meta");
   charset.setAttribute("charset", "utf-8");
 
+  const historyGuard = doc.createElement("script");
+  historyGuard.textContent = HISTORY_GUARD_SCRIPT;
+
+  doc.head.prepend(historyGuard);
   doc.head.prepend(referrer);
   doc.head.prepend(csp);
   doc.head.prepend(charset);
