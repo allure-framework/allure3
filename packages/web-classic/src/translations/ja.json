@@ -97,7 +97,16 @@
     "copy": "コピー",
     "attempt": "試行 {{attempt}} 回目（全 {{total}} 回）",
     "at": "時",
-    "generated": "生成日時"
+    "generated": "生成日時",
+    "precondition": "事前条件",
+    "expectedResult": "期待される結果",
+    "categories": "カテゴリ",
+    "tags": "タグ",
+    "owner": "オーナー",
+    "fullname": "完全名",
+    "test-case-id": "テストケース ID",
+    "history-id": "履歴 ID",
+    "successRate": "成功率 {{rate}}%（{{total}} 件中 {{passed}} 件）"
   },
   "controls": {
     "backToOverview": "概要に戻る",
@@ -133,7 +142,8 @@
       "slice_other": "{{count}} 件のテスト（全テストの {{percent}}%）",
       "layer": "レイヤー: {{layer}}",
       "statusSlice": "{{count}} {{status}} （全テストの {{percent}}%）",
-      "slice": "{{count}} 件のテスト（全テストの {{percent}}%）"
+      "slice": "{{count}} 件のテスト（全テストの {{percent}}%）",
+      "noEligibleResults": "成功、失敗、異常終了のテストはありません。スキップされたテストとステータス不明のテストは成功率から除外します。"
     }
   },
   "timeline": {

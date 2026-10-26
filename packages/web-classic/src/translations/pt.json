@@ -97,7 +97,16 @@
     "copy": "Copiar",
     "attempt": "Tentativa {{attempt}} de {{total}}",
     "at": "em",
-    "generated": "Gerado"
+    "generated": "Gerado",
+    "precondition": "Pré-condição",
+    "expectedResult": "Resultado esperado",
+    "categories": "Categorias",
+    "tags": "Tags",
+    "owner": "Proprietário",
+    "fullname": "Nome completo",
+    "test-case-id": "ID do caso de teste",
+    "history-id": "ID do histórico",
+    "successRate": "Taxa de sucesso {{rate}}% ({{passed}} de {{total}})"
   },
   "controls": {
     "backToOverview": "Voltar para a visão geral",
@@ -134,7 +143,8 @@
       "layer": "Camada: {{layer}}",
       "statusSlice": "{{count}} {{status}} ({{percent}}% de todos os testes)",
       "slice": "{{count}} testes ({{percent}}% de todos os testes)",
-      "slice_many": "{{count}} testes ({{percent}}% de todos os testes)"
+      "slice_many": "{{count}} testes ({{percent}}% de todos os testes)",
+      "noEligibleResults": "Não há testes aprovados, reprovados ou com erros. Os testes ignorados e com estado desconhecido são excluídos da taxa de sucesso."
     }
   },
   "timeline": {

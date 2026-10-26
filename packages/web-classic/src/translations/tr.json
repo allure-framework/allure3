@@ -97,7 +97,16 @@
     "copy": "Kopyala",
     "attempt": "Deneme {{attempt}} / {{total}}",
     "at": "tarihinde",
-    "generated": "Oluşturuldu"
+    "generated": "Oluşturuldu",
+    "precondition": "Ön koşul",
+    "expectedResult": "Beklenen sonuç",
+    "categories": "Kategoriler",
+    "tags": "Etiketler",
+    "owner": "Sahip",
+    "fullname": "Tam ad",
+    "test-case-id": "Test senaryosu ID",
+    "history-id": "Geçmiş ID",
+    "successRate": "Başarı oranı %{{rate}} ({{total}} testten {{passed}})"
   },
   "controls": {
     "backToOverview": "Genel bakışa dön",
@@ -133,7 +142,8 @@
       "slice_other": "{{count}} test (tüm testlerin %{{percent}} kadarı)",
       "layer": "Katman: {{layer}}",
       "statusSlice": "{{count}} {{status}} (tüm testlerin %{{percent}} kadarı)",
-      "slice": "{{count}} test (tüm testlerin %{{percent}} kadarı)"
+      "slice": "{{count}} test (tüm testlerin %{{percent}} kadarı)",
+      "noEligibleResults": "Başarılı, başarısız veya bozuk test yok. Atlanan ve durumu bilinmeyen testler başarı oranına dahil edilmez."
     }
   },
   "timeline": {

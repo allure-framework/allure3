@@ -44,3 +44,37 @@ describe("classic locales", () => {
     enKeys.forEach((key) => expect(ruKeys.has(key), key).toBe(true));
   });
 });
+
+describe("classic test result page locales", () => {
+  it("defines test result page labels in every locale that translates the ui section", () => {
+    // partial locales without a ui section fall back to english for the whole section
+    const localeFiles = readdirSync(localesDir)
+      .filter((file) => file.endsWith(".json"))
+      .filter((file) => JSON.parse(readFileSync(join(localesDir, file), "utf8")).ui);
+
+    expect(localeFiles).toEqual(expect.arrayContaining(["en.json", "ru.json", "de.json"]));
+
+    return step("verify test result page labels", async () => {
+      localeFiles.forEach((file) => {
+        const locale = JSON.parse(readFileSync(join(localesDir, file), "utf8"));
+
+        for (const key of [
+          "precondition",
+          "expectedResult",
+          "categories",
+          "tags",
+          "owner",
+          "fullname",
+          "test-case-id",
+          "history-id",
+        ]) {
+          expect(locale.ui[key], `${file} ui.${key}`).toEqual(expect.stringMatching(/\S/));
+        }
+
+        expect(locale.ui.successRate, file).toContain("{{rate}}");
+        expect(locale.ui.successRate, file).toContain("{{passed}}");
+        expect(locale.ui.successRate, file).toContain("{{total}}");
+      });
+    });
+  });
+});

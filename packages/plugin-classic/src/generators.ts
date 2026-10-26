@@ -6,6 +6,7 @@ import {
   type EnvironmentItem,
   appLoaderFaviconDataUri,
   createFaviconLinkTag,
+  type HistoryTestResultUrlResolver,
   type Statistic,
   type TreeGroup,
   type TreeLeaf,
@@ -45,7 +46,8 @@ import Handlebars from "handlebars";
 
 import { matchClassicCategories, toCategoriesTreeItems } from "./categories.js";
 import { convertTestResult } from "./converters.js";
-import type { ClassicOptions } from "./model.js";
+import { resolveClassicHistoryUrl } from "./historyUrl.js";
+import type { ClassicOptions, IdeaLinksOptions } from "./model.js";
 import type { ClassicOverviewOptions } from "./overview.js";
 import type { ClassicDataWriter, ReportFile } from "./writer.js";
 
@@ -122,7 +124,13 @@ const createBreadcrumbs = (convertedTr: ReportTestResult) => {
 export const generateTestResults = async (
   writer: ClassicDataWriter,
   store: AllureStore,
-  options: { filter?: ClassicOptions["filter"]; categories?: CategoryDefinition[] } = {},
+  options: {
+    filter?: ClassicOptions["filter"];
+    categories?: CategoryDefinition[];
+    pluginId?: string;
+    ideaLinks?: boolean | IdeaLinksOptions;
+    resolveHistoryUrl?: HistoryTestResultUrlResolver;
+  } = {},
 ) => {
   const { filter, categories = [] } = options;
   const allTr = await store.allTestResults({ includeRetries: true, filter });
@@ -134,10 +142,13 @@ export const generateTestResults = async (
     const convertedTrFixtures: ReportFixtureResult[] = [...trFixtures]
       .sort(nullsLast(compareBy("start", ordinal())))
       .map(convertFixtureResult);
-    const convertedTr: ReportTestResult = convertTestResult(tr);
+    const convertedTr: ReportTestResult = convertTestResult(tr, { ideaLinks: options.ideaLinks });
 
     convertedTr.categories = matchClassicCategories(categories, convertedTr);
-    convertedTr.history = related.historyByTrId.get(tr.id) ?? [];
+    convertedTr.history = (related.historyByTrId.get(tr.id) ?? []).map((item) => ({
+      ...item,
+      url: resolveClassicHistoryUrl(item, options.pluginId ?? "", options.resolveHistoryUrl),
+    }));
     convertedTr.retries = related.retriesByTrId.get(tr.id) ?? [];
     convertedTr.retry = convertedTr.retries.length > 0;
     convertedTr.isRetry = tr.isRetry;

@@ -95,7 +95,16 @@
     "copy": "Skopuj",
     "attempt": "Próba {{attempt}} z {{total}}",
     "at": "w",
-    "generated": "Wygenerowano"
+    "generated": "Wygenerowano",
+    "precondition": "Warunek wstępny",
+    "expectedResult": "Oczekiwany wynik",
+    "categories": "Kategorie",
+    "tags": "Tagi",
+    "owner": "Właściciel",
+    "fullname": "Pełna nazwa",
+    "test-case-id": "ID przypadku testowego",
+    "history-id": "ID historii",
+    "successRate": "Współczynnik powodzenia {{rate}}% ({{passed}} z {{total}})"
   },
   "controls": {
     "backToOverview": "Wróć do przeglądu",
@@ -133,7 +142,8 @@
       "statusSlice": "{{count}} {{status}} ({{percent}}% wszystkich testów)",
       "slice": "{{count}} testów ({{percent}}% wszystkich testów)",
       "slice_few": "{{count}} testy ({{percent}}% wszystkich testów)",
-      "slice_many": "{{count}} testów ({{percent}}% wszystkich testów)"
+      "slice_many": "{{count}} testów ({{percent}}% wszystkich testów)",
+      "noEligibleResults": "Brak testów zaliczonych, niezaliczonych lub uszkodzonych. Testy pominięte i o nieznanym statusie są wykluczone ze współczynnika powodzenia."
     }
   },
   "timeline": {

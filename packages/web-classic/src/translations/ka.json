@@ -97,7 +97,16 @@
     "copy": "კოპირება",
     "attempt": "მცდელობა {{attempt}} {{total}}-დან",
     "at": "ზე",
-    "generated": "გენერირებულია"
+    "generated": "გენერირებულია",
+    "precondition": "წინაპირობა",
+    "expectedResult": "მოსალოდნელი შედეგი",
+    "categories": "კატეგორიები",
+    "tags": "ტეგები",
+    "owner": "მფლობელი",
+    "fullname": "სრული სახელი",
+    "test-case-id": "ტესტ-ქეისის ID",
+    "history-id": "ისტორიის ID",
+    "successRate": "წარმატების მაჩვენებელი {{rate}}% ({{passed}} {{total}}-დან)"
   },
   "controls": {
     "backToOverview": "მიმოხილვაზე დაბრუნება",
@@ -133,7 +142,8 @@
       "slice_other": "{{count}} ტესტი (ყველა ტესტის {{percent}}%)",
       "layer": "დონე: {{layer}}",
       "statusSlice": "{{count}} {{status}} (ყველა ტესტის {{percent}}%)",
-      "slice": "{{count}} ტესტი (ყველა ტესტის {{percent}}%)"
+      "slice": "{{count}} ტესტი (ყველა ტესტის {{percent}}%)",
+      "noEligibleResults": "წარმატებული, წარუმატებელი ან დაზიანებული ტესტები არ არის. გამოტოვებული და უცნობი სტატუსის მქონე ტესტები წარმატების მაჩვენებელში არ ითვლება."
     }
   },
   "timeline": {

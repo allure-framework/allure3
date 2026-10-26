@@ -98,7 +98,16 @@
     "copy": "Copy",
     "attempt": "Attempt {{attempt}} of {{total}}",
     "at": "at",
-    "generated": "Generated"
+    "generated": "Generated",
+    "precondition": "Precondition",
+    "expectedResult": "Expected result",
+    "categories": "Categories",
+    "tags": "Tags",
+    "owner": "Owner",
+    "fullname": "Full name",
+    "test-case-id": "Test case ID",
+    "history-id": "History ID",
+    "successRate": "Success rate {{rate}}% ({{passed}} of {{total}})"
   },
   "controls": {
     "backToOverview": "Back to overview",
