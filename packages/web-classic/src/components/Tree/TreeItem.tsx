@@ -62,6 +62,7 @@ export const TreeItem: FunctionComponent<TreeItemProps> = ({
           retriesCount={retriesCount}
           transition={transition}
           tooltips={tooltips}
+          hideUnknownDuration
         />
       </div>
     </div>

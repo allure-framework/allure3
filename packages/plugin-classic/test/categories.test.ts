@@ -92,7 +92,10 @@ describe("resolveClassicCategories", () => {
     ]);
     expect(
       matchClassicCategories(categories, tr({ status: "failed", error: { message: "connection timeout" } })),
-    ).toEqual([expect.objectContaining({ name: "Product errors" })]);
+    ).toEqual([
+      expect.objectContaining({ name: "Product errors" }),
+      expect.objectContaining({ name: "Legacy category" }),
+    ]);
   });
 
   it("should match categories.json rules before the built-in matcher of an overridden default category", () => {
@@ -167,6 +170,42 @@ describe("resolveClassicCategories", () => {
 });
 
 describe("matchClassicCategories", () => {
+  it("should put a test into every matching config and categories.json category like Allure 2", () => {
+    const categories = withConfig(
+      [
+        { name: "Config timeouts", matchers: { statuses: ["failed"], message: /timeout/ } },
+        { name: "Config failures", matchers: { statuses: ["failed"] } },
+      ],
+      [
+        { name: "Legacy timeouts", matchedStatuses: ["failed"], messageRegex: ".*timeout.*" },
+        { name: "Legacy refused", matchedStatuses: ["failed"], messageRegex: ".*refused.*" },
+      ],
+    );
+
+    expect(matchClassicCategories(categories, tr({ status: "failed", error: { message: "read timeout" } }))).toEqual([
+      expect.objectContaining({ name: "Config timeouts" }),
+      expect.objectContaining({ name: "Config failures" }),
+      expect.objectContaining({ name: "Legacy timeouts" }),
+    ]);
+  });
+
+  it("should apply the default fallback only when no other category matched", () => {
+    const categories = withLegacy([{ name: "Timeouts", matchedStatuses: ["failed"], messageRegex: ".*timeout.*" }]);
+
+    expect(matchClassicCategories(categories, tr({ status: "failed", error: { message: "read timeout" } }))).toEqual([
+      expect.objectContaining({ name: "Timeouts" }),
+    ]);
+    expect(matchClassicCategories(categories, tr({ status: "failed", error: { message: "boom" } }))).toEqual([
+      expect.objectContaining({ name: "Product defects" }),
+    ]);
+  });
+
+  it("should not apply the default fallback when a hidden category matched", () => {
+    const categories = withConfig([{ name: "Hidden", hide: true, matchers: { statuses: ["failed"] } }]);
+
+    expect(matchClassicCategories(categories, tr({ status: "failed" }))).toEqual([]);
+  });
+
   it("should match failed tests to Product defects and broken tests to Test defects by default", () => {
     expect(matchClassicCategories(defaults(), tr({ status: "failed" }))).toEqual([
       { id: "_product_errors_default_category", name: "Product defects" },
@@ -277,14 +316,16 @@ describe("matchClassicCategories", () => {
     ).toEqual([expect.objectContaining({ name: "Type errors" })]);
   });
 
-  it("should return only the first matching category", () => {
+  it("should return every matching category in matching order and leave out hidden ones", () => {
     const categories = withConfig([
       { name: "First", matchers: { statuses: ["failed"] } },
+      { name: "Hidden", hide: true, matchers: { statuses: ["failed"] } },
       { name: "Second", matchers: { statuses: ["failed"] } },
     ]);
 
     expect(matchClassicCategories(categories, tr({ status: "failed" }))).toEqual([
       expect.objectContaining({ name: "First" }),
+      expect.objectContaining({ name: "Second" }),
     ]);
   });
 
@@ -307,6 +348,14 @@ describe("toCategoriesTreeItems", () => {
     ]);
 
     expect(items.map(({ id }) => id)).toEqual(["failed"]);
+  });
+
+  it("should keep every category of a test for the tree", () => {
+    const [item] = toCategoriesTreeItems([
+      reportTr("failed", { categories: [{ name: "A" }, { name: "B" }], error: { message: "boom" } }),
+    ]);
+
+    expect(item.categories).toEqual([{ name: "A" }, { name: "B" }]);
   });
 
   it("should group tests without an error message under the No message group", () => {
