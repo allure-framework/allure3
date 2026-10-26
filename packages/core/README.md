@@ -27,10 +27,10 @@ pnpm add @allurereport/core
 ## Configuration expressions
 
 Use `allurerc.yml` as the primary configuration file. YAML supports multiline
-[CEL](https://cel.dev/) predicates wrapped in `${{ ... }}` in `hideLabels` entries and
-`categories[].matchers`. Expressions are parsed and checked once when resolving configuration,
-then evaluated synchronously during report generation.
-They must return a boolean: `true` hides a label or matches a category.
+[CEL](https://cel.dev/) predicates wrapped in `${{ ... }}` in `hideLabels` entries,
+`categories[].matchers`, and `environments.<id>.matcher`. Expressions are parsed and checked once when
+resolving configuration, then evaluated synchronously during report generation.
+They must return a boolean: `true` hides a label or matches a category or environment.
 
 ```yaml
 hideLabels:
@@ -61,7 +61,35 @@ Array entries are OR conditions; combine conditions with `&&` inside an expressi
 `categories: { rules: [...] }` form and category grouping options are also supported. Existing object
 matchers, their string regex patterns, and compatibility fields `messageRegex` and `traceRegex`
 retain their existing behavior. Expression strings are not interpreted inside object matcher values
-or other configuration fields.
+or unsupported configuration fields.
+
+### Environment matching
+
+Environment predicates receive `labels`, a list of `{ name, value }` maps. Match each name and value
+on the same label to keep the conditions correlated. Repeated labels are preserved, not flattened;
+for example, a test with `os=linux` and both `browser=firefox` and `browser=chrome` matches this rule:
+
+```yaml
+allowedEnvironments:
+  - firefox_linux
+environments:
+  firefox_linux:
+    name: Firefox on Linux
+    variables:
+      browser: Firefox
+    matcher: >-
+      ${{ labels.exists(l, l.name == 'browser' && l.value == 'firefox') &&
+          labels.exists(l, l.name == 'os' && l.value == 'linux') }}
+```
+
+Matching uses the first matching environment in configuration order; no match falls back to
+`default`. A forced top-level `environment` continues to take precedence over label matching.
+Environment IDs, display names, variables, and `allowedEnvironments` retain their existing
+normalization and validation. The predicate receives only label names and values, not descriptor
+variables or process environment variables. Missing labels are supplied as an empty list.
+
+Environment expressions must return a boolean. Invalid expressions and evaluation failures throw
+with their configuration path; they do not fall through to another environment or `default`.
 
 ### Regular expressions and escaping
 
@@ -79,7 +107,7 @@ hideLabels:
         name.matches('^internal_\\d+$') }}
 ```
 
-### Errors and resource use
+### Errors
 
 Expressions must be wrapped in `${{ ... }}`. Missing or incomplete wrappers, invalid CEL, and
 statically incompatible result types fail configuration loading with the configuration path.
@@ -91,6 +119,3 @@ Only plain-data snapshots are supplied to expressions, with no environment varia
 network, imports, plugin instances, or custom functions. Non-finite numbers, cycles, and non-plain
 data are rejected.
 
-Expressions are not an execution-time sandbox: nested collection macros and regex backtracking can
-be expensive.
-Use trusted configuration and avoid pathological expressions and patterns.
