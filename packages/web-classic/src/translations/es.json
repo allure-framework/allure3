@@ -341,7 +341,8 @@
     },
     "successRate": {
       "successRate": "Tasa de éxito: {{rate}}",
-      "successRateDescription": "Proporción de pruebas exitosas sobre todas las pruebas.",
+      "successRateDescription": "Calculada con las pruebas exitosas, fallidas y con errores. Se excluyen las omitidas y las de estado desconocido.",
+      "noEligibleResults": "No hay pruebas exitosas, fallidas ni con errores. Las omitidas y las de estado desconocido se excluyen de la tasa de éxito.",
       "noResults": "No hay resultados de pruebas.",
       "notAvailable": "N/D",
       "slice_one": "{{count}} prueba ({{percent}}% de todas las pruebas)",
@@ -390,6 +391,7 @@
   },
   "overview": {
     "summary": "Resumen",
+    "successRateDescription": "Proporción de pruebas exitosas sobre todas las pruebas.",
     "dates": "{{start, timestamp_long}} – {{stop, timestamp_long}}",
     "duration": "Duración: {{duration, format_duration}}",
     "testCases_one": "{{count}} caso de prueba",

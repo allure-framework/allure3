@@ -341,7 +341,8 @@
     },
     "successRate": {
       "successRate": "Taxa de sucesso: {{rate}}",
-      "successRateDescription": "Proporção de testes aprovados entre todos os testes.",
+      "successRateDescription": "Calculada a partir dos testes aprovados, reprovados e com erros. Os testes ignorados e com estado desconhecido são excluídos.",
+      "noEligibleResults": "Não há testes aprovados, reprovados ou com erros. Os testes ignorados e com estado desconhecido são excluídos da taxa de sucesso.",
       "noResults": "Não há resultados de testes.",
       "notAvailable": "N/D",
       "slice_one": "{{count}} teste ({{percent}}% de todos os testes)",
@@ -390,6 +391,7 @@
   },
   "overview": {
     "summary": "Resumo",
+    "successRateDescription": "Proporção de testes aprovados entre todos os testes.",
     "dates": "{{start, timestamp_long}} – {{stop, timestamp_long}}",
     "duration": "Duração: {{duration, format_duration}}",
     "testCases_one": "{{count}} caso de teste",

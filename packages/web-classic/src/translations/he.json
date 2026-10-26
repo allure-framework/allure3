@@ -341,7 +341,8 @@
     },
     "successRate": {
       "successRate": "שיעור הצלחה: {{rate}}",
-      "successRateDescription": "שיעור הבדיקות שעברו מתוך כל הבדיקות.",
+      "successRateDescription": "מחושב לפי בדיקות שעברו, נכשלו או נשברו. בדיקות שדולגו ובדיקות במצב לא ידוע אינן נכללות.",
+      "noEligibleResults": "אין בדיקות שעברו, נכשלו או נשברו. בדיקות שדולגו ובדיקות במצב לא ידוע אינן נכללות בשיעור ההצלחה.",
       "noResults": "אין תוצאות בדיקות.",
       "notAvailable": "לא זמין",
       "slice_one": "בדיקה אחת: {{count}} ({{percent}}% מכל הבדיקות)",
@@ -390,6 +391,7 @@
   },
   "overview": {
     "summary": "סיכום",
+    "successRateDescription": "שיעור הבדיקות שעברו מתוך כל הבדיקות.",
     "dates": "{{start, timestamp_long}} – {{stop, timestamp_long}}",
     "duration": "משך: {{duration, format_duration}}",
     "testCases_one": "מקרה בדיקה אחד",

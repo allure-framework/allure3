@@ -341,7 +341,8 @@
     },
     "successRate": {
       "successRate": "Success rate: {{rate}}",
-      "successRateDescription": "Share of passed tests among all tests.",
+      "successRateDescription": "Calculated from passed, failed, and broken tests. Skipped and unknown tests are excluded.",
+      "noEligibleResults": "There are no passed, failed, or broken tests. Skipped and unknown tests are excluded from the success rate.",
       "noResults": "There are no test results.",
       "notAvailable": "N/A",
       "slice_one": "{{count}} test ({{percent}}% of all tests)",
@@ -389,6 +390,7 @@
   },
   "overview": {
     "summary": "Summary",
+    "successRateDescription": "Share of passed tests among all tests.",
     "dates": "{{start, timestamp_long}} – {{stop, timestamp_long}}",
     "duration": "Duration: {{duration, format_duration}}",
     "testCases_one": "{{count}} test case",

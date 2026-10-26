@@ -342,6 +342,7 @@
     "successRate": {
       "successRate": "Հաջողության տոկոսը՝ {{rate}}",
       "successRateDescription": "Հաշվարկվում է հաջողված, ձախողված և խափանված թեստերից։ Բաց թողնված և անհայտ կարգավիճակով թեստերը չեն ներառվում։",
+      "noEligibleResults": "Հաջողված, ձախողված կամ խափանված թեստեր չկան։ Բաց թողնված և անհայտ կարգավիճակով թեստերը չեն ներառվում հաջողության տոկոսում։",
       "noResults": "Թեստերի արդյունքներ չկան։",
       "notAvailable": "Հասանելի չէ",
       "slice_one": "{{count}} թեստ (բոլոր թեստերի {{percent}}%-ը)",
@@ -389,6 +390,7 @@
   },
   "overview": {
     "summary": "Ամփոփում",
+    "successRateDescription": "Հաջողված թեստերի բաժինը բոլոր թեստերի մեջ։",
     "dates": "{{start, timestamp_long}} – {{stop, timestamp_long}}",
     "duration": "Տևողություն: {{duration, format_duration}}",
     "testCases_one": "{{count}} թեստ-դեպք",

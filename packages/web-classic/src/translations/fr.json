@@ -341,7 +341,8 @@
     },
     "successRate": {
       "successRate": "Taux de réussite : {{rate}}",
-      "successRateDescription": "Part des tests réussis parmi tous les tests.",
+      "successRateDescription": "Calculé à partir des tests réussis, échoués et en erreur. Les tests ignorés et de statut inconnu sont exclus.",
+      "noEligibleResults": "Aucun test réussi, échoué ou en erreur. Les tests ignorés et de statut inconnu sont exclus du taux de réussite.",
       "noResults": "Aucun résultat de test.",
       "notAvailable": "N/D",
       "slice_one": "{{count}} test ({{percent}}% de tous les tests)",
@@ -390,6 +391,7 @@
   },
   "overview": {
     "summary": "Résumé",
+    "successRateDescription": "Part des tests réussis parmi tous les tests.",
     "dates": "{{start, timestamp_long}} – {{stop, timestamp_long}}",
     "duration": "Durée: {{duration, format_duration}}",
     "testCases_one": "{{count}} cas de test",

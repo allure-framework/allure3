@@ -348,7 +348,8 @@
     },
     "successRate": {
       "successRate": "Współczynnik powodzenia: {{rate}}",
-      "successRateDescription": "Odsetek testów zaliczonych spośród wszystkich testów.",
+      "successRateDescription": "Obliczany na podstawie testów zaliczonych, niezaliczonych i uszkodzonych. Testy pominięte i o nieznanym statusie są wykluczone.",
+      "noEligibleResults": "Brak testów zaliczonych, niezaliczonych lub uszkodzonych. Testy pominięte i o nieznanym statusie są wykluczone ze współczynnika powodzenia.",
       "noResults": "Brak wyników testów.",
       "notAvailable": "Brak danych",
       "slice_one": "{{count}} test ({{percent}}% wszystkich testów)",
@@ -400,6 +401,7 @@
   },
   "overview": {
     "summary": "Podsumowanie",
+    "successRateDescription": "Odsetek testów zaliczonych spośród wszystkich testów.",
     "dates": "{{start, timestamp_long}} – {{stop, timestamp_long}}",
     "duration": "Czas trwania: {{duration, format_duration}}",
     "testCases_one": "{{count}} przypadek testowy",

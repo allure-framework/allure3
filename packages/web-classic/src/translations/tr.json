@@ -341,7 +341,8 @@
     },
     "successRate": {
       "successRate": "Başarı oranı: {{rate}}",
-      "successRateDescription": "Tüm testler içinde başarılı testlerin oranı.",
+      "successRateDescription": "Başarılı, başarısız ve bozuk testlerden hesaplanır. Atlanan ve durumu bilinmeyen testler hariç tutulur.",
+      "noEligibleResults": "Başarılı, başarısız veya bozuk test yok. Atlanan ve durumu bilinmeyen testler başarı oranına dahil edilmez.",
       "noResults": "Test sonucu yok.",
       "notAvailable": "Yok",
       "slice_one": "{{count}} test (tüm testlerin %{{percent}} kadarı)",
@@ -389,6 +390,7 @@
   },
   "overview": {
     "summary": "Özet",
+    "successRateDescription": "Tüm testler içinde başarılı testlerin oranı.",
     "dates": "{{start, timestamp_long}} – {{stop, timestamp_long}}",
     "duration": "Süre: {{duration, format_duration}}",
     "testCases_one": "{{count}} test senaryosu",

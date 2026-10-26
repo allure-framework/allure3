@@ -341,7 +341,8 @@
     },
     "successRate": {
       "successRate": "Uğur faizi: {{rate}}",
-      "successRateDescription": "Bütün testlər arasında uğurlu testlərin payı.",
+      "successRateDescription": "Uğurlu, uğursuz və nasaz testlər əsasında hesablanır. Ötürülmüş və statusu naməlum testlər daxil edilmir.",
+      "noEligibleResults": "Uğurlu, uğursuz və ya nasaz testlər yoxdur. Ötürülmüş və statusu naməlum testlər uğur faizinə daxil edilmir.",
       "noResults": "Test nəticələri yoxdur.",
       "notAvailable": "Mövcud deyil",
       "slice_one": "{{count}} test (bütün testlərin {{percent}}%-i)",
@@ -395,6 +396,7 @@
   },
   "overview": {
     "summary": "Xülasə",
+    "successRateDescription": "Bütün testlər arasında uğurlu testlərin payı.",
     "dates": "{{start, timestamp_long}} – {{stop, timestamp_long}}",
     "duration": "Müddət: {{duration, format_duration}}",
     "testCases_one": "{{count}} test halı",

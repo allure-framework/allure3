@@ -342,6 +342,7 @@
     "successRate": {
       "successRate": "Erfolgsquote: {{rate}}",
       "successRateDescription": "Berechnet aus erfolgreichen, fehlgeschlagenen und defekten Tests. Übersprungene Tests und Tests mit unbekanntem Status sind ausgeschlossen.",
+      "noEligibleResults": "Es gibt keine erfolgreichen, fehlgeschlagenen oder defekten Tests. Übersprungene Tests und Tests mit unbekanntem Status sind von der Erfolgsquote ausgeschlossen.",
       "noResults": "Es gibt keine Testergebnisse.",
       "notAvailable": "k. A.",
       "slice_one": "{{count}} Test ({{percent}}% aller Tests)",
@@ -389,6 +390,7 @@
   },
   "overview": {
     "summary": "Zusammenfassung",
+    "successRateDescription": "Anteil der erfolgreichen Tests an allen Tests.",
     "dates": "{{start, timestamp_long}} – {{stop, timestamp_long}}",
     "duration": "Dauer: {{duration, format_duration}}",
     "testCases_one": "{{count}} Testfall",

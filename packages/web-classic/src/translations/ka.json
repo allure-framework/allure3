@@ -341,7 +341,8 @@
     },
     "successRate": {
       "successRate": "წარმატების მაჩვენებელი: {{rate}}",
-      "successRateDescription": "წარმატებული ტესტების წილი ყველა ტესტს შორის.",
+      "successRateDescription": "ითვლება წარმატებული, წარუმატებელი და დაზიანებული ტესტების მიხედვით. გამოტოვებული და უცნობი სტატუსის მქონე ტესტები არ ითვლება.",
+      "noEligibleResults": "წარმატებული, წარუმატებელი ან დაზიანებული ტესტები არ არის. გამოტოვებული და უცნობი სტატუსის მქონე ტესტები წარმატების მაჩვენებელში არ ითვლება.",
       "noResults": "ტესტის შედეგები არ არის.",
       "notAvailable": "მიუწვდომელია",
       "slice_one": "{{count}} ტესტი (ყველა ტესტის {{percent}}%)",
@@ -389,6 +390,7 @@
   },
   "overview": {
     "summary": "შეჯამება",
+    "successRateDescription": "წარმატებული ტესტების წილი ყველა ტესტს შორის.",
     "dates": "{{start, timestamp_long}} – {{stop, timestamp_long}}",
     "duration": "ხანგრძლივობა: {{duration, format_duration}}",
     "testCases_one": "{{count}} სატესტო შემთხვევა",

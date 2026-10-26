@@ -341,7 +341,8 @@
     },
     "successRate": {
       "successRate": "Percentuale di successo: {{rate}}",
-      "successRateDescription": "Quota di test superati sul totale dei test.",
+      "successRateDescription": "Calcolata sui test superati, falliti e con errori. I test saltati e con stato sconosciuto sono esclusi.",
+      "noEligibleResults": "Non ci sono test superati, falliti o con errori. I test saltati e con stato sconosciuto sono esclusi dalla percentuale di successo.",
       "noResults": "Non ci sono risultati dei test.",
       "notAvailable": "N/D",
       "slice_one": "{{count}} test ({{percent}}% di tutti i test)",
@@ -390,6 +391,7 @@
   },
   "overview": {
     "summary": "Riepilogo",
+    "successRateDescription": "Quota di test superati sul totale dei test.",
     "dates": "{{start, timestamp_long}} – {{stop, timestamp_long}}",
     "duration": "Durata: {{duration, format_duration}}",
     "testCases_one": "{{count}} caso di test",
