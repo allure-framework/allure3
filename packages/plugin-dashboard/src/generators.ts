@@ -17,6 +17,7 @@ import {
   copyReportStaticAssets,
   getReportStaticAsset,
   readReportStaticAssets,
+  selectReportStaticFiles,
 } from "@allurereport/plugin-api/static-assets";
 import { generateCharts } from "@allurereport/web-commons";
 import Handlebars from "handlebars";
@@ -90,6 +91,7 @@ export const generateStaticFiles = async (
     allureVersion: string;
     reportFiles: ReportFiles;
     reportDataFiles: ReportFile[];
+    requiredAssetFeatures?: readonly string[];
     reportUuid: string;
     reportName: string;
     overviewHref?: string;
@@ -141,7 +143,11 @@ export const generateStaticFiles = async (
 
     // Dashboard previously embedded uncompressed scripts. Keep that browser
     // compatibility while sharing the async chunk loader with Awesome.
-    bodyTags.push(createSingleFileScripts(staticAssets.files, mainJs, { compress: false }));
+    bodyTags.push(
+      createSingleFileScripts(selectReportStaticFiles(staticAssets, payload.requiredAssetFeatures), mainJs, {
+        compress: false,
+      }),
+    );
   }
 
   const reportOptions: ReportOptions = {

@@ -1,3 +1,4 @@
+import { defaultChartsConfig } from "@allurereport/charts-api";
 import {
   incrementStatistic,
   hasRetriesStatusChange,
@@ -20,8 +21,9 @@ import {
 } from "@allurereport/plugin-api";
 import { preciseTreeLabels } from "@allurereport/plugin-api";
 import { generateHistoryDataPoints } from "@allurereport/plugin-api/internal/report";
-import { validateChartsOptions } from "@allurereport/web-commons";
+import { collectChartAssetFeatures, validateChartsOptions } from "@allurereport/web-commons";
 
+import { collectViewerAssetFeatures } from "./assetRequirements.js";
 import { applyCategoriesToTestResults, generateCategories } from "./categories.js";
 import { generateTimeline } from "./generateTimeline.js";
 import {
@@ -115,6 +117,9 @@ type PerfAwarePluginContext = PluginContext & {
 };
 
 export class AwesomePlugin implements Plugin {
+  // Updating runs retain all assets through done; only start resets this policy.
+  #retainAllAssets = false;
+
   #writer: AwesomeDataWriter | undefined;
 
   constructor(readonly options: AwesomePluginOptions = {}) {
@@ -398,7 +403,7 @@ export class AwesomePlugin implements Plugin {
       labels: treeLabels,
       appendTitlePath,
     });
-    await measure("globals", () =>
+    const globals = await measure("globals", () =>
       generateGlobals(this.#writer!, {
         globalAttachments,
         globalAttachmentsByEnv,
@@ -422,6 +427,11 @@ export class AwesomePlugin implements Plugin {
       ? [...new Set([...configuredSections, "metrics"])]
       : configuredSections.filter((section) => section !== "metrics");
 
+    const chartFeatures =
+      singleFile && !this.#retainAllAssets
+        ? collectChartAssetFeatures(this.options.charts ?? defaultChartsConfig)
+        : undefined;
+
     await measure("staticFiles", () =>
       generateStaticFiles({
         ...this.options,
@@ -438,11 +448,15 @@ export class AwesomePlugin implements Plugin {
         runSummary,
         runSummaryByEnv,
         reportDataFiles,
+        requiredAssetFeatures: chartFeatures
+          ? [...chartFeatures, ...collectViewerAssetFeatures(convertedTrs, attachments, globals)]
+          : undefined,
       }),
     );
   };
 
   start = async (context: PluginContext) => {
+    this.#retainAllAssets = context.realTime === true;
     const { singleFile } = this.options;
 
     if (singleFile) {
@@ -456,6 +470,7 @@ export class AwesomePlugin implements Plugin {
   };
 
   update = async (context: PluginContext, store: AllureStore) => {
+    this.#retainAllAssets = true;
     await this.#generateAfterStart(context, store);
   };
 

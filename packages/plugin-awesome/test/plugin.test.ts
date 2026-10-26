@@ -1008,6 +1008,44 @@ describe("plugin", () => {
       return JSON.parse(match![1]);
     };
 
+    it.each([false, true])(
+      "selects a final snapshot but retains live/update scripts and resets on start (realTime=%s)",
+      async (realTime) => {
+        const files = new Map<string, Buffer>();
+        const reportFiles: ReportFiles = {
+          addFile: async (name, data) => {
+            files.set(name, data);
+            return name;
+          },
+        };
+        const context = { ...makeSingleFileContext(reportFiles), realTime };
+        const store = makeSingleFileStore([]);
+        const plugin = new AwesomePlugin({ singleFile: true, charts: [] });
+        const assets = await readReportStaticAssets(new URL("../dist/static/report.tar", import.meta.url));
+        const scripts = () =>
+          Object.keys(
+            JSON.parse(
+              files
+                .get("index.html")!
+                .toString()
+                .match(/<script id="allure-single-file-assets" type="application\/json">([^<]+)<\/script>/)![1],
+            ),
+          ).sort();
+        const allScripts = [...assets.files.keys()].filter((name) => name.endsWith(".js")).sort();
+        const baseScripts = assets.featureAssets!.base.filter((name) => name.endsWith(".js")).sort();
+        await plugin.start(context);
+        await plugin.done(context, store);
+        expect(scripts()).toEqual(realTime ? allScripts : baseScripts);
+        await plugin.update(context, store);
+        expect(scripts()).toEqual(allScripts);
+        await plugin.done(context, store);
+        expect(scripts()).toEqual(allScripts);
+        await plugin.start({ ...context, realTime: false });
+        await plugin.done({ ...context, realTime: false }, store);
+        expect(scripts()).toEqual(baseScripts);
+      },
+    );
+
     it("should copy every emitted multi-file asset", async () => {
       const addedFiles = new Map<string, Buffer>();
       const reportFiles: ReportFiles = {
@@ -1030,7 +1068,7 @@ describe("plugin", () => {
       }
     });
 
-    it("should embed all required widget files as valid base64 JSON with posix keys", async () => {
+    it("should retain all scripts in live reports and embed widget files with posix keys", async () => {
       const testResults: TestResult[] = [
         {
           id: "tr-1",
@@ -1052,6 +1090,7 @@ describe("plugin", () => {
       const plugin = new AwesomePlugin({ singleFile: true });
 
       await plugin.start(makeSingleFileContext(reportFiles));
+      await plugin.update(makeSingleFileContext(reportFiles), makeSingleFileStore(testResults));
       await plugin.done(makeSingleFileContext(reportFiles), makeSingleFileStore(testResults));
 
       const indexHtml = addedFiles.get("index.html")?.toString("utf-8") ?? "";

@@ -8,3 +8,4 @@ export * from "./treeMap.js";
 export * from "./heatMap.js";
 export * from "./d3pie.js";
 export * from "./generators.js";
+export * from "./renderers.js";
