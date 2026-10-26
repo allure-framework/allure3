@@ -33,6 +33,7 @@ export const TrAttachmentInfo: FunctionalComponent<TrAttachmentInfo> = ({
   onHighlightToggle,
 }) => {
   const { t: tooltip } = useI18n("controls");
+  const { t: tErrors } = useI18n("errors");
   const { t: tAttachments } = useI18n("attachments");
   const { id, ext, contentType } = item.link;
   const isPwTrace = contentType === "application/vnd.allure.playwright-trace";
@@ -159,12 +160,15 @@ export const TrAttachmentInfo: FunctionalComponent<TrAttachmentInfo> = ({
             />
           </TooltipWrapper>
         )}
-        <TooltipWrapper tooltipText={tooltip("downloadAttachment")}>
+        <TooltipWrapper tooltipText={item.link.missed ? tErrors("missedAttachment") : tooltip("downloadAttachment")}>
           <IconButton
             style={"ghost"}
             size={"s"}
             iconSize={"s"}
             className={styles["item-button"]}
+            data-testid="attachment-download-button"
+            isDisabled={item.link.missed}
+            aria-label={tooltip("downloadAttachment")}
             icon={allureIcons.lineGeneralDownloadCloud}
             onClick={(e: MouseEvent) => downloadData(e)}
           />

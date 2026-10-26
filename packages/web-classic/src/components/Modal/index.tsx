@@ -92,6 +92,7 @@ export type ModalProps = {
 
 const Modal: FunctionalComponent<ModalProps> = ({ testResult }) => {
   const { t } = useI18n("controls");
+  const { t: tErrors } = useI18n("errors");
   const { data, component, preview, title } = modalData.value;
   const link = getAttachmentLink(data);
   const attachName = link?.name ? `${link?.name}` : link ? `${link?.id}${link?.ext}` : "";
@@ -137,6 +138,7 @@ const Modal: FunctionalComponent<ModalProps> = ({ testResult }) => {
               {isImageAttachment && (
                 <Button
                   style={"outline"}
+                  isDisabled={link?.missed}
                   onClick={openInNewWindow}
                   icon={allureIcons.lineGeneralLinkExternal}
                   text={t("openInNewTab")}
@@ -159,11 +161,14 @@ const Modal: FunctionalComponent<ModalProps> = ({ testResult }) => {
                 </TooltipWrapper>
               )}
               {isAttachment && (
-                <TooltipWrapper tooltipText={t("downloadAttachment")}>
+                <TooltipWrapper tooltipText={link?.missed ? tErrors("missedAttachment") : t("downloadAttachment")}>
                   <IconButton
                     style={"outline"}
                     size={"m"}
                     iconSize={"s"}
+                    data-testid="attachment-download-button"
+                    isDisabled={link?.missed}
+                    aria-label={t("downloadAttachment")}
                     icon={allureIcons.lineGeneralDownloadCloud}
                     onClick={(e: MouseEvent) => downloadData(e)}
                   />
