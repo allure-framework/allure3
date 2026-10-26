@@ -96,7 +96,8 @@
     "showMore": "Visa mer",
     "copy": "Kopiera",
     "attempt": "Försök {{attempt}} av {{total}}",
-    "at": "vid"
+    "at": "vid",
+    "generated": "Genererad"
   },
   "controls": {
     "backToOverview": "Tillbaka till översikten",
@@ -112,7 +113,8 @@
     "expand": "Expandera",
     "fullscreen": "Helskärm",
     "language": "Byt språk",
-    "openInNewTab": "Öppna i ny flik"
+    "openInNewTab": "Öppna i ny flik",
+    "theme": "Byt tema"
   },
   "errors": {
     "missedAttachment": "Bilaga hittades inte"
@@ -134,5 +136,11 @@
       "statusSlice": "{{count}} {{status}} ({{percent}}% av alla tester)",
       "slice": "{{count}} tester ({{percent}}% av alla tester)"
     }
+  },
+  "timeline": {
+    "empty": "Inga data",
+    "selected_one": "{{ count }} test ({{ percentage }}%) med varaktighet mer än {{ minDuration }} och mindre än {{ maxDuration }} vald",
+    "selected_other": "{{ count }} tester ({{ percentage }}%) med varaktighet mer än {{ minDuration }} och mindre än {{ maxDuration }} valda",
+    "host": "Värd: {{ host }}"
   }
 }

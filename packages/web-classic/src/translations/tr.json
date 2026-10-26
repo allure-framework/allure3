@@ -96,7 +96,8 @@
     "showMore": "Daha fazla göster",
     "copy": "Kopyala",
     "attempt": "Deneme {{attempt}} / {{total}}",
-    "at": "tarihinde"
+    "at": "tarihinde",
+    "generated": "Oluşturuldu"
   },
   "controls": {
     "backToOverview": "Genel bakışa dön",
@@ -112,7 +113,8 @@
     "expand": "Genişlet",
     "fullscreen": "Tam ekran",
     "language": "Dili değiştir",
-    "openInNewTab": "Yeni sekmede aç"
+    "openInNewTab": "Yeni sekmede aç",
+    "theme": "Temayı değiştir"
   },
   "errors": {
     "missedAttachment": "Ek bulunamadı"
@@ -134,5 +136,11 @@
       "statusSlice": "{{count}} {{status}} (tüm testlerin %{{percent}} kadarı)",
       "slice": "{{count}} test (tüm testlerin %{{percent}} kadarı)"
     }
+  },
+  "timeline": {
+    "empty": "Veri yok",
+    "selected_one": "{{ count }} test ({{ percentage }}%) {{ minDuration }}'dan fazla ve {{ maxDuration }}'dan az süreyle seçildi",
+    "selected_other": "{{ count }} test ({{ percentage }}%) {{ minDuration }}'dan fazla ve {{ maxDuration }}'dan az süreyle seçildi",
+    "host": "Ana bilgisayar: {{ host }}"
   }
 }

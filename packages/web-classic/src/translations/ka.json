@@ -96,7 +96,8 @@
     "showMore": "მეტის ჩვენება",
     "copy": "კოპირება",
     "attempt": "მცდელობა {{attempt}} {{total}}-დან",
-    "at": "ზე"
+    "at": "ზე",
+    "generated": "გენერირებულია"
   },
   "controls": {
     "backToOverview": "მიმოხილვაზე დაბრუნება",
@@ -112,7 +113,8 @@
     "expand": "გახსნა",
     "fullscreen": "სრულ ეკრანზე",
     "language": "ენის შეცვლა",
-    "openInNewTab": "გახსნა ახალ ჩანართში"
+    "openInNewTab": "გახსნა ახალ ჩანართში",
+    "theme": "თემის შეცვლა"
   },
   "errors": {
     "missedAttachment": "დანართი ვერ მოიძებნა"
@@ -134,5 +136,11 @@
       "statusSlice": "{{count}} {{status}} (ყველა ტესტის {{percent}}%)",
       "slice": "{{count}} ტესტი (ყველა ტესტის {{percent}}%)"
     }
+  },
+  "timeline": {
+    "empty": "მონაცემები არ არის",
+    "selected_one": "არჩეულია {{ count }} ტესტი ({{ percentage }}%) {{ minDuration }}-ზე მეტი და {{ maxDuration }}-ზე ნაკლები ხანგრძლივობით",
+    "selected_other": "არჩეულია {{ count }} ტესტი ({{ percentage }}%) {{ minDuration }}-ზე მეტი და {{ maxDuration }}-ზე ნაკლები ხანგრძლივობით",
+    "host": "ჰოსტი: {{ host }}"
   }
 }

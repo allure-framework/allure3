@@ -43,7 +43,8 @@ const App = () => {
   }, []);
 
   const ActiveComponent = useMemo(
-    () => tabComponents[route.value.tabName] || (() => null),
+    // Unknown tabs fall back to Overview, like the Allure 2 default route
+    () => tabComponents[route.value.tabName] || Overview,
     // oxlint-disable-next-line eslint-plugin-react-hooks/exhaustive-deps
     [route.value.tabName],
   );

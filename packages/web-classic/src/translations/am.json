@@ -112,7 +112,8 @@
     "expand": "Ընդլայնել",
     "fullscreen": "Լրիվ էկրան",
     "language": "Փոխել լեզուն",
-    "openInNewTab": "Բացել նոր ներդիրում"
+    "openInNewTab": "Բացել նոր ներդիրում",
+    "theme": "Փոխել թեման"
   },
   "errors": {
     "missedAttachment": "Կցորդը չի գտնվել"

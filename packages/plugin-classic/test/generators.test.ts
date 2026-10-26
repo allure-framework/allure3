@@ -267,4 +267,15 @@ describe("generateStaticFiles", () => {
 
     expect(files.get("index.html")?.toString("utf8")).not.toContain("overviewHref");
   });
+
+  it("should inline the favicon so it works without extra report files", async () => {
+    const { files, reportFiles } = createReportFiles();
+
+    await generateStaticFiles({ ...payload, reportFiles });
+
+    const html = files.get("index.html")?.toString("utf8");
+
+    expect(html).toContain('<link rel="icon" href="data:image/svg+xml,');
+    expect(html).not.toContain('href="favicon.ico"');
+  });
 });

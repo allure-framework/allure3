@@ -10,6 +10,7 @@ import { preciseTreeLabels } from "@allurereport/plugin-api";
 import { generateAttachmentsFiles, generateHistoryDataPoints } from "@allurereport/plugin-api/internal/report";
 
 import { resolveClassicCategories } from "./categories.js";
+import { generateTimeline } from "./generateTimeline.js";
 import {
   generateAllCharts,
   generateEnvironmentJson,
@@ -61,6 +62,7 @@ export class ClassicPlugin implements Plugin {
     await generateTree(this.#writer!, "behaviors", behaviorLabels, convertedTrs);
     await generateTree(this.#writer!, "packages", packagesLabels, convertedTrs);
     await generateHistoryDataPoints(this.#writer!, store);
+    await generateTimeline(this.#writer!, await store.allTestResults({ includeRetries: true, filter }), this.options);
 
     await generateEnvironmentJson(this.#writer!, environmentItems ?? []);
 

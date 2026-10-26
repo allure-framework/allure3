@@ -9,14 +9,21 @@ type NavigateToObject = {
   };
 };
 
-const parseHash = () => {
-  const hash = globalThis.location.hash.slice(1);
-  const [tabName, ...params] = hash.split("/");
+export const DEFAULT_TAB = "overview";
+
+/**
+ * Parses a location hash (with or without the leading "#") into a route.
+ * An empty hash opens the default tab, like Allure 2 opens Overview for `index.html`.
+ */
+export const parseRoute = (hash: string) => {
+  const [tabName, ...params] = hash.replace(/^#/, "").split("/");
   return {
-    tabName: tabName,
+    tabName: tabName || DEFAULT_TAB,
     params: { id: params[0] || null, testResultId: params[1] || null },
   };
 };
+
+const parseHash = () => parseRoute(globalThis.location?.hash ?? "");
 
 export const route = signal(parseHash());
 
@@ -38,7 +45,7 @@ export const navigateTo = (path: NavigateToString | NavigateToObject) => {
   if (typeof path === "string") {
     newHash = path.startsWith("#") ? path.slice(1) : path;
   } else {
-    const { tabName = "overview", params = {} } = path;
+    const { tabName = DEFAULT_TAB, params = {} } = path;
     const { id = null, testResultId = null } = params;
     newHash = `${tabName}/${id || ""}/${testResultId || ""}`;
   }

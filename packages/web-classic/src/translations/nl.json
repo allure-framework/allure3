@@ -96,7 +96,8 @@
     "showMore": "Meer weergeven",
     "copy": "Kopiëren",
     "attempt": "Poging {{attempt}} van {{total}}",
-    "at": "om"
+    "at": "om",
+    "generated": "Gegenereerd"
   },
   "controls": {
     "backToOverview": "Terug naar overzicht",
@@ -112,7 +113,8 @@
     "expand": "Uitvouwen",
     "fullscreen": "Volledig scherm",
     "language": "Taal wijzigen",
-    "openInNewTab": "Openen in een nieuw tabblad"
+    "openInNewTab": "Openen in een nieuw tabblad",
+    "theme": "Thema wijzigen"
   },
   "errors": {
     "missedAttachment": "Bijlage niet gevonden"
@@ -134,5 +136,11 @@
       "statusSlice": "{{count}} {{status}} ({{percent}}% van alle tests)",
       "slice": "{{count}} tests ({{percent}}% van alle tests)"
     }
+  },
+  "timeline": {
+    "empty": "Geen gegevens",
+    "selected_one": "{{ count }} test ({{ percentage }}%) met duur meer dan {{ minDuration }} en minder dan {{ maxDuration }} geselecteerd",
+    "selected_other": "{{ count }} tests ({{ percentage }}%) met duur meer dan {{ minDuration }} en minder dan {{ maxDuration }} geselecteerd",
+    "host": "Host: {{ host }}"
   }
 }

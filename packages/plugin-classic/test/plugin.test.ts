@@ -36,6 +36,7 @@ const createStore = (metadata: Record<string, unknown> = {}) =>
     metadataByKey: vi.fn(async (key: string) => metadata[key]),
     testsStatistic: vi.fn().mockResolvedValue({ total: 0 }),
     allAttachments: vi.fn().mockResolvedValue([]),
+    allTestResults: vi.fn().mockResolvedValue([]),
   }) as unknown as AllureStore;
 
 const createContext = (overrides: Partial<PluginContext> = {}) =>
