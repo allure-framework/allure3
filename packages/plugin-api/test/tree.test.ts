@@ -5,8 +5,10 @@ import { epic, feature, label, story } from "allure-js-commons";
 import { beforeEach, describe, expect, it } from "vite-plus/test";
 
 import {
+  byCategories,
   byLabels,
   collapseTreeGroups,
+  createTreeByCategories,
   createTreeByLabels,
   createTreeByTitlePath,
   filterTree,
@@ -738,5 +740,43 @@ describe("collapseTreeGroups", () => {
     expect(group.name).toBe("folder1 > folderEmpty > folder3 > file.spec.ts");
     expect(group.leaves).toEqual([tr.id]);
     expect(group.groups ?? []).toHaveLength(0);
+  });
+});
+
+describe("createTreeByCategories", () => {
+  it("should classify categories in one layer and the message in the next one", () => {
+    const tr = itResult({
+      categories: [{ name: "A" }, { name: "B" }, { name: "A" }],
+      error: { message: "boom" },
+    });
+
+    expect(byCategories(tr)).toEqual([["A", "B"], ["boom"]]);
+    expect(byCategories(itResult({ categories: [{ name: "A" }] }))).toEqual([["A"]]);
+    expect(byCategories(itResult({ error: { message: "boom" } }))).toEqual([]);
+  });
+
+  it("should nest the message under every category of the test result", () => {
+    const tr = itResult({ categories: [{ name: "A" }, { name: "B" }], error: { message: "boom" } });
+    const tree = createTreeByCategories([tr]);
+    const rootNames = tree.root.groups!.map((id) => tree.groupsById[id].name);
+
+    expect(rootNames).toEqual(["A", "B"]);
+
+    for (const id of tree.root.groups!) {
+      const [messageId] = tree.groupsById[id].groups!;
+
+      expect(tree.groupsById[messageId].name).toBe("boom");
+      expect(tree.groupsById[messageId].leaves).toEqual([tr.id]);
+    }
+  });
+
+  it("should not create root message groups or leaves for test results without categories", () => {
+    const categorized = itResult({ categories: [{ name: "A" }], error: { message: "boom" } });
+    const uncategorized = itResult({ status: "failed", error: { message: "other" } });
+    const tree = createTreeByCategories([categorized, uncategorized]);
+
+    expect(tree.root.groups!.map((id) => tree.groupsById[id].name)).toEqual(["A"]);
+    expect(tree.root.leaves ?? []).toEqual([]);
+    expect(tree.leavesById[uncategorized.id]).toBeUndefined();
   });
 });

@@ -202,6 +202,10 @@ export const createTreeByLabels = <T = TestResult, L = DefaultTreeLeaf, G = Defa
   );
 };
 
+/**
+ * Creates the categories tree: category -> error message -> test result.
+ * A test result with several categories is placed under each of them; test results without categories are left out.
+ */
 export const createTreeByCategories = <T = TestResult, L = DefaultTreeLeaf, G = DefaultTreeGroup>(
   data: T[],
   leafFactory?: (item: T) => TreeLeaf<L>,
@@ -229,7 +233,7 @@ export const createTreeByCategories = <T = TestResult, L = DefaultTreeLeaf, G = 
       }) as unknown as TreeGroup<G>);
 
   return createTree<T, L, G>(
-    data,
+    data.filter((item) => ((item as TestResult).categories?.length ?? 0) > 0),
     (item) => byCategories(item as TestResult),
     leafFactoryFn,
     groupFactoryFn,
@@ -237,19 +241,21 @@ export const createTreeByCategories = <T = TestResult, L = DefaultTreeLeaf, G = 
   );
 };
 
+/**
+ * Classifies a test result for the categories tree: the first layer holds all its category names,
+ * the second one its error message, so the message is always nested under a category.
+ * Returns no layers for a test result without categories, so it never creates a root message group.
+ */
 export const byCategories = (item: TestResult): string[][] => {
-  const categories = item.categories ?? [];
-  const result: string[][] = [];
+  const categoryNames = Array.from(
+    new Set<string>(((item.categories ?? []) as { name: string }[]).map(({ name }) => name)),
+  );
 
-  for (const category of categories) {
-    result.push([category.name]);
+  if (!categoryNames.length) {
+    return [];
   }
 
-  if (item.error?.message) {
-    result.push([item.error?.message]);
-  }
-
-  return result;
+  return item.error?.message ? [categoryNames, [item.error.message]] : [categoryNames];
 };
 
 /**

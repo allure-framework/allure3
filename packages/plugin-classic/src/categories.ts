@@ -7,7 +7,7 @@ import {
   DEFAULT_ERROR_CATEGORIES,
   DEFAULT_ERROR_CATEGORY_IDS,
   extractErrorMatchingData,
-  matchCategory,
+  matchCategoryMatcher,
   normalizeCategoriesConfig,
 } from "@allurereport/core-api";
 import type { ReportCategory, ReportTestResult } from "@allurereport/plugin-api";
@@ -199,24 +199,49 @@ export const resolveClassicCategories = (
 };
 
 /**
- * Returns the category the test result belongs to (the first matching one), as it is stored in the test result data.
- * Returns an empty list when there is no match or the matched category is hidden.
+ * Whether the category is a built-in Product / Test defects fallback: it only has the built-in status matcher
+ */
+const isFallbackCategory = (category: CategoryDefinition) =>
+  isDefaultCategory(category) &&
+  category.matchers.length > 0 &&
+  category.matchers.every((matcher) => isBuiltInDefaultMatcher(category.id, matcher));
+
+/**
+ * Returns the categories the test result belongs to, as they are stored in the test result data.
+ * As in Allure 2 (unlike the first-match rule of core `matchCategory` used by the awesome report),
+ * a test result gets every matching category from the config and `categories.json`, in matching order.
+ * The built-in Product / Test defects fallbacks apply only when none of them matched.
+ * Hidden categories are left out; a matching hidden category still disables the fallbacks.
  */
 export const matchClassicCategories = (
   categories: CategoryDefinition[],
   tr: Pick<ReportTestResult, "status" | "labels" | "error" | "flaky" | "duration" | "transition" | "environment">,
 ): ReportCategory[] => {
-  const matched = matchCategory(categories, extractErrorMatchingData(tr));
+  const data = extractErrorMatchingData(tr);
+  const matches = (category: CategoryDefinition) =>
+    category.matchers.some((matcher) => matchCategoryMatcher(matcher, data));
+  let matched = categories.filter((category) => !isFallbackCategory(category) && matches(category));
 
-  if (!matched || matched.hide) {
-    return [];
+  if (!matched.length) {
+    const fallback = categories.find((category) => isFallbackCategory(category) && matches(category));
+
+    matched = fallback ? [fallback] : [];
   }
 
-  return [{ id: matched.id, name: matched.name }];
+  const result = new Map<string, ReportCategory>();
+
+  for (const category of matched) {
+    if (!category.hide && !result.has(category.id)) {
+      result.set(category.id, { id: category.id, name: category.name });
+    }
+  }
+
+  return Array.from(result.values());
 };
 
 /**
  * Prepares test results for the Allure 2 like categories tree: category -> error message -> test.
+ * A test result with several categories is shown under each of them.
  * Test results without a category are left out; a missing error message is grouped under "No message".
  */
 export const toCategoriesTreeItems = (tests: ReportTestResult[]): ReportTestResult[] =>
@@ -224,7 +249,6 @@ export const toCategoriesTreeItems = (tests: ReportTestResult[]): ReportTestResu
     .filter((test) => !test.isRetry && (test.categories?.length ?? 0) > 0)
     .map((test) => ({
       ...test,
-      categories: test.categories!.slice(0, 1),
       error: {
         ...test.error,
         message: test.error?.message?.trim() ? test.error.message : NO_MESSAGE_GROUP,

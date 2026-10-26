@@ -1,10 +1,9 @@
 import { type Statistic, statusesList } from "@allurereport/core-api";
-import { Loadable, Text } from "@allurereport/web-components";
+import { Text } from "@allurereport/web-components";
 import { clsx } from "clsx";
 import { type FunctionComponent } from "preact";
 
 import { ArrowButton } from "@/components/ArrowButton";
-import { statsStore } from "@/stores";
 
 import { useTreeStore } from "./context";
 
@@ -36,54 +35,44 @@ const TreeHeader: FunctionComponent<TreeHeaderProps> = ({
   statistic,
   ...rest
 }) => {
-  const { filters, showGroupsInfo } = useTreeStore();
+  const { filters, showGroupsInfo, stats } = useTreeStore();
   const { status: statusFilter } = filters.value;
+  // the bar is scaled against all tests of the current tree, like in Allure 2
+  const treeTotal = stats.value?.total ?? statistic?.total ?? 0;
+  const width = Math.floor(progress(statistic?.total ?? 0, treeTotal) * (maxWidthTab - minWidthTab) + minWidthTab);
+
+  const treeHeaderBar =
+    statistic && showGroupsInfo.value
+      ? statusesList
+          .map((status) => ({ status, value: statistic[status] }))
+          .filter(
+            ({ status, value }) =>
+              value !== undefined && (statusFilter === "total" || (statusFilter === status && value > 0)),
+          )
+          .map(({ status, value }) => {
+            const className = clsx(styles["tree-header-bar-item"], styles[status]);
+            const style = { flexGrow: value };
+
+            return (
+              <div key={status} className={className} style={style}>
+                {value}
+              </div>
+            );
+          })
+      : null;
 
   return (
-    <Loadable
-      source={statsStore}
-      renderData={(stats: Statistic) => {
-        const width = Math.floor(progress(statistic.total, stats.total) * (maxWidthTab - minWidthTab) + minWidthTab);
-
-        const treeHeaderBar =
-          statistic && showGroupsInfo.value
-            ? statusesList
-                .map((status) => ({ status, value: statistic[status] }))
-                .filter(
-                  ({ status, value }) =>
-                    value !== undefined && (statusFilter === "total" || (statusFilter === status && value > 0)),
-                )
-                .map(({ status, value }) => {
-                  const className = clsx(styles["tree-header-bar-item"], styles[status]);
-                  const style = { flexGrow: value };
-
-                  return (
-                    <div key={status} className={className} style={style}>
-                      {value}
-                    </div>
-                  );
-                })
-            : null;
-
-        return (
-          <div data-testid="tree-header" {...rest} className={styles["tree-header"]} onClick={toggleTree}>
-            <ArrowButton data-testid="tree-arrow" isOpened={isOpened} />
-            <Text data-testid="tree-header-title" size="m" bold className={styles["tree-header-title"]}>
-              {categoryTitle}
-            </Text>
-            {treeHeaderBar && (
-              <div
-                data-testid="tree-header-bar"
-                className={styles["tree-header-bar"]}
-                style={{ minWidth: `${width}px` }}
-              >
-                {treeHeaderBar}
-              </div>
-            )}
-          </div>
-        );
-      }}
-    />
+    <div data-testid="tree-header" {...rest} className={styles["tree-header"]} onClick={toggleTree}>
+      <ArrowButton data-testid="tree-arrow" isOpened={isOpened} />
+      <Text data-testid="tree-header-title" size="m" bold className={styles["tree-header-title"]}>
+        {categoryTitle}
+      </Text>
+      {treeHeaderBar && (
+        <div data-testid="tree-header-bar" className={styles["tree-header-bar"]} style={{ minWidth: `${width}px` }}>
+          {treeHeaderBar}
+        </div>
+      )}
+    </div>
   );
 };
 

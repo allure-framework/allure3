@@ -38,7 +38,7 @@ const treeData = {
     g1: { nodeId: "g1", name: "group", leaves: ["l1", "l2", "l3"], statistic: { total: 3, passed: 3 } },
   },
   leavesById: {
-    l1: { nodeId: "l1", name: "first", status: "passed", flaky: true },
+    l1: { nodeId: "l1", name: "first", status: "passed", flaky: true, duration: 1500 },
     l2: { nodeId: "l2", name: "second", status: "passed", transition: "new" },
     l3: { nodeId: "l3", name: "third", status: "passed", retry: true, retriesCount: 2 },
   },
@@ -105,5 +105,31 @@ describe("TreeList", () => {
     expect(leaf("second").querySelector("[data-testid=tree-leaf-transition-new]")).toBeTruthy();
     expect(leaf("third").querySelector("[data-testid=tree-leaf-retries]")?.textContent).toContain("2");
     expect(leaf("first").querySelector("[data-testid=tree-leaf-retries]")).toBeNull();
+  });
+
+  it("scales the group status bar against the tests of the current tree", async () => {
+    // the whole report has many more tests than this tree, the only group still holds all tests of the tree
+    statsStore.value = { loading: false, error: undefined, data: { total: 300, passed: 300 } };
+
+    await renderTree();
+
+    expect(screen.getByTestId("tree-header-bar").style.minWidth).toBe("140px");
+  });
+
+  it("shows no duration for leaves without start and stop", async () => {
+    await renderTree();
+
+    fireEvent.click(screen.getByTestId("tree-expand-all"));
+
+    const durations = screen.getAllByTestId("tree-leaf-duration");
+
+    expect(durations).toHaveLength(1);
+    expect(durations[0].textContent).not.toContain("unknown");
+    expect(
+      screen
+        .getAllByTestId("tree-leaf")
+        .map((leaf) => leaf.textContent)
+        .join(" "),
+    ).not.toContain("unknown");
   });
 });
