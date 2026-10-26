@@ -13,6 +13,7 @@ interface TreeHeaderProps {
   statistic?: Statistic;
   categoryTitle: string;
   isOpened: boolean;
+  isMarked?: boolean;
   toggleTree: () => void;
 }
 
@@ -31,6 +32,7 @@ const progress = (current: number, total: number) => {
 const TreeHeader: FunctionComponent<TreeHeaderProps> = ({
   categoryTitle,
   isOpened,
+  isMarked,
   toggleTree,
   statistic,
   ...rest
@@ -62,7 +64,12 @@ const TreeHeader: FunctionComponent<TreeHeaderProps> = ({
       : null;
 
   return (
-    <div data-testid="tree-header" {...rest} className={styles["tree-header"]} onClick={toggleTree}>
+    <div
+      data-testid="tree-header"
+      {...rest}
+      className={clsx(styles["tree-header"], isMarked && styles["tree-header-marked"])}
+      onClick={toggleTree}
+    >
       <ArrowButton data-testid="tree-arrow" isOpened={isOpened} />
       <Text data-testid="tree-header-title" size="m" bold className={styles["tree-header-title"]}>
         {categoryTitle}

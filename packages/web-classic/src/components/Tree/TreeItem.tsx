@@ -6,6 +6,7 @@ import type { FunctionComponent } from "preact";
 import TreeItemIcon from "@/components/Tree/TreeItemIcon";
 import { useI18n } from "@/stores/locale";
 import { navigateTo, route } from "@/stores/router";
+import { getTestResultHash } from "@/utils/testResultNavigation";
 
 import * as styles from "./styles.scss";
 
@@ -35,10 +36,14 @@ export const TreeItem: FunctionComponent<TreeItemProps> = ({
   transition,
   ...rest
 }) => {
-  const { tabName } = route.value;
+  const { tabName, params } = route.value;
   const { t } = useI18n("tree");
   const { t: transitionsT } = useI18n("transitions");
-  const navigateToTR = () => navigateTo(`#${tabName}/${parentNodeId || "root"}/${id}`);
+  // the opened test result tab (history, retries, etc.) is kept, like with the previous/next buttons
+  const navigateToTR = () =>
+    navigateTo(
+      `#${getTestResultHash({ tabName, params: { ...params, id: parentNodeId || "root", testResultId: id } }, id)}`,
+    );
   // Allure 2 leaf marks: flaky icon, retries count and status transition (e.g. new test)
   const tooltips = {
     flaky: t("flaky"),

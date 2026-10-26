@@ -1,5 +1,7 @@
-import { signal } from "@preact/signals";
+import { computed } from "@preact/signals";
 import type { ReportTestResult } from "types";
+
+import { route } from "@/stores/router";
 
 export const TEST_RESULT_TABS = ["overview", "history", "retries", "attachments"] as const;
 
@@ -8,10 +10,12 @@ export type TestResultTabId = (typeof TEST_RESULT_TABS)[number];
 export const DEFAULT_TEST_RESULT_TAB: TestResultTabId = "overview";
 
 /**
- * The tab the user picked last. It is kept in memory between test results, so moving to the previous or next
- * result stays on the same tab when the result has it. It is not part of the URL: a reload opens the overview tab.
+ * The tab requested by the URL (`#suites/<groupId>/<testResultId>/<tab>`), so a reload or a shared link opens it.
+ * Moving to the previous or next result keeps it in the URL, links without it open the overview tab.
  */
-export const selectedTestResultTab = signal<string>(DEFAULT_TEST_RESULT_TAB);
+export const selectedTestResultTab = computed<string>(
+  () => route.value.params.testResultTab ?? DEFAULT_TEST_RESULT_TAB,
+);
 
 export const isTestResultTabAvailable = (testResult: ReportTestResult | undefined, tab: string): boolean => {
   switch (tab) {

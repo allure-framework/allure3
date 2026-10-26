@@ -2,7 +2,9 @@ import { Text } from "@allurereport/web-components";
 import { type ComponentChildren, createContext } from "preact";
 import { useContext, useState } from "preact/hooks";
 
+import { navigateTo, route } from "@/stores/router";
 import { resolveTestResultTab, selectedTestResultTab } from "@/stores/testResultTab";
+import { getTestResultTabHash } from "@/utils/testResultNavigation";
 
 import * as styles from "./styles.scss";
 
@@ -30,12 +32,16 @@ export const TestResultTabsProvider = (props: {
 }) => {
   const { children, initialTab, isTabAvailable } = props;
   const [localTab, setLocalTab] = useState<string | undefined>(initialTab);
-  // when availability is known, the tab is shared between test results, so prev/next navigation keeps it
+  // when availability is known, the tab is taken from the URL, so a reload and prev/next navigation keep it
   const selectedTab = isTabAvailable ? selectedTestResultTab.value : localTab;
   const currentTab = isTabAvailable ? resolveTestResultTab(selectedTab, isTabAvailable, initialTab) : selectedTab;
   const setCurrentTab = (id: string) => {
     if (isTabAvailable) {
-      selectedTestResultTab.value = id;
+      const hash = getTestResultTabHash(route.value, id);
+
+      if (hash) {
+        navigateTo(hash);
+      }
       return;
     }
 

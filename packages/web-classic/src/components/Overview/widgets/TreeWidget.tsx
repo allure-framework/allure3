@@ -48,15 +48,22 @@ export const TreeWidget = ({ title, source, tabName, testId }: TreeWidgetProps) 
                 ) : (
                   <ul className={styles["overview-tree-widget-list"]}>
                     {items.map(({ id, name, statistic }) => (
-                      <li key={id} className={styles["overview-tree-widget-item"]}>
-                        <Text className={styles["overview-tree-widget-name"]} title={name}>
-                          {name}
-                        </Text>
-                        <TreeStatusBar
-                          statistic={statistic}
-                          reportStatistic={maxStatistic}
-                          statusFilter={statusFilter}
-                        />
+                      <li key={id}>
+                        {/* as in Allure 2, a row opens the group on the page of the whole tree */}
+                        <a
+                          className={styles["overview-tree-widget-item"]}
+                          href={`#${tabName}/${id}`}
+                          data-testid="overview-tree-widget-item"
+                        >
+                          <Text className={styles["overview-tree-widget-name"]} title={name}>
+                            {name}
+                          </Text>
+                          <TreeStatusBar
+                            statistic={statistic}
+                            reportStatistic={maxStatistic}
+                            statusFilter={statusFilter}
+                          />
+                        </a>
                       </li>
                     ))}
                   </ul>
