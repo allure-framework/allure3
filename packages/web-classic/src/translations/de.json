@@ -65,7 +65,9 @@
     "clear-filters": "Filter löschen",
     "no-attachments-results": "Keine Anhängeinformationen verfügbar",
     "no-history-results": "Keine Verlaufsinformationen verfügbar",
-    "no-retries-results": "Keine Wiederholungsinformationen verfügbar"
+    "no-retries-results": "Keine Wiederholungsinformationen verfügbar",
+    "no-test-steps-results": "Keine Informationen zu Testschritten verfügbar",
+    "no-message-provided": "Keine Nachricht vorhanden"
   },
   "severity": {
     "blocker": "Blocker",
@@ -123,7 +125,23 @@
     "fullscreen": "Vollbild",
     "language": "Sprache ändern",
     "openInNewTab": "In neuem Tab öffnen",
-    "theme": "Design wechseln"
+    "theme": "Design wechseln",
+    "showDiff": "Unterschied anzeigen",
+    "comparison": "Vergleich",
+    "expected": "Erwartet",
+    "actual": "Tatsächlich",
+    "viewMode": "Ansichtsmodus",
+    "unified": "Einheitlich",
+    "side-by-side": "Nebeneinander",
+    "compareBy": "Vergleichen nach",
+    "chars": "Zeichen",
+    "words": "Wörter",
+    "lines": "Zeilen",
+    "loadComparisonError": "Vergleich konnte nicht geladen werden",
+    "retry": "Erneut versuchen",
+    "loadAttachmentViewerError": "Anhangsanzeige konnte nicht geladen werden",
+    "previewAttachment": "Vorschau",
+    "viewCode": "Code anzeigen"
   },
   "errors": {
     "missedAttachment": "Anhang nicht gefunden"
@@ -147,5 +165,24 @@
     "selected_one": "{{ count }} Test ({{ percentage }}%) mit Dauer mehr als {{ minDuration }} und weniger als {{ maxDuration }} ausgewählt",
     "selected_other": "{{ count }} Tests ({{ percentage }}%) mit Dauer mehr als {{ minDuration }} und weniger als {{ maxDuration }} ausgewählt",
     "host": "Host: {{ host }}"
+  },
+  "attachments": {
+    "imageDiff": {
+      "mode": {
+        "diff": "Diff",
+        "actual": "Tatsächlich",
+        "expected": "Erwartet",
+        "side-by-side": "Nebeneinander",
+        "overlay": "Überlagerung"
+      },
+      "empty": {
+        "failed-to-load": "Bildvergleich konnte nicht geladen werden"
+      },
+      "image": {
+        "diff": "Diff",
+        "actual": "Tatsächlich",
+        "expected": "Erwartet"
+      }
+    }
   }
 }

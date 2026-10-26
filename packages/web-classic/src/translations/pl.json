@@ -62,7 +62,9 @@
     "clear-filters": "Wyczyść filtry",
     "no-attachments-results": "Brak dostępnych informacji o załącznikach",
     "no-history-results": "Brak dostępnych informacji o historii",
-    "no-retries-results": "Brak dostępnych informacji o ponownych próbach"
+    "no-retries-results": "Brak dostępnych informacji o ponownych próbach",
+    "no-test-steps-results": "Brak dostępnych informacji o krokach testowych",
+    "no-message-provided": "Nie podano komunikatu"
   },
   "severity": {
     "name": "Ważność",
@@ -121,7 +123,23 @@
     "fullscreen": "Pełny ekran",
     "language": "Zmień język",
     "openInNewTab": "Otwórz w nowej karcie",
-    "theme": "Zmień motyw"
+    "theme": "Zmień motyw",
+    "showDiff": "Pokaż różnicę",
+    "comparison": "Porównanie",
+    "expected": "Oczekiwany",
+    "actual": "Rzeczywisty",
+    "viewMode": "Tryb widoku",
+    "unified": "Zunifikowany",
+    "side-by-side": "Obok siebie",
+    "compareBy": "Porównaj według",
+    "chars": "znaki",
+    "words": "słowa",
+    "lines": "linie",
+    "loadComparisonError": "Nie udało się załadować porównania",
+    "retry": "Spróbuj ponownie",
+    "loadAttachmentViewerError": "Nie udało się załadować podglądu załącznika",
+    "previewAttachment": "Podgląd",
+    "viewCode": "Pokaż kod"
   },
   "errors": {
     "missedAttachment": "Nie znaleziono załącznika"
@@ -153,5 +171,24 @@
     "selected_many": "Wybrano {{ count }} testów ({{ percentage }}%) z czasem trwania większym niż {{ minDuration }} i mniejszym niż {{ maxDuration }}",
     "selected_other": "Wybrano {{ count }} testów ({{ percentage }}%) z czasem trwania większym niż {{ minDuration }} i mniejszym niż {{ maxDuration }}",
     "host": "Host: {{ host }}"
+  },
+  "attachments": {
+    "imageDiff": {
+      "mode": {
+        "diff": "Różnica",
+        "actual": "Aktualny",
+        "expected": "Oczekiwany",
+        "side-by-side": "Obok siebie",
+        "overlay": "Nakładka"
+      },
+      "empty": {
+        "failed-to-load": "Nie udało się załadować porównania obrazów"
+      },
+      "image": {
+        "diff": "Różnica",
+        "actual": "Aktualny",
+        "expected": "Oczekiwany"
+      }
+    }
   }
 }

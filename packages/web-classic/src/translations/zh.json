@@ -65,7 +65,9 @@
     "clear-filters": "清除过滤器",
     "no-attachments-results": "没有附件信息",
     "no-history-results": "没有历史信息",
-    "no-retries-results": "没有重试信息"
+    "no-retries-results": "没有重试信息",
+    "no-test-steps-results": "没有可用的测试步骤信息",
+    "no-message-provided": "未提供消息"
   },
   "severity": {
     "blocker": "阻断",
@@ -123,7 +125,23 @@
     "fullscreen": "全屏",
     "language": "更改语言",
     "openInNewTab": "在新标签页中打开",
-    "theme": "切换主题"
+    "theme": "切换主题",
+    "showDiff": "显示差异",
+    "comparison": "对比",
+    "expected": "预期",
+    "actual": "实际",
+    "viewMode": "查看模式",
+    "unified": "统一",
+    "side-by-side": "并排",
+    "compareBy": "比较方式",
+    "chars": "字符",
+    "words": "单词",
+    "lines": "行",
+    "loadComparisonError": "无法加载对比",
+    "retry": "重试",
+    "loadAttachmentViewerError": "无法加载附件查看器",
+    "previewAttachment": "预览",
+    "viewCode": "查看代码"
   },
   "errors": {
     "missedAttachment": "未找到附件"
@@ -151,5 +169,24 @@
     "selected_one": "已选择 {{ count }} 个测试（{{ percentage }}%），持续时间大于 {{ minDuration }} 且小于 {{ maxDuration }}",
     "selected_other": "已选择 {{ count }} 个测试（{{ percentage }}%），持续时间大于 {{ minDuration }} 且小于 {{ maxDuration }}",
     "host": "主机: {{ host }}"
+  },
+  "attachments": {
+    "imageDiff": {
+      "mode": {
+        "diff": "差异",
+        "actual": "实际",
+        "expected": "预期",
+        "side-by-side": "并排",
+        "overlay": "叠加"
+      },
+      "empty": {
+        "failed-to-load": "无法加载图像对比"
+      },
+      "image": {
+        "diff": "差异",
+        "actual": "实际",
+        "expected": "预期"
+      }
+    }
   }
 }

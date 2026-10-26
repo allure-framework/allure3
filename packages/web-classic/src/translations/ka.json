@@ -65,7 +65,9 @@
     "clear-filters": "ფილტრების გასუფთავება",
     "no-attachments-results": "დანართების ინფორმაცია არ არის ხელმისაწვდომი",
     "no-history-results": "ისტორიის ინფორმაცია არ არის ხელმისაწვდომი",
-    "no-retries-results": "ხელახალი ცდების ინფორმ���ცია არ არის ხელმისაწვდომი"
+    "no-retries-results": "ხელახალი ცდების ინფორმ���ცია არ არის ხელმისაწვდომი",
+    "no-test-steps-results": "ტესტის ნაბიჯების ინფორმაცია ხელმისაწვდომი არ არის",
+    "no-message-provided": "შეტყობინება არ არის მოწოდებული"
   },
   "severity": {
     "blocker": "ბლოკერი",
@@ -123,7 +125,23 @@
     "fullscreen": "სრულ ეკრანზე",
     "language": "ენის შეცვლა",
     "openInNewTab": "გახსნა ახალ ჩანართში",
-    "theme": "თემის შეცვლა"
+    "theme": "თემის შეცვლა",
+    "showDiff": "მაჩვენე განსხვავება",
+    "comparison": "შედარება",
+    "expected": "მოსალოდნელი",
+    "actual": "ნამდვილი",
+    "viewMode": "ნახვის რეჟიმი",
+    "unified": "გაერთიანებული",
+    "side-by-side": "გვერდიგვერდ",
+    "compareBy": "შედარება",
+    "chars": "სიმბოლოები",
+    "words": "სიტყვები",
+    "lines": "ხაზები",
+    "loadComparisonError": "შედარების ჩატვირთვა ვერ მოხერხდა",
+    "retry": "ხელახლა ცდა",
+    "loadAttachmentViewerError": "დანართების სანახავი მოდულის ჩატვირთვა ვერ მოხერხდა",
+    "previewAttachment": "წინასწარი ნახვა",
+    "viewCode": "კოდის ჩვენება"
   },
   "errors": {
     "missedAttachment": "დანართი ვერ მოიძებნა"
@@ -151,5 +169,24 @@
     "selected_one": "არჩეულია {{ count }} ტესტი ({{ percentage }}%) {{ minDuration }}-ზე მეტი და {{ maxDuration }}-ზე ნაკლები ხანგრძლივობით",
     "selected_other": "არჩეულია {{ count }} ტესტი ({{ percentage }}%) {{ minDuration }}-ზე მეტი და {{ maxDuration }}-ზე ნაკლები ხანგრძლივობით",
     "host": "ჰოსტი: {{ host }}"
+  },
+  "attachments": {
+    "imageDiff": {
+      "mode": {
+        "diff": "სხვაობა",
+        "actual": "ფაქტობრივი",
+        "expected": "მოსალოდნელი",
+        "side-by-side": "გვერდიგვერდ",
+        "overlay": "ფენა"
+      },
+      "empty": {
+        "failed-to-load": "სურათების შედარების ჩატვირთვა ვერ მოხერხდა"
+      },
+      "image": {
+        "diff": "სხვაობა",
+        "actual": "ფაქტობრივი",
+        "expected": "მოსალოდნელი"
+      }
+    }
   }
 }

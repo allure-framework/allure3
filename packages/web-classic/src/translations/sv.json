@@ -65,7 +65,9 @@
     "clear-filters": "Rensa filter",
     "no-attachments-results": "Ingen bilaga information tillgänglig",
     "no-history-results": "Ingen historik information tillgänglig",
-    "no-retries-results": "Ingen omtagningar information tillgänglig"
+    "no-retries-results": "Ingen omtagningar information tillgänglig",
+    "no-test-steps-results": "Ingen information om teststeg tillgänglig",
+    "no-message-provided": "Inget meddelande angavs"
   },
   "severity": {
     "blocker": "blockerare",
@@ -123,7 +125,23 @@
     "fullscreen": "Helskärm",
     "language": "Byt språk",
     "openInNewTab": "Öppna i ny flik",
-    "theme": "Byt tema"
+    "theme": "Byt tema",
+    "showDiff": "Visa skillnad",
+    "comparison": "Jämförelse",
+    "expected": "Förväntad",
+    "actual": "Faktisk",
+    "viewMode": "Visningsläge",
+    "unified": "Enhetligt",
+    "side-by-side": "Sida vid sida",
+    "compareBy": "Jämför efter",
+    "chars": "tecken",
+    "words": "ord",
+    "lines": "rader",
+    "loadComparisonError": "Det gick inte att ladda jämförelsen",
+    "retry": "Försök igen",
+    "loadAttachmentViewerError": "Det gick inte att ladda bilagevisaren",
+    "previewAttachment": "Förhandsgranska",
+    "viewCode": "Visa kod"
   },
   "errors": {
     "missedAttachment": "Bilaga hittades inte"
@@ -151,5 +169,24 @@
     "selected_one": "{{ count }} test ({{ percentage }}%) med varaktighet mer än {{ minDuration }} och mindre än {{ maxDuration }} vald",
     "selected_other": "{{ count }} tester ({{ percentage }}%) med varaktighet mer än {{ minDuration }} och mindre än {{ maxDuration }} valda",
     "host": "Värd: {{ host }}"
+  },
+  "attachments": {
+    "imageDiff": {
+      "mode": {
+        "diff": "Diff",
+        "actual": "Faktisk",
+        "expected": "Förväntad",
+        "side-by-side": "Sida vid sida",
+        "overlay": "Överlägg"
+      },
+      "empty": {
+        "failed-to-load": "Kunde inte ladda bildjämförelse"
+      },
+      "image": {
+        "diff": "Diff",
+        "actual": "Faktisk",
+        "expected": "Förväntad"
+      }
+    }
   }
 }

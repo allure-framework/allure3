@@ -65,7 +65,9 @@
     "clear-filters": "Effacer les filtres",
     "no-attachments-results": "Aucune information sur les pièces jointes disponible",
     "no-history-results": "Aucune information sur l'historique disponible",
-    "no-retries-results": "Aucune information sur les réessais disponible"
+    "no-retries-results": "Aucune information sur les réessais disponible",
+    "no-test-steps-results": "Aucune information sur les étapes de test disponible",
+    "no-message-provided": "Aucun message fourni"
   },
   "severity": {
     "blocker": "bloquant",
@@ -123,7 +125,23 @@
     "fullscreen": "Plein écran",
     "language": "Changer la langue",
     "openInNewTab": "Ouvrir dans un nouvel onglet",
-    "theme": "Changer de thème"
+    "theme": "Changer de thème",
+    "showDiff": "Afficher la différence",
+    "comparison": "Comparaison",
+    "expected": "Attendu",
+    "actual": "Réel",
+    "viewMode": "Mode d'affichage",
+    "unified": "Unifié",
+    "side-by-side": "Côte à côte",
+    "compareBy": "Comparer par",
+    "chars": "caractères",
+    "words": "mots",
+    "lines": "lignes",
+    "loadComparisonError": "Échec du chargement de la comparaison",
+    "retry": "Réessayer",
+    "loadAttachmentViewerError": "Échec du chargement de la visionneuse de pièces jointes",
+    "previewAttachment": "Aperçu",
+    "viewCode": "Voir le code"
   },
   "errors": {
     "missedAttachment": "Pièce jointe non trouvée"
@@ -152,5 +170,24 @@
     "selected_one": "{{ count }} test ({{ percentage }}%) avec une durée supérieure à {{ minDuration }} et inférieure à {{ maxDuration }} sélectionné",
     "selected_other": "{{ count }} tests ({{ percentage }}%) avec une durée supérieure à {{ minDuration }} et inférieure à {{ maxDuration }} sélectionnés",
     "host": "Hôte : {{ host }}"
+  },
+  "attachments": {
+    "imageDiff": {
+      "mode": {
+        "diff": "Diff",
+        "actual": "Réel",
+        "expected": "Attendu",
+        "side-by-side": "Côte à côte",
+        "overlay": "Superposition"
+      },
+      "empty": {
+        "failed-to-load": "Échec du chargement de la comparaison d'images"
+      },
+      "image": {
+        "diff": "Diff",
+        "actual": "Réel",
+        "expected": "Attendu"
+      }
+    }
   }
 }

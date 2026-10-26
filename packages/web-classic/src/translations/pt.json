@@ -65,7 +65,9 @@
     "clear-filters": "Limpar filtros",
     "no-attachments-results": "Nenhuma informação de anexos disponível",
     "no-history-results": "Nenhuma informação de histórico disponível",
-    "no-retries-results": "Nenhuma informação de repetições disponível"
+    "no-retries-results": "Nenhuma informação de repetições disponível",
+    "no-test-steps-results": "Nenhuma informação disponível sobre as etapas do teste",
+    "no-message-provided": "Nenhuma mensagem fornecida"
   },
   "severity": {
     "blocker": "bloqueador",
@@ -123,7 +125,23 @@
     "fullscreen": "Tela cheia",
     "language": "Alterar idioma",
     "openInNewTab": "Abrir em nova aba",
-    "theme": "Alterar tema"
+    "theme": "Alterar tema",
+    "showDiff": "Mostrar diferença",
+    "comparison": "Comparação",
+    "expected": "Esperado",
+    "actual": "Real",
+    "viewMode": "Modo de exibição",
+    "unified": "Unificado",
+    "side-by-side": "Lado a lado",
+    "compareBy": "Comparar por",
+    "chars": "caracteres",
+    "words": "palavras",
+    "lines": "linhas",
+    "loadComparisonError": "Não foi possível carregar a comparação",
+    "retry": "Tentar novamente",
+    "loadAttachmentViewerError": "Não foi possível carregar o visualizador de anexos",
+    "previewAttachment": "Pré-visualizar",
+    "viewCode": "Ver código"
   },
   "errors": {
     "missedAttachment": "Anexo não encontrado"
@@ -152,5 +170,24 @@
     "selected_one": "{{ count }} teste ({{ percentage }}%) com duração superior a {{ minDuration }} e inferior a {{ maxDuration }} selecionado",
     "selected_other": "{{ count }} testes ({{ percentage }}%) com duração superior a {{ minDuration }} e inferior a {{ maxDuration }} selecionados",
     "host": "Host: {{ host }}"
+  },
+  "attachments": {
+    "imageDiff": {
+      "mode": {
+        "diff": "Diff",
+        "actual": "Atual",
+        "expected": "Esperado",
+        "side-by-side": "Lado a lado",
+        "overlay": "Sobreposição"
+      },
+      "empty": {
+        "failed-to-load": "Falha ao carregar comparação de imagens"
+      },
+      "image": {
+        "diff": "Diff",
+        "actual": "Atual",
+        "expected": "Esperado"
+      }
+    }
   }
 }

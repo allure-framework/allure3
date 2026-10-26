@@ -5,6 +5,8 @@ import { fileURLToPath } from "node:url";
 import { epic, feature, label, story, step } from "allure-js-commons";
 import { beforeEach, describe, expect, it } from "vite-plus/test";
 
+import { AVAILABLE_LOCALES } from "../src/translations/constants.js";
+
 beforeEach(async () => {
   await epic("coverage");
   await feature("ui-components");
@@ -74,6 +76,51 @@ describe("classic test result page locales", () => {
         expect(locale.ui.successRate, file).toContain("{{rate}}");
         expect(locale.ui.successRate, file).toContain("{{passed}}");
         expect(locale.ui.successRate, file).toContain("{{total}}");
+      });
+    });
+  });
+});
+
+describe("classic attachment locales", () => {
+  it("defines attachment viewer and error diff labels for every selectable locale", () => {
+    const keys = [
+      "controls.showDiff",
+      "controls.comparison",
+      "controls.expected",
+      "controls.actual",
+      "controls.viewMode",
+      "controls.unified",
+      "controls.side-by-side",
+      "controls.compareBy",
+      "controls.chars",
+      "controls.words",
+      "controls.lines",
+      "controls.loadComparisonError",
+      "controls.retry",
+      "controls.loadAttachmentViewerError",
+      "controls.previewAttachment",
+      "controls.viewCode",
+      "empty.no-test-steps-results",
+      "empty.no-message-provided",
+      "errors.missedAttachment",
+      "attachments.imageDiff.mode.diff",
+      "attachments.imageDiff.mode.overlay",
+      "attachments.imageDiff.empty.failed-to-load",
+      "attachments.imageDiff.image.expected",
+    ];
+    const localeFiles = AVAILABLE_LOCALES.map((locale) => `${locale}.json`).filter((file) =>
+      readdirSync(localesDir).includes(file),
+    );
+
+    expect(localeFiles.length).toBeGreaterThan(1);
+
+    localeFiles.forEach((file) => {
+      const locale = JSON.parse(readFileSync(join(localesDir, file), "utf8"));
+
+      keys.forEach((key) => {
+        const value = key.split(".").reduce((node, part) => node?.[part], locale);
+
+        expect(value, `${file}: ${key}`).toEqual(expect.stringMatching(/\S/));
       });
     });
   });

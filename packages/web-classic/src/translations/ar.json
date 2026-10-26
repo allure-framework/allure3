@@ -66,7 +66,8 @@
     "clear-filters": "مسح الفلاتر",
     "no-attachments-results": "لا تتوفر معلومات عن المرفقات",
     "no-history-results": "لا تتوفر معلومات عن السجل",
-    "no-retries-results": "لا تتوفر معلومات عن محاولات الإعادة"
+    "no-retries-results": "لا تتوفر معلومات عن محاولات الإعادة",
+    "no-test-steps-results": "لا تتوفر معلومات عن خطوات الاختبار"
   },
   "severity": {
     "blocker": "مانع",
@@ -124,7 +125,23 @@
     "fullscreen": "ملء الشاشة",
     "language": "اللغة",
     "openInNewTab": "فتح في علامة تبويب جديدة",
-    "theme": "تغيير السمة"
+    "theme": "تغيير السمة",
+    "showDiff": "عرض الاختلاف",
+    "comparison": "المقارنة",
+    "expected": "المتوقع",
+    "actual": "الفعلي",
+    "viewMode": "وضع العرض",
+    "unified": "موحد",
+    "side-by-side": "جنباً إلى جنب",
+    "compareBy": "مقارنة حسب",
+    "chars": "أحرف",
+    "words": "كلمات",
+    "lines": "أسطر",
+    "loadComparisonError": "تعذّر تحميل المقارنة",
+    "retry": "إعادة المحاولة",
+    "loadAttachmentViewerError": "تعذّر تحميل عارض المرفقات",
+    "previewAttachment": "معاينة",
+    "viewCode": "عرض الكود"
   },
   "errors": {
     "missedAttachment": "المرفق غير موجود"
@@ -169,5 +186,24 @@
     "selected_one": "تم تحديد {{ count }} اختبار ({{ percentage }}%) بمدة أكثر من {{ minDuration }} وأقل من {{ maxDuration }}",
     "selected_other": "تم تحديد {{ count }} اختبارات ({{ percentage }}%) بمدة أكثر من {{ minDuration }} وأقل من {{ maxDuration }}",
     "host": "المضيف: {{ host }}"
+  },
+  "attachments": {
+    "imageDiff": {
+      "mode": {
+        "diff": "الفرق",
+        "actual": "الفعلي",
+        "expected": "المتوقع",
+        "side-by-side": "جنباً إلى جنب",
+        "overlay": "تراكب"
+      },
+      "empty": {
+        "failed-to-load": "فشل تحميل فرق الصورة"
+      },
+      "image": {
+        "diff": "الفرق",
+        "actual": "الفعلي",
+        "expected": "المتوقع"
+      }
+    }
   }
 }

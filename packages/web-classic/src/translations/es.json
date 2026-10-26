@@ -65,7 +65,9 @@
     "clear-filters": "Limpiar filtros",
     "no-attachments-results": "No hay información de adjuntos disponible",
     "no-history-results": "No hay información de historial disponible",
-    "no-retries-results": "No hay información de reintentos disponible"
+    "no-retries-results": "No hay información de reintentos disponible",
+    "no-test-steps-results": "No hay información disponible sobre los pasos de prueba",
+    "no-message-provided": "No se proporcionó mensaje"
   },
   "severity": {
     "blocker": "bloqueante",
@@ -123,7 +125,23 @@
     "fullscreen": "Pantalla completa",
     "language": "Cambiar idioma",
     "openInNewTab": "Abrir en nueva pestaña",
-    "theme": "Cambiar tema"
+    "theme": "Cambiar tema",
+    "showDiff": "Mostrar diferencia",
+    "comparison": "Comparación",
+    "expected": "Esperado",
+    "actual": "Real",
+    "viewMode": "Modo de vista",
+    "unified": "Unificado",
+    "side-by-side": "Lado a lado",
+    "compareBy": "Comparar por",
+    "chars": "caracteres",
+    "words": "palabras",
+    "lines": "líneas",
+    "loadComparisonError": "No se pudo cargar la comparación",
+    "retry": "Reintentar",
+    "loadAttachmentViewerError": "No se pudo cargar el visor de archivos adjuntos",
+    "previewAttachment": "Vista previa",
+    "viewCode": "Ver código"
   },
   "errors": {
     "missedAttachment": "Adjunto no encontrado"
@@ -152,5 +170,24 @@
     "selected_one": "{{ count }} prueba ({{ percentage }}%) con duración superior a {{ minDuration }} e inferior a {{ maxDuration }} seleccionada",
     "selected_other": "{{ count }} pruebas ({{ percentage }}%) con duración superior a {{ minDuration }} e inferior a {{ maxDuration }} seleccionadas",
     "host": "Host: {{ host }}"
+  },
+  "attachments": {
+    "imageDiff": {
+      "mode": {
+        "diff": "Diff",
+        "actual": "Real",
+        "expected": "Esperado",
+        "side-by-side": "Lado a lado",
+        "overlay": "Superposición"
+      },
+      "empty": {
+        "failed-to-load": "Error al cargar la comparación de imágenes"
+      },
+      "image": {
+        "diff": "Diff",
+        "actual": "Real",
+        "expected": "Esperado"
+      }
+    }
   }
 }
