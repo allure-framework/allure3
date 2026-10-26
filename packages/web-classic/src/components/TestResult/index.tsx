@@ -8,6 +8,7 @@ import { TestResultInfo } from "@/components/TestResult/TestResultInfo";
 import { TestResultOverview } from "@/components/TestResult/TestResultOverview";
 import { TestResultRetriesView } from "@/components/TestResult/TestResultRetriesView";
 import { TestResultTabs, useTestResultTabsContext } from "@/components/TestResult/TestResultTabs";
+import { DEFAULT_TEST_RESULT_TAB, isTestResultTabAvailable } from "@/stores/testResultTab";
 
 import * as styles from "@/components/BaseLayout/styles.scss";
 
@@ -23,7 +24,7 @@ const TestResultView: FunctionalComponent<TestResultViewProps> = ({ testResult }
     attachments: TestResultAttachmentView,
     retries: TestResultRetriesView,
   };
-  const ViewComponent = viewMap[currentTab];
+  const ViewComponent = viewMap[currentTab] ?? TestResultOverview;
 
   return <ViewComponent testResult={testResult} />;
 };
@@ -34,7 +35,10 @@ export type TestResultContentProps = {
 
 const TestResultContent: FunctionalComponent<TestResultContentProps> = ({ testResult }) => {
   return (
-    <TestResultTabs initialTab="overview">
+    <TestResultTabs
+      initialTab={DEFAULT_TEST_RESULT_TAB}
+      isTabAvailable={(tab) => isTestResultTabAvailable(testResult, tab)}
+    >
       <TestResultInfo testResult={testResult} />
       <TestResultView testResult={testResult} />
     </TestResultTabs>

@@ -17,7 +17,18 @@ export type TestResultOverviewProps = {
 };
 
 export const TestResultOverview: FunctionalComponent<TestResultOverviewProps> = ({ testResult }) => {
-  const { error, parameters, groupedLabels, links, descriptionHtml, setup, steps, teardown } = testResult || {};
+  const {
+    error,
+    parameters,
+    groupedLabels,
+    links,
+    descriptionHtml,
+    preconditionHtml,
+    expectedResultHtml,
+    setup,
+    steps,
+    teardown,
+  } = testResult || {};
 
   return (
     <>
@@ -31,12 +42,14 @@ export const TestResultOverview: FunctionalComponent<TestResultOverviewProps> = 
         <TestResultMetadata testResult={testResult} />
       )}
       {Boolean(links?.length) && <TestResultLinks links={links} />}
-      {Boolean(descriptionHtml) && <TestResultDescription descriptionHtml={descriptionHtml} />}
+      {Boolean(descriptionHtml) && <TestResultDescription section="description" html={descriptionHtml} />}
+      {Boolean(preconditionHtml) && <TestResultDescription section="precondition" html={preconditionHtml} />}
       <div className={styles["test-results"]}>
         {Boolean(setup?.length) && <TestResultSetup setup={setup} />}
         {Boolean(steps?.length) && <TestResultSteps steps={steps} />}
         {Boolean(teardown?.length) && <TestResultTeardown teardown={teardown} />}
       </div>
+      {Boolean(expectedResultHtml) && <TestResultDescription section="expectedResult" html={expectedResultHtml} />}
     </>
   );
 };

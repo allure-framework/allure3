@@ -4,6 +4,7 @@ import type { FunctionalComponent } from "preact";
 import type { ReportTestResult } from "types";
 
 import { TestResultInfoStatuses } from "@/components/TestResult/TestResultInfo/TestResultInfoStatuses";
+import { TestResultMeta } from "@/components/TestResult/TestResultMeta";
 import { TestResultNavigation } from "@/components/TestResult/TestResultNavigation";
 import { TestResultPrevStatuses } from "@/components/TestResult/TestResultPrevStatuses";
 import { TestResultSeverity } from "@/components/TestResult/TestResultSeverity";
@@ -45,6 +46,7 @@ export const TestResultInfo: FunctionalComponent<TestResultInfoProps> = ({ testR
             </Text>
           </TooltipWrapper>
         </div>
+        <TestResultMeta testResult={testResult} />
         <div className={styles["test-result-tabs"]}>
           <TestResultTabsList>
             <TestResultTab id="overview">{t("overview")}</TestResultTab>

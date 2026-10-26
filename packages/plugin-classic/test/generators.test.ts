@@ -232,6 +232,73 @@ describe("analytics", () => {
   });
 });
 
+describe("generateTestResults history", () => {
+  it("resolves history urls through the history resolver and keeps unresolved entries without url", async () => {
+    const testResult = mockTestResult("tr-1", "test", "passed");
+    const writer: ClassicDataWriter = {
+      writeData: vi.fn().mockResolvedValue(undefined),
+      writeWidget: vi.fn().mockResolvedValue(undefined),
+      writeTestCase: vi.fn().mockResolvedValue(undefined),
+      writeAttachment: vi.fn().mockResolvedValue(undefined),
+    };
+    const store = {
+      allTestResults: vi.fn().mockResolvedValue([testResult]),
+      metadataByKey: vi.fn().mockResolvedValue(undefined),
+      relatedByTestResultIds: vi.fn().mockResolvedValue({
+        attachmentsByTrId: new Map(),
+        fixturesByTrId: new Map(),
+        historyByTrId: new Map([
+          [
+            "tr-1",
+            [
+              { id: "old-1", status: "failed", url: "http://reports.example/run-1/" },
+              { id: "old-2", status: "passed", url: "" },
+            ],
+          ],
+        ]),
+        retriesByTrId: new Map(),
+      }),
+    } as unknown as AllureStore;
+    const resolveHistoryUrl = vi.fn(
+      (historyUrl: string, pluginId: string, id: string) => `${historyUrl}${pluginId}/index.html#${id}`,
+    );
+
+    const [converted] = await generateTestResults(writer, store, { pluginId: "classic", resolveHistoryUrl });
+
+    expect(converted?.history.map(({ url }) => url)).toEqual([
+      "http://reports.example/run-1/classic/index.html#testresult/old-1",
+      "",
+    ]);
+  });
+
+  it("adds idea links when the option is enabled", async () => {
+    const testResult = {
+      ...mockTestResult("tr-1", "test", "passed"),
+      labels: [{ name: "testClass", value: "org.example.FooTest" }],
+    };
+    const writer: ClassicDataWriter = {
+      writeData: vi.fn().mockResolvedValue(undefined),
+      writeWidget: vi.fn().mockResolvedValue(undefined),
+      writeTestCase: vi.fn().mockResolvedValue(undefined),
+      writeAttachment: vi.fn().mockResolvedValue(undefined),
+    };
+    const store = {
+      allTestResults: vi.fn().mockResolvedValue([testResult]),
+      metadataByKey: vi.fn().mockResolvedValue(undefined),
+      relatedByTestResultIds: vi.fn().mockResolvedValue({
+        attachmentsByTrId: new Map(),
+        fixturesByTrId: new Map(),
+        historyByTrId: new Map(),
+        retriesByTrId: new Map(),
+      }),
+    } as unknown as AllureStore;
+
+    const [converted] = await generateTestResults(writer, store, { ideaLinks: true });
+
+    expect(converted?.links.map(({ type }) => type)).toEqual(["idea"]);
+  });
+});
+
 const createReportFiles = () => {
   const files = new Map<string, Buffer>();
   const reportFiles: ReportFiles = {

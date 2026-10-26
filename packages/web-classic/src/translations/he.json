@@ -97,7 +97,16 @@
     "copy": "העתק",
     "attempt": "ניסיון {{attempt}} מתוך {{total}}",
     "at": "ב-",
-    "generated": "נוצר"
+    "generated": "נוצר",
+    "precondition": "תנאי מקדים",
+    "expectedResult": "תוצאה צפויה",
+    "categories": "קטגוריות",
+    "tags": "תגיות",
+    "owner": "בעלים",
+    "fullname": "שם מלא",
+    "test-case-id": "מזהה מקרה בדיקה",
+    "history-id": "מזהה היסטוריה",
+    "successRate": "שיעור הצלחה {{rate}}% ({{passed}} מתוך {{total}})"
   },
   "controls": {
     "backToOverview": "חזרה לסקירה",
@@ -134,7 +143,8 @@
       "layer": "שכבה: {{layer}}",
       "statusSlice": "{{count}} {{status}} ({{percent}}% מכל הבדיקות)",
       "slice": "{{count}} בדיקות ({{percent}}% מכל הבדיקות)",
-      "slice_two": "{{count}} בדיקות ({{percent}}% מכל הבדיקות)"
+      "slice_two": "{{count}} בדיקות ({{percent}}% מכל הבדיקות)",
+      "noEligibleResults": "אין בדיקות שעברו, נכשלו או נשברו. בדיקות שדולגו ובדיקות במצב לא ידוע אינן נכללות בשיעור ההצלחה."
     }
   },
   "timeline": {

@@ -1,0 +1,29 @@
+.test-result-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.test-result-meta-row {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+}
+
+.test-result-meta-title {
+  flex-shrink: 0;
+  color: var(--color-text-secondary);
+}
+
+.test-result-meta-values {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  align-items: center;
+  min-width: 0;
+}
+
+.test-result-meta-link {
+  color: var(--color-link-text);
+}

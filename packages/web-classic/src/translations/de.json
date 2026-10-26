@@ -97,7 +97,16 @@
     "copy": "Kopieren",
     "attempt": "Versuch {{attempt}} von {{total}}",
     "at": "bei",
-    "generated": "Generiert"
+    "generated": "Generiert",
+    "precondition": "Vorbedingung",
+    "expectedResult": "Erwartetes Ergebnis",
+    "categories": "Kategorien",
+    "tags": "Tags",
+    "owner": "Besitzer",
+    "fullname": "Vollständiger Name",
+    "test-case-id": "Testfall-ID",
+    "history-id": "Verlaufs-ID",
+    "successRate": "Erfolgsquote {{rate}}% ({{passed}} von {{total}})"
   },
   "controls": {
     "backToOverview": "Zurück zur Übersicht",

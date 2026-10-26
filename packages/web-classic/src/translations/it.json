@@ -97,7 +97,16 @@
     "copy": "Copia",
     "attempt": "Tentativo {{attempt}} di {{total}}",
     "at": "a",
-    "generated": "Generato"
+    "generated": "Generato",
+    "precondition": "Precondizione",
+    "expectedResult": "Risultato atteso",
+    "categories": "Categorie",
+    "tags": "Tag",
+    "owner": "Proprietario",
+    "fullname": "Nome completo",
+    "test-case-id": "ID del caso di test",
+    "history-id": "ID della cronologia",
+    "successRate": "Percentuale di successo {{rate}}% ({{passed}} di {{total}})"
   },
   "controls": {
     "backToOverview": "Torna alla panoramica",
@@ -134,7 +143,8 @@
       "layer": "Livello: {{layer}}",
       "statusSlice": "{{count}} {{status}} ({{percent}}% di tutti i test)",
       "slice": "{{count}} test ({{percent}}% di tutti i test)",
-      "slice_many": "{{count}} test ({{percent}}% di tutti i test)"
+      "slice_many": "{{count}} test ({{percent}}% di tutti i test)",
+      "noEligibleResults": "Non ci sono test superati, falliti o con errori. I test saltati e con stato sconosciuto sono esclusi dalla percentuale di successo."
     }
   },
   "timeline": {

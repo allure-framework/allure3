@@ -98,7 +98,16 @@
     "copy": "Kopyala",
     "attempt": "Cəhd {{attempt}} / {{total}}",
     "at": "saat",
-    "generated": "Yaradıldı"
+    "generated": "Yaradıldı",
+    "precondition": "İlkin şərt",
+    "expectedResult": "Gözlənilən nəticə",
+    "categories": "Kateqoriyalar",
+    "tags": "Teqlər",
+    "owner": "Sahib",
+    "fullname": "Tam ad",
+    "test-case-id": "Test keysinin ID-si",
+    "history-id": "Tarixçə ID-si",
+    "successRate": "Uğur faizi {{rate}}% ({{total}} testdən {{passed}})"
   },
   "controls": {
     "backToOverview": "İcmala qayıt",
@@ -147,7 +156,8 @@
       "slice_other": "{{count}} test (bütün testlərin {{percent}}%-i)",
       "layer": "Səviyyə: {{layer}}",
       "statusSlice": "{{count}} {{status}} (bütün testlərin {{percent}}%-i)",
-      "slice": "{{count}} test (bütün testlərin {{percent}}%-i)"
+      "slice": "{{count}} test (bütün testlərin {{percent}}%-i)",
+      "noEligibleResults": "Uğurlu, uğursuz və ya nasaz testlər yoxdur. Ötürülmüş və statusu naməlum testlər uğur faizinə daxil edilmir."
     }
   },
   "timeline": {

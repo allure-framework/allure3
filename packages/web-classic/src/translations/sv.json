@@ -97,7 +97,16 @@
     "copy": "Kopiera",
     "attempt": "Försök {{attempt}} av {{total}}",
     "at": "vid",
-    "generated": "Genererad"
+    "generated": "Genererad",
+    "precondition": "Förutsättning",
+    "expectedResult": "Förväntat resultat",
+    "categories": "Kategorier",
+    "tags": "Taggar",
+    "owner": "Ägare",
+    "fullname": "Fullständigt namn",
+    "test-case-id": "Testfalls-ID",
+    "history-id": "Historik-ID",
+    "successRate": "Andel godkända {{rate}} % ({{passed}} av {{total}})"
   },
   "controls": {
     "backToOverview": "Tillbaka till översikten",
@@ -133,7 +142,8 @@
       "slice_other": "{{count}} tester ({{percent}}% av alla tester)",
       "layer": "Nivå: {{layer}}",
       "statusSlice": "{{count}} {{status}} ({{percent}}% av alla tester)",
-      "slice": "{{count}} tester ({{percent}}% av alla tester)"
+      "slice": "{{count}} tester ({{percent}}% av alla tester)",
+      "noEligibleResults": "Det finns inga godkända, underkända eller trasiga tester. Överhoppade tester och tester med okänd status utesluts från andelen godkända."
     }
   },
   "timeline": {

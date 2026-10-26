@@ -96,7 +96,16 @@
     "showMore": "Ցուցադրել ավելին",
     "copy": "Պատճենել",
     "attempt": "Փորձ {{attempt}}-ից {{total}}-ը",
-    "at": "է"
+    "at": "է",
+    "precondition": "Նախապայման",
+    "expectedResult": "Ակնկալվող արդյունք",
+    "categories": "Կատեգորիաներ",
+    "tags": "Պիտակներ",
+    "owner": "Սեփականատեր",
+    "fullname": "Լրիվ անվանում",
+    "test-case-id": "Թեստ-քեյսի ID",
+    "history-id": "Պատմության ID",
+    "successRate": "Հաջողության տոկոսը {{rate}}% ({{passed}}-ը {{total}}-ից)"
   },
   "controls": {
     "backToOverview": "Back to overview",

@@ -98,7 +98,16 @@
     "copy": "نسخ",
     "attempt": "المحاولة {{attempt}} من {{total}}",
     "at": "في",
-    "generated": "تم الإنشاء"
+    "generated": "تم الإنشاء",
+    "precondition": "الشرط المسبق",
+    "expectedResult": "النتيجة المتوقعة",
+    "categories": "الفئات",
+    "tags": "الوسوم",
+    "owner": "المالك",
+    "fullname": "الاسم الكامل",
+    "test-case-id": "معرّف حالة الاختبار",
+    "history-id": "معرّف السجل",
+    "successRate": "نسبة النجاح {{rate}}% ({{passed}} من {{total}})"
   },
   "controls": {
     "backToOverview": "العودة إلى النظرة العامة",
@@ -151,7 +160,8 @@
       "slice_zero": "{{count}} اختبار ({{percent}}% من جميع الاختبارات)",
       "slice_two": "{{count}} اختباران ({{percent}}% من جميع الاختبارات)",
       "slice_few": "{{count}} اختبارات ({{percent}}% من جميع الاختبارات)",
-      "slice_many": "{{count}} اختبارًا ({{percent}}% من جميع الاختبارات)"
+      "slice_many": "{{count}} اختبارًا ({{percent}}% من جميع الاختبارات)",
+      "noEligibleResults": "لا توجد اختبارات ناجحة أو فاشلة أو متعطلة. تُستبعد الاختبارات المتخطاة وذات الحالة غير المعروفة من نسبة النجاح."
     }
   },
   "timeline": {

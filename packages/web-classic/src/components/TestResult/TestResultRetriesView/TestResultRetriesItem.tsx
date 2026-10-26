@@ -36,12 +36,24 @@ export const TestResultRetriesItem: FunctionalComponent<TrRetriesItemProps> = ({
   const navigateUrl = `testresult/${id}`;
 
   return (
-    <div>
+    <div data-testid="test-result-retries-item">
       <div className={styles["test-result-retries-item-header"]} onClick={() => setIsOpen(!isOpened)}>
         {Boolean(message) && <ArrowButton isOpened={isOpened} icon={allureIcons.lineArrowsChevronDown} />}
         <div className={styles["test-result-retries-item-wrap"]}>
           <TreeItemIcon status={status} className={styles["test-result-retries-item-status"]} />
-          <Text className={styles["test-result-retries-item-text"]}>{retryTitle}</Text>
+          <div className={styles["test-result-retries-item-body"]}>
+            <Text className={styles["test-result-retries-item-text"]}>{retryTitle}</Text>
+            {Boolean(message) && (
+              <Text
+                tag={"div"}
+                size={"s"}
+                className={styles["test-result-retries-item-message"]}
+                data-testid="test-result-retries-item-message"
+              >
+                {message}
+              </Text>
+            )}
+          </div>
           <div className={styles["test-result-retries-item-info"]}>
             {Boolean(formattedDuration) && (
               <Text type="ui" size={"s"} className={styles["item-time"]}>
@@ -53,14 +65,17 @@ export const TestResultRetriesItem: FunctionalComponent<TrRetriesItemProps> = ({
               style={"ghost"}
               size={"s"}
               className={styles["test-result-retries-item-link"]}
-              onClick={() => navigateTo(navigateUrl)}
+              onClick={(e: MouseEvent) => {
+                e.stopPropagation();
+                navigateTo(navigateUrl);
+              }}
             />
           </div>
         </div>
       </div>
       {isOpened && message && (
         <div className={styles["test-result-retries-item-content"]}>
-          <TestResultError message={message} trace={trace} />
+          <TestResultError message={message} trace={trace ?? ""} />
         </div>
       )}
     </div>

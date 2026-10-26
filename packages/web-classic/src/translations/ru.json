@@ -95,7 +95,16 @@
     "copy": "Скопировать",
     "attempt": "Попытка {{attempt}} из {{total}}",
     "at": "в",
-    "generated": "Сгенерировано"
+    "generated": "Сгенерировано",
+    "precondition": "Предусловие",
+    "expectedResult": "Ожидаемый результат",
+    "categories": "Категории",
+    "tags": "Теги",
+    "owner": "Владелец",
+    "fullname": "Полное имя",
+    "test-case-id": "ID тест-кейса",
+    "history-id": "ID истории",
+    "successRate": "Доля успешных {{rate}}% ({{passed}} из {{total}})"
   },
   "controls": {
     "backToOverview": "Вернуться к обзору",

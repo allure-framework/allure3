@@ -97,7 +97,16 @@
     "copy": "Copiar",
     "attempt": "Intento {{attempt}} de {{total}}",
     "at": "a las",
-    "generated": "Generado"
+    "generated": "Generado",
+    "precondition": "Precondición",
+    "expectedResult": "Resultado esperado",
+    "categories": "Categorías",
+    "tags": "Etiquetas",
+    "owner": "Propietario",
+    "fullname": "Nombre completo",
+    "test-case-id": "ID del caso de prueba",
+    "history-id": "ID del historial",
+    "successRate": "Tasa de éxito {{rate}}% ({{passed}} de {{total}})"
   },
   "controls": {
     "backToOverview": "Volver al resumen",
@@ -134,7 +143,8 @@
       "layer": "Nivel: {{layer}}",
       "statusSlice": "{{count}} {{status}} ({{percent}}% de todas las pruebas)",
       "slice": "{{count}} pruebas ({{percent}}% de todas las pruebas)",
-      "slice_many": "{{count}} pruebas ({{percent}}% de todas las pruebas)"
+      "slice_many": "{{count}} pruebas ({{percent}}% de todas las pruebas)",
+      "noEligibleResults": "No hay pruebas exitosas, fallidas ni con errores. Las omitidas y las de estado desconocido se excluyen de la tasa de éxito."
     }
   },
   "timeline": {

@@ -42,7 +42,13 @@ export class ClassicPlugin implements Plugin {
 
     const legacyCategories = await store.metadataByKey<ClassicCategory[]>("allure2_categories");
     const categories = resolveClassicCategories(context.categories, legacyCategories ?? []);
-    const convertedTrs = await generateTestResults(this.#writer!, store, { filter, categories });
+    const convertedTrs = await generateTestResults(this.#writer!, store, {
+      filter,
+      categories,
+      pluginId: context.id,
+      ideaLinks: this.options.ideaLinks,
+      resolveHistoryUrl: context.history?.resolveTestResultUrl,
+    });
 
     const treeLabels = preciseTreeLabels(
       !groupBy.length ? ["parentSuite", "suite", "subSuite"] : groupBy,
