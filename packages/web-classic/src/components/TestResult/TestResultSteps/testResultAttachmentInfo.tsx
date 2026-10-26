@@ -22,6 +22,7 @@ export const TestResultAttachmentInfo: FunctionalComponent<TestResultAttachmentI
 }) => {
   const { id, ext, contentType } = item.link;
   const { t: tooltip } = useI18n("controls");
+  const { t: tErrors } = useI18n("errors");
   const contentLength = item.link.missed === false ? item.link.contentLength : undefined;
   const contentSize = contentLength
     ? filesize(contentLength, {
@@ -70,12 +71,15 @@ export const TestResultAttachmentInfo: FunctionalComponent<TestResultAttachmentI
             />
           </TooltipWrapper>
         )}
-        <TooltipWrapper tooltipText={tooltip("downloadAttachment")}>
+        <TooltipWrapper tooltipText={item.link.missed ? tErrors("missedAttachment") : tooltip("downloadAttachment")}>
           <IconButton
             style={"ghost"}
             size={"s"}
             iconSize={"s"}
             className={styles["item-button"]}
+            data-testid="attachment-download-button"
+            isDisabled={item.link.missed}
+            aria-label={tooltip("downloadAttachment")}
             icon={allureIcons.lineGeneralDownloadCloud}
             onClick={(e: MouseEvent) => downloadData(e)}
           />
