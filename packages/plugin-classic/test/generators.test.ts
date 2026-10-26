@@ -352,6 +352,16 @@ describe("generateStaticFiles", () => {
     expect(html).toContain('<link rel="icon" href="data:image/svg+xml,');
     expect(html).not.toContain('href="favicon.ico"');
   });
+
+  it("should set the viewport so the report is laid out at the device width", async () => {
+    const { files, reportFiles } = createReportFiles();
+
+    await generateStaticFiles({ ...payload, reportFiles });
+
+    expect(files.get("index.html")?.toString("utf8")).toContain(
+      '<meta name="viewport" content="width=device-width, initial-scale=1.0">',
+    );
+  });
 });
 
 describe("generateTreeByCategories", () => {

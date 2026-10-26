@@ -1,8 +1,14 @@
+@import "../../variables.scss";
+
 .overview {
   padding: 24px;
   width: 100%;
   height: 100%;
   overflow-y: auto;
+
+  @media (max-width: $narrow-max-width) {
+    padding: 16px;
+  }
 }
 
 .overview-columns {
@@ -42,6 +48,13 @@
   gap: 24px;
   align-items: center;
   justify-content: space-between;
+
+  // The ring keeps its size and moves under the summary text
+  @media (max-width: $narrow-max-width) {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+  }
 }
 
 .overview-summary-info {
@@ -58,6 +71,10 @@
 .overview-summary-pie {
   flex: 0 0 140px;
   width: 140px;
+
+  @media (max-width: $narrow-max-width) {
+    align-self: center;
+  }
 }
 
 .overview-ci {
