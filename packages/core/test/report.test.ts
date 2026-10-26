@@ -1468,9 +1468,12 @@ describe("report", () => {
     await allureReport.done();
 
     await expect(readArtifactsManifest(output)).resolves.toEqual([{ name: "workflow.log", path: "workflow.log" }]);
+    const ownership = JSON.parse(await readFile(join(output, ".allure-output.json"), "utf8"));
+    expect(ownership.files).toContainEqual({ path: ARTIFACTS_MANIFEST_FILENAME });
     expect(AllureServiceClientMock.prototype.uploadReport).toHaveBeenCalled();
     for (const [params] of (AllureServiceClientMock.prototype.uploadReport as Mock).mock.calls) {
       expect(params.files).not.toHaveProperty(ARTIFACTS_MANIFEST_FILENAME);
+      expect(params.files).not.toHaveProperty(".allure-output.json");
     }
   });
 
@@ -1672,6 +1675,8 @@ describe("report", () => {
 
   it("should restore summaries when remote publish fails after links were resolved", async () => {
     const output = await mkdtemp(join(tmpdir(), "allure3-publish-failed-summary-"));
+    const previousOwnership = JSON.stringify({ version: 1, files: [], layout: {} });
+    await writeFile(join(output, ".allure-output.json"), previousOwnership);
     const p1 = createPlugin("p1", true, { publish: true });
     const p2 = createPlugin("p2");
     const config = await resolveConfig({ name: "Allure Report", output });
@@ -1711,6 +1716,7 @@ describe("report", () => {
       await allureReport.start();
       await allureReport.done();
 
+      expect(await readFile(join(output, ".allure-output.json"), "utf8")).toBe(previousOwnership);
       const p1Summary = JSON.parse(await readFile(join(output, "p1", "summary.json"), "utf8"));
 
       expect(p1Summary.remoteHref).toBeUndefined();
@@ -2068,6 +2074,7 @@ describe("report", () => {
       await allureReport.start();
       await expect(allureReport.done()).resolves.toBeUndefined();
       expect(consoleErrorSpy).toHaveBeenCalledWith("Failed to write Allure artifacts manifest", expect.any(Error));
+      await expect(readFile(join(output, ".allure-output.json"))).rejects.toThrow();
     } finally {
       consoleErrorSpy.mockRestore();
     }

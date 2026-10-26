@@ -4,6 +4,7 @@ import { join as joinPosix } from "node:path/posix";
 
 import type { PluginState, ReportFiles } from "@allurereport/plugin-api";
 
+import { OutputOwnership, outputOwnership } from "./outputOwnership.js";
 import { resolvePathUnderOutputRoot } from "./utils/safeOutputPath.js";
 
 export class DefaultPluginState implements PluginState {
@@ -58,26 +59,40 @@ export class InMemoryReportFiles implements ReportFiles {
 
 export class FileSystemReportFiles implements ReportFiles {
   readonly #output: string;
+  readonly #ownership: OutputOwnership;
   readonly #createdDirs = new Map<string, Promise<string | undefined>>();
 
   constructor(output: string) {
     this.#output = resolve(output);
+    this.#ownership = new OutputOwnership(this.#output);
+    // Subclasses may override writing, so only the built-in writer advertises ownership tracking.
+    if (new.target === FileSystemReportFiles) outputOwnership.set(this, this.#ownership);
   }
 
   addFile = async (path: string, data: Buffer): Promise<string> => {
-    const targetPath = resolvePathUnderOutputRoot(this.#output, path);
-    const targetDirPath = dirname(targetPath);
+    this.#ownership.writeStarted();
+    try {
+      await this.#ownership.beforeWrite(path);
+      const targetPath = resolvePathUnderOutputRoot(this.#output, path);
+      const targetDirPath = dirname(targetPath);
 
-    let createdDir = this.#createdDirs.get(targetDirPath);
+      let createdDir = this.#createdDirs.get(targetDirPath);
 
-    if (!createdDir) {
-      createdDir = mkdir(targetDirPath, { recursive: true });
-      this.#createdDirs.set(targetDirPath, createdDir);
+      if (!createdDir) {
+        createdDir = mkdir(targetDirPath, { recursive: true });
+        this.#createdDirs.set(targetDirPath, createdDir);
+      }
+
+      await createdDir;
+      await writeFile(targetPath, data, { encoding: "utf-8" });
+
+      this.#ownership.record(path);
+      return targetPath;
+    } catch (error) {
+      this.#ownership.fail();
+      throw error;
+    } finally {
+      this.#ownership.writeFinished();
     }
-
-    await createdDir;
-    await writeFile(targetPath, data, { encoding: "utf-8" });
-
-    return targetPath;
   };
 }

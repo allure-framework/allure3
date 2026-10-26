@@ -90,6 +90,10 @@ for (const frontend of ["awesome", "dashboard"] as const) {
       "application/json",
     );
     expect(html).not.toContain("feature-assets.json");
+    expect(html).not.toContain(".allure-output.json");
+    const ownership = JSON.parse(await readFile(join(report.reportDir, ".allure-output.json"), "utf8"));
+    expect(ownership.files).toContainEqual({ path: "index.html", pluginId: frontend });
+    expect(ownership.layout).toEqual({ [frontend]: "" });
     const errors: string[] = [],
       chunks: string[] = [];
     const observeScripts = (observedPage: Page) => {

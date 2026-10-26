@@ -57,6 +57,7 @@ import ZipWriteStream from "zip-stream";
 
 import type { FullConfig, PluginInstance } from "./api.js";
 import { AllureLocalHistory, createHistory, normalizeHistoryBaseUrl } from "./history.js";
+import { type OutputOwnership, outputOwnership } from "./outputOwnership.js";
 import { DefaultPluginState, PluginFiles } from "./plugin.js";
 import { QualityGate, type QualityGateState } from "./qualityGate/index.js";
 import { writeKnownIssues } from "./resolutions.js";
@@ -175,6 +176,7 @@ export class AllureReport {
   readonly #readers: readonly ResultsReader[];
   readonly #plugins: readonly PluginInstance[];
   readonly #reportFiles: ReportFiles;
+  readonly #ownership?: OutputOwnership;
   readonly #realtimeChannel: RealtimeChannel;
   readonly #realtimeUpdateScheduler: RealtimeUpdateScheduler;
   readonly #realTime: any;
@@ -315,6 +317,8 @@ export class AllureReport {
     this.#readers = [...readers];
     this.#plugins = [...plugins];
     this.#reportFiles = reportFiles;
+    const ownership = outputOwnership.get(reportFiles);
+    this.#ownership = !realTime && !dump && ownership?.output === resolve(output) ? ownership : undefined;
     this.#output = output;
   }
 
@@ -544,6 +548,7 @@ export class AllureReport {
       this.#published = true;
       logUploadProgress(true);
     } catch (err) {
+      this.#ownership?.fail();
       if (reportCreated) {
         await this.#cleanupFailedRemoteReport(client);
       }
@@ -673,42 +678,48 @@ export class AllureReport {
       throw new Error("the report is already stopped, the restart isn't supported at the moment");
     }
 
-    this.#store.updateHistoryFlags();
-    this.#executionStage = "running";
-    this.#endGeneratePerfSpan = startPerfSpan(PERF_METRIC_NAMES.generateTotal);
+    this.#ownership?.begin();
+    try {
+      this.#store.updateHistoryFlags();
+      this.#executionStage = "running";
+      this.#endGeneratePerfSpan = startPerfSpan(PERF_METRIC_NAMES.generateTotal);
 
-    if (this.#globalAttachments?.length) {
-      const cwd = this.#getCwd();
-      const matchedFiles = new Set<string>();
+      if (this.#globalAttachments?.length) {
+        const cwd = this.#getCwd();
+        const matchedFiles = new Set<string>();
 
-      for (const pattern of this.#globalAttachments) {
-        const files = await glob(pattern, { cwd, nodir: true, absolute: true });
+        for (const pattern of this.#globalAttachments) {
+          const files = await glob(pattern, { cwd, nodir: true, absolute: true });
 
-        files.forEach((filePath) => matchedFiles.add(resolve(cwd, filePath)));
+          files.forEach((filePath) => matchedFiles.add(resolve(cwd, filePath)));
+        }
+
+        for (const absoluteFilePath of matchedFiles) {
+          const originalFileName = basename(absoluteFilePath);
+
+          this.#realtimeChannel.dispatcher.sendGlobalAttachment(
+            new PathResultFile(absoluteFilePath, originalFileName),
+            originalFileName,
+          );
+          this.#recordArtifact(absoluteFilePath, originalFileName);
+        }
       }
 
-      for (const absoluteFilePath of matchedFiles) {
-        const originalFileName = basename(absoluteFilePath);
-
-        this.#realtimeChannel.dispatcher.sendGlobalAttachment(
-          new PathResultFile(absoluteFilePath, originalFileName),
-          originalFileName,
-        );
-        this.#recordArtifact(absoluteFilePath, originalFileName);
-      }
-    }
-
-    const failedPlugins = await this.#eachPlugin(true, async (plugin, context) => {
-      await plugin.start?.(context, this.#store, this.#realtimeChannel.subscriber);
-    });
-    failedPlugins.forEach((id) => this.#failedGenerationPlugins.add(id));
-
-    if (this.#realTime) {
-      await this.#runRealtimeUpdate();
-
-      this.#realtimeChannel.onResultLikeChanged(() => {
-        this.#realtimeUpdateScheduler.request();
+      const failedPlugins = await this.#eachPlugin(true, async (plugin, context) => {
+        await plugin.start?.(context, this.#store, this.#realtimeChannel.subscriber);
       });
+      failedPlugins.forEach((id) => this.#failedGenerationPlugins.add(id));
+
+      if (this.#realTime) {
+        await this.#runRealtimeUpdate();
+
+        this.#realtimeChannel.onResultLikeChanged(() => {
+          this.#realtimeUpdateScheduler.request();
+        });
+      }
+    } catch (error) {
+      await this.#ownership?.stop();
+      throw error;
     }
   };
 
@@ -1250,8 +1261,11 @@ export class AllureReport {
     const manifest: ReportArtifactsManifest = [...this.#artifactFilesByPath.values()];
 
     try {
+      await this.#ownership?.beforeWrite(ARTIFACTS_MANIFEST_FILENAME);
       await writeFile(join(this.#output, ARTIFACTS_MANIFEST_FILENAME), JSON.stringify(manifest));
+      this.#ownership?.record(ARTIFACTS_MANIFEST_FILENAME);
     } catch (err) {
+      this.#ownership?.fail();
       console.error("Failed to write Allure artifacts manifest", err);
     }
   };
@@ -1260,9 +1274,11 @@ export class AllureReport {
     const summaries = [...this.#summariesByPluginId.values()].map(clonePluginSummary);
 
     if (summaries.length > 1) {
+      await this.#ownership?.beforeWrite("index.html");
       this.#summaryPath = await measurePerf(PERF_METRIC_NAMES.summaryGenerate, async () =>
         generateSummary(this.#output, summaries),
       );
+      if (this.#summaryPath) this.#ownership?.record(this.#summaryPath);
     } else {
       this.#summaryPath = undefined;
     }
@@ -1280,11 +1296,14 @@ export class AllureReport {
       try {
         await this.#realtimeUpdateScheduler.close();
       } catch (e) {
+        this.#ownership?.fail();
         console.error("realtime update failed during shutdown", e);
       }
       // closing it after realtime update settles, to prevent future reads
       this.#executionStage = "done";
 
+      // Parsing results alone does not reserve output; acquire before finalization writes begin.
+      await this.#ownership?.acquire();
       this.#store.updateHistoryFlags();
 
       // just dump state when dump is set and generate nothing
@@ -1391,7 +1410,9 @@ export class AllureReport {
           const currentFilePath = join(reportPath, entry);
           const newFilePath = resolve(dirname(currentFilePath), "..", entry);
 
+          await this.#ownership?.beforeWrite(newFilePath);
           await rename(currentFilePath, newFilePath);
+          this.#ownership?.relocate(currentFilePath, newFilePath);
         }
 
         await rm(reportPath, { recursive: true });
@@ -1410,6 +1431,7 @@ export class AllureReport {
         try {
           await this.#store.appendHistory(this.#historyDataPoint!);
         } catch (err) {
+          this.#ownership?.fail();
           if (err instanceof KnownError) {
             console.error("Failed to append history", err.message);
           } else if (err instanceof UnknownError) {
@@ -1421,6 +1443,8 @@ export class AllureReport {
         }
       }
 
+      await this.#ownership?.finish(shouldFlattenOutput ? reportDirectoryEntries[0].file : undefined);
+
       if (this.#publishedRemoteHrefs.size > 0) {
         console.info("Next reports have been published:");
 
@@ -1429,7 +1453,11 @@ export class AllureReport {
         });
       }
     } finally {
-      this.#finishGeneratePerfSpan();
+      try {
+        await this.#ownership?.stop();
+      } finally {
+        this.#finishGeneratePerfSpan();
+      }
     }
   };
 
@@ -1455,6 +1483,7 @@ export class AllureReport {
 
       if (!pluginState) {
         failed.add(id);
+        this.#ownership?.fail();
         console.error("plugin error: state is empty");
         continue;
       }
@@ -1472,6 +1501,7 @@ export class AllureReport {
         }
 
         files[key] = filepath;
+        this.#ownership?.record(filepath, id);
       });
       const pluginContext: PerfAwarePluginContext = {
         id,
@@ -1512,6 +1542,7 @@ export class AllureReport {
         }
       } catch (e) {
         failed.add(id);
+        this.#ownership?.fail();
         console.error(`plugin ${id} error`, e);
       }
     }
