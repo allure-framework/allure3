@@ -1,13 +1,14 @@
 import { Button, Menu, Toggle, allureIcons } from "@allurereport/web-components";
 
+import { useTreeStore } from "@/components/Tree/context";
 import { useI18n } from "@/stores/locale";
-import { setTreeFilter, treeFiltersStore } from "@/stores/tree";
 
 import * as styles from "./styles.scss";
 
 export const Filters = () => {
   const { t } = useI18n("filters");
-  const { flaky, retry, new: isNew } = treeFiltersStore.value.filter;
+  const { filters, setFilter: setTreeFilter } = useTreeStore();
+  const { flaky, retry, new: isNew } = filters.value.filter;
   const hasFilter = flaky || retry || isNew;
 
   return (

@@ -125,3 +125,27 @@ describe("classic attachment locales", () => {
     });
   });
 });
+
+describe("classic tree locales", () => {
+  it("translates the tree controls in every locale that translates the tree filters", () => {
+    const localeFiles = readdirSync(localesDir).filter((file) => file.endsWith(".json"));
+
+    return step("verify the tree namespace next to the filters namespace", async () => {
+      localeFiles.forEach((file) => {
+        const locale = JSON.parse(readFileSync(join(localesDir, file), "utf8"));
+
+        if (!locale.filters) {
+          return;
+        }
+
+        ["collapse-all", "expand-all", "show-groups-info", "hide-groups-info", "download-csv", "flaky"].forEach(
+          (key) => {
+            expect(locale.tree?.[key], `${file} tree.${key}`).toEqual(expect.stringMatching(/\S/));
+          },
+        );
+        // a plain "retries" key is the fallback for plural forms a locale doesn't define
+        expect(locale.tree.retries ?? locale.tree.retries_other, `${file} tree.retries`).toContain("{{count}}");
+      });
+    });
+  });
+});

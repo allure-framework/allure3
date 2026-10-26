@@ -189,5 +189,14 @@
         "expected": "צפוי"
       }
     }
+  },
+  "tree": {
+    "collapse-all": "כווץ את כל הקבוצות",
+    "expand-all": "הרחב את כל הקבוצות",
+    "show-groups-info": "הצג מידע על קבוצות",
+    "hide-groups-info": "הסתר מידע על קבוצות",
+    "download-csv": "הורד CSV",
+    "flaky": "לא יציב",
+    "retries": "ניסיונות חוזרים: {{count}}"
   }
 }

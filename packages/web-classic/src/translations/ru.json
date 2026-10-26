@@ -217,5 +217,17 @@
         "expected": "Ожидаемый"
       }
     }
+  },
+  "tree": {
+    "collapse-all": "Свернуть все группы",
+    "expand-all": "Развернуть все группы",
+    "show-groups-info": "Показать статистику групп",
+    "hide-groups-info": "Скрыть статистику групп",
+    "download-csv": "Скачать CSV",
+    "flaky": "Нестабильный",
+    "retries_one": "{{count}} перезапуск",
+    "retries_few": "{{count}} перезапуска",
+    "retries_many": "{{count}} перезапусков",
+    "retries_other": "{{count}} перезапуска"
   }
 }

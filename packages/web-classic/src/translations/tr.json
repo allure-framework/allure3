@@ -188,5 +188,14 @@
         "expected": "Beklenen"
       }
     }
+  },
+  "tree": {
+    "collapse-all": "Tüm grupları daralt",
+    "expand-all": "Tüm grupları genişlet",
+    "show-groups-info": "Grup bilgilerini göster",
+    "hide-groups-info": "Grup bilgilerini gizle",
+    "download-csv": "CSV indir",
+    "flaky": "İstikrarsız",
+    "retries": "Yeniden denemeler: {{count}}"
   }
 }

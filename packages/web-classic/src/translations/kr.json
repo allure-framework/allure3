@@ -188,5 +188,14 @@
         "expected": "예상"
       }
     }
+  },
+  "tree": {
+    "collapse-all": "모든 그룹 접기",
+    "expand-all": "모든 그룹 펼치기",
+    "show-groups-info": "그룹 정보 표시",
+    "hide-groups-info": "그룹 정보 숨기기",
+    "download-csv": "CSV 다운로드",
+    "flaky": "불안정함",
+    "retries": "재시도: {{count}}"
   }
 }

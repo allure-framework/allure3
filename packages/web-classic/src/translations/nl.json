@@ -188,5 +188,14 @@
         "expected": "Verwacht"
       }
     }
+  },
+  "tree": {
+    "collapse-all": "Alle groepen inklappen",
+    "expand-all": "Alle groepen uitklappen",
+    "show-groups-info": "Groepsinfo tonen",
+    "hide-groups-info": "Groepsinfo verbergen",
+    "download-csv": "CSV downloaden",
+    "flaky": "Onstabiel",
+    "retries": "Herhalingen: {{count}}"
   }
 }

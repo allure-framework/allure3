@@ -54,6 +54,7 @@ describe("generateTestResults", () => {
     const testResult = mockTestResult("tr-1", "test", "passed");
     const writer: ClassicDataWriter = {
       writeData: vi.fn().mockResolvedValue(undefined),
+      writeRawData: vi.fn().mockResolvedValue(undefined),
       writeWidget: vi.fn().mockResolvedValue(undefined),
       writeTestCase: vi.fn().mockResolvedValue(undefined),
       writeAttachment: vi.fn().mockResolvedValue(undefined),
@@ -344,5 +345,30 @@ describe("generateStaticFiles", () => {
 
     expect(html).toContain('<link rel="icon" href="data:image/svg+xml,');
     expect(html).not.toContain('href="favicon.ico"');
+  });
+});
+
+describe("generateTreeByCategories", () => {
+  it("should include only the tests that matched a category", async () => {
+    const writer = { writeWidget: vi.fn().mockResolvedValue(undefined) } as unknown as ClassicDataWriter;
+    const tests = [
+      { ...mockTestResult("failed", "failed test", "failed"), categories: [{ name: "Product defects" }] },
+      { ...mockTestResult("passed", "passed test", "passed"), categories: [] },
+      { ...mockTestResult("skipped", "skipped test", "skipped") },
+      {
+        ...mockTestResult("retry", "retried test", "broken"),
+        isRetry: true,
+        categories: [{ name: "Test defects" }],
+      },
+    ] as unknown as ReportTestResult[];
+
+    await generateTreeByCategories(writer, "categories", tests);
+
+    const [[fileName, tree]] = vi.mocked(writer.writeWidget).mock.calls;
+
+    expect(fileName).toBe("categories.json");
+    expect(Object.keys(tree.leavesById)).toEqual(["failed"]);
+    expect(tree.root.leaves ?? []).toEqual([]);
+    expect(tree.root.groups.map((id: string) => tree.groupsById[id].name)).toEqual(["Product defects"]);
   });
 });

@@ -190,5 +190,14 @@
         "expected": "Oczekiwany"
       }
     }
+  },
+  "tree": {
+    "collapse-all": "Zwiń wszystkie grupy",
+    "expand-all": "Rozwiń wszystkie grupy",
+    "show-groups-info": "Pokaż informacje o grupach",
+    "hide-groups-info": "Ukryj informacje o grupach",
+    "download-csv": "Pobierz CSV",
+    "flaky": "Niestabilny",
+    "retries": "Ponowienia: {{count}}"
   }
 }

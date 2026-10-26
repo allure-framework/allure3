@@ -148,6 +148,50 @@ describe("utils > treeFilters", () => {
       expect(result).toEqual([expect.objectContaining({ name: "a1" })]);
     });
 
+    it("returns only new leaves when the new filter is enabled", () => {
+      const baseDate = Date.now();
+      const leaves = ["a1", "b2", "c3"];
+      const leavesById = {
+        a1: {
+          name: "a1",
+          start: baseDate,
+          transition: "new",
+        } as ReportTestResult,
+        b2: {
+          name: "b2",
+          start: baseDate + 1000,
+          transition: "fixed",
+        } as ReportTestResult,
+        c3: {
+          name: "c3",
+          start: baseDate + 2000,
+        } as ReportTestResult,
+      };
+      const result = filterLeaves(leaves, leavesById, {
+        filter: {
+          new: true,
+        },
+      });
+
+      expect(result).toEqual([expect.objectContaining({ name: "a1" })]);
+    });
+
+    it("keeps every leaf when the new filter is disabled", () => {
+      const leavesById = {
+        a1: { name: "a1", start: 1, transition: "new" } as ReportTestResult,
+        b2: { name: "b2", start: 2 } as ReportTestResult,
+      };
+      const result = filterLeaves(["a1", "b2"], leavesById, {
+        filter: {
+          new: false,
+        },
+        sortBy: "order",
+        direction: "asc",
+      });
+
+      expect(result.map(({ name }) => name)).toEqual(["a1", "b2"]);
+    });
+
     it("sorts leave by duration in ascending order", () => {
       const leaves = ["a1", "b2", "c3"];
       const leavesById = {

@@ -205,5 +205,14 @@
         "expected": "المتوقع"
       }
     }
+  },
+  "tree": {
+    "collapse-all": "طي جميع المجموعات",
+    "expand-all": "توسيع جميع المجموعات",
+    "show-groups-info": "إظهار معلومات المجموعات",
+    "hide-groups-info": "إخفاء معلومات المجموعات",
+    "download-csv": "تنزيل CSV",
+    "flaky": "غير مستقر",
+    "retries": "إعادات المحاولة: {{count}}"
   }
 }

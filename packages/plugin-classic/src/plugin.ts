@@ -6,10 +6,10 @@ import {
   type PluginSummary,
   createPluginSummary,
 } from "@allurereport/plugin-api";
-import { preciseTreeLabels } from "@allurereport/plugin-api";
 import { generateAttachmentsFiles, generateHistoryDataPoints } from "@allurereport/plugin-api/internal/report";
 
 import { resolveClassicCategories } from "./categories.js";
+import { generateTreeCsvFiles } from "./csv.js";
 import { generateTimeline } from "./generateTimeline.js";
 import {
   generateAllCharts,
@@ -23,6 +23,7 @@ import {
 } from "./generators.js";
 import type { ClassicCategory, ClassicPluginOptions } from "./model.js";
 import { collectOverviewOptions } from "./overview.js";
+import { resolveTreeLabels } from "./treeLabels.js";
 import { type ClassicDataWriter, InMemoryReportDataWriter, ReportFileDataWriter } from "./writer.js";
 
 export class ClassicPlugin implements Plugin {
@@ -31,7 +32,7 @@ export class ClassicPlugin implements Plugin {
   constructor(readonly options: ClassicPluginOptions = {}) {}
 
   #generate = async (context: PluginContext, store: AllureStore) => {
-    const { singleFile, groupBy = [], filter } = this.options ?? {};
+    const { singleFile, groupBy, filter } = this.options ?? {};
     const environmentItems = await store.metadataByKey<EnvironmentItem[]>("allure_environment");
     const statistic = await store.testsStatistic(filter);
     const attachments = await store.allAttachments();
@@ -50,24 +51,17 @@ export class ClassicPlugin implements Plugin {
       resolveHistoryUrl: context.history?.resolveTestResultUrl,
     });
 
-    const treeLabels = preciseTreeLabels(
-      !groupBy.length ? ["parentSuite", "suite", "subSuite"] : groupBy,
-      convertedTrs,
-      ({ labels }) => labels.map(({ name }) => name),
-    );
-    const behaviorLabels = preciseTreeLabels(
-      !groupBy.length ? ["epic", "feature", "story"] : groupBy,
-      convertedTrs,
-      ({ labels }) => labels.map(({ name }) => name),
-    );
-    const packagesLabels = preciseTreeLabels(!groupBy.length ? ["package"] : groupBy, convertedTrs, ({ labels }) =>
-      labels.map(({ name }) => name),
-    );
+    const {
+      tree: treeLabels,
+      behaviors: behaviorLabels,
+      packages: packagesLabels,
+    } = resolveTreeLabels(groupBy, convertedTrs);
 
     await generateTreeByCategories(this.#writer!, "categories", convertedTrs);
     await generateTree(this.#writer!, "tree", treeLabels, convertedTrs);
     await generateTree(this.#writer!, "behaviors", behaviorLabels, convertedTrs);
     await generateTree(this.#writer!, "packages", packagesLabels, convertedTrs);
+    await generateTreeCsvFiles(this.#writer!, convertedTrs);
     await generateHistoryDataPoints(this.#writer!, store);
     await generateTimeline(this.#writer!, await store.allTestResults({ includeRetries: true, filter }), this.options);
 

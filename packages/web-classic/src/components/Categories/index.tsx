@@ -1,14 +1,14 @@
 import { Heading, Loadable, PageLoader } from "@allurereport/web-components";
 import { useEffect } from "preact/compat";
 
-import { CategoriesList } from "@/components/Categories/CategoriesList";
 import { HeaderActions } from "@/components/HeaderActions/HeaderActions";
 import SideBySide from "@/components/SideBySide";
 import TestResult from "@/components/TestResult";
+import { TreeList, TreeStoreContext } from "@/components/Tree";
 import { useI18n } from "@/stores";
-import { fetchCategoriesData } from "@/stores/categories";
 import { route } from "@/stores/router";
 import { fetchTestResult, testResultStore } from "@/stores/testResults";
+import { categoriesTree } from "@/stores/tree";
 
 import * as styles from "./styles.scss";
 
@@ -17,7 +17,7 @@ const Categories = () => {
   const { testResultId } = params;
 
   useEffect(() => {
-    fetchCategoriesData();
+    categoriesTree.fetchData();
   }, []);
 
   useEffect(() => {
@@ -50,8 +50,10 @@ const Categories = () => {
           {t("categories")}
         </Heading>
 
-        <HeaderActions />
-        <CategoriesList />
+        <TreeStoreContext.Provider value={categoriesTree}>
+          <HeaderActions />
+          <TreeList />
+        </TreeStoreContext.Provider>
       </div>
     );
   };
