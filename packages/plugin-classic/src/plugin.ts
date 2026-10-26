@@ -39,10 +39,12 @@ export class ClassicPlugin implements Plugin {
 
     await generateStatistic(this.#writer!, statistic);
     await generatePieChart(this.#writer!, statistic);
-    await generateAllCharts(this.#writer!, store, this.options, context);
 
     const legacyCategories = await store.metadataByKey<ClassicCategory[]>("allure2_categories");
     const categories = resolveClassicCategories(context.categories, legacyCategories ?? []);
+
+    await generateAllCharts(this.#writer!, store, this.options, context, categories);
+
     const convertedTrs = await generateTestResults(this.#writer!, store, {
       filter,
       categories,

@@ -162,6 +162,18 @@
       "statusSlice": "{{count}} {{status}} （全テストの {{percent}}%）",
       "slice": "{{count}} 件のテスト（全テストの {{percent}}%）",
       "noEligibleResults": "成功、失敗、異常終了のテストはありません。スキップされたテストとステータス不明のテストは成功率から除外します。"
+    },
+    "durationTrend": {
+      "title": "期間の傾向"
+    },
+    "retriesTrend": {
+      "title": "再実行の傾向"
+    },
+    "categoriesTrend": {
+      "title": "カテゴリーの傾向"
+    },
+    "runTrend": {
+      "empty": "何も表示するものがありません"
     }
   },
   "timeline": {

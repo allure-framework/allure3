@@ -5,6 +5,7 @@ import {
   type GeneratedChartsData,
 } from "@allurereport/charts-api";
 import {
+  type CategoryDefinition,
   DEFAULT_ENVIRONMENT,
   emptyStatistic,
   incrementStatistic,
@@ -18,6 +19,11 @@ import { type AllureStore } from "@allurereport/plugin-api";
 import { generateCurrentStatusChart } from "./generateCurrentStatusChart.js";
 import { generateDurationDynamicsChart } from "./generateDurationDynamicsChart.js";
 import { generateDurationsChart } from "./generateDurationsChart.js";
+import {
+  generateCategoriesTrendChart,
+  generateDurationTrendChart,
+  generateRetriesTrendChart,
+} from "./generateRunTrendCharts.js";
 import { generateStabilityDistributionChart } from "./generateStabilityDistributionChart.js";
 import { generateStatusAgePyramid } from "./generateStatusAgePyramid.js";
 import { generateStatusDynamicsChart } from "./generateStatusDynamicsChart.js";
@@ -35,8 +41,9 @@ const generateChartData = async (props: {
   reportName: string;
   generateUuid: () => string;
   filter?: (testResult: TestResult) => boolean;
+  categories?: CategoryDefinition[];
 }) => {
-  const { envId, chartsOptions, store, generateUuid, filter } = props;
+  const { envId, chartsOptions, store, reportName, generateUuid, filter, categories } = props;
   const result: GeneratedChartsData = {};
 
   const getTrs = async (): Promise<TestResult[]> => {
@@ -123,6 +130,7 @@ const generateChartData = async (props: {
     testResults,
     statistic,
     allTestResults,
+    categories,
   }));
 
   for (const chartOption of chartsOptions) {
@@ -168,6 +176,15 @@ const generateChartData = async (props: {
       case ChartType.TestingPyramid:
         result[chartId] = generateTestingPyramidChart(chartOption, storeData)!;
         break;
+      case ChartType.DurationTrend:
+        result[chartId] = generateDurationTrendChart({ options: chartOption, storeData, reportName });
+        break;
+      case ChartType.RetriesTrend:
+        result[chartId] = generateRetriesTrendChart({ options: chartOption, storeData, reportName });
+        break;
+      case ChartType.CategoriesTrend:
+        result[chartId] = generateCategoriesTrendChart({ options: chartOption, storeData, reportName });
+        break;
       default:
         break;
     }
@@ -199,11 +216,15 @@ export const generateCharts = async (
   reportName: string,
   generateUuid: () => string,
   filter?: (testResult: TestResult) => boolean,
+  /**
+   * Categories for the categories trend, in matching order
+   */
+  categories?: CategoryDefinition[],
 ): Promise<ChartsWidgetData> => {
   const environments = await store.allEnvironmentIdentities();
 
   const chartsData: ChartsWidgetData = {
-    general: await generateChartData({ chartsOptions, store, reportName, generateUuid, filter }),
+    general: await generateChartData({ chartsOptions, store, reportName, generateUuid, filter, categories }),
     byEnv: {},
   };
 
@@ -220,6 +241,7 @@ export const generateCharts = async (
       envId: environment.id,
       generateUuid,
       filter,
+      categories,
     });
   }
 

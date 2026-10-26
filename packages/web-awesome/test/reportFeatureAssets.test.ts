@@ -162,6 +162,7 @@ it.each(["awesome", "dashboard"])("preserves production feature boundaries for %
     "chart-funnel",
     "chart-heatmap",
     "chart-pie",
+    "chart-run-trend",
     "chart-treemap",
     ...(report === "awesome" ? ["error-diff"] : []),
   ];

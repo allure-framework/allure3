@@ -162,6 +162,18 @@
       "statusSlice": "{{count}} {{status}} ({{percent}}% av alla tester)",
       "slice": "{{count}} tester ({{percent}}% av alla tester)",
       "noEligibleResults": "Det finns inga godkända, underkända eller trasiga tester. Överhoppade tester och tester med okänd status utesluts från andelen godkända."
+    },
+    "durationTrend": {
+      "title": "Varaktighet trend"
+    },
+    "retriesTrend": {
+      "title": "Återförsöks trend"
+    },
+    "categoriesTrend": {
+      "title": "Kategorier trend"
+    },
+    "runTrend": {
+      "empty": "Det finns ingenting att visa här"
     }
   },
   "timeline": {

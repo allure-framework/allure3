@@ -162,6 +162,18 @@
       "slice_few": "{{count}} testy ({{percent}}% wszystkich testów)",
       "slice_many": "{{count}} testów ({{percent}}% wszystkich testów)",
       "noEligibleResults": "Brak testów zaliczonych, niezaliczonych lub uszkodzonych. Testy pominięte i o nieznanym statusie są wykluczone ze współczynnika powodzenia."
+    },
+    "durationTrend": {
+      "title": "Trend czasu trwania"
+    },
+    "retriesTrend": {
+      "title": "Trend powtórzeń"
+    },
+    "categoriesTrend": {
+      "title": "Trend kategorii"
+    },
+    "runTrend": {
+      "empty": "Brak czegokolwiek do pokazania"
     }
   },
   "timeline": {

@@ -162,6 +162,18 @@
       "slice": "{{count}} тестов ({{percent}}% всех тестов)",
       "slice_few": "{{count}} теста ({{percent}}% всех тестов)",
       "slice_many": "{{count}} тестов ({{percent}}% всех тестов)"
+    },
+    "durationTrend": {
+      "title": "Тренд длительности"
+    },
+    "retriesTrend": {
+      "title": "Тренд перезапусков"
+    },
+    "categoriesTrend": {
+      "title": "Тренд категорий"
+    },
+    "runTrend": {
+      "empty": "Нет данных"
     }
   },
   "timeline": {

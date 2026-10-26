@@ -23,6 +23,9 @@ const chartRenderers: Record<ChartType, Renderer> = {
   [ChartType.SuccessRateDistribution]: "treemap",
   [ChartType.ProblemsDistribution]: "heatmap",
   [ChartType.TestingPyramid]: "funnel",
+  [ChartType.DurationTrend]: "runTrend",
+  [ChartType.RetriesTrend]: "runTrend",
+  [ChartType.CategoriesTrend]: "runTrend",
 };
 
 const rendererLoaders = {
@@ -31,6 +34,7 @@ const rendererLoaders = {
   treemap: () => import(/* webpackChunkName: "chart-treemap" */ "./TreeMapChartRenderer"),
   heatmap: () => import(/* webpackChunkName: "chart-heatmap" */ "./HeatMapChartRenderer"),
   funnel: () => import(/* webpackChunkName: "chart-funnel" */ "./FunnelChartRenderer"),
+  runTrend: () => import(/* webpackChunkName: "chart-run-trend" */ "./RunTrendChartRenderer"),
 };
 type Renderer = keyof typeof rendererLoaders;
 const rendererCache = new Map<Renderer, ComponentType<ChartWidgetProps>>();

@@ -21,6 +21,7 @@ export * from "./components/Charts/StatusTransitionsChartWidget";
 export * from "./components/Charts/DurationsChartWidget";
 export * from "./components/Charts/TrSeveritiesChartWidget";
 export * from "./components/Charts/DurationDynamicsChartWidget";
+export * from "./components/Charts/RunTrendChartWidget";
 export * from "./components/Timeline";
 
 export { ChartWidget } from "./components/Charts/ChartWidget";

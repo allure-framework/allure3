@@ -1,3 +1,4 @@
+import { ChartType, defaultChartsConfig } from "@allurereport/charts-api";
 import type { TestFixtureResult, TestResult } from "@allurereport/core-api";
 import { normalizeCategoriesConfig } from "@allurereport/core-api";
 import type { AllureStore, ReportFiles, ReportTestResult, ReportTreeGroup } from "@allurereport/plugin-api";
@@ -5,7 +6,12 @@ import { epic, feature, label, story } from "allure-js-commons";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 import { resolveClassicCategories } from "../src/categories.js";
-import { generateStaticFiles, generateTestResults, generateTreeByCategories } from "../src/generators.js";
+import {
+  classicChartsConfig,
+  generateStaticFiles,
+  generateTestResults,
+  generateTreeByCategories,
+} from "../src/generators.js";
 import type { ClassicDataWriter } from "../src/writer.js";
 
 beforeEach(async () => {
@@ -370,5 +376,16 @@ describe("generateTreeByCategories", () => {
     expect(Object.keys(tree.leavesById)).toEqual(["failed"]);
     expect(tree.root.leaves ?? []).toEqual([]);
     expect(tree.root.groups.map((id: string) => tree.groupsById[id].name)).toEqual(["Product defects"]);
+  });
+});
+
+describe("classicChartsConfig", () => {
+  it("should add the Allure 2 duration, retries and categories trends of the last 20 runs to the default charts", () => {
+    expect(classicChartsConfig.slice(0, defaultChartsConfig.length)).toEqual(defaultChartsConfig);
+    expect(classicChartsConfig.slice(defaultChartsConfig.length)).toEqual([
+      { type: ChartType.DurationTrend, limit: 20 },
+      { type: ChartType.RetriesTrend, limit: 20 },
+      { type: ChartType.CategoriesTrend, limit: 20 },
+    ]);
   });
 });

@@ -162,6 +162,18 @@
       "statusSlice": "{{count}} {{status}} （占全部测试的 {{percent}}%）",
       "slice": "{{count}} 个测试（占全部测试的 {{percent}}%）",
       "noEligibleResults": "没有通过、失败或损坏的测试。跳过和状态未知的测试不计入成功率。"
+    },
+    "durationTrend": {
+      "title": "时长趋势"
+    },
+    "retriesTrend": {
+      "title": "重试趋势"
+    },
+    "categoriesTrend": {
+      "title": "类别趋势"
+    },
+    "runTrend": {
+      "empty": "没有信息"
     }
   },
   "timeline": {

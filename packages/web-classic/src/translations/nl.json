@@ -162,6 +162,18 @@
       "statusSlice": "{{count}} {{status}} ({{percent}}% van alle tests)",
       "slice": "{{count}} tests ({{percent}}% van alle tests)",
       "noEligibleResults": "Er zijn geen geslaagde, mislukte of defecte tests. Overgeslagen tests en tests met onbekende status tellen niet mee voor het slagingspercentage."
+    },
+    "durationTrend": {
+      "title": "Trend duur"
+    },
+    "retriesTrend": {
+      "title": "Trend nieuwe pogingen"
+    },
+    "categoriesTrend": {
+      "title": "Trend categorieën"
+    },
+    "runTrend": {
+      "empty": "Er is niets te tonen"
     }
   },
   "timeline": {
