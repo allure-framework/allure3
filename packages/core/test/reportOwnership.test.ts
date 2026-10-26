@@ -2,7 +2,7 @@ import console from "node:console";
 import { mkdir, mkdtemp, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import * as fs from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { basename, dirname, join, relative } from "node:path";
 
 import { emptyStatistic } from "@allurereport/core-api";
 import type { Plugin, PluginContext, PluginSummary } from "@allurereport/plugin-api";
@@ -110,9 +110,13 @@ it("does not adopt user files or change placement next to foreign directories", 
   await writeFile(join(output, "user", "keep.txt"), "keep");
   const config = await resolveConfig({ output, appendHistory: false });
   config.plugins = [plugin("awesome", writeReport)];
-  const report = new AllureReport(config);
-  await report.start();
-  await report.done();
+  for (let generation = 0; generation < 2; generation++) {
+    const report = new AllureReport(config);
+    await report.start();
+    await report.done();
+    expect((await inventory()).layout).toEqual({ awesome: "awesome" });
+    expect(await readFile(join(output, "awesome/index.html"), "utf8")).toBe("awesome");
+  }
   const result = await inventory();
   expect(result.layout).toEqual({ awesome: "awesome" });
   expect(result.files.some((file: { path: string }) => file.path.startsWith("user/"))).toBe(false);
@@ -141,7 +145,7 @@ it.each(["start", "done", "info"] as const)(
     ];
     const report = new AllureReport(config);
     await report.start();
-    await report.done();
+    await expect(report.done()).rejects.toThrow("Report replacement aborted");
     expect(await readFile(join(output, ".allure-output.json"), "utf8")).toBe(previous);
   },
 );
@@ -149,23 +153,33 @@ it.each(["start", "done", "info"] as const)(
 it("preserves prior metadata if flattening fails", async () => {
   const previous = JSON.stringify({ version: 1, files: [], layout: {} });
   await writeFile(join(output, ".allure-output.json"), previous);
-  await writeFile(join(output, "chunks"), "user file");
+  await writeFile(join(output, "user.txt"), "user file");
   const config = await resolveConfig({ output, appendHistory: false });
   config.plugins = [plugin("awesome", writeReport)];
   const actual = await vi.importActual<typeof import("node:fs/promises")>("node:fs/promises");
-  const source = join(output, "awesome", "chunks");
-  const target = join(output, "chunks");
+  let failedSource: string | undefined;
+  let failedTarget: string | undefined;
   // Inject the failure at the flattening boundary; rename collision behavior varies by OS.
   vi.mocked(fs.rename).mockImplementation(async (from, to) => {
-    if (from === source && to === target) throw new Error("flattening failed");
+    if (
+      typeof from === "string" &&
+      typeof to === "string" &&
+      basename(to) === "chunks" &&
+      from === join(dirname(to), "awesome", "chunks")
+    ) {
+      failedSource = from;
+      failedTarget = to;
+      throw new Error("flattening failed");
+    }
     return actual.rename(from, to);
   });
   const report = new AllureReport(config);
   await report.start();
   await expect(report.done()).rejects.toThrow("flattening failed");
-  expect(fs.rename).toHaveBeenCalledWith(source, target);
+  expect(failedSource).toBeDefined();
+  expect(fs.rename).toHaveBeenCalledWith(failedSource, failedTarget);
   expect(await readFile(join(output, ".allure-output.json"), "utf8")).toBe(previous);
-  expect(await readFile(join(output, "chunks"), "utf8")).toBe("user file");
+  expect(await readFile(join(output, "user.txt"), "utf8")).toBe("user file");
 });
 
 it.each(["custom", "custom-subclass", "different-root", "live", "dump"] as const)(
@@ -195,7 +209,7 @@ it.each(["custom", "custom-subclass", "different-root", "live", "dump"] as const
   },
 );
 
-it("accumulates ownership across generations without deleting old files or changing legacy placement", async () => {
+it("keeps a reused report flattened and replaces its ownership snapshot", async () => {
   const firstConfig = await resolveConfig({ output, appendHistory: false });
   firstConfig.plugins = [plugin("awesome", writeReport)];
   const first = new AllureReport(firstConfig);
@@ -213,14 +227,15 @@ it("accumulates ownership across generations without deleting old files or chang
   await next.start();
   await next.done();
   const result = await inventory();
-  expect(result.layout).toEqual({ awesome: "awesome" });
+  expect(result.layout).toEqual({ awesome: "" });
   expect(result.files).toContainEqual({ path: "index.html", pluginId: "awesome" });
-  expect(result.files).toContainEqual({ path: "chunks/viewer.js", pluginId: "awesome" });
-  expect(result.files).toContainEqual({ path: "awesome/new.js", pluginId: "awesome" });
+  expect(result.files).not.toContainEqual({ path: "chunks/viewer.js", pluginId: "awesome" });
+  expect(result.files).toContainEqual({ path: "new.js", pluginId: "awesome" });
   expect(result.files.some((file: { path: string }) => file.path === "user.txt")).toBe(false);
-  expect(await readFile(join(output, "index.html"), "utf8")).toBe("awesome");
-  expect(await readFile(join(output, "awesome/index.html"), "utf8")).toBe("new report");
-  expect(await readFile(join(output, "chunks/viewer.js"), "utf8")).toBe("viewer");
+  expect(await readFile(join(output, "index.html"), "utf8")).toBe("new report");
+  await expect(readFile(join(output, "awesome/index.html"))).rejects.toMatchObject({ code: "ENOENT" });
+  await expect(readFile(join(output, "chunks/viewer.js"))).rejects.toMatchObject({ code: "ENOENT" });
+  expect(await readFile(join(output, "user.txt"), "utf8")).toBe("user");
 });
 
 it("records only tracked files when a plugin writes outside ReportFiles", async () => {
@@ -258,7 +273,8 @@ it("records a summary-only plugin without inventing an HTML entry point", async 
 });
 
 it("preserves legacy plugin metadata files instead of overwriting them with the inventory", async () => {
-  const previous = JSON.stringify({ version: 1, files: [], layout: {} });
+  const previous = JSON.stringify({ version: 1, files: [{ path: "old.js" }], layout: {} });
+  await writeFile(join(output, "old.js"), "old asset");
   await writeFile(join(output, ".allure-output.json"), previous);
   vi.spyOn(console, "error").mockImplementation(() => {});
   const config = await resolveConfig({ output, appendHistory: false });
@@ -273,6 +289,7 @@ it("preserves legacy plugin metadata files instead of overwriting them with the 
   await report.done();
   expect(await readFile(join(output, ".allure-output.json"), "utf8")).toBe("plugin");
   expect(await readFile(join(output, "index.html"), "utf8")).toBe("report");
+  expect(await readFile(join(output, "old.js"), "utf8")).toBe("old asset");
 });
 
 it("generates a report when the inventory path is occupied by a user file", async () => {
@@ -351,15 +368,119 @@ it("rejects concurrent finalization before the second plugin writes any output",
   expect(await readFile(join(output, "index.html"), "utf8")).toBe("first");
 });
 
-it("preserves the previous inventory when appending history fails without failing done", async () => {
-  const previous = JSON.stringify({ version: 1, files: [], layout: {} });
-  await writeFile(join(output, ".allure-output.json"), previous);
+it("installs local fallback without retirement when history fails during replacement", async () => {
+  const firstConfig = await resolveConfig({ output, appendHistory: false });
+  firstConfig.plugins = [plugin("awesome", writeReport)];
+  const first = new AllureReport(firstConfig);
+  await first.start();
+  await first.done();
+  const previous = await readFile(join(output, ".allure-output.json"), "utf8");
   vi.spyOn(console, "error").mockImplementation(() => {});
   const config = await resolveConfig({ output, appendHistory: true, historyPath: join(output, "history.jsonl") });
-  config.plugins = [plugin("awesome", writeReport)];
+  config.plugins = [
+    plugin("awesome", async (context) => {
+      await context.reportFiles.addFile("index.html", Buffer.from("updated"));
+    }),
+  ];
   const report = new AllureReport(config);
   vi.spyOn(report.store, "appendHistory").mockRejectedValueOnce(new KnownError("history unavailable"));
   await report.start();
   await expect(report.done()).resolves.toBeUndefined();
   expect(await readFile(join(output, ".allure-output.json"), "utf8")).toBe(previous);
+  expect(await readFile(join(output, "index.html"), "utf8")).toBe("updated");
+  expect(await readFile(join(output, "chunks/viewer.js"), "utf8")).toBe("viewer");
+});
+
+it("keeps the previous report readable while the next report is staged and discards failed finalization", async () => {
+  const config = await resolveConfig({ output, appendHistory: false });
+  config.plugins = [plugin("awesome", writeReport)];
+  const first = new AllureReport(config);
+  await first.start();
+  await first.done();
+  const previous = await readFile(join(output, ".allure-output.json"), "utf8");
+  vi.spyOn(console, "error").mockImplementation(() => {});
+  const nextConfig = await resolveConfig({ output, appendHistory: false });
+  nextConfig.plugins = [
+    plugin("awesome", async (context) => {
+      await context.reportFiles.addFile("index.html", Buffer.from("partial"));
+      expect(await readFile(join(output, "index.html"), "utf8")).toBe("awesome");
+      throw new Error("generation failed");
+    }),
+  ];
+  const next = new AllureReport(nextConfig);
+  await next.start();
+  await expect(next.done()).rejects.toThrow("Report replacement aborted");
+  expect(await readFile(join(output, "index.html"), "utf8")).toBe("awesome");
+  expect(await readFile(join(output, ".allure-output.json"), "utf8")).toBe(previous);
+});
+
+it("keeps one/multiple/one layouts and directory/single/directory transitions stable around nested user files", async () => {
+  const generate = async (ids: string[], directory: boolean) => {
+    const config = await resolveConfig({ output, appendHistory: false });
+    config.plugins = ids.map((id) =>
+      plugin(id, async (context) => {
+        await context.reportFiles.addFile("index.html", Buffer.from(id));
+        if (directory) await context.reportFiles.addFile("data/test.json", Buffer.from("data"));
+      }),
+    );
+    const report = new AllureReport(config);
+    await report.start();
+    await report.done();
+  };
+  await generate(["one"], true);
+  await writeFile(join(output, "data/user.txt"), "user");
+  await generate(["one"], false);
+  expect(await readFile(join(output, "index.html"), "utf8")).toBe("one");
+  await expect(readFile(join(output, "data/test.json"))).rejects.toMatchObject({ code: "ENOENT" });
+  await generate(["one"], true);
+  expect((await inventory()).layout).toEqual({ one: "" });
+  await generate(["one", "two"], true);
+  expect((await inventory()).layout).toEqual({ one: "one", two: "two" });
+  expect(await readFile(join(output, "two/index.html"), "utf8")).toBe("two");
+  await generate(["one"], true);
+  expect((await inventory()).layout).toEqual({ one: "" });
+  expect(await readFile(join(output, "index.html"), "utf8")).toBe("one");
+  expect(await readFile(join(output, "data/user.txt"), "utf8")).toBe("user");
+  await expect(readdir(join(output, "one"))).rejects.toMatchObject({ code: "ENOENT" });
+  await expect(readdir(join(output, "two"))).rejects.toMatchObject({ code: "ENOENT" });
+  await expect(readFile(join(output, "two/index.html"))).rejects.toMatchObject({ code: "ENOENT" });
+});
+
+it("keeps streamed start files visible and includes them in final flattening without duplicates", async () => {
+  const config = await resolveConfig({ output, appendHistory: false });
+  config.plugins = [
+    {
+      id: "awesome",
+      enabled: true,
+      options: {},
+      plugin: {
+        start: async (context) => {
+          await context.reportFiles.addFile("early.txt", Buffer.from("early"));
+        },
+        done: writeReport,
+      },
+    },
+  ];
+  const report = new AllureReport(config);
+  await report.start();
+  expect(await readFile(join(output, "awesome/early.txt"), "utf8")).toBe("early");
+  await report.done();
+  expect(await readFile(join(output, "early.txt"), "utf8")).toBe("early");
+  await expect(readFile(join(output, "awesome/early.txt"))).rejects.toMatchObject({ code: "ENOENT" });
+});
+
+it("normalizes relative programmatic output before deciding the layout", async () => {
+  for (let iteration = 0; iteration < 2; iteration++) {
+    const report = new AllureReport({
+      output: relative(process.cwd(), output),
+      reportFiles: new FileSystemReportFiles(output),
+      appendHistory: false,
+      plugins: [plugin("awesome", writeReport)],
+    });
+    await report.start();
+    await report.done();
+    expect((await inventory()).layout).toEqual({ awesome: "" });
+    expect(await readFile(join(output, "index.html"), "utf8")).toBe("awesome");
+    await expect(readdir(join(output, "awesome"))).rejects.toMatchObject({ code: "ENOENT" });
+  }
 });

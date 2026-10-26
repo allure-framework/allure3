@@ -5,7 +5,6 @@ import { join as joinPosix } from "node:path/posix";
 import type { PluginState, ReportFiles } from "@allurereport/plugin-api";
 
 import { OutputOwnership, outputOwnership } from "./outputOwnership.js";
-import { resolvePathUnderOutputRoot } from "./utils/safeOutputPath.js";
 
 export class DefaultPluginState implements PluginState {
   readonly #state: Record<string, any>;
@@ -73,7 +72,7 @@ export class FileSystemReportFiles implements ReportFiles {
     this.#ownership.writeStarted();
     try {
       await this.#ownership.beforeWrite(path);
-      const targetPath = resolvePathUnderOutputRoot(this.#output, path);
+      const targetPath = this.#ownership.resolve(path);
       const targetDirPath = dirname(targetPath);
 
       let createdDir = this.#createdDirs.get(targetDirPath);

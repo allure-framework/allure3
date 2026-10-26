@@ -82,6 +82,7 @@ import {
 import { RealtimeChannel } from "./utils/realtimeChannel.js";
 import { RealtimeUpdateScheduler } from "./utils/realtimeUpdateScheduler.js";
 import { resolveDumpAttachmentPath, UnsafeDumpPathError } from "./utils/safeDumpPath.js";
+import { isPathContainedInDir } from "./utils/safeOutputPath.js";
 
 const { version } = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"));
 const INIT_REQUIRED_ERROR_MESSAGE = "report is not initialised. Call the start() method first.";
@@ -204,6 +205,7 @@ export class AllureReport {
   #publishedRemoteHrefs: Set<string> = new Set();
   #artifactFilesByPath: Map<string, ReportArtifact> = new Map();
   #published = false;
+  #completedRemoteReport = false;
   readonly #failedGenerationPlugins = new Set<string>();
   #endGeneratePerfSpan?: () => void;
   #resolvedReportUrl?: string;
@@ -319,7 +321,7 @@ export class AllureReport {
     this.#reportFiles = reportFiles;
     const ownership = outputOwnership.get(reportFiles);
     this.#ownership = !realTime && !dump && ownership?.output === resolve(output) ? ownership : undefined;
-    this.#output = output;
+    this.#output = resolve(output);
   }
 
   get hasQualityGate() {
@@ -536,6 +538,7 @@ export class AllureReport {
         reportUuid: this.reportUuid,
         historyPoint: this.#historyDataPoint,
       });
+      this.#completedRemoteReport = true;
 
       Object.values(linksByPluginId)
         .filter(Boolean)
@@ -548,9 +551,10 @@ export class AllureReport {
       this.#published = true;
       logUploadProgress(true);
     } catch (err) {
-      this.#ownership?.fail();
+      this.#ownership?.fail(false);
       if (reportCreated) {
         await this.#cleanupFailedRemoteReport(client);
+        this.#completedRemoteReport = false;
       }
 
       if (summariesMutated) {
@@ -1262,10 +1266,13 @@ export class AllureReport {
 
     try {
       await this.#ownership?.beforeWrite(ARTIFACTS_MANIFEST_FILENAME);
-      await writeFile(join(this.#output, ARTIFACTS_MANIFEST_FILENAME), JSON.stringify(manifest));
+      await writeFile(
+        join(this.#ownership?.directory ?? this.#output, ARTIFACTS_MANIFEST_FILENAME),
+        JSON.stringify(manifest),
+      );
       this.#ownership?.record(ARTIFACTS_MANIFEST_FILENAME);
     } catch (err) {
-      this.#ownership?.fail();
+      this.#ownership?.fail(false);
       console.error("Failed to write Allure artifacts manifest", err);
     }
   };
@@ -1276,7 +1283,7 @@ export class AllureReport {
     if (summaries.length > 1) {
       await this.#ownership?.beforeWrite("index.html");
       this.#summaryPath = await measurePerf(PERF_METRIC_NAMES.summaryGenerate, async () =>
-        generateSummary(this.#output, summaries),
+        generateSummary(this.#ownership?.directory ?? this.#output, summaries),
       );
       if (this.#summaryPath) this.#ownership?.record(this.#summaryPath);
     } else {
@@ -1303,7 +1310,15 @@ export class AllureReport {
       this.#executionStage = "done";
 
       // Parsing results alone does not reserve output; acquire before finalization writes begin.
-      await this.#ownership?.acquire();
+      await this.#ownership?.stage();
+      if (this.#ownership && this.#ownership.directory !== this.#output) {
+        for (const state of Object.values(this.#state ?? {})) {
+          const files = await state.get<Record<string, string>>("files");
+          for (const key of Object.keys(files ?? {})) {
+            if (isPathContainedInDir(this.#output, files[key])) files[key] = this.#ownership.resolve(files[key]);
+          }
+        }
+      }
       this.#store.updateHistoryFlags();
 
       // just dump state when dump is set and generate nothing
@@ -1360,27 +1375,42 @@ export class AllureReport {
       );
 
       await this.#prepareReportFiles();
+      await this.#finishArtifactsManifest();
+      if (this.#ownership?.aborted)
+        throw new Error("Report replacement aborted because generation failed; the previous report was preserved");
 
+      const generationOutput = this.#ownership?.directory ?? this.#output;
       let outputDirFiles: string[] = [];
 
       try {
         // recursive flag is not applicable, it can provoke the process freeze
-        outputDirFiles = await readdir(this.#output);
+        outputDirFiles = await readdir(generationOutput);
       } catch {}
 
       const outputEntries = await Promise.all(
-        outputDirFiles.map(async (file) => ({ file, stats: await lstat(join(this.#output, file)) })),
+        outputDirFiles.map(async (file) => ({ file, stats: await lstat(join(generationOutput, file)) })),
       );
       const outputDirectoryEntries = outputEntries.filter(({ stats }) => stats.isDirectory());
       // only a plugin report directory is moved to the root, auxiliary directories are left where they are
       const reportDirectoryEntries = outputDirectoryEntries.filter(
         ({ file }) => !AUXILIARY_OUTPUT_DIRECTORIES.has(file),
       );
+      const foreignDirectories =
+        generationOutput !== this.#output &&
+        (await readdir(this.#output, { withFileTypes: true })).some(
+          (entry) =>
+            entry.isDirectory() &&
+            !AUXILIARY_OUTPUT_DIRECTORIES.has(entry.name) &&
+            !this.#ownership?.ownsDirectory(entry.name),
+        );
       const shouldFlattenOutput =
-        reportDirectoryEntries.length === 1 && this.#plugins.some(({ id }) => id === reportDirectoryEntries[0].file);
+        !foreignDirectories &&
+        reportDirectoryEntries.length === 1 &&
+        this.#plugins.some(({ id }) => id === reportDirectoryEntries[0].file);
 
       this.#historyDataPoint = await this.#createHistoryDataPoint(shouldFlattenOutput);
 
+      await this.#ownership?.preflight(shouldFlattenOutput ? reportDirectoryEntries[0].file : undefined);
       await this.#publish();
       const unpublished = [...this.#summariesByPluginId.values()].filter((summary) => summary.published === false);
       if (unpublished.length > 0) {
@@ -1393,13 +1423,13 @@ export class AllureReport {
       }
 
       // just do nothing if there is no reports in the output directory
-      if (outputDirFiles.length === 0) {
+      if (outputDirFiles.length === 0 && !this.#ownership?.pendingReplacement) {
         return;
       }
 
       // if there is a single report directory in the output directory, move it to the root and prevent summary generation
       if (shouldFlattenOutput) {
-        const reportPath = join(this.#output, reportDirectoryEntries[0].file);
+        const reportPath = join(generationOutput, reportDirectoryEntries[0].file);
         const reportContent = await readdir(reportPath);
 
         for (const entry of reportContent) {
@@ -1410,7 +1440,7 @@ export class AllureReport {
           const currentFilePath = join(reportPath, entry);
           const newFilePath = resolve(dirname(currentFilePath), "..", entry);
 
-          await this.#ownership?.beforeWrite(newFilePath);
+          await this.#ownership?.beforeWrite(newFilePath, false);
           await rename(currentFilePath, newFilePath);
           this.#ownership?.relocate(currentFilePath, newFilePath);
         }
@@ -1418,20 +1448,11 @@ export class AllureReport {
         await rm(reportPath, { recursive: true });
       }
 
-      await this.#finishArtifactsManifest();
-
-      // remove all dump temp dirs
-      for (const dir of this.#dumpTempDirs) {
-        try {
-          await rm(dir, { recursive: true });
-        } catch {}
-      }
-
       if (this.#history && this.#appendHistory) {
         try {
           await this.#store.appendHistory(this.#historyDataPoint!);
         } catch (err) {
-          this.#ownership?.fail();
+          this.#ownership?.fail(false);
           if (err instanceof KnownError) {
             console.error("Failed to append history", err.message);
           } else if (err instanceof UnknownError) {
@@ -1452,7 +1473,20 @@ export class AllureReport {
           console.info(`- ${href}`);
         });
       }
+    } catch (error) {
+      if (this.#ownership?.pendingReplacement && this.#completedRemoteReport && this.#allureServiceClient) {
+        await this.#cleanupFailedRemoteReport(this.#allureServiceClient);
+        this.#published = false;
+        this.#completedRemoteReport = false;
+        this.#publishedRemoteHrefs.clear();
+      }
+      throw error;
     } finally {
+      for (const dir of this.#dumpTempDirs) {
+        try {
+          await rm(dir, { recursive: true });
+        } catch {}
+      }
       try {
         await this.#ownership?.stop();
       } finally {

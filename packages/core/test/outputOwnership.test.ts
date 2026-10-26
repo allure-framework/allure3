@@ -14,7 +14,7 @@ import { FileSystemReportFiles } from "../src/plugin.js";
 
 vi.mock("node:fs/promises", async (importOriginal) => {
   const actual = await importOriginal<typeof import("node:fs/promises")>();
-  return { ...actual, rename: vi.fn(actual.rename), writeFile: vi.fn(actual.writeFile) };
+  return { ...actual, rename: vi.fn(actual.rename), writeFile: vi.fn(actual.writeFile), open: vi.fn(actual.open) };
 });
 
 let output: string;
@@ -64,7 +64,7 @@ it("records successful writes and relocation without adopting unrelated files", 
   expect(await readFile(join(output, "user.txt"), "utf8")).toBe("user");
 });
 
-it("retains prior owned files while replacing the current layout and leaves stale files in place", async () => {
+it("direct sessions without staging union previous ownership and leave stale files in place", async () => {
   const { writer, ownership } = createWriter();
   ownership.begin();
   await writer.addFile("old.js", Buffer.from("old"));
@@ -295,14 +295,15 @@ it("holds the lock until outstanding native writes settle", async () => {
 });
 
 it("honors a lock held by another Node process", async () => {
-  const moduleUrl = new URL("../dist/outputOwnership.js", import.meta.url).href;
+  const moduleUrl = new URL("../src/outputOwnership.ts", import.meta.url).href;
   const child = spawn(
     process.execPath,
     [
       "--input-type=module",
       "-e",
       `
-    import { OutputOwnership } from ${JSON.stringify(moduleUrl)};
+    import { createJiti } from "jiti";
+    const { OutputOwnership } = await createJiti(import.meta.url).import(${JSON.stringify(moduleUrl)});
     const owner = new OutputOwnership(${JSON.stringify(output)});
     owner.begin();
     await owner.acquire();
@@ -340,8 +341,50 @@ it.each([".allure-output.lock", ".ALLURE-OUTPUT.LOCK", ".allure-output.lock.", "
   async (name) => {
     const { writer, ownership } = createWriter();
     ownership.begin();
-    await expect(writer.addFile(name, Buffer.from("plugin"))).rejects.toThrow("Reserved report output lock path");
+    await expect(writer.addFile(name, Buffer.from("plugin"))).rejects.toThrow("Reserved report output path");
     await ownership.stop();
     await expect(readFile(inventoryPath())).rejects.toThrow();
   },
 );
+it("rejects a missing staged file before publication without changing the previous report", async () => {
+  await writeFile(join(output, "index.html"), "previous");
+  await writeFile(inventoryPath(), JSON.stringify({ version: 1, files: [{ path: "index.html" }], layout: {} }));
+  const { writer, ownership } = createWriter();
+  ownership.begin();
+  await ownership.stage();
+  const staged = await writer.addFile("new.js", Buffer.from("new"));
+  await rm(staged);
+  await expect(ownership.preflight()).rejects.toThrow("Missing staged report files");
+  expect(await readFile(join(output, "index.html"), "utf8")).toBe("previous");
+});
+
+it("stages valid empty inventories on successive generations", async () => {
+  await writeFile(inventoryPath(), JSON.stringify({ version: 1, files: [], layout: {} }));
+  const { ownership } = createWriter();
+  for (let generation = 0; generation < 2; generation++) {
+    ownership.begin();
+    await ownership.stage();
+    expect(ownership.pendingReplacement).toBe(true);
+    expect(ownership.directory).not.toBe(output);
+    await ownership.finish();
+    await ownership.stop();
+    expect((await readInventory()).files).toEqual([]);
+  }
+});
+
+it("preserves locks when the filesystem cannot provide a reliable inode identity", async () => {
+  vi.spyOn(console, "warn").mockImplementation(() => {});
+  const actual = await vi.importActual<typeof import("node:fs/promises")>("node:fs/promises");
+  vi.mocked(fs.open).mockImplementationOnce(async (...args) => {
+    const handle = await actual.open(...args);
+    const stats = await handle.stat();
+    vi.spyOn(handle, "stat").mockResolvedValue(Object.assign(stats, { ino: 0 }));
+    return handle;
+  });
+  const { ownership } = createWriter();
+  ownership.begin();
+  await ownership.acquire();
+  await ownership.stop();
+  expect(await readFile(join(output, ".allure-output.lock"), "utf8")).toContain(String(process.pid));
+  expect(console.warn).toHaveBeenCalledWith(expect.stringContaining("Cannot verify report lock identity"));
+});

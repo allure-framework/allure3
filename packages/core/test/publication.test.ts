@@ -1,5 +1,6 @@
 import console from "node:console";
-import { mkdtemp, readFile, rm } from "node:fs/promises";
+import { mkdtemp, readFile, rm, symlink, writeFile } from "node:fs/promises";
+import * as fs from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
@@ -11,6 +12,11 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test"
 import { resolveConfig } from "../src/config.js";
 import { AllureReport } from "../src/report.js";
 import { AllureServiceClientMock } from "./utils.js";
+
+vi.mock("node:fs/promises", async (original) => {
+  const actual = await original<typeof import("node:fs/promises")>();
+  return { ...actual, rename: vi.fn(actual.rename) };
+});
 
 vi.mock("@allurereport/service", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@allurereport/service")>()),
@@ -210,4 +216,147 @@ describe("report publication", () => {
     else await expect(summary(output)).rejects.toMatchObject({ code: "ENOENT" });
     expect(console.warn).not.toHaveBeenCalled();
   });
+});
+
+it("validates replacement paths before creating a remote report", async () => {
+  const { config, output } = await setup(false);
+  config.plugins = [plugin("csv")];
+  await complete(config);
+  await writeFile(join(output, "user.txt"), "user");
+  const nextConfig = await resolveConfig({ output, allureService: { accessToken: "ars1.test" }, appendHistory: false });
+  nextConfig.plugins = [
+    plugin("csv", {
+      done: async (context) => {
+        await context.reportFiles.addFile("report.csv", Buffer.from("new report"));
+        await rm(join(output, "report.csv"));
+        await symlink(join(output, "user.txt"), join(output, "report.csv"));
+      },
+    }),
+  ];
+  const report = new AllureReport(nextConfig);
+  await report.start();
+  await expect(report.done()).rejects.toThrow("Unsafe report replacement target");
+  expect(AllureServiceClientMock.prototype.createReport).not.toHaveBeenCalled();
+  expect(await readFile(join(output, "user.txt"), "utf8")).toBe("user");
+});
+
+it("keeps local fallback and previous ownership when publication fails during replacement", async () => {
+  const { config, output } = await setup(false);
+  config.plugins = [
+    plugin("csv", {
+      done: async (context) => {
+        await context.reportFiles.addFile("report.csv", Buffer.from("old report"));
+        await context.reportFiles.addFile("old.js", Buffer.from("old asset"));
+      },
+    }),
+  ];
+  await complete(config);
+  const previous = await readFile(join(output, ".allure-output.json"), "utf8");
+  const nextConfig = await resolveConfig({ output, allureService: { accessToken: "ars1.test" }, appendHistory: false });
+  nextConfig.plugins = [plugin("csv")];
+  AllureServiceClientMock.prototype.createReport.mockRejectedValueOnce(new Error("remote failed"));
+  await complete(nextConfig);
+  expect(await readFile(join(output, "report.csv"), "utf8")).toBe("report");
+  expect(await readFile(join(output, "old.js"), "utf8")).toBe("old asset");
+  expect(await readFile(join(output, ".allure-output.json"), "utf8")).toBe(previous);
+  expect((await summary(output)).published).toBe(false);
+});
+
+it.each([true, false])(
+  "compensates only completed remote publication on local failure (publish=%s)",
+  async (publish) => {
+    const { config, output } = await setup(false);
+    config.plugins = [plugin("csv")];
+    await complete(config);
+    const previous = await readFile(join(output, ".allure-output.json"), "utf8");
+    const nextConfig = await resolveConfig({
+      output,
+      allureService: { accessToken: "ars1.test" },
+      appendHistory: false,
+    });
+    nextConfig.plugins = [
+      plugin("csv", {
+        done: async (context) => {
+          await context.reportFiles.addFile("report.csv", Buffer.from("new report"));
+        },
+      }),
+    ];
+    nextConfig.plugins[0].options.publish = publish;
+    const actual = await vi.importActual<typeof import("node:fs/promises")>("node:fs/promises");
+    vi.mocked(fs.rename).mockImplementation(async (source, target) => {
+      if (String(source).endsWith(join(".allure-output-transaction", "stage", "report.csv")))
+        throw new Error("local install failed");
+      return actual.rename(source, target);
+    });
+    const report = new AllureReport(nextConfig);
+    await report.start();
+    await expect(report.done()).rejects.toThrow("local install failed");
+    expect(AllureServiceClientMock.prototype.completeReport).toHaveBeenCalledTimes(publish ? 1 : 0);
+    expect(AllureServiceClientMock.prototype.deleteReport).toHaveBeenCalledTimes(publish ? 1 : 0);
+    expect(await readFile(join(output, "report.csv"), "utf8")).toBe("report");
+    expect(await readFile(join(output, ".allure-output.json"), "utf8")).toBe(previous);
+  },
+);
+
+it("uploads copied start files from staging and preserves external plugin registry entries", async () => {
+  const { config, output } = await setup(false);
+  config.plugins = [plugin("csv")];
+  await complete(config);
+  const externalDir = await mkdtemp(join(tmpdir(), "allure-plugin-external-"));
+  tempDirs.push(externalDir);
+  const external = join(externalDir, "external.txt");
+  await writeFile(external, "external");
+  const nextConfig = await resolveConfig({ output, allureService: { accessToken: "ars1.test" }, appendHistory: false });
+  nextConfig.plugins = [
+    plugin("csv", {
+      start: async (context) => {
+        const path = await context.reportFiles.addFile("early.txt", Buffer.from("fresh start"));
+        expect(await readFile(path, "utf8")).toBe("fresh start");
+        const files = await context.state.get<Record<string, string>>("files");
+        // Explicit registry entries created during start must follow their copied staged files.
+        files["early.txt"] = path;
+        files["external.txt"] = external;
+      },
+      done: async (context) => {
+        await writeFile(join(output, "csv/early.txt"), "stale visible version");
+        const path = await context.reportFiles.addFile("report.csv", Buffer.from("fresh report"));
+        expect(await readFile(path, "utf8")).toBe("fresh report");
+        expect(context.output).toBe(output);
+      },
+    }),
+  ];
+  let uploaded = false;
+  AllureServiceClientMock.prototype.uploadReport.mockImplementation(async (request) => {
+    if (request.files["early.txt"]) {
+      expect(await readFile(request.files["early.txt"], "utf8")).toBe("fresh start");
+      expect(await readFile(request.files["report.csv"], "utf8")).toBe("fresh report");
+      expect(request.files["external.txt"]).toBe(external);
+      expect(await readFile(request.files["external.txt"], "utf8")).toBe("external");
+      uploaded = true;
+    }
+    return { hrefs: {} };
+  });
+  await complete(nextConfig);
+  expect(uploaded).toBe(true);
+  expect(await readFile(join(output, "early.txt"), "utf8")).toBe("fresh start");
+});
+
+it("rejects a failed replacement instead of silently suppressing healthy publication", async () => {
+  const { config, output } = await setup(false);
+  config.plugins = [plugin("csv")];
+  await complete(config);
+  const nextConfig = await resolveConfig({ output, allureService: { accessToken: "ars1.test" }, appendHistory: false });
+  nextConfig.plugins = [
+    plugin("failed", {
+      done: async () => {
+        throw new Error("plugin failed");
+      },
+    }),
+    plugin("healthy"),
+  ];
+  const report = new AllureReport(nextConfig);
+  await report.start();
+  await expect(report.done()).rejects.toThrow("Report replacement aborted");
+  expect(AllureServiceClientMock.prototype.createReport).not.toHaveBeenCalled();
+  expect(await readFile(join(output, "report.csv"), "utf8")).toBe("report");
 });

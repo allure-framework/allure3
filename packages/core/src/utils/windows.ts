@@ -59,3 +59,10 @@ export function assertValidPluginIdForWindows(id: string): void {
     throw new Error(`Invalid plugin id ${JSON.stringify(id)}: reserved device name on Windows`);
   }
 }
+
+// Windows ignores trailing ASCII spaces and dots in path components.
+export const canonicalWindowsName = (value: string): string => {
+  let end = value.length;
+  while (end > 0 && (value[end - 1] === "." || value[end - 1] === " ")) end--;
+  return value.slice(0, end).toLowerCase();
+};
