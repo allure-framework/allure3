@@ -2,7 +2,7 @@ import { readFile, stat } from "node:fs/promises";
 import { extname, resolve } from "node:path";
 import * as process from "node:process";
 
-import { parseIntegerConfigValue, validateEnvironmentName } from "@allurereport/core-api";
+import { parseIntegerConfigValue, validateEnvironmentName, validatePerformanceConfig } from "@allurereport/core-api";
 import type { Config, Plugin, PluginConstructorContext, PluginDescriptor } from "@allurereport/plugin-api";
 import { createJiti } from "jiti";
 import { parse } from "yaml";
@@ -334,6 +334,7 @@ export const resolveConfig = async (config: Config, override: ConfigOverride = {
 
   validateResolutionsConfig(config.resolutions);
   validateFlakyDetectionConfig(config.flakyDetection);
+  validatePerformanceConfig(config.performance);
 
   const { environments, environment, allowedEnvironments } = resolveConfigEnvironments(config);
 

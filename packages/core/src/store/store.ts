@@ -44,6 +44,7 @@ import {
   ordinal,
   reverse,
   resolveMetricSamples,
+  validatePerformanceConfig,
   validateEnvironmentId,
   validateEnvironmentName,
 } from "@allurereport/core-api";
@@ -264,6 +265,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     this.#history = history;
     this.#detectFlaky = createFlakyDetector(flakyDetection);
     this.#resolutionsConfig = resolutionsConfig;
+    validatePerformanceConfig(performance);
     this.#performance = performance;
 
     this.#realtimeDispatcher = realtimeDispatcher;
@@ -2118,6 +2120,15 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       );
       this.#qualityGateResults.push(result);
     });
-    this.#metrics.push(...metrics);
+    // Reapply only the hierarchy: the remaining metadata is an existing dump snapshot contract.
+    const metricConfigs = this.#performance.metrics ?? {};
+    this.#metrics.push(
+      ...metrics.map((metric) => {
+        const parent = Object.hasOwn(metricConfigs, metric.key) ? metricConfigs[metric.key]?.parent : undefined;
+        if (metric.parent === parent) return metric;
+        const { parent: _parent, ...sample } = metric;
+        return { ...sample, ...(parent !== undefined ? { parent } : {}) };
+      }),
+    );
   }
 }
