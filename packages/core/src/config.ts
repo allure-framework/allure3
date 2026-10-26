@@ -11,6 +11,7 @@ import type { FullConfig, PluginInstance } from "./api.js";
 import { resolveCategories } from "./config/categories.js";
 import { resolveEnvironments } from "./config/environments.js";
 import { resolveHideLabels } from "./config/hideLabels.js";
+import { resolvePluginOptions } from "./config/pluginOptions.js";
 import { resolveQualityGate } from "./config/qualityGate.js";
 import { FileSystemReportFiles } from "./plugin.js";
 import { DEFAULT_KNOWN_ISSUES_PATH, resolveExactIssuesFilePath, validateResolutionsConfig } from "./resolutions.js";
@@ -550,11 +551,20 @@ export const resolvePlugin = async (path: string): Promise<PluginConstructor> =>
 
 const resolvePlugins = async (plugins: Record<string, PluginDescriptor>) => {
   const pluginInstances: PluginInstance[] = [];
+  const env = Object.fromEntries(
+    Object.entries(process.env).filter((entry): entry is [string, string] => entry[1] !== undefined),
+  );
 
   for (const id in plugins) {
     const pluginConfig = plugins[id];
     const pluginId = getPluginId(id);
     const Plugin = await resolvePlugin(pluginConfig.import ?? id);
+    const options = await resolvePluginOptions(
+      Plugin,
+      pluginConfig.options,
+      `plugins[${JSON.stringify(id)}].options`,
+      env,
+    );
     const enabled = pluginConfig.enabled ?? true;
     const constructorContext: PluginConstructorContext = {};
 
@@ -565,8 +575,8 @@ const resolvePlugins = async (plugins: Record<string, PluginDescriptor>) => {
     pluginInstances.push({
       id: pluginId,
       enabled,
-      options: pluginConfig.options ?? {},
-      plugin: new Plugin(pluginConfig.options, constructorContext),
+      options: options ?? {},
+      plugin: new Plugin(options, constructorContext),
     });
   }
 

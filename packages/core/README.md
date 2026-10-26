@@ -91,6 +91,61 @@ variables or process environment variables. Missing labels are supplied as an em
 Environment expressions must return a boolean. Invalid expressions and evaluation failures throw
 with their configuration path; they do not fall through to another environment or `default`.
 
+### Plugin options
+
+Built-in plugin callback options accept CEL expressions wrapped in `${{ ... }}`:
+
+| Plugin | Option | Context | Result |
+| --- | --- | --- | --- |
+| Awesome, Classic, Dashboard, CSV, Log, TestOps | `filter` | `test`, `env` | Boolean |
+| Log | `qualityGateFilter` | `result`, `env` | Boolean |
+| CSV | `fields[].accessor` | `test`, `env` | String or `null` |
+| CSV | `sort` | `a`, `b`, `env` | Finite number |
+
+`test`, `a`, and `b` are test-result data. `result` is a quality-gate validation result,
+including fields such as `rule`, `success`, `actual`, and `message`. `env` contains defined
+process environment variables captured during configuration resolution; later environment changes
+do not affect these expressions. Optional fields should be guarded with `has(...)`. Inputs are
+plain-data copies, not live plugin or store objects.
+
+```yaml
+plugins:
+  export:
+    import: '@allurereport/plugin-csv'
+    options:
+      filter: >-
+        ${{ !has(env.ALLURE_EXPORT_STATUS) || test.status == env.ALLURE_EXPORT_STATUS }}
+      fields:
+        - header: Name
+          accessor: name
+        - header: Duration
+          accessor: "${{ string(test.duration) + ' ms' }}"
+        - header: Error
+          accessor: "${{ has(test.error) && has(test.error.message) ? test.error.message : null }}"
+      sort: '${{ a.duration - b.duration }}'
+  log:
+    options:
+      filter: "${{ test.status == 'failed' }}"
+      qualityGateFilter: '${{ !result.success }}'
+```
+
+CSV property-name accessors such as `name` stay literal. Use CEL for nested paths or computed
+values, and convert numbers explicitly with `string(...)` for cells. `null` produces an empty
+cell; CSV quoting and escaping are handled by the plugin. Comparators receive `a` and `b` and
+return a negative number, zero, or a positive number. CEL integers are converted to JavaScript
+numbers only when safely representable; non-finite results and other result types are rejected.
+Omitting `sort` keeps the plugin's default ordering.
+
+Expressions are compiled once before plugin construction and run synchronously. Syntax, evaluation,
+and result-type errors include the option's configuration path and fail the affected operation,
+like a thrown callback, rather than silently excluding tests. These options do not accept inline
+JavaScript bodies. Native JavaScript callbacks remain available in JavaScript configuration.
+
+Normalization applies only to the listed built-in implementations, including explicit package
+imports and custom instance IDs. Third-party plugin options and unrelated strings are not
+interpreted. Log result filtering controls displayed quality-gate outcomes, not their success or
+exit status; test filters likewise select plugin output without changing the underlying results.
+
 ### Quality gates
 
 Quality-gate configuration supports CEL filters, messages, and computed values in YAML and JSON.
