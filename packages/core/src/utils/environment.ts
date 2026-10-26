@@ -1,9 +1,13 @@
 import {
   DEFAULT_ENVIRONMENT,
+  MAX_ENVIRONMENT_ID_LENGTH,
+  UNRESOLVED_ENVIRONMENT_IDENTITY,
   DEFAULT_ENVIRONMENT_IDENTITY,
   formatNormalizedEnvironmentCollision,
   validateEnvironmentId,
   validateEnvironmentName,
+  type DynamicEnvironmentResolver,
+  type DynamicEnvironmentsConfig,
   type EnvironmentDescriptor,
   type EnvironmentIdentity,
   type EnvironmentsConfig,
@@ -177,6 +181,138 @@ export const environmentIdentityByName = (
   return undefined;
 };
 
+export type DynamicEnvironmentIdentity = EnvironmentIdentity & {
+  /** The original (trimmed) value the id was derived from, used to detect different values with the same id */
+  source?: string;
+};
+
+const normalizeDynamicEnvironmentId = (rawId: string): string =>
+  rawId
+    .trim()
+    .replace(/[^A-Za-z0-9_-]+/g, "_")
+    .slice(0, MAX_ENVIRONMENT_ID_LENGTH);
+
+export const resolveDynamicEnvironmentIdentity = (
+  resolver: DynamicEnvironmentResolver | undefined,
+  payload: { labels: TestResult["labels"] },
+  environmentsConfig: EnvironmentsConfig,
+  onUnusableValue?: (value: string) => void,
+): DynamicEnvironmentIdentity | undefined => {
+  const resolved = resolver?.(payload);
+
+  if (resolved === undefined || resolved === null) {
+    return undefined;
+  }
+
+  // the internal fallback is not an explicit answer of the resolver
+  if (resolved === UNRESOLVED_ENVIRONMENT_IDENTITY) {
+    return UNRESOLVED_ENVIRONMENT_IDENTITY;
+  }
+
+  const rawId = typeof resolved === "string" ? resolved : resolved.id;
+  const rawName = typeof resolved === "string" ? undefined : resolved.name;
+  const idResult = validateEnvironmentId(rawId);
+  let id: string;
+  let normalizedFrom: string | undefined;
+  const source = typeof rawId === "string" ? rawId.trim() : undefined;
+
+  if (idResult.valid) {
+    id = idResult.normalized;
+  } else if (typeof rawId === "string") {
+    id = normalizeDynamicEnvironmentId(rawId);
+    normalizedFrom = rawId.trim();
+
+    const normalizedResult = validateEnvironmentId(id);
+
+    if (!normalizedResult.valid || id.replace(/_/g, "").length === 0) {
+      // nothing meaningful is left of the value (e.g. "!!!"): the value exists but can not identify an environment
+      onUnusableValue?.(rawId);
+
+      return UNRESOLVED_ENVIRONMENT_IDENTITY;
+    }
+  } else {
+    throw new Error(`dynamic environment resolver returned an invalid environment id: ${idResult.reason}`);
+  }
+
+  if (id === UNRESOLVED_ENVIRONMENT_IDENTITY.id) {
+    throw new Error(
+      `dynamic environment resolver returned the reserved environment id ${JSON.stringify(id)}, it is used for the values which can not be resolved`,
+    );
+  }
+
+  const configured = environmentIdentityById(environmentsConfig, id);
+
+  if (configured) {
+    return { ...configured, source };
+  }
+
+  const nameResult = validateEnvironmentName(rawName ?? normalizedFrom ?? id);
+
+  if (!nameResult.valid) {
+    if (normalizedFrom !== undefined) {
+      return { id, name: id, source };
+    }
+
+    throw new Error(`dynamic environment resolver returned an invalid environment name: ${nameResult.reason}`);
+  }
+
+  return { id, name: nameResult.normalized, source };
+};
+
+/**
+ * Turns the declarative `{ label, pattern, name }` form into a resolver function.
+ * A function is returned as is.
+ */
+export const createDynamicEnvironmentResolver = (
+  config: DynamicEnvironmentsConfig | undefined,
+): DynamicEnvironmentResolver | undefined => {
+  if (config === undefined || typeof config === "function") {
+    return config;
+  }
+
+  if (typeof config.label !== "string" || config.label.length === 0) {
+    throw new Error(
+      "The provided Allure config contains invalid dynamicEnvironments: label must be a non-empty string",
+    );
+  }
+
+  let pattern: RegExp | undefined;
+
+  try {
+    pattern = config.pattern === undefined ? undefined : new RegExp(config.pattern);
+  } catch (e) {
+    throw new Error(
+      `The provided Allure config contains invalid dynamicEnvironments: pattern is not a valid regular expression (${(e as Error).message})`,
+    );
+  }
+
+  const { label, name } = config;
+
+  return ({ labels }) => {
+    const raw = labels.find((item) => item.name === label)?.value;
+
+    if (raw === undefined || raw === "") {
+      return undefined;
+    }
+
+    // not stateful even for global/sticky patterns
+    const match = pattern ? new RegExp(pattern.source, pattern.flags.replace(/[gy]/g, "")).exec(raw) : undefined;
+
+    if (pattern && !match) {
+      // the label is there but the pattern does not fit its value
+      return UNRESOLVED_ENVIRONMENT_IDENTITY;
+    }
+
+    const value = match ? (match[1] ?? match[0]) : raw;
+
+    if (!value) {
+      return UNRESOLVED_ENVIRONMENT_IDENTITY;
+    }
+
+    return name ? { id: value, name: name.replace(/\{value\}/g, value) } : value;
+  };
+};
+
 export const resolveStoredEnvironmentIdentity = (
   params: {
     environment?: unknown;
@@ -187,6 +323,7 @@ export const resolveStoredEnvironmentIdentity = (
   options?: {
     forcedEnvironment?: EnvironmentIdentity;
     fallbackToMatch?: boolean;
+    dynamicEnvironments?: DynamicEnvironmentResolver;
   },
 ): EnvironmentIdentity | undefined => {
   if (params.environment !== undefined) {
@@ -237,7 +374,13 @@ export const resolveStoredEnvironmentIdentity = (
   const match = Object.entries(environmentsConfig).find(([, { matcher }]) => matcher({ labels: params.labels ?? [] }));
 
   if (!match) {
-    return DEFAULT_ENVIRONMENT_IDENTITY;
+    const dynamic = resolveDynamicEnvironmentIdentity(
+      options?.dynamicEnvironments,
+      { labels: params.labels ?? [] },
+      environmentsConfig,
+    );
+
+    return dynamic ? { id: dynamic.id, name: dynamic.name } : DEFAULT_ENVIRONMENT_IDENTITY;
   }
 
   const [id, descriptor] = match;

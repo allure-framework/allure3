@@ -1,4 +1,9 @@
-import type { CategoriesConfig, PerformanceConfig, ResolvedAllureServiceConfig } from "@allurereport/core-api";
+import type {
+  CategoriesConfig,
+  DynamicEnvironmentResolver,
+  PerformanceConfig,
+  ResolvedAllureServiceConfig,
+} from "@allurereport/core-api";
 import type { Plugin, ReportFiles, Config } from "@allurereport/plugin-api";
 import type { ResultsReader } from "@allurereport/reader-api";
 
@@ -13,10 +18,14 @@ type FullConfigRequiredFromConfig = Required<Pick<Config, "name" | "output" | "o
 
 export interface FullConfig
   extends
-    Omit<Config, "name" | "output" | "open" | "allureService" | "plugins" | "port" | "resultsDir">,
+    Omit<
+      Config,
+      "name" | "output" | "open" | "allureService" | "plugins" | "port" | "resultsDir" | "dynamicEnvironments"
+    >,
     FullConfigRequiredFromConfig {
   port: Config["port"] | undefined;
   allowedEnvironments?: Config["allowedEnvironments"];
+  dynamicEnvironments?: DynamicEnvironmentResolver;
   reportFiles: ReportFiles;
   readers?: ResultsReader[];
   plugins?: PluginInstance[];
