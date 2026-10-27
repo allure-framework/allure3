@@ -1,3 +1,7 @@
+import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import path from "node:path";
+
 import { epic, feature, label, story } from "allure-js-commons";
 import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
@@ -35,6 +39,19 @@ describe("isXcResultBundle on Mac OS", () => {
     mdlsOutput.lines = ["(", '    "public.folder",', '    "public.directory",', '    "public.item"', ")"];
 
     expect(await isXcResultBundle("/results/passed.xcresult")).toBe(true);
+  });
+
+  it("should detect an indexed bundle with an Info.plist reported as a plain folder when Xcode is missing", async () => {
+    mdlsOutput.lines = ["(", '    "public.folder",', '    "public.directory",', '    "public.item"', ")"];
+    const directory = path.join(await mkdtemp(path.join(tmpdir(), "allure-reader-bundle-")), "results");
+    await mkdir(directory);
+    await writeFile(path.join(directory, "Info.plist"), "plist", "utf-8");
+
+    try {
+      expect(await isXcResultBundle(directory)).toBe(true);
+    } finally {
+      await rm(path.dirname(directory), { recursive: true, force: true });
+    }
   });
 
   it("should not treat an indexed plain folder as a bundle", async () => {
