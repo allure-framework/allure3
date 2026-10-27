@@ -32,10 +32,16 @@ export default defineConfig({
         },
       },
     },
-    {
-      name: "firefox",
-      use: { ...devices["Desktop Firefox"] },
-    },
+    // Playwright's Firefox hangs on launch on macOS 27 machines with Firefox installed, see
+    // https://github.com/microsoft/playwright/issues/42768
+    ...(process.platform === "darwin" && !process.env.CI
+      ? []
+      : [
+          {
+            name: "firefox",
+            use: { ...devices["Desktop Firefox"] },
+          },
+        ]),
     {
       name: "safari",
       use: { ...devices["Desktop Safari"] },
