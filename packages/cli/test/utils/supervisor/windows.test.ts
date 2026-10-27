@@ -1035,10 +1035,18 @@ describe("WindowsProcessSupervisor", { skip: process.platform !== "win32", timeo
     });
   });
 
-  it("forwards the environment variables", async () => {
-    const supervisor = superviseNodeScript("console.log(JSON.stringify(process.env));", {
-      environmentVariables: { foo: "hello สวัสดี" },
-    });
+  it("forwards the environment variables", async ({ onTestFinished }) => {
+    onTestFinished(() => vi.unstubAllEnvs());
+    vi.stubEnv("ALLURE_SUPERVISOR_TEST_INHERITED", "inherited value");
+    vi.stubEnv("foo", "parent value");
+
+    const supervisor = superviseNodeScript(
+      `console.log(JSON.stringify({
+        inherited: process.env.ALLURE_SUPERVISOR_TEST_INHERITED,
+        foo: process.env.foo,
+      }));`,
+      { environmentVariables: { foo: "hello สวัสดี" } },
+    );
 
     await start(supervisor);
     const { code, signal, stdout, stderr } = await wait(supervisor);
@@ -1048,8 +1056,7 @@ describe("WindowsProcessSupervisor", { skip: process.platform !== "win32", timeo
     await step("Observe the environment variables received by the target", async () => {
       expect(code).toEqual(0);
       expect(signal).toBeNull();
-      expect(env.foo).toEqual("hello สวัสดี");
-      expect(env).toEqual(expect.objectContaining(process.env));
+      expect(env).toEqual({ inherited: "inherited value", foo: "hello สวัสดี" });
       expect(stderr).toBe("");
     });
   });
