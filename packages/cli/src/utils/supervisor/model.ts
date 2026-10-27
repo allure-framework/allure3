@@ -31,8 +31,8 @@ export type ProcessGroupCompletion = ProcessCompletion & {
 };
 
 export type JobMonitor = {
-  wait(): Promise<ProcessCompletion | undefined>;
-  dispose?(): void;
+  wait(rootCompletion: ProcessCompletion): Promise<ProcessCompletion | undefined>;
+  dispose?(): Promise<void> | void;
 };
 
 export type RootCompletion = ProcessCompletion & {

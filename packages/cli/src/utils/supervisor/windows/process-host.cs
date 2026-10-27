@@ -165,11 +165,21 @@ namespace Allure.Run.Supervisor.Windows
         internal static extern IntPtr OpenProcess(uint access, bool inherit, uint pid);
 
         [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
-        internal static extern bool QueryFullProcessImageNameW(IntPtr process, uint flags, StringBuilder name, ref uint size);
+        internal static extern bool QueryFullProcessImageNameW(
+            IntPtr process,
+            uint flags,
+            StringBuilder name,
+            ref uint size
+        );
 
-        // Best-effort diagnostics only: ProcessCommandLineInformation is supported on modern Windows.
         [DllImport("ntdll.dll")]
-        internal static extern int NtQueryInformationProcess(IntPtr process, int kind, IntPtr info, uint size, out uint returned);
+        internal static extern int NtQueryInformationProcess(
+            IntPtr process,
+            int kind,
+            IntPtr info,
+            uint size,
+            out uint returned
+        );
 
         [StructLayout(LayoutKind.Sequential)]
         internal struct UNICODE_STRING
@@ -214,7 +224,12 @@ namespace Allure.Run.Supervisor.Windows
 
         [DllImport("user32.dll", SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
-        internal static extern bool PostMessageW(IntPtr window, uint message, IntPtr wParam, IntPtr lParam);
+        internal static extern bool PostMessageW(
+            IntPtr window,
+            uint message,
+            IntPtr wParam,
+            IntPtr lParam
+        );
 
         internal const uint WM_CLOSE = 0x0010;
 
@@ -340,9 +355,13 @@ namespace Allure.Run.Supervisor.Windows
         internal const uint INFINITE = 0xffffffff;
         internal const uint WAIT_OBJECT_0 = 0;
         internal const uint WAIT_FAILED = 0xffffffff;
+        internal const int ERROR_ACCESS_DENIED = 5;
         internal const int ERROR_INVALID_HANDLE = 6;
-        internal const int ERROR_INSUFFICIENT_BUFFER = 122;
         internal const int ERROR_INVALID_PARAMETER = 87;
+        internal const int ERROR_BROKEN_PIPE = 109;
+        internal const int ERROR_INSUFFICIENT_BUFFER = 122;
+        internal const int ERROR_NO_DATA = 232;
+        internal const int ERROR_NOT_FOUND = 1168;
 
         [DllImport("kernel32.dll", SetLastError = true)]
         internal static extern bool CloseHandle(IntPtr handle);
@@ -375,6 +394,67 @@ namespace Allure.Run.Supervisor.Windows
         [DllImport("kernel32.dll", SetLastError = true)]
         internal static extern uint WaitForSingleObject(IntPtr handle, uint timeout);
 
+        internal const uint FILE_TYPE_CHAR = 0x0002;
+        internal const uint FILE_TYPE_UNKNOWN = 0x0000;
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        internal static extern uint GetFileType(IntPtr handle);
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        internal static extern bool GetConsoleMode(IntPtr handle, out uint mode);
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        internal static extern bool CreatePipe(
+            out IntPtr readPipe,
+            out IntPtr writePipe,
+            IntPtr attributes,
+            uint size
+        );
+
+        [DllImport("kernel32.dll")]
+        internal static extern IntPtr GetCurrentThread();
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        internal static extern bool CancelSynchronousIo(IntPtr thread);
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        internal static extern bool ReadFile(
+            IntPtr handle,
+            [Out] byte[] buffer,
+            uint size,
+            out uint read,
+            IntPtr overlapped
+        );
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        internal static extern bool WriteFile(
+            IntPtr handle,
+            IntPtr buffer,
+            uint size,
+            out uint written,
+            IntPtr overlapped
+        );
+
+        [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+        internal static extern bool ReadConsoleW(
+            IntPtr handle,
+            [Out] char[] buffer,
+            uint size,
+            out uint read,
+            IntPtr control
+        );
+
+        [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+        internal static extern bool WriteConsoleW(
+            IntPtr handle,
+            string buffer,
+            uint size,
+            out uint written,
+            IntPtr reserved
+        );
+
         [DllImport("kernel32.dll", SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
         public static extern bool FreeConsole();
@@ -398,14 +478,908 @@ namespace Allure.Run.Supervisor.Windows
         );
     }
 
-    public sealed class WindowsProcessHost : IDisposable
+    internal sealed class WindowsProcessHost : IDisposable
     {
-        public const int MaxMessageBytes = 1048576;
-        public const string CMD_UNQUOTED = @"#$*+-./:?@\_";
+        internal const int MaxMessageBytes = 1048576;
+        internal const string CMD_UNQUOTED = @"#$*+-./:?@\_";
 
         private static readonly string[] CommandExtensions = { ".exe", ".ps1", ".bat", ".cmd" };
 
-        public static string ResolveCommandPath(string command)
+        private static string PowerShellPath = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.System),
+            "WindowsPowerShell\\v1.0\\powershell.exe"
+        );
+
+        // Communication and event delivery.
+        // The host uses JavaScriptSerializer.
+        // The newer System.Text.Json is not available in .NET Framework 4.5.
+        private readonly JavaScriptSerializer json = new JavaScriptSerializer
+        {
+            MaxJsonLength = MaxMessageBytes,
+            RecursionLimit = 64
+        };
+        private readonly BlockingCollection<object> events = new BlockingCollection<object>(64);
+        private readonly CancellationTokenSource stopping = new CancellationTokenSource();
+        private readonly List<ConsoleRelay> consoleRelays = new List<ConsoleRelay>();
+        private readonly UTF8Encoding utf8 = new UTF8Encoding(false, true);
+        private NamedPipeClientStream pipe;
+        private const int ConnectTimeoutMs = 10000;
+        private const int WriteTimeoutMs = 5000;
+        private const int CompletionCheckIntervalMs = 2000;
+        private const int DiagnosticIntervalMs = 30000;
+        private const int SignalDeliveryTimeoutMs = 10000;
+        private const int ShutdownCleanupTimeoutMs = 1000;
+        private readonly bool diagnosticsEnabled =
+            Environment.GetEnvironmentVariable("__ALLURE_PROCESS_HOST_DIAGNOSTICS__") == "1";
+
+        private readonly object diagnosticFileLock = new object();
+        private readonly string diagnosticFilePath =
+            Environment.GetEnvironmentVariable("__ALLURE_PROCESS_HOST_DIAGNOSTICS_FILE__");
+
+        private static readonly TimeSpan terminationOutputDrainGracePeriod = TimeSpan.FromSeconds(1);
+
+        // Background threads and process resources
+        private Thread reader;
+        private Thread monitor;
+        private Thread shutdown;
+        private Process signalDelivery;
+        private readonly object gracefulStopLock = new object();
+        private bool stopCancelled = false;
+        private bool isGuiApplication = false;
+
+        // Reserved helper exit code: AttachConsole found no console.
+        private const int ConsoleSignalInapplicable = 0x20000001;
+
+        private enum StopOutcome { Success, Failure, Inapplicable }
+        private IntPtr job, port, root;
+        private uint rootPid;
+
+        // CTRL+C handling
+        // Keep the native callback rooted, including during cleanup or a failed removal.
+        private static readonly Native.ConsoleCtrlHandler ctrlHandler = HandleConsoleControl;
+
+        // Lifecycle state
+        private bool ctrlHandlerRegistered;
+
+        private bool launched;
+
+        private bool stopSeen;
+        private bool stopPending;
+        private bool stopSucceeded;
+
+        private bool terminateSeen;
+        private readonly Stopwatch terminationTimer = new Stopwatch();
+        private bool terminationSucceeded;
+
+        private bool jobEmpty;
+
+        private bool cleanupFailed = false;
+
+        internal bool CleanupFailed { get { return this.cleanupFailed; } }
+
+        private bool ShouldAbandonOutput
+        {
+            get
+            {
+                return this.terminationTimer.Elapsed > terminationOutputDrainGracePeriod;
+            }
+        }
+
+        // Event payloads
+        private sealed class StopResult
+        {
+            internal string RequestId;
+            internal Exception Error;
+        }
+
+        private sealed class EmptyJob
+        {
+        }
+
+        private sealed class Frame
+        {
+            internal string Text;
+        }
+
+        // Pipes console data between the host and the target process not sharing the console.
+        private abstract class ConsoleRelay : IDisposable
+        {
+            internal const int CancellationCompletionTimeoutMs = 3000;
+            private readonly IntPtr console;
+            private readonly IntPtr pipe;
+            private readonly Action<Exception> onFatalError;
+            private readonly Action<Exception> onError;
+            private readonly ManualResetEvent ready = new ManualResetEvent(false);
+            private bool cleanupFailed = false;
+            private bool cancellationErrorReported = false;
+
+            private Thread worker;
+            private IntPtr nativeThread;
+            private volatile bool cancelled;
+            private Exception error;
+            private readonly Stopwatch cancellationTimer = new Stopwatch();
+
+            protected IntPtr Console { get { return this.console; } }
+            protected IntPtr Pipe { get { return this.pipe; } }
+            protected bool Cancelled { get { return this.cancelled; } }
+            protected Exception Error { get { return this.error; } }
+            internal bool CleanupFailed { get { return this.cleanupFailed; } }
+            internal bool CancellationTimedOut
+            {
+                get
+                {
+                    return this.cancelled
+                        && this.cancellationTimer.ElapsedMilliseconds > CancellationCompletionTimeoutMs;
+                }
+            }
+
+            internal ConsoleRelay(
+                IntPtr console,
+                IntPtr pipe,
+                Action<Exception> onFatalError,
+                Action<Exception> onError
+            )
+            {
+                this.console = console;
+                this.pipe = pipe;
+                this.onFatalError = onFatalError;
+                this.onError = onError;
+            }
+
+            internal void Start()
+            {
+                this.worker = new Thread(Run);
+                this.worker.IsBackground = true;
+                this.worker.Start();
+
+                this.ready.WaitOne();
+
+                if (this.nativeThread == IntPtr.Zero)
+                {
+                    throw this.error;
+                }
+            }
+
+            internal void RequestCancellation()
+            {
+                this.cancelled = true;
+                this.cancellationTimer.Start();
+
+                Failure error = this.CancelSynchronousIo();
+                if (error != null && !this.cancellationErrorReported)
+                {
+                    this.cancellationErrorReported = true;
+                    this.onError(error);
+                }
+            }
+
+            private void Run()
+            {
+                try
+                {
+                    bool success = Native.DuplicateHandle(
+                        sourceProcess: Native.GetCurrentProcess(),
+                        source: Native.GetCurrentThread(),
+                        targetProcess: Native.GetCurrentProcess(),
+                        target: out this.nativeThread,
+                        access: 0,
+                        inherit: false,
+                        options: Native.DUPLICATE_SAME_ACCESS
+                    );
+
+                    if (!success)
+                    {
+                        throw Win32("DuplicateHandle(relay thread)");
+                    }
+
+                    this.ready.Set();
+
+                    this.Forward();
+                }
+                catch (Exception failure)
+                {
+                    if (!this.cancelled)
+                    {
+                        this.error = failure;
+                        this.onFatalError(failure);
+                    }
+                }
+                finally
+                {
+                    this.ready.Set();
+                    // Closing input's write end delivers EOF; closing output's
+                    // read end releases the last relay-owned pipe handle.
+                    Native.CloseHandle(this.pipe);
+                }
+            }
+
+            protected bool Join(int timeout)
+            {
+                return this.worker.Join(timeout);
+            }
+
+            protected abstract void Forward();
+
+            internal virtual bool TryFinishDraining()
+            {
+                return true;
+            }
+
+            public void Dispose()
+            {
+                this.cancelled = true;
+                this.cancellationTimer.Start();
+
+                if (this.worker == null)
+                {
+                    Native.CloseHandle(pipe);
+                }
+                else
+                {
+                    while (!this.worker.Join(10))
+                    {
+                        if (this.CancellationTimedOut)
+                        {
+                            this.cleanupFailed = true;
+                            this.onError(
+                                new Failure(
+                                    string.Format("{0}.Dispose()", this.GetType().Name),
+                                    string.Format(
+                                        "The relay worker did not exit within {0} "
+                                            + "second(s) after cancellation was requested.",
+                                        CancellationCompletionTimeoutMs / 1000
+                                    )
+                                )
+                            );
+
+                            // The worker is still running. Avoid cleaning up its resources.
+                            // It's a background thread, which does not keep the process alive.
+                            // When the process exits, Windows reclaims its resources.
+                            return;
+                        }
+
+                        // Retry because the worker may enter synchronous I/O between cancellation attempts.
+                        this.RequestCancellation();
+                    }
+                }
+
+                if (this.nativeThread != IntPtr.Zero)
+                {
+                    Native.CloseHandle(this.nativeThread);
+                }
+
+                this.ready.Dispose();
+            }
+
+            private Failure CancelSynchronousIo()
+            {
+                if (this.nativeThread == IntPtr.Zero)
+                {
+                    return null;
+                }
+
+                if (Native.CancelSynchronousIo(this.nativeThread))
+                {
+                    return null;
+                }
+
+                int code = Marshal.GetLastWin32Error();
+
+                if (code == Native.ERROR_NOT_FOUND)
+                {
+                    // No pending synchronous I/O was found.
+                    // The worker may be between calls or may have exited.
+                    return null;
+                }
+
+                return new Failure("CancelSynchronousIo(relay)", code);
+            }
+        }
+
+        private sealed class InputConsoleRelay : ConsoleRelay
+        {
+            internal InputConsoleRelay(
+                IntPtr console,
+                IntPtr pipe,
+                Action<Exception> onFatalError,
+                Action<Exception> onError
+            ) : base(console, pipe, onFatalError, onError)
+            {
+            }
+
+            protected override void Forward()
+            {
+                char[] characters = new char[2048];
+                byte[] bytes = new byte[Encoding.UTF8.GetMaxByteCount(characters.Length)];
+                Encoder encoder = Encoding.UTF8.GetEncoder();
+                while (!this.Cancelled)
+                {
+                    uint count;
+                    bool success = Native.ReadConsoleW(
+                        handle: this.Console,
+                        buffer: characters,
+                        size: (uint)characters.Length,
+                        read: out count,
+                        control: IntPtr.Zero
+                    );
+                    if (!success)
+                    {
+                        throw Win32("ReadConsoleW(relay)");
+                    }
+
+                    if (count == 0 || this.Cancelled)
+                    {
+                        return;
+                    }
+
+                    int length = encoder.GetBytes(
+                        chars: characters,
+                        charIndex: 0,
+                        charCount: (int)count,
+                        bytes: bytes,
+                        byteIndex: 0,
+                        flush: false
+                    );
+
+                    GCHandle pinned = GCHandle.Alloc(bytes, GCHandleType.Pinned);
+
+                    try
+                    {
+                        int offset = 0;
+                        while (offset < length && !this.Cancelled)
+                        {
+                            uint written;
+                            success = Native.WriteFile(
+                                handle: this.Pipe,
+                                buffer: IntPtr.Add(
+                                    pinned.AddrOfPinnedObject(),
+                                    offset
+                                ),
+                                size: (uint)(length - offset),
+                                written: out written,
+                                overlapped: IntPtr.Zero
+                            );
+
+                            if (!success)
+                            {
+                                int code = Marshal.GetLastWin32Error();
+                                if (code == Native.ERROR_BROKEN_PIPE || code == Native.ERROR_NO_DATA)
+                                {
+                                    // Target has closed stdin.
+                                    // No point in relaying further.
+                                    return;
+                                }
+
+                                throw new Failure("WriteFile(stdin relay)", code);
+                            }
+
+                            if (written == 0)
+                            {
+                                throw new Failure("WriteFile(stdin relay)", "No progress writing input.");
+                            }
+
+                            offset += (int)written;
+                        }
+                    }
+                    finally
+                    {
+                        pinned.Free();
+                    }
+                }
+            }
+        }
+
+        private sealed class OutputConsoleRelay : ConsoleRelay
+        {
+            internal OutputConsoleRelay(
+                IntPtr console,
+                IntPtr pipe,
+                Action<Exception> onFatalError,
+                Action<Exception> onError
+            ) : base(console, pipe, onFatalError, onError)
+            {
+            }
+
+            protected override void Forward()
+            {
+                byte[] bytes = new byte[8192];
+                char[] characters = new char[Encoding.UTF8.GetMaxCharCount(bytes.Length)];
+                Decoder decoder = Encoding.UTF8.GetDecoder();
+
+                while (!this.Cancelled)
+                {
+                    uint count;
+                    bool success = Native.ReadFile(
+                        handle: this.Pipe,
+                        buffer: bytes,
+                        size: (uint)bytes.Length,
+                        read: out count,
+                        overlapped: IntPtr.Zero
+                    );
+                    if (!success)
+                    {
+                        int code = Marshal.GetLastWin32Error();
+                        if (code != Native.ERROR_BROKEN_PIPE)
+                        {
+                            throw new Failure("ReadFile(output relay)", code);
+                        }
+
+                        // The pipe reached EOF.
+                        // Setting count to zero will flush any text buffered by the UTF-8 decoder.
+                        count = 0;
+                    }
+
+                    int length = decoder.GetChars(
+                        bytes: bytes,
+                        byteIndex: 0,
+                        byteCount: (int)count,
+                        chars: characters,
+                        charIndex: 0,
+                        flush: count == 0
+                    );
+
+                    string text = new string(characters, 0, length);
+                    int offset = 0;
+                    while (offset < text.Length && !this.Cancelled)
+                    {
+                        uint written;
+                        string remaining = text.Substring(offset);
+                        success = Native.WriteConsoleW(
+                            handle: this.Console,
+                            buffer: remaining,
+                            size: (uint)remaining.Length,
+                            written: out written,
+                            reserved: IntPtr.Zero
+                        );
+                        if (!success)
+                        {
+                            throw Win32("WriteConsoleW(relay)");
+                        }
+                        if (written == 0)
+                        {
+                            throw new Failure("WriteConsoleW(relay)", "No progress writing output.");
+                        }
+
+                        offset += (int)written;
+                    }
+
+                    if (count == 0)
+                    {
+                        return;
+                    }
+                }
+            }
+
+            internal override bool TryFinishDraining()
+            {
+                if (!this.Join(0))
+                {
+                    if (this.CancellationTimedOut)
+                    {
+                        throw new Failure(
+                            "OutputRelayCancellationTimeout",
+                            string.Format(
+                                "The output relay worker did not exit within {0} "
+                                    + "second(s) after cancellation was requested.",
+                                CancellationCompletionTimeoutMs / 1000
+                            )
+                        );
+                    }
+
+                    return false;
+                }
+
+                if (this.Error != null)
+                {
+                    throw this.Error;
+                }
+
+                return true;
+            }
+        }
+
+        private abstract class ConsoleRelayFactory
+        {
+            protected sealed class PipeEnds
+            {
+                public IntPtr HostEnd { get; set; }
+                public IntPtr TargetEnd { get; set; }
+            }
+
+            public ConsoleRelay Create(
+                IntPtr console,
+                Action<Exception> onFatalError,
+                Action<Exception> onError,
+                out IntPtr targetPipeEnd
+            )
+            {
+                IntPtr readEnd, writeEnd;
+                bool success = Native.CreatePipe(
+                    readPipe: out readEnd,
+                    writePipe: out writeEnd,
+                    attributes: IntPtr.Zero,
+                    size: 0
+                );
+
+                PipeEnds pipeEnds = this.ClassifyPipeEnds(readEnd, writeEnd);
+
+                if (!success)
+                {
+                    throw Win32("CreatePipe");
+                }
+
+                try
+                {
+                    IntPtr inheritableTargetPipeEnd = DuplicateInheritableHandle(pipeEnds.TargetEnd);
+                    try
+                    {
+                        targetPipeEnd = inheritableTargetPipeEnd;
+                        return this.CreateRelay(console, pipeEnds.HostEnd, onFatalError, onError);
+                    }
+                    catch
+                    {
+                        Native.CloseHandle(inheritableTargetPipeEnd);
+                        throw;
+                    }
+                }
+                catch
+                {
+                    Native.CloseHandle(pipeEnds.HostEnd);
+                    throw;
+                }
+                finally
+                {
+                    // A copy of the target's pipe end handle will be inherited by the target.
+                    // The original handle can be safely closed here.
+                    Native.CloseHandle(pipeEnds.TargetEnd);
+                }
+            }
+
+            internal bool IsConsoleHandle(IntPtr handle)
+            {
+                // The check short-circuits disks and pipes out.
+                // Character devices are potential console handles and are further probed.
+                return IsCharDevice(handle) && this.ProbeConsoleHandle(handle);
+            }
+
+            protected abstract bool ProbeConsoleHandle(IntPtr handle);
+
+            protected abstract PipeEnds ClassifyPipeEnds(IntPtr readEnd, IntPtr writeEnd);
+
+            protected abstract ConsoleRelay CreateRelay(
+                IntPtr console,
+                IntPtr pipe,
+                Action<Exception> onFatalError,
+                Action<Exception> onError
+            );
+
+            private static bool IsCharDevice(IntPtr handle)
+            {
+                uint fileType = Native.GetFileType(handle);
+                if (fileType == Native.FILE_TYPE_UNKNOWN)
+                {
+                    int code = Marshal.GetLastWin32Error();
+
+                    if (code == Native.ERROR_INVALID_HANDLE)
+                    {
+                        // Let standard-handle preparation replace the invalid handle with NUL.
+                        return false;
+                    }
+
+                    if (code != 0)
+                    {
+                        throw new Failure("GetFileType", code);
+                    }
+                }
+                return fileType == Native.FILE_TYPE_CHAR;
+            }
+        }
+
+        private sealed class InputRelayFactory : ConsoleRelayFactory
+        {
+            protected override bool ProbeConsoleHandle(IntPtr handle)
+            {
+                uint mode;
+                bool success = Native.GetConsoleMode(handle, out mode);
+                int code;
+
+                // Continue through direct inheritance; invalid handles fall back to NUL.
+                if (!success && (code = Marshal.GetLastWin32Error()) != Native.ERROR_INVALID_HANDLE)
+                {
+                    throw new Failure("GetConsoleMode", code);
+                }
+                return success;
+            }
+
+            protected override PipeEnds ClassifyPipeEnds(IntPtr readEnd, IntPtr writeEnd)
+            {
+                return new PipeEnds
+                {
+                    HostEnd = writeEnd,
+                    TargetEnd = readEnd,
+                };
+            }
+
+            protected override ConsoleRelay CreateRelay(
+                IntPtr console,
+                IntPtr pipe,
+                Action<Exception> onFatalError,
+                Action<Exception> onError
+            )
+            {
+                return new InputConsoleRelay(console, pipe, onFatalError, onError);
+            }
+        }
+
+        private sealed class OutputRelayFactory : ConsoleRelayFactory
+        {
+            protected override bool ProbeConsoleHandle(IntPtr handle)
+            {
+                uint mode;
+                bool success = Native.GetConsoleMode(handle, out mode);
+                if (success)
+                {
+                    return true;
+                }
+
+                int code = Marshal.GetLastWin32Error();
+                if (code == Native.ERROR_INVALID_HANDLE)
+                {
+                    // Continue through direct inheritance; invalid handles fall back to NUL.
+                    return false;
+                }
+
+                // GetConsoleMode fails for write-only consoles, which are perfectly fine for output.
+                // Use zero-length write to check whether the handle supports console output without
+                // writing any characters.
+                if (code == Native.ERROR_ACCESS_DENIED)
+                {
+                    return ProbeConsoleWrite(handle);
+                }
+
+                throw new Failure("GetConsoleMode", code);
+            }
+
+            protected override PipeEnds ClassifyPipeEnds(IntPtr readEnd, IntPtr writeEnd)
+            {
+                return new PipeEnds
+                {
+                    HostEnd = readEnd,
+                    TargetEnd = writeEnd,
+                };
+            }
+
+            protected override ConsoleRelay CreateRelay(
+                IntPtr console,
+                IntPtr pipe,
+                Action<Exception> onFatalError,
+                Action<Exception> onError
+            )
+            {
+                return new OutputConsoleRelay(console, pipe, onFatalError, onError);
+            }
+
+            private static bool ProbeConsoleWrite(IntPtr handle)
+            {
+                uint written;
+                bool success = Native.WriteConsoleW(
+                    handle: handle,
+                    buffer: string.Empty,
+                    size: 0,
+                    written: out written,
+                    reserved: IntPtr.Zero
+                );
+
+                if (success)
+                {
+                    return true;
+                }
+
+                int code = Marshal.GetLastWin32Error();
+                if (code == Native.ERROR_INVALID_HANDLE)
+                {
+                    return false;
+                }
+
+                throw new Failure("WriteConsoleW", code);
+            }
+        }
+
+        private void Diagnostic(string stage, object details)
+        {
+            if (!diagnosticsEnabled)
+            {
+                return;
+            }
+
+            try
+            {
+                if (pipe == null || !pipe.IsConnected)
+                {
+                    return;
+                }
+                Dictionary<string, object> message = Message("diagnostics");
+                message["hostPid"] = Native.GetCurrentProcessId();
+                message["timestamp"] = DateTime.UtcNow.ToString("o");
+                message["stage"] = stage;
+                message["details"] = details;
+                Send(message);
+            }
+            catch
+            {
+                // All diagnostic errors are swallowed.
+            }
+        }
+
+        /// <summary>
+        /// Returns best-effort diagnostic details about the specified process.
+        /// Includes its PID and any executable path, name, and command line
+        /// that could be retrieved, along with any inspection errors.
+        /// </summary>
+        private static object DescribeProcess(uint pid)
+        {
+            Dictionary<string, object> details = new Dictionary<string, object> { { "pid", pid } };
+            IntPtr process = Native.OpenProcess(Native.PROCESS_QUERY_LIMITED_INFORMATION, false, pid);
+            if (process == IntPtr.Zero)
+            {
+                details["inspectionError"] = Win32("OpenProcess(diagnostics)").Message;
+                return details;
+            }
+            try
+            {
+                StringBuilder image = new StringBuilder(32768);
+                uint size = (uint)image.Capacity;
+                if (Native.QueryFullProcessImageNameW(process, 0, image, ref size))
+                {
+                    details["executable"] = image.ToString();
+                    details["name"] = Path.GetFileName(image.ToString());
+                }
+                else
+                {
+                    details["imageError"] = Win32("QueryFullProcessImageNameW").Message;
+                }
+
+                uint required;
+                Native.NtQueryInformationProcess(process, 60, IntPtr.Zero, 0, out required);
+                if (required < Marshal.SizeOf(typeof(Native.UNICODE_STRING)) || required > 1024 * 1024)
+                {
+                    throw new InvalidOperationException("Command line size unavailable or too large.");
+                }
+
+                IntPtr buffer = Marshal.AllocHGlobal((int)required);
+                try
+                {
+                    int status = Native.NtQueryInformationProcess(process, 60, buffer, required, out required);
+                    if (status < 0)
+                    {
+                        throw new InvalidOperationException(
+                            "Command line query failed: NTSTATUS=0x" + status.ToString("X8")
+                        );
+                    }
+                    Native.UNICODE_STRING commandLine = (Native.UNICODE_STRING)Marshal.PtrToStructure(
+                        buffer,
+                        typeof(Native.UNICODE_STRING)
+                    );
+                    details["commandLine"] = Marshal.PtrToStringUni(
+                        commandLine.Buffer,
+                        commandLine.Length / 2
+                    );
+                }
+                finally
+                {
+                    Marshal.FreeHGlobal(buffer);
+                }
+            }
+            catch (Exception error)
+            {
+                // The process may have exited since enumeration, or access may have been denied
+                details["inspectionError"] = error.Message;
+            }
+            finally
+            {
+                Native.CloseHandle(process);
+            }
+            return details;
+        }
+
+        // Prints diagnostic information about remaining processes in the job.
+        private void DiagnoseRemainingProcesses()
+        {
+            try
+            {
+                // Read actual job membership, including nested jobs.
+                // Bound retries if the job grows.
+                int capacity = 64;
+                for (int attempt = 0; attempt < 3; attempt++)
+                {
+                    int size = 8 + capacity * IntPtr.Size;
+                    IntPtr buffer = Marshal.AllocHGlobal(size);
+                    try
+                    {
+                        uint returned;
+                        bool success = Native.QueryInformationJobObject(
+                            job,
+                            Native.JobObjectBasicProcessIdList,
+                            buffer,
+                            (uint)size,
+                            out returned
+                        );
+                        int error = Marshal.GetLastWin32Error();
+                        if (!success && error != 234) // ERROR_MORE_DATA
+                        {
+                            throw new Failure("QueryInformationJobObject(diagnostics)", error);
+                        }
+
+                        int assigned = Marshal.ReadInt32(buffer);
+                        int count = Math.Min(capacity, Marshal.ReadInt32(buffer, 4));
+                        if (!success && attempt < 2)
+                        {
+                            capacity = Math.Min(65536, Math.Max(capacity * 2, assigned));
+                            continue;
+                        }
+
+                        this.Diagnostic(
+                            "waiting for job processes after root exit",
+                            new { rootPid, assigned, listed = count }
+                        );
+
+                        for (int index = 0; index < count; index++)
+                        {
+                            uint pid = unchecked(
+                                (uint)Marshal.ReadIntPtr(
+                                    buffer,
+                                    8 + index * IntPtr.Size
+                                ).ToInt64()
+                            );
+                            this.Diagnostic("remaining job process", DescribeProcess(pid));
+                        }
+                        return;
+                    }
+                    finally
+                    {
+                        Marshal.FreeHGlobal(buffer);
+                    }
+                }
+            }
+            catch (Exception error)
+            {
+                this.Diagnostic("job process inspection failed", new { error = error.Message });
+            }
+        }
+
+        private void ReportCleanupError(string source, Exception error)
+        {
+            if (string.IsNullOrEmpty(this.diagnosticFilePath))
+            {
+                return;
+            }
+
+            try
+            {
+                string entry = string.Format(
+                    "{0:o} [{1}] {2}{3}",
+                    DateTime.UtcNow,
+                    source,
+                    error,
+                    Environment.NewLine
+                );
+
+                lock (this.diagnosticFileLock)
+                {
+                    File.AppendAllText(
+                        this.diagnosticFilePath,
+                        entry,
+                        new UTF8Encoding(false)
+                    );
+                }
+            }
+            catch
+            {
+                // Any error during diagnostic reporting is ignored.
+            }
+        }
+
+        private static string ResolveCommandPath(string command)
         {
             if (string.IsNullOrWhiteSpace(command))
             {
@@ -510,228 +1484,6 @@ namespace Allure.Run.Supervisor.Windows
             return null;
         }
 
-        private static string PowerShellPath = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.System),
-            "WindowsPowerShell\\v1.0\\powershell.exe"
-        );
-
-        // Communication and event delivery
-        // The script uses JavaScriptSerializer because the newer System.Text.Json is not available in PowerShell 5.1.
-        private readonly JavaScriptSerializer json = new JavaScriptSerializer
-        {
-            MaxJsonLength = MaxMessageBytes,
-            RecursionLimit = 64
-        };
-        private readonly BlockingCollection<object> events = new BlockingCollection<object>(64);
-        private readonly CancellationTokenSource stopping = new CancellationTokenSource();
-        private readonly UTF8Encoding utf8 = new UTF8Encoding(false, true);
-        private NamedPipeClientStream pipe;
-        private const int ConnectTimeoutMs = 10000;
-        private const int WriteTimeoutMs = 5000;
-        private const int CompletionCheckIntervalMs = 2000;
-        private const int DiagnosticIntervalMs = 30000;
-        private readonly bool diagnosticsEnabled =
-            Environment.GetEnvironmentVariable("__ALLURE_PROCESS_HOST_DIAGNOSTICS__") == "1";
-
-        // Background threads and process resources
-        private Thread reader, monitor, shutdown;
-        private Process signalDelivery;
-        private readonly object gracefulStopLock = new object();
-        private bool stopCancelled = false;
-        private bool isGuiApplication = false;
-        // Reserved helper exit code: AttachConsole found no console.
-        private const int ConsoleSignalInapplicable = 0x20000001;
-
-        private enum StopOutcome { Success, Failure, Inapplicable }
-        private IntPtr job, port, root;
-        private uint rootPid;
-
-        // CTRL+C handling
-        // Keep the native callback rooted, including during cleanup or a failed removal.
-        private static readonly Native.ConsoleCtrlHandler ctrlHandler = HandleConsoleControl;
-
-        // Lifecycle state
-        private bool ctrlHandlerRegistered;
-        private bool terminateSeen, launched, terminationSucceeded;
-        private bool stopSeen, stopPending, stopSucceeded, jobEmpty;
-
-        // Event payloads
-        private sealed class StopResult
-        {
-            internal string RequestId;
-            internal Exception Error;
-        }
-
-        private sealed class EmptyJob
-        {
-        }
-
-        private sealed class Frame
-        {
-            internal string Text;
-        }
-
-        private void Diagnostic(string stage, object details)
-        {
-            if (!diagnosticsEnabled)
-            {
-                return;
-            }
-
-            try
-            {
-                if (pipe == null || !pipe.IsConnected)
-                {
-                    return;
-                }
-                Dictionary<string, object> message = Message("diagnostics");
-                message["hostPid"] = Native.GetCurrentProcessId();
-                message["timestamp"] = DateTime.UtcNow.ToString("o");
-                message["stage"] = stage;
-                message["details"] = details;
-                Send(message);
-            }
-            catch
-            {
-                // Diagnostics must never change process supervision or completion.
-            }
-        }
-
-        /// <summary>
-        /// Returns a dictionary containing details about the specified process,
-        /// including its PID, executable path, name, and command line.
-        /// </summary>
-        private object DescribeProcess(uint pid)
-        {
-            Dictionary<string, object> details = new Dictionary<string, object> { { "pid", pid } };
-            IntPtr process = Native.OpenProcess(Native.PROCESS_QUERY_LIMITED_INFORMATION, false, pid);
-            if (process == IntPtr.Zero)
-            {
-                details["inspectionError"] = Win32("OpenProcess(diagnostics)").Message;
-                return details;
-            }
-            try
-            {
-                StringBuilder image = new StringBuilder(32768);
-                uint size = (uint)image.Capacity;
-                if (Native.QueryFullProcessImageNameW(process, 0, image, ref size))
-                {
-                    details["executable"] = image.ToString();
-                    details["name"] = Path.GetFileName(image.ToString());
-                }
-                else
-                {
-                    details["imageError"] = Win32("QueryFullProcessImageNameW").Message;
-                }
-
-                uint required;
-                Native.NtQueryInformationProcess(process, 60, IntPtr.Zero, 0, out required);
-                if (required < Marshal.SizeOf(typeof(Native.UNICODE_STRING)) || required > 1024 * 1024)
-                {
-                    throw new InvalidOperationException("Command line size unavailable or too large.");
-                }
-
-                IntPtr buffer = Marshal.AllocHGlobal((int)required);
-                try
-                {
-                    int status = Native.NtQueryInformationProcess(process, 60, buffer, required, out required);
-                    if (status < 0)
-                    {
-                        throw new InvalidOperationException(
-                            "Command line query failed: NTSTATUS=0x" + status.ToString("X8")
-                        );
-                    }
-                    Native.UNICODE_STRING commandLine = (Native.UNICODE_STRING)Marshal.PtrToStructure(
-                        buffer,
-                        typeof(Native.UNICODE_STRING)
-                    );
-                    details["commandLine"] = Marshal.PtrToStringUni(
-                        commandLine.Buffer,
-                        commandLine.Length / 2
-                    );
-                }
-                finally
-                {
-                    Marshal.FreeHGlobal(buffer);
-                }
-            }
-            catch (Exception error)
-            {
-                // Processes can exit or deny access between enumeration and inspection.
-                details["inspectionError"] = error.Message;
-            }
-            finally
-            {
-                Native.CloseHandle(process);
-            }
-            return details;
-        }
-
-        // Prints diagnostic information about remaining processes in the job.
-        private void DiagnoseRemainingProcesses()
-        {
-            try
-            {
-                // Read actual job membership, including nested jobs, rather than reconstructing
-                // a parent tree whose root may already be gone. Bound retries if the job grows.
-                int capacity = 64;
-                for (int attempt = 0; attempt < 3; attempt++)
-                {
-                    int size = 8 + capacity * IntPtr.Size;
-                    IntPtr buffer = Marshal.AllocHGlobal(size);
-                    try
-                    {
-                        uint returned;
-                        bool success = Native.QueryInformationJobObject(
-                            job,
-                            Native.JobObjectBasicProcessIdList,
-                            buffer,
-                            (uint)size,
-                            out returned
-                        );
-                        int error = Marshal.GetLastWin32Error();
-                        if (!success && error != 234) // ERROR_MORE_DATA
-                        {
-                            throw new Failure("QueryInformationJobObject(diagnostics)", error);
-                        }
-
-                        int assigned = Marshal.ReadInt32(buffer);
-                        int count = Math.Min(capacity, Marshal.ReadInt32(buffer, 4));
-                        if (!success && attempt < 2)
-                        {
-                            capacity = Math.Min(65536, Math.Max(capacity * 2, assigned));
-                            continue;
-                        }
-
-                        Diagnostic(
-                            "waiting for job processes after root exit",
-                            new { rootPid, assigned, listed = count }
-                        );
-
-                        for (int index = 0; index < count; index++)
-                        {
-                            uint pid = unchecked(
-                                (uint)Marshal.ReadIntPtr(
-                                    buffer,
-                                    8 + index * IntPtr.Size
-                                ).ToInt64()
-                            );
-                            Diagnostic("remaining job process", DescribeProcess(pid));
-                        }
-                        return;
-                    }
-                    finally
-                    {
-                        Marshal.FreeHGlobal(buffer);
-                    }
-                }
-            }
-            catch (Exception error)
-            {
-                Diagnostic("job process inspection failed", new { error = error.Message });
-            }
-        }
-
         private static Failure Win32(string operation)
         {
             return new Failure(operation, Marshal.GetLastWin32Error());
@@ -749,7 +1501,7 @@ namespace Allure.Run.Supervisor.Windows
         {
             try
             {
-                events.Add(item, stopping.Token);
+                this.events.Add(item, this.stopping.Token);
             }
             catch (OperationCanceledException)
             {
@@ -780,10 +1532,12 @@ namespace Allure.Run.Supervisor.Windows
         {
             try
             {
-                while (!stopping.IsCancellationRequested)
+                while (!this.stopping.IsCancellationRequested)
                 {
                     byte[] header = new byte[4];
-                    ReadExact(header).GetAwaiter().GetResult();
+                    this.ReadExact(header)
+                        .GetAwaiter()
+                        .GetResult();
 
                     uint size =
                         (uint)header[0]
@@ -792,23 +1546,32 @@ namespace Allure.Run.Supervisor.Windows
                             | ((uint)header[3] << 24);
 
                     if (size == 0 || size > MaxMessageBytes)
+                    {
                         throw new Failure("ReadFrame", "Payload length must be between 1 and 1048576 bytes.");
+                    }
+
                     byte[] payload = new byte[(int)size];
-                    ReadExact(payload).GetAwaiter().GetResult();
-                    Enqueue(new Frame { Text = utf8.GetString(payload) });
+                    this.ReadExact(payload)
+                        .GetAwaiter()
+                        .GetResult();
+
+                    this.Enqueue(new Frame { Text = utf8.GetString(payload) });
                 }
             }
             catch (Exception e)
             {
                 if (!stopping.IsCancellationRequested)
-                    Enqueue(e);
+                {
+                    this.Enqueue(e);
+                }
             }
         }
 
-        // Only the event-loop thread writes. Async I/O plus a deadline bounds even final/error writes.
+        // Only the event-loop thread writes.
+        // Async I/O plus a deadline bounds even final/error writes.
         private void Send(Dictionary<string, object> message)
         {
-            byte[] payload = utf8.GetBytes(json.Serialize(message));
+            byte[] payload = this.utf8.GetBytes(json.Serialize(message));
             byte[] frame = new byte[4 + payload.Length];
             uint size = (uint)payload.Length;
             for (int i = 0; i < 4; i++)
@@ -818,17 +1581,17 @@ namespace Allure.Run.Supervisor.Windows
 
             Buffer.BlockCopy(payload, 0, frame, 4, payload.Length);
 
-            Task write = pipe.WriteAsync(frame, 0, frame.Length);
+            Task write = this.pipe.WriteAsync(frame, 0, frame.Length);
             if (!write.Wait(WriteTimeoutMs))
             {
-                pipe.Dispose();
+                this.pipe.Dispose();
                 throw new Failure("WritePipe", "Control pipe write timed out.");
             }
 
-            Task flush = pipe.FlushAsync();
+            Task flush = this.pipe.FlushAsync();
             if (!flush.Wait(WriteTimeoutMs))
             {
-                pipe.Dispose();
+                this.pipe.Dispose();
                 throw new Failure("FlushPipe", "Control pipe flush timed out.");
             }
         }
@@ -849,8 +1612,8 @@ namespace Allure.Run.Supervisor.Windows
 
         private static bool IsGuiApplication(string path)
         {
-            using (var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read))
-            using (var reader = new BinaryReader(stream))
+            using (FileStream stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read))
+            using (BinaryReader reader = new BinaryReader(stream))
             {
                 long length = stream.Length;
                 long minLength = Native.E_LFANEW_OFFSET + 4;
@@ -859,7 +1622,7 @@ namespace Allure.Run.Supervisor.Windows
                     return false;
                 }
 
-                if (reader.ReadUInt16() != Native.IMAGE_DOS_SIGNATURE) // 'MZ' in little-endian
+                if (reader.ReadUInt16() != Native.IMAGE_DOS_SIGNATURE)
                 {
                     return false;
                 }
@@ -1175,40 +1938,111 @@ namespace Allure.Run.Supervisor.Windows
             return c >= '\x00' && c <= '\x1F' || c >= '\x7F' && c <= '\u009F';
         }
 
-        private static IntPtr StandardHandle(int id, bool input)
+        private static IntPtr DuplicateInheritableHandle(IntPtr source)
         {
-            bool success = false;
-            IntPtr source = Native.GetStdHandle(id), duplicate;
+            IntPtr duplicate;
+            bool success = Native.DuplicateHandle(
+                sourceProcess: Native.GetCurrentProcess(),
+                source: source,
+                targetProcess: Native.GetCurrentProcess(),
+                target: out duplicate,
+                access: 0,
+                inherit: true,
+                options: Native.DUPLICATE_SAME_ACCESS
+            );
+            if (!success)
+            {
+                throw Win32("DuplicateHandle");
+            }
+            return duplicate;
+        }
+
+        private IntPtr PrepareTargetStandardHandle(int id, uint access, ConsoleRelayFactory relayFactory)
+        {
+            IntPtr source = Native.GetStdHandle(id);
             if (source != IntPtr.Zero && source != Native.InvalidHandle)
             {
-                // Duplicate the handle to ensure it is inheritable.
-                // The original handle may be non-inheritable, which would prevent the child process from using it.
-                success = Native.DuplicateHandle(
-                    Native.GetCurrentProcess(),
-                    source,
-                    Native.GetCurrentProcess(),
-                    out duplicate,
-                    access: 0,
-                    inherit: true,
-                    options: Native.DUPLICATE_SAME_ACCESS
-                );
-
-                if (success)
+                if (relayFactory.IsConsoleHandle(source))
                 {
-                    return duplicate;
+                    IntPtr targetPipeEnd;
+                    this.consoleRelays.Add(
+                        relayFactory.Create(
+                            console: source,
+                            onFatalError: delegate (Exception error)
+                            {
+                                this.events.TryAdd(error);
+                            },
+                            onError: delegate (Exception error)
+                            {
+                                TryReportError(id, error);
+                            },
+                            targetPipeEnd: out targetPipeEnd
+                        )
+                    );
+                    return targetPipeEnd;
                 }
-
-                int error = Marshal.GetLastWin32Error();
-                if (error != Native.ERROR_INVALID_HANDLE)
+                try
                 {
-                    throw new Failure("DuplicateHandle", error);
+                    return DuplicateInheritableHandle(source);
+                }
+                catch (Failure error)
+                {
+                    if (error.NativeError != Native.ERROR_INVALID_HANDLE)
+                    {
+                        throw;
+                    }
+                }
+            }
+            return PrepareNullHandle(access);
+        }
+
+        private void TryReportError(int handleId, Exception error)
+        {
+            if (this.pipe != null && this.pipe.IsConnected)
+            {
+                try
+                {
+                    Failure failure = error as Failure;
+                    string stdHandleName = GetHandleName(handleId);
+
+                    Dictionary<string, object> message = Error(error, null, false);
+                    message["operation"] = failure != null
+                        ? string.Format("ConsoleRelay({0}).{1}", stdHandleName, failure.Operation)
+                        : string.Format("ConsoleRelay({0})", stdHandleName);
+
+                    this.Send(message);
+                    return;
+                }
+                catch
+                {
                 }
             }
 
+            ReportCleanupError(GetHandleName(handleId), error);
+        }
+
+        private static string GetHandleName(int id)
+        {
+            switch (id)
+            {
+                case Native.STD_INPUT_HANDLE:
+                    return "stdin";
+                case Native.STD_OUTPUT_HANDLE:
+                    return "stdout";
+                case Native.STD_ERROR_HANDLE:
+                    return "stderr";
+                default:
+                    return "unknown";
+            }
+        }
+
+        private static IntPtr PrepareNullHandle(uint access)
+        {
             // If no stdin/stdout/stderr is available, open NUL for reading or writing.
+            // This is similar to redirecting to/from /dev/null on Unix systems.
             IntPtr nul = Native.CreateFileW(
                 "NUL",
-                input ? Native.GENERIC_READ : Native.GENERIC_WRITE,
+                access,
                 Native.FILE_SHARE_READ | Native.FILE_SHARE_WRITE,
                 IntPtr.Zero,
                 Native.OPEN_EXISTING,
@@ -1223,27 +2057,22 @@ namespace Allure.Run.Supervisor.Windows
 
             try
             {
-                success = Native.DuplicateHandle(
-                    Native.GetCurrentProcess(),
-                    nul,
-                    Native.GetCurrentProcess(),
-                    out duplicate,
-                    access: 0,
-                    inherit: true,
-                    options: Native.DUPLICATE_SAME_ACCESS
-                );
-
-                if (!success)
-                {
-                    throw Win32("DuplicateHandle(NUL)");
-                }
-
-                return duplicate;
+                return DuplicateInheritableHandle(nul);
             }
             finally
             {
                 Native.CloseHandle(nul);
             }
+        }
+
+        private IntPtr PrepareTargetStandardInputHandle(int id)
+        {
+            return PrepareTargetStandardHandle(id, Native.GENERIC_READ, new InputRelayFactory());
+        }
+
+        private IntPtr PrepareTargetStandardOutputHandle(int id)
+        {
+            return PrepareTargetStandardHandle(id, Native.GENERIC_WRITE, new OutputRelayFactory());
         }
 
         private uint Launch(string command, IEnumerable<string> arguments, string cwd)
@@ -1326,9 +2155,9 @@ namespace Allure.Run.Supervisor.Windows
             Native.PROCESS_INFORMATION process = new Native.PROCESS_INFORMATION();
             try
             {
-                handles[0] = StandardHandle(Native.STD_INPUT_HANDLE, true);
-                handles[1] = StandardHandle(Native.STD_OUTPUT_HANDLE, false);
-                handles[2] = StandardHandle(Native.STD_ERROR_HANDLE, false);
+                handles[0] = PrepareTargetStandardInputHandle(Native.STD_INPUT_HANDLE);
+                handles[1] = PrepareTargetStandardOutputHandle(Native.STD_OUTPUT_HANDLE);
+                handles[2] = PrepareTargetStandardOutputHandle(Native.STD_ERROR_HANDLE);
 
                 UIntPtr bytes = UIntPtr.Zero;
                 bool probe = Native.InitializeProcThreadAttributeList(IntPtr.Zero, 2, 0, ref bytes);
@@ -1486,24 +2315,37 @@ namespace Allure.Run.Supervisor.Windows
             error = null;
             try
             {
-                lock (gracefulStopLock)
+                lock (this.gracefulStopLock)
                 {
-                    if (stopCancelled)
+                    if (this.stopCancelled)
                     {
                         throw new OperationCanceledException("Graceful stop was cancelled.");
                     }
-                    signalDelivery = Process.Start(new ProcessStartInfo
+                    this.signalDelivery = Process.Start(new ProcessStartInfo
                     {
                         FileName = Assembly.GetExecutingAssembly().Location,
-                        Arguments = "signal " + rootPid.ToString(CultureInfo.InvariantCulture),
+                        Arguments = "signal " + this.rootPid.ToString(CultureInfo.InvariantCulture),
                         UseShellExecute = false,
                         CreateNoWindow = true
                     });
                 }
 
-                signalDelivery.WaitForExit();
+                if (!this.signalDelivery.WaitForExit(SignalDeliveryTimeoutMs))
+                {
+                    this.TerminateSendConsoleSignal();
 
-                int code = signalDelivery.ExitCode;
+                    error = new Failure(
+                        "SendConsoleSignal",
+                        string.Format(
+                            "The console-signal helper did not exit within {0} second(s). " +
+                                "Signal delivery could not be confirmed.",
+                            SignalDeliveryTimeoutMs / 1000
+                        )
+                    );
+                    return StopOutcome.Failure;
+                }
+
+                int code = this.signalDelivery.ExitCode;
 
                 if (code == 0)
                 {
@@ -1539,9 +2381,9 @@ namespace Allure.Run.Supervisor.Windows
                         return true;
                     }
 
-                    lock (gracefulStopLock)
+                    lock (this.gracefulStopLock)
                     {
-                        if (stopCancelled)
+                        if (this.stopCancelled)
                         {
                             failure = new OperationCanceledException("Graceful stop was cancelled.");
                             return false;
@@ -1620,18 +2462,18 @@ namespace Allure.Run.Supervisor.Windows
 
         private void TerminateSendConsoleSignal()
         {
-            lock (gracefulStopLock)
+            lock (this.gracefulStopLock)
             {
-                stopCancelled = true;
-                if (signalDelivery != null && !signalDelivery.HasExited)
+                this.stopCancelled = true;
+                if (this.signalDelivery != null && !this.signalDelivery.HasExited)
                 {
                     try
                     {
-                        signalDelivery.Kill();
+                        this.signalDelivery.Kill();
                     }
                     catch (InvalidOperationException)
                     {
-                        if (!signalDelivery.HasExited)
+                        if (!this.signalDelivery.HasExited)
                         {
                             throw;
                         }
@@ -1659,7 +2501,7 @@ namespace Allure.Run.Supervisor.Windows
             Dictionary<string, object> request;
             try
             {
-                request = json.DeserializeObject(text) as Dictionary<string, object>;
+                request = this.json.DeserializeObject(text) as Dictionary<string, object>;
             }
             catch (Exception e)
             {
@@ -1672,11 +2514,13 @@ namespace Allure.Run.Supervisor.Windows
             }
 
             object value;
-            string id = request.TryGetValue("requestId", out value) ? value as string : null;
+            string id = request.TryGetValue("requestId", out value)
+                ? value as string
+                : null;
 
             try
             {
-                if (String.IsNullOrWhiteSpace(id))
+                if (string.IsNullOrWhiteSpace(id))
                 {
                     throw Invalid("requestId must be a nonempty string.");
                 }
@@ -1687,33 +2531,34 @@ namespace Allure.Run.Supervisor.Windows
 
                 if (type == "stop")
                 {
-                    if (stopSeen)
+                    if (this.stopSeen)
                     {
                         throw Invalid("Stop already handled.");
                     }
 
-                    stopSeen = true;
+                    this.stopSeen = true;
 
-                    if (!launched)
+                    if (!this.launched)
                     {
                         throw Invalid("Stop before start.");
                     }
 
-                    if (terminateSeen)
+                    if (this.terminateSeen)
                     {
                         throw Invalid("Stop after termination request.");
                     }
 
-                    BeginStop(id);
+                    this.BeginStop(id);
                 }
                 else if (type == "terminate")
                 {
-                    if (terminateSeen)
+                    if (this.terminateSeen)
                     {
                         throw Invalid("Termination already handled.");
                     }
 
-                    terminateSeen = true;
+                    this.terminateSeen = true;
+                    this.terminationTimer.Start();
 
                     uint code = 1;
                     if (request.TryGetValue("exitCode", out value))
@@ -1731,7 +2576,7 @@ namespace Allure.Run.Supervisor.Windows
                         code = (uint)number;
                     }
 
-                    if (!launched)
+                    if (!this.launched)
                     {
                         throw Invalid("Termination before start.");
                     }
@@ -1739,14 +2584,14 @@ namespace Allure.Run.Supervisor.Windows
                     Dictionary<string, object> response = Message("terminationResult");
                     response["requestId"] = id;
 
-                    TerminateSendConsoleSignal();
-                    bool success = Native.TerminateJobObject(job, code);
+                    this.TerminateSendConsoleSignal();
+                    bool success = Native.TerminateJobObject(this.job, code);
 
                     int error = success ? 0 : Marshal.GetLastWin32Error();
                     response["success"] = success;
                     if (success)
                     {
-                        terminationSucceeded = true;
+                        this.terminationSucceeded = true;
                     }
                     else
                     {
@@ -1756,7 +2601,7 @@ namespace Allure.Run.Supervisor.Windows
                             false
                         );
                     }
-                    Send(response);
+                    this.Send(response);
                 }
                 else
                 {
@@ -1769,16 +2614,25 @@ namespace Allure.Run.Supervisor.Windows
                 {
                     throw;
                 }
-                Send(Error(e, id, false));
+                this.Send(Error(e, id, false));
             }
         }
 
         private static int Run(string pipeName, string command, IEnumerable<string> arguments)
         {
-            using (WindowsProcessHost host = new WindowsProcessHost())
+            WindowsProcessHost host = new WindowsProcessHost();
+            int exitCode = 0;
+
+            try
             {
-                return host.Execute(pipeName, command, arguments);
+                exitCode = host.Execute(pipeName, command, arguments);
             }
+            finally
+            {
+                host.Dispose();
+            }
+
+            return host.CleanupFailed ? 1 : exitCode;
         }
 
         private static int Signal(uint processId)
@@ -1791,6 +2645,7 @@ namespace Allure.Run.Supervisor.Windows
                 if (error == 6)
                 {
                     // The target does not have a console.
+                    // Return a distinct error code. The host might try a different stop method.
                     return 0x20000001;
                 }
 
@@ -1857,8 +2712,8 @@ namespace Allure.Run.Supervisor.Windows
 
         private static bool HandleConsoleControl(uint controlType)
         {
-            // The Node.js implement the escalation policy.
-            // The PowerShell part must survive CTRL+C.
+            // The supervisor implements the escalation policy and manages the host's lifetime.
+            // The host is attached to the same console and must survive CTRL+C.
             return controlType == Native.CTRL_C_EVENT;
         }
 
@@ -1866,7 +2721,7 @@ namespace Allure.Run.Supervisor.Windows
         {
             if (ctrlHandlerRegistered)
             {
-                // Ignore any errors as we're about to exit anyway.
+                // Ignore any errors: we're about to exit anyway.
                 Native.SetConsoleCtrlHandler(ctrlHandler, false);
                 ctrlHandlerRegistered = false;
             }
@@ -1874,7 +2729,8 @@ namespace Allure.Run.Supervisor.Windows
 
         private int Execute(string pipeName, string command, IEnumerable<string> arguments)
         {
-            // Disable diagnostics for nested process hosts.
+            // allure run can execute a nested allure run.
+            // Disable diagnostics for nested hosts.
             // The outer host will report all job processes anyway.
             Environment.SetEnvironmentVariable("__ALLURE_PROCESS_HOST_DIAGNOSTICS__", null);
 
@@ -1885,51 +2741,70 @@ namespace Allure.Run.Supervisor.Windows
                     throw Win32("SetConsoleCtrlHandler(add)");
                 }
 
-                ctrlHandlerRegistered = true;
+                this.ctrlHandlerRegistered = true;
 
-                pipe = new NamedPipeClientStream(
+                this.pipe = new NamedPipeClientStream(
                     ".",
                     pipeName,
                     PipeDirection.InOut,
                     PipeOptions.Asynchronous
                 );
 
-                pipe.Connect(ConnectTimeoutMs);
+                this.pipe.Connect(ConnectTimeoutMs);
 
                 Dictionary<string, object> ready = Message("ready");
                 ready["version"] = 2;
                 ready["hostPid"] = Native.GetCurrentProcessId();
 
-                Send(ready);
+                this.Send(ready);
 
-                reader = new Thread(ReadLoop);
-                reader.IsBackground = true;
-                reader.Start();
+                this.reader = new Thread(this.ReadLoop);
+                this.reader.IsBackground = true;
+                this.reader.Start();
 
                 string resolved = ResolveCommandPath(command);
 
                 uint pid = Launch(resolved, arguments, Environment.CurrentDirectory);
-                rootPid = pid;
+                this.rootPid = pid;
+
+                foreach (ConsoleRelay relay in consoleRelays)
+                {
+                    relay.Start();
+                }
+
                 Dictionary<string, object> started = Message("started");
                 started["rootPid"] = pid;
-                Send(started);
+                this.Send(started);
 
-                Diagnostic("target started", new { rootPid });
+                this.Diagnostic("target started", new { rootPid });
 
                 Stopwatch completionClock = Stopwatch.StartNew();
+
                 long nextCompletionCheck = CompletionCheckIntervalMs;
                 bool rootExitReported = false;
                 long nextDiagnostic = 0;
+                bool waitingForOutputDrain = false;
+
                 while (true)
                 {
-                    int timeout = jobEmpty
-                        ? Timeout.Infinite
+                    int timeout = this.jobEmpty
+                        ? (waitingForOutputDrain ? 100 : Timeout.Infinite)
                         : (int)Math.Max(
                             0L,
                             nextCompletionCheck - completionClock.ElapsedMilliseconds
                         );
+
+                    if (this.terminationSucceeded)
+                    {
+                        // Wake at least every 100 ms after termination succeeds
+                        // to check the drain grace period and retry relay cancellation.
+                        timeout = timeout == Timeout.Infinite
+                            ? 100
+                            : Math.Min(timeout, 100);
+                    }
+
                     object item;
-                    events.TryTake(out item, timeout);
+                    this.events.TryTake(out item, timeout);
 
                     Exception error = item as Exception;
                     if (error != null)
@@ -1940,49 +2815,57 @@ namespace Allure.Run.Supervisor.Windows
                     Frame frame = item as Frame;
                     if (frame != null)
                     {
-                        Request(frame.Text);
+                        this.Request(frame.Text);
                     }
 
                     StopResult stopResult = item as StopResult;
                     if (stopResult != null)
                     {
-                        SendStopResult(stopResult);
+                        this.SendStopResult(stopResult);
                     }
 
-                    if (item is EmptyJob && launched)
+                    if (item is EmptyJob && this.launched)
                     {
-                        jobEmpty = true;
+                        this.jobEmpty = true;
                     }
 
                     // Windows does not guarantee JOB_OBJECT_MSG_ACTIVE_PROCESS_ZERO to be delivered:
                     //   https://learn.microsoft.com/en-us/windows/win32/api/winnt/ns-winnt-jobobject_associate_completion_port#remarks
                     // Although, in most cases it will be delivered, we cannot fully rely on it.
                     // Hence, we periodically check if all the job processes have exited.
-                    if (!jobEmpty && completionClock.ElapsedMilliseconds >= nextCompletionCheck)
+                    if (!this.jobEmpty && completionClock.ElapsedMilliseconds >= nextCompletionCheck)
                     {
-                        jobEmpty = IsJobEmpty();
+                        this.jobEmpty = this.IsJobEmpty();
                         nextCompletionCheck =
                             completionClock.ElapsedMilliseconds + CompletionCheckIntervalMs;
                     }
 
-                    if (diagnosticsEnabled && Native.WaitForSingleObject(root, 0) == Native.WAIT_OBJECT_0)
+                    if (this.diagnosticsEnabled && Native.WaitForSingleObject(this.root, 0) == Native.WAIT_OBJECT_0)
                     {
                         if (!rootExitReported)
                         {
                             uint rootExitCode;
-                            bool exitCodeAvailable = Native.GetExitCodeProcess(root, out rootExitCode);
-                            Diagnostic("root exited", new { rootPid, exitCodeAvailable, rootExitCode });
+                            bool exitCodeAvailable = Native.GetExitCodeProcess(this.root, out rootExitCode);
+                            this.Diagnostic("root exited", new { this.rootPid, exitCodeAvailable, rootExitCode });
                             rootExitReported = true;
                         }
-                        if (!jobEmpty && completionClock.ElapsedMilliseconds >= nextDiagnostic)
+                        if (!this.jobEmpty && completionClock.ElapsedMilliseconds >= nextDiagnostic)
                         {
-                            DiagnoseRemainingProcesses();
+                            this.DiagnoseRemainingProcesses();
                             nextDiagnostic = completionClock.ElapsedMilliseconds + DiagnosticIntervalMs;
                         }
                     }
 
+                    if (this.terminationSucceeded && this.ShouldAbandonOutput)
+                    {
+                        foreach (ConsoleRelay relay in this.consoleRelays)
+                        {
+                            relay.RequestCancellation();
+                        }
+                    }
+
                     // Preserve result-before-completed ordering when shutdown itself empties the job.
-                    if (jobEmpty && (!stopPending || terminationSucceeded))
+                    if (this.jobEmpty && (!this.stopPending || this.terminationSucceeded))
                     {
                         uint code;
                         // The job is already empty; this is a zero-time verification, never a root wait.
@@ -2005,6 +2888,25 @@ namespace Allure.Run.Supervisor.Windows
                             throw Win32("GetExitCodeProcess");
                         }
 
+                        bool outputsFinished = true;
+
+                        // The entire job has exited, so no target can keep a pipe writer open.
+                        // Some data might still reside in output buffers, so we need to drain them.
+                        foreach (ConsoleRelay relay in this.consoleRelays)
+                        {
+                            outputsFinished &= relay.TryFinishDraining();
+                        }
+
+                        if (!outputsFinished)
+                        {
+                            // An output relay may remain blocked in console I/O.
+                            // Keep processing control requests while waiting.
+                            waitingForOutputDrain = true;
+                            continue;
+                        }
+
+                        waitingForOutputDrain = false;
+
                         Dictionary<string, object> completed = Message("completed");
                         completed["rootExitCode"] = code;
                         completed["reason"] = terminationSucceeded
@@ -2013,9 +2915,18 @@ namespace Allure.Run.Supervisor.Windows
                                 ? "stopped"
                                 : "normal";
 
-                        Diagnostic("sending completed frame", new { rootPid, rootExitCode = code, stopPending, terminationSucceeded });
-                        Send(completed);
-                        Diagnostic("completed frame sent", new { rootPid });
+                        this.Diagnostic(
+                            "sending completed frame",
+                            new
+                            {
+                                this.rootPid,
+                                rootExitCode = code,
+                                this.stopPending,
+                                this.terminationSucceeded
+                            }
+                        );
+                        this.Send(completed);
+                        this.Diagnostic("completed frame sent", new { this.rootPid });
 
                         return 0;
                     }
@@ -2025,9 +2936,13 @@ namespace Allure.Run.Supervisor.Windows
             {
                 try
                 {
-                    if (pipe != null && pipe.IsConnected)
+                    if (this.pipe != null && this.pipe.IsConnected)
                     {
-                        Send(Error(e, null, true));
+                        this.Send(Error(e, null, true));
+                    }
+                    else
+                    {
+                        ReportCleanupError("ProcessHost", e);
                     }
                 }
                 catch
@@ -2045,11 +2960,11 @@ namespace Allure.Run.Supervisor.Windows
 
         public void Dispose()
         {
-            Diagnostic("disposing host resources", new { rootPid });
+            this.Diagnostic("disposing host resources", new { rootPid });
             try
             {
                 stopping.Cancel();
-                TerminateSendConsoleSignal();
+                this.TerminateSendConsoleSignal();
 
                 if (pipe != null)
                 {
@@ -2057,51 +2972,78 @@ namespace Allure.Run.Supervisor.Windows
                 }
 
                 // Closing the sole owning handle is the final safety net on every failure path.
+                // Windows terminates the entire job due to KILL_ON_JOB_CLOSE.
                 if (job != IntPtr.Zero)
                 {
                     Native.CloseHandle(job);
                     job = IntPtr.Zero;
                 }
 
-                if (port != IntPtr.Zero)
+                foreach (ConsoleRelay relay in consoleRelays)
                 {
-                    Native.PostQueuedCompletionStatus(port, 0, Native.StopKey, IntPtr.Zero);
+                    relay.RequestCancellation();
                 }
 
-                if (reader != null)
+                foreach (ConsoleRelay relay in consoleRelays)
                 {
-                    reader.Join(1000);
+                    relay.Dispose();
+                    this.cleanupFailed |= relay.CleanupFailed;
                 }
 
-                if (monitor != null)
+                if (this.port != IntPtr.Zero)
                 {
-                    monitor.Join(1000);
+                    Native.PostQueuedCompletionStatus(this.port, 0, Native.StopKey, IntPtr.Zero);
                 }
 
-                if (shutdown != null)
+                if (this.reader != null)
                 {
-                    shutdown.Join();
+                    this.reader.Join(1000);
                 }
 
-                if (signalDelivery != null)
+                if (this.monitor != null)
                 {
-                    signalDelivery.Dispose();
+                    this.monitor.Join(1000);
                 }
 
-                if (root != IntPtr.Zero)
+                bool shutdownFinished = this.shutdown == null
+                    || this.shutdown.Join(ShutdownCleanupTimeoutMs);
+                if (!shutdownFinished)
                 {
-                    Native.CloseHandle(root);
+                    this.cleanupFailed = true;
+                    this.ReportCleanupError(
+                        "ShutdownWorker",
+                        new Failure(
+                            "ShutdownCleanup",
+                            string.Format(
+                                "The graceful-stop worker did not exit within {0} second(s).",
+                                ShutdownCleanupTimeoutMs / 1000
+                            )
+                        )
+                    );
                 }
 
-                if (port != IntPtr.Zero)
+                // If shutdown thread is not finished, don't dispose its resources.
+                // As we're exiting, Windows will reclaim the resources itself.
+                // The background thread won't prevent that.
+                if (shutdownFinished && this.signalDelivery != null)
                 {
-                    Native.CloseHandle(port);
+                    this.signalDelivery.Dispose();
+                }
+
+                if (this.root != IntPtr.Zero)
+                {
+                    Native.CloseHandle(this.root);
+                }
+
+                if (this.port != IntPtr.Zero)
+                {
+                    Native.CloseHandle(this.port);
                 }
             }
             finally
             {
-                UnregisterConsoleCtrlHandler();
-                Diagnostic("host resource disposal complete", new { rootPid });
+                this.UnregisterConsoleCtrlHandler();
+                this.Diagnostic("host resource disposal complete", new { this.rootPid });
             }
         }
     }

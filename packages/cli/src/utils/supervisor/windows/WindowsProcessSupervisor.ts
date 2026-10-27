@@ -1,6 +1,9 @@
 import type { ChildProcess } from "node:child_process";
 import { randomUUID } from "node:crypto";
+import fs from "node:fs/promises";
 import { createServer, type Socket, type Server } from "node:net";
+import os from "node:os";
+import path from "node:path";
 import process from "node:process";
 import { setTimeout as delay } from "node:timers/promises";
 import { fileURLToPath } from "node:url";
@@ -122,9 +125,13 @@ export class WindowsProcessSupervisor extends ProcessSupervisorBase {
 
   #pendingRequests = new Map<string, PendingRequest>();
 
+  #diagnosticFilePath: string;
+
   constructor(command: string, options: SupervisedCommandOptions = {}) {
     const pipeName = `win-supervisor-${randomUUID()}`;
     const pipePath = `\\\\.\\pipe\\${pipeName}`;
+
+    const diagnosticFilePath = path.join(os.tmpdir(), `allure-process-host-diagnostics-${randomUUID()}.log`);
 
     super(processHostPath, {
       ...options,
@@ -135,17 +142,32 @@ export class WindowsProcessSupervisor extends ProcessSupervisorBase {
           options.logger?.debugEnabled && supervisorDiagnosticsEnabled()
             ? (process.env.__ALLURE_PROCESS_HOST_DIAGNOSTICS__ ?? "1")
             : "0",
+        __ALLURE_PROCESS_HOST_DIAGNOSTICS_FILE__: diagnosticFilePath,
       },
     });
+
     this.#pipePath = pipePath;
+    this.#diagnosticFilePath = diagnosticFilePath;
 
     this.monitor = {
-      wait: async () => {
+      wait: async ({ code: hostExitCode, signal: hostSignal }: ProcessCompletion) => {
+        if (hostExitCode !== 0 || hostSignal !== null) {
+          if (this.#failed) {
+            throw this.#failure;
+          }
+
+          throw await this.#buildHostFailure(hostExitCode, hostSignal);
+        }
+
         return await this.#jobCompletion;
       },
-      dispose: () => {
+      dispose: async () => {
         this.diagnostic("disposing Windows supervisor control connection");
         this.#disposeControl();
+
+        try {
+          await fs.unlink(this.#diagnosticFilePath);
+        } catch {}
 
         // Use the default Node.js SIGINT handler from now on.
         this.stopListeningForSigint();
@@ -350,6 +372,24 @@ export class WindowsProcessSupervisor extends ProcessSupervisorBase {
     } finally {
       this.#pendingRequests.delete(requestId);
       abortController.abort();
+    }
+  }
+
+  async #buildHostFailure(code: number | null, signal: NodeJS.Signals | null) {
+    const message = signal
+      ? `Windows process host was terminated by signal ${signal}.`
+      : code !== null
+        ? `Windows process host exited with code ${code}.`
+        : "Windows process host exited unexpectedly.";
+
+    try {
+      const content = (await fs.readFile(this.#diagnosticFilePath, "utf-8")).trim();
+      return new Error(
+        content ? `${message}\nHost diagnostics:\n${content}` : `${message}\nThe host diagnostic file was empty.`,
+      );
+    } catch (e) {
+      const readError = e instanceof Error ? e.message : String(e);
+      return new Error(`${message}\nFailed to read the host diagnostic file: ${readError}`);
     }
   }
 
