@@ -4,14 +4,10 @@ on:
   push:
     branches: [main]
   pull_request:
-    branches: [main]
     types:
       - opened
       - reopened
       - synchronize
-      - ready_for_review
-      - labeled
-      - unlabeled
   merge_group:
     branches: [main]
     types: [checks_requested]
@@ -154,12 +150,12 @@ jobs:
           yarn-hardened-mode: "0"
       - name: Measure report generation
         env:
-          ALLURE_PERF_METRICS: "1"
-        run: yarn allure generate --config=./.github/allurerc.perf.mjs --dump="allure-results-*/*.zip" --output=./allure-perf-report
+          ALLURE_RESULTS_DIR: ${{ github.workspace }}/allure-perf-probe-results
+        run: yarn workspace @allurereport/core test --config=vitest.perf.config.ts
       - name: Prepare report metrics
         run: |
           mkdir -p ./allure-perf-results
-          cp ./allure-perf-report/*-perf.json ./allure-perf-results/
+          cp ./allure-perf-probe-results/*-perf.json ./allure-perf-results/
       - name: Generate report
         run: yarn allure generate --config=./allurerc.mjs --dump="allure-results-*/*.zip" ./allure-perf-results --output=./allure-report
       - name: Allure Report Official
