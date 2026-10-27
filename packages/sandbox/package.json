@@ -22,14 +22,14 @@
     "@allurereport/plugin-mail": "workspace:*",
     "@allurereport/plugin-testops": "workspace:*",
     "@types/node": "^20.19.43",
-    "@vitest/runner": "4.1.12",
+    "@vitest/runner": "^4.1.12",
     "allure": "workspace:*",
     "allure-js-commons": "^3.14.0",
     "allure-vitest": "^3.14.0",
     "rimraf": "^6.1.3",
-    "vite": "npm:@voidzero-dev/vite-plus-core@1.3.0",
-    "vite-plus": "1.3.0",
-    "vitest": "5.0.5"
+    "vite": "npm:@voidzero-dev/vite-plus-core@^1.3.0",
+    "vite-plus": "^1.3.0",
+    "vitest": "^5.0.5"
   },
   "packageManager": "yarn@4.3.1"
 }

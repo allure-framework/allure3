@@ -14,11 +14,11 @@
     "report:coverage": "yarn report:merge && (vp test run --merge-reports .vitest/merged-blob || true)"
   },
   "dependencies": {
-    "@vitest/coverage-istanbul": "5.0.5",
-    "@vitest/runner": "4.1.12",
+    "@vitest/coverage-istanbul": "^5.0.5",
+    "@vitest/runner": "^4.1.12",
     "allure-vitest": "^3.14.0",
     "glob": "^13.0.6",
-    "vitest": "5.0.5"
+    "vitest": "^5.0.5"
   },
   "devDependencies": {
     "@playwright/test": "^1.62.1",
@@ -26,8 +26,8 @@
     "allure-js-commons": "^3.14.0",
     "rimraf": "^6.1.3",
     "typescript": "^5.9.3",
-    "vite": "npm:@voidzero-dev/vite-plus-core@1.3.0",
-    "vite-plus": "1.3.0"
+    "vite": "npm:@voidzero-dev/vite-plus-core@^1.3.0",
+    "vite-plus": "^1.3.0"
   },
   "peerDependencies": {
     "@playwright/test": "^1"
