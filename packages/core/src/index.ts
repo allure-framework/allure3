@@ -6,6 +6,7 @@ export * from "./utils/new.js";
 export * from "./utils/flaky.js";
 export * from "./utils/environment.js";
 export * from "./utils/resultsDir.js";
+export * from "./utils/nodeVersion.js";
 export * from "./history.js";
 export * from "./resolutions.js";
 export { resolveConfig, readConfig, readRawConfig, getPluginInstance } from "./config.js";
