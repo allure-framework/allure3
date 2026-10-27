@@ -223,12 +223,20 @@ export abstract class ProcessSupervisorBase {
       throw new Error("The process has not been started.");
     }
 
+    if (this.completed) {
+      return Promise.resolve();
+    }
+
     return (this.#stopPromise ??= this.stopOnce(Boolean(escalate), escalationTimeout));
   }
 
   terminate() {
     if (this.#process === undefined) {
       throw new Error("The process has not been started.");
+    }
+
+    if (this.completed) {
+      return Promise.resolve();
     }
 
     return (this.#terminationPromise ??= this.terminateOnce());

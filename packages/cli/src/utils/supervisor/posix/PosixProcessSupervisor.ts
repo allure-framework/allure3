@@ -117,10 +117,6 @@ export class PosixProcessSupervisor extends ProcessSupervisorBase {
   }
 
   protected override requestForcedTermination() {
-    if (this.completed) {
-      return;
-    }
-
     const pid = this.process.pid;
 
     if (pid === undefined) {
