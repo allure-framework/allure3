@@ -185,7 +185,6 @@ __metadata:
     allure-vitest: "npm:^3.14.0"
     glob: "npm:^13.0.6"
     handlebars: "npm:4.7.10"
-    jiti: "npm:^2.5.1"
     node-stream-zip: "npm:^1.15.0"
     p-limit: "npm:^7.3.0"
     rimraf: "npm:^6"
@@ -13040,15 +13039,6 @@ __metadata:
     merge-stream: "npm:^2.0.0"
     supports-color: "npm:^8.0.0"
   checksum: 10/06c6e2a84591d9ede704d5022fc13791e8876e83397c89d481b0063332abbb64c0f01ef4ca7de520b35c7a1058556078d6bdc3631376f4e9ffb42316c1a8488e
-  languageName: node
-  linkType: hard
-
-"jiti@npm:^2.5.1":
-  version: 2.6.1
-  resolution: "jiti@npm:2.6.1"
-  bin:
-    jiti: lib/jiti-cli.mjs
-  checksum: 10/8cd72c5fd03a0502564c3f46c49761090f6dadead21fa191b73535724f095ad86c2fa89ee6fe4bc3515337e8d406cc8fb2d37b73fa0c99a34584bac35cd4a4de
   languageName: node
   linkType: hard
 
