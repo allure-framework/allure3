@@ -17,7 +17,7 @@ const perlProbe =
 const perlAvailable = perlProbe?.status === 0;
 const runningInGitHubActions = Boolean(process.env.GITHUB_ACTIONS);
 
-const requirePerl = (skip: (note?: string | undefined) => void) => {
+const requirePerl = (skip: (note?: string) => void) => {
   if (perlAvailable) {
     return;
   }
@@ -156,7 +156,7 @@ describe("PosixProcessSupervisor", { skip: process.platform === "win32", timeout
           fixture.resolvePath("zombie-ready"),
           fixture.resolvePath(releasePath),
         ],
-        stdio: "ignore",
+        outputMode: "ignore",
       });
       let keeperPid: number | undefined;
 
