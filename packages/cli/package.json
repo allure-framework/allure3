@@ -24,7 +24,7 @@
     "./qualityGate": "./dist/qualityGate.js"
   },
   "scripts": {
-    "build": "run clean && tsc --project ./tsconfig.json && run compile:process-host --silent",
+    "build": "run clean && tsc --project ./tsconfig.json && run compile:process-host",
     "compile:process-host": "node ./scripts/compile-process-host.mjs",
     "clean": "rimraf ./dist",
     "start": "node ./cli.js",
