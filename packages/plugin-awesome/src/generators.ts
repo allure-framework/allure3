@@ -7,6 +7,7 @@ import {
   type EnvironmentItem,
   type HistoryTestResultUrlResolver,
   type MetricSample,
+  type MetricHierarchyNode,
   type ResolutionCategory,
   type Statistic,
   type TestEnvGroup,
@@ -926,6 +927,7 @@ export const generateAllCharts = async (
 
 export type AwesomeMetricsWidget = {
   current: MetricSample[];
+  hierarchy?: readonly MetricHierarchyNode[];
   history: {
     uuid: string;
     name: string;
@@ -939,6 +941,7 @@ export const generateMetricsWidget = async (
   writer: AwesomeDataWriter,
   store: AllureStore,
   reportUuid: string,
+  hierarchy?: readonly MetricHierarchyNode[],
 ): Promise<boolean> => {
   const current = await store.allMetrics();
 
@@ -959,6 +962,7 @@ export const generateMetricsWidget = async (
   await writer.writeWidget("metrics.json", {
     current,
     history,
+    ...(hierarchy?.length ? { hierarchy } : {}),
   } satisfies AwesomeMetricsWidget);
   return true;
 };

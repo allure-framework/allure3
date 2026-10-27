@@ -250,7 +250,7 @@ export class AwesomePlugin implements Plugin {
       }
     }
     await measure("charts", () => generateAllCharts(this.#writer!, store, this.options, context));
-    const hasMetrics = await generateMetricsWidget(this.#writer!, store, context.reportUuid);
+    const hasMetrics = await generateMetricsWidget(this.#writer!, store, context.reportUuid, context.metricHierarchy);
 
     const convertedTrs = await measure("convert", () =>
       generateTestResults(this.#writer!, store, allTrs, {
@@ -412,7 +412,11 @@ export class AwesomePlugin implements Plugin {
         runSummaryByEnv,
         reportDataFiles,
         requiredAssetFeatures: chartFeatures
-          ? [...chartFeatures, ...collectViewerAssetFeatures(convertedTrs, attachments, globals)]
+          ? [
+              ...chartFeatures,
+              ...(hasMetrics ? ["chart-metrics-timeline"] : []),
+              ...collectViewerAssetFeatures(convertedTrs, attachments, globals),
+            ]
           : undefined,
       }),
     );

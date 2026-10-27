@@ -55,7 +55,7 @@ describe("configured performance hierarchy", () => {
     await report.done();
 
     const widget = JSON.parse(await readFile(join(output, "widgets", "metrics.json"), "utf8"));
-    expect(widget).not.toHaveProperty("hierarchy");
+    expect(widget.hierarchy).toEqual(buildMetricHierarchy(config.performance));
     expect(buildMetricHierarchy(config.performance)).toEqual([
       { key: "run", children: [{ key: "read", children: [{ key: "parse", children: [] }] }] },
     ]);

@@ -24,6 +24,62 @@ const showMetrics = (value: number, unit?: string, history: MetricsWidgetData["h
 };
 
 describe("components > ReportMetrics", () => {
+  it("shows an empty timeline without a root or zoom controls when no measurements exist", async () => {
+    metricsStore.value = { loading: false, data: { current: [], history: [] } };
+    render(<ReportMetrics />);
+    fireEvent.click(screen.getByRole("button", { name: "metrics.timelineView" }));
+    expect(await screen.findByText("metrics.noIntervals")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "metrics.resetZoom" })).not.toBeInTheDocument();
+    expect(screen.queryByTestId("metric-interval")).not.toBeInTheDocument();
+  });
+
+  it("explains an empty timeline when recorded intervals are invalid", async () => {
+    metricsStore.value = {
+      loading: false,
+      data: { current: [{ id: "invalid", key: "invalid", value: 1, start: 2, stop: 1 }], history: [] },
+    };
+    render(<ReportMetrics />);
+    fireEvent.click(screen.getByRole("button", { name: "metrics.timelineView" }));
+    expect(await screen.findByText("metrics.noIntervals")).toBeInTheDocument();
+    expect(screen.getByText("metrics.invalidIntervals")).toBeInTheDocument();
+    expect(screen.queryByTestId("metric-interval")).not.toBeInTheDocument();
+  });
+
+  it("opens the timeline on demand and preserves scope selection and expanded table history across tabs", async () => {
+    metricsStore.value = {
+      loading: false,
+      data: {
+        current: [
+          { id: "run", key: "run", title: "Run", value: 100, start: 0, stop: 100, better: "lower" },
+          { id: "child", key: "child", title: "Child", value: 80, start: 20, stop: 100, better: "lower" },
+          { id: "other", key: "other", title: "Other root", value: 1, start: 0, stop: 1 },
+        ],
+        history: [{ uuid: "before", name: "Before", timestamp: 1, metrics: { run: 120, child: 100 } }],
+        hierarchy: [
+          { key: "run", children: [{ key: "missing", children: [{ key: "child", children: [] }] }] },
+          { key: "other", children: [] },
+        ],
+      },
+    };
+    render(<ReportMetrics />);
+    expect(screen.queryByTestId("metrics-timeline")).not.toBeInTheDocument();
+    fireEvent.click(
+      within(screen.getByRole("region", { name: "metrics.phaseSummary" })).getByRole("button", { name: "Run" }),
+    );
+    fireEvent.click(screen.getByRole("button", { name: "metrics.timelineView" }));
+    const timeline = await screen.findByTestId("metrics-timeline");
+    fireEvent.click(within(timeline).getByRole("button", { name: "Other root" }));
+    fireEvent.click(screen.getByRole("button", { name: "Run run", exact: true }));
+    expect(within(timeline).queryByText("metrics.noMeasurement")).not.toBeInTheDocument();
+    expect(within(timeline).getAllByTestId("metric-interval")).toHaveLength(2);
+    fireEvent.click(screen.getByRole("button", { name: "metrics.tableView" }));
+    expect(screen.getByRole("region", { name: "metrics.historyTitle Run" })).toBeVisible();
+    fireEvent.click(screen.getByRole("button", { name: "metrics.timelineView" }));
+    expect(
+      within(await screen.findByTestId("metrics-timeline")).getByRole("button", { name: "Run", exact: true }),
+    ).toBeInTheDocument();
+  });
+
   it("formats byte values and signed deltas throughout summary, history and current values", () => {
     const data = showMetrics(911140972, "bytes", [
       { uuid: "older", name: "Older", timestamp: 1, metrics: { size: 929439110 } },
