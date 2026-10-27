@@ -7,8 +7,8 @@ import { epic, feature, label, story } from "allure-js-commons";
 import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 import { PosixProcessSupervisor } from "../../../src/utils/supervisor/index.js";
-import { nodeScripts, perlScripts } from "./posix.scripts.js";
 import { SupervisorFixture, expectProcesses } from "./supervisor.helpers.js";
+import { nodeScripts, perlScripts } from "./supervisor.scripts.js";
 
 const perlProbe =
   process.platform === "win32"
