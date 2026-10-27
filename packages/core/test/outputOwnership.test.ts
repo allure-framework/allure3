@@ -334,3 +334,14 @@ it("honors a lock held by another Node process", async () => {
     child.kill();
   }
 });
+
+it.each([".allure-output.lock", ".ALLURE-OUTPUT.LOCK", ".allure-output.lock.", "nested/.allure-output.lock . "])(
+  "rejects reserved lock aliases before writing (%s)",
+  async (name) => {
+    const { writer, ownership } = createWriter();
+    ownership.begin();
+    await expect(writer.addFile(name, Buffer.from("plugin"))).rejects.toThrow("Reserved report output lock path");
+    await ownership.stop();
+    await expect(readFile(inventoryPath())).rejects.toThrow();
+  },
+);

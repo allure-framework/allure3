@@ -77,7 +77,7 @@ export class StepResultFixture extends PageObject {
 
   async toggleSubtree() {
     await this.locator.getByTestId("test-result-step-header").first().hover();
-    await this.locator.getByTestId("test-result-step-subtree-toggle").first().click({ force: true });
+    await this.locator.getByTestId("test-result-step-subtree-toggle").first().click();
   }
 
   /**

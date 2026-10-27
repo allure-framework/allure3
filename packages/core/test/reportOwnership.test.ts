@@ -1,5 +1,6 @@
 import console from "node:console";
 import { mkdir, mkdtemp, readFile, readdir, rm, writeFile } from "node:fs/promises";
+import * as fs from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
@@ -13,6 +14,11 @@ import { afterEach, beforeEach, expect, it, vi } from "vite-plus/test";
 import { resolveConfig } from "../src/config.js";
 import { FileSystemReportFiles, InMemoryReportFiles } from "../src/plugin.js";
 import { AllureReport } from "../src/report.js";
+
+vi.mock("node:fs/promises", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("node:fs/promises")>();
+  return { ...actual, rename: vi.fn(actual.rename) };
+});
 
 let output: string;
 const inventory = async () => JSON.parse(await readFile(join(output, ".allure-output.json"), "utf8"));
@@ -33,6 +39,7 @@ beforeEach(async () => {
   output = await mkdtemp(join(tmpdir(), "allure-report-ownership-"));
 });
 afterEach(async () => {
+  vi.mocked(fs.rename).mockReset();
   vi.restoreAllMocks();
   await rm(output, { recursive: true, force: true });
 });
@@ -145,9 +152,18 @@ it("preserves prior metadata if flattening fails", async () => {
   await writeFile(join(output, "chunks"), "user file");
   const config = await resolveConfig({ output, appendHistory: false });
   config.plugins = [plugin("awesome", writeReport)];
+  const actual = await vi.importActual<typeof import("node:fs/promises")>("node:fs/promises");
+  const source = join(output, "awesome", "chunks");
+  const target = join(output, "chunks");
+  // Inject the failure at the flattening boundary; rename collision behavior varies by OS.
+  vi.mocked(fs.rename).mockImplementation(async (from, to) => {
+    if (from === source && to === target) throw new Error("flattening failed");
+    return actual.rename(from, to);
+  });
   const report = new AllureReport(config);
   await report.start();
-  await expect(report.done()).rejects.toThrow();
+  await expect(report.done()).rejects.toThrow("flattening failed");
+  expect(fs.rename).toHaveBeenCalledWith(source, target);
   expect(await readFile(join(output, ".allure-output.json"), "utf8")).toBe(previous);
   expect(await readFile(join(output, "chunks"), "utf8")).toBe("user file");
 });

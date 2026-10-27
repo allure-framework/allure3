@@ -15,6 +15,12 @@ export const outputOwnership = new WeakMap<ReportFiles, OutputOwnership>();
 const ownershipFile = ".allure-output.json";
 const lockFile = ".allure-output.lock";
 const reservedFiles = new Set([ownershipFile, lockFile]);
+// Windows ignores trailing ASCII spaces and dots in path components.
+const canonicalWindowsName = (value: string): string => {
+  let end = value.length;
+  while (end > 0 && (value[end - 1] === "." || value[end - 1] === " ")) end--;
+  return value.slice(0, end).toLowerCase();
+};
 type OwnedFile = { path: string; pluginId?: string };
 type Inventory = { version: 1; files: OwnedFile[]; layout: Record<string, string> };
 const isRecord = (value: unknown): value is Record<string, unknown> =>
@@ -32,7 +38,7 @@ const isRelativePath = (value: unknown): value is string =>
   value !== ".." &&
   !value.startsWith("../") &&
   // Reserve internal filenames even under a plugin directory, including Windows aliases.
-  !value.split("/").some((part) => reservedFiles.has(part.replace(/[. ]+$/, "").toLowerCase()));
+  !value.split("/").some((part) => reservedFiles.has(canonicalWindowsName(part)));
 
 const parseInventory = (content: string): Inventory => {
   const value: unknown = JSON.parse(content);
@@ -192,7 +198,7 @@ export class OutputOwnership {
     if (!this.#enabled) return;
     await this.acquire();
     const normalized = this.#relativePath(path);
-    if (normalized.split("/").some((part) => part.replace(/[. ]+$/, "").toLowerCase() === lockFile)) {
+    if (normalized.split("/").some((part) => canonicalWindowsName(part) === lockFile)) {
       throw new Error(`Reserved report output lock path: ${path}`);
     }
     // Preserve legacy plugin filenames; an inventory cannot represent reserved or noncanonical paths.

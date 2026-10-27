@@ -277,6 +277,7 @@ test.describe("Dashboards", () => {
       mode: REPORT_MODES.DIRECTORY,
     });
 
+    await expect(exactWidgetTitle(page, uiDemo.widgets.executors)).toBeVisible();
     const initialColumns = await readWidgetColumns(page);
     expect(initialColumns[0]).not.toContain(uiDemo.widgets.executors);
 
@@ -301,8 +302,7 @@ test.describe("Dashboards", () => {
 
     await page.reload();
     await expect(page.locator(".side-nav__menu")).toBeVisible();
-    const persistedColumns = await readWidgetColumns(page);
-    expect(persistedColumns[0]).toContain(uiDemo.widgets.executors);
+    await expect.poll(async () => (await readWidgetColumns(page))[0]).toContain(uiDemo.widgets.executors);
   });
 
   test("directory mode keeps chart tooltips and resize behavior after graph route changes", async ({ page }) => {
