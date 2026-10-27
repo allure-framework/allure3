@@ -181,7 +181,7 @@ export abstract class ProcessSupervisorBase {
       try {
         if (spawned) {
           this.diagnostic("waiting for process group completion");
-          const jobCompletion = await monitor.wait();
+          const jobCompletion = await monitor.wait({ code, signal });
           this.diagnostic("process group completed");
           if (jobCompletion) {
             code = jobCompletion.code;
@@ -193,7 +193,7 @@ export abstract class ProcessSupervisorBase {
       }
 
       try {
-        monitor.dispose?.();
+        await monitor.dispose?.();
       } catch (e) {
         errors.push(e);
       }

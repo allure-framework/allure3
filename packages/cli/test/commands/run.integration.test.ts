@@ -1722,10 +1722,101 @@ console.log(\`selected selectors: \${Array.from(selectors).join(",")}\`);
     });
   }, 60_000);
 
-  it.skipIf(platform !== "win32")(
-    "preserves console stdout and stderr with --ignore-logs",
-    async () => {
-      const fixtureDir = join(tempDir, "ignore-logs-console");
+  it.each(["pipe", "file"])(
+    "preserves redirected output with --ignore-logs (%s)",
+    async (destination) => {
+      const fixtureDir = join(tempDir, `ignore-logs-${destination}`);
+      await mkdir(fixtureDir, { recursive: true });
+      const configPath = join(fixtureDir, "allurerc.mjs");
+      const targetPath = join(fixtureDir, "target.mjs");
+      const wrapperPath = join(fixtureDir, "redirect.mjs");
+      await writeFile(configPath, "export default { plugins: {} };\n");
+      await writeFile(
+        targetPath,
+        `
+          import { readFileSync, fstatSync } from "node:fs";
+          console.log(readFileSync(0, "utf8"));
+          console.log("stdout-is-file:" + fstatSync(1).isFile());
+          console.log("target-stdout-marker");
+          console.error("target-stderr-marker");
+        `,
+      );
+      const args = [
+        cliPath,
+        "run",
+        "--config",
+        configPath,
+        "--cwd",
+        fixtureDir,
+        "--ignore-logs",
+        "--",
+        process.execPath,
+        targetPath,
+      ];
+      await writeFile(
+        wrapperPath,
+        `
+          import { spawnSync } from "node:child_process";
+          import { openSync, closeSync, readFileSync } from "node:fs";
+          delete process.env.ALLURE_CLI_ACTIVE_COMMAND;
+          const file = ${JSON.stringify(join(fixtureDir, "stdout.log"))};
+          const descriptor = ${JSON.stringify(destination)} === "file" ? openSync(file, "w") : null;
+          const result = spawnSync(process.execPath, ${JSON.stringify(args)}, {
+            stdio: ["pipe", descriptor ?? "pipe", "pipe"], input: "redirected-stdin-marker", encoding: "utf8", timeout: 30000,
+          });
+          if (descriptor !== null) closeSync(descriptor);
+          if (result.error) throw result.error;
+          console.log(JSON.stringify({ exitCode: result.status,
+            stdout: descriptor === null ? result.stdout : readFileSync(file, "utf8"), stderr: result.stderr }));
+        `,
+      );
+
+      const result = await runCommand(process.execPath, [wrapperPath], { timeout: 40_000 });
+
+      const output = JSON.parse(result.stdout);
+      await attachCommandOutput(`${destination} output`, output);
+
+      await step("Verify redirected streams remain usable and separate", async () => {
+        expect(output.exitCode).toBe(0);
+        expect(output.stdout).toContain("target-stdout-marker");
+        expect(output.stdout).toContain("redirected-stdin-marker");
+        expect(output.stdout).toContain(`stdout-is-file:${destination === "file"}`);
+        expect(output.stderr).toContain("target-stderr-marker");
+        expect(output.stdout).not.toContain("target-stderr-marker");
+        expect(output.stderr).not.toContain("target-stdout-marker");
+      });
+    },
+    60_000,
+  );
+
+  it.skipIf(platform !== "win32").each([
+    { scenario: "idle stdin", input: "", source: "", expected: "" },
+    { scenario: "write-only output", input: "", source: "", expected: "" },
+    {
+      scenario: "console input",
+      input: "console-input",
+      source:
+        'process.stdin.setEncoding("utf8"); await new Promise(resolve => process.stdin.once("data", value => { console.log(value.trim()); process.stdin.destroy(); resolve(); }));',
+      expected: "console-input",
+    },
+    {
+      scenario: "split UTF-8",
+      input: "",
+      source:
+        'const bytes = Buffer.from("héllo 世界"); process.stdout.write(bytes.subarray(0, 2)); await new Promise(resolve => setTimeout(resolve, 30)); process.stdout.write(bytes.subarray(2)); console.log();',
+      expected: "héllo 世界",
+    },
+    {
+      scenario: "large output",
+      input: "",
+      source:
+        'await Promise.all([process.stdout, process.stderr].map(stream => new Promise(resolve => stream.write("X".repeat(131072) + "\\n", resolve))));',
+      expected: "",
+    },
+  ])(
+    "preserves console stdout and stderr with --ignore-logs ($scenario)",
+    async ({ scenario, input, source, expected }) => {
+      const fixtureDir = join(tempDir, `ignore-logs-console-${scenario.replaceAll(" ", "-")}`);
       await mkdir(fixtureDir, { recursive: true });
 
       const configPath = join(fixtureDir, "allurerc.mjs");
@@ -1737,7 +1828,20 @@ console.log(\`selected selectors: \${Array.from(selectors).join(",")}\`);
       await writeFile(configPath, "export default { plugins: {} };\n");
 
       // target.mjs: the final target script that writes to stdout and stderr
-      await writeFile(targetPath, 'console.log("target-stdout-marker"); console.error("target-stderr-marker");\n');
+      //             if stdin is tested, create a marker file to indicate readiness for input.
+      const targetContentPrefix = input
+        ? `
+            import { writeFileSync } from "node:fs";
+            writeFileSync(${JSON.stringify(scriptPath + ".stdin-ready")}, "");
+          `
+        : "";
+      const targetContent = `
+        ${targetContentPrefix}
+        ${source}
+        console.log("target-stdout-marker");
+        console.error("target-stderr-marker");
+      `;
+      await writeFile(targetPath, targetContent);
 
       const args = [
         cliPath,
@@ -1752,8 +1856,10 @@ console.log(\`selected selectors: \${Array.from(selectors).join(",")}\`);
         targetPath,
       ];
 
-      // run.mjs: prints to stdout and stderr proving that the console output is captured correctly
-      //          and delegates to allure.
+      // run.mjs: allows separating fixture/handle inheritance failures
+      //  1. Removes ALLURE_CLI_ACTIVE_COMMAND to test the supervisor, not the nested Allure shortcut.
+      //  2. Prints to stdout and stderr proving that the fixture has working handles and handle inheritance is correct.
+      //  3. Delegates to allure bypassing complex Windows argument quoting rules.
       await writeFile(
         scriptPath,
         `
@@ -1782,25 +1888,45 @@ console.log(\`selected selectors: \${Array.from(selectors).join(",")}\`);
             process.execPath,
             scriptPath,
             outputPath,
+            input,
+            scenario === "write-only output" ? "write-only" : "read-write",
           ],
           { timeout: 40_000, windowsHide: true },
         );
       });
 
+      // Read the output removing the BOM if present.
       const output = JSON.parse((await readFile(outputPath, "utf8")).replace(/^\uFEFF/, ""));
       await attachCommandOutput("console buffers", output);
 
+      await step("Verify console handle access matches the scenario", async () => {
+        const expectedError = scenario === "write-only output" ? 5 : 0;
+        expect(output.stdoutModeError).toBe(expectedError);
+        expect(output.stderrModeError).toBe(expectedError);
+      });
+
       await step("Verify the fixture has working console stdout and stderr", async () => {
+        // Failing would mean something is wrong with the PowerShell fixture or console handle inheritance.
         expect(output.stdout).toContain("fixture-stdout-ready");
         expect(output.stderr).toContain("fixture-stderr-ready");
       });
 
       await step("Verify target output reaches the matching console stream", async () => {
         expect(output.exitCode).toBe(0);
+
+        // Verify the output produced by the target script reaches the correct console streams
         expect.soft(output.stdout).toContain("target-stdout-marker");
         expect.soft(output.stderr).toContain("target-stderr-marker");
         expect(output.stdout).not.toContain("target-stderr-marker");
         expect(output.stderr).not.toContain("target-stdout-marker");
+
+        if (expected) {
+          expect(output.stdout).toContain(expected);
+        }
+        if (scenario === "large output") {
+          expect(output.stdout.match(/X/g)?.length).toBeGreaterThanOrEqual(131072);
+          expect(output.stderr.match(/X/g)?.length).toBeGreaterThanOrEqual(131072);
+        }
       });
     },
     60_000,
