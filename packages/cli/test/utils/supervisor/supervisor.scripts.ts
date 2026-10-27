@@ -84,9 +84,22 @@ export const nodeScripts = {
     });
 
     if (level < 2) {
-      spawn(process.execPath, [fileURLToPath(import.meta.url), String(level + 1), readyDirectory, sigintMode], {
+      const args = [fileURLToPath(import.meta.url), String(level + 1), readyDirectory, sigintMode];
+      // libuv's Windows job kills direct children when the parent exits. Spawn
+      // through cmd.exe so Node descendants escape that job, but retain the
+      // shared console and the supervisor's enclosing job. This makes tree
+      // cleanup depend on the supervisor rather than libuv's parent cleanup.
+      const shell = process.platform === "win32";
+      const quote = (value) => '"' + value + '"';
+      const command = shell ? [process.execPath, ...args].map(quote).join(" ") : process.execPath;
+      const child = spawn(command, shell ? [] : args, {
         stdio: "ignore",
+        shell,
       });
+      child.on("error", (error) => { throw error; });
+      if (shell) {
+        await writeFile(join(readyDirectory, \`level-\${level + 1}.shell.pid\`), String(child.pid), "utf-8");
+      }
 
       while (true) {
         try {

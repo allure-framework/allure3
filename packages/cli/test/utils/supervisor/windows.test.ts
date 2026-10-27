@@ -11,8 +11,8 @@ import { beforeEach, describe, expect, it, onTestFinished, vi } from "vite-plus/
 import type { SupervisedCommandOptions } from "../../../dist/utils/supervisor/model.js";
 import { ProcessSupervisorBase } from "../../../dist/utils/supervisor/ProcessSupervisorBase.js";
 import { WindowsProcessSupervisor } from "../../../dist/utils/supervisor/windows/WindowsProcessSupervisor.js";
-import { nodeScripts } from "./posix.scripts.js";
 import { SupervisorFixture, expectProcesses } from "./supervisor.helpers.js";
+import { nodeScripts } from "./supervisor.scripts.js";
 
 const createTempDir = async () => {
   return await mkdtemp(join(tmpdir(), "win-supervisor-test-"));
@@ -821,12 +821,13 @@ describe("WindowsProcessSupervisor", { skip: process.platform !== "win32", timeo
     await start(supervisor);
 
     const processIds = await Promise.all([0, 1, 2].map((level) => fixture.readProcessId(`level-${level}.pid`)));
+    const shellPids = await Promise.all([1, 2].map((level) => fixture.readProcessId(`level-${level}.shell.pid`)));
     const hostPid = supervisor.process.pid!;
 
     await step("Verify all three processes are ready to receive SIGINT", async () => {
       expect(processIds[0]).toBe(supervisor.startupInfo.pid);
-      expect(new Set([...processIds, hostPid]).size).toBe(4);
-      expectProcesses([...processIds, hostPid]).toBeAlive();
+      expect(new Set([...processIds, ...shellPids, hostPid]).size).toBe(6);
+      expectProcesses([...processIds, ...shellPids, hostPid]).toBeAlive();
       expect(supervisor.completed).toBe(false);
     });
 
@@ -842,8 +843,8 @@ describe("WindowsProcessSupervisor", { skip: process.platform !== "win32", timeo
       expect(signal).toBeNull();
       expect(stdout).toBe("");
       expect(stderr).toBe("");
-      await Promise.all([...processIds, hostPid].map(waitProcessGone));
-      expectProcesses([...processIds, hostPid]).toBeDead();
+      await Promise.all([...processIds, ...shellPids, hostPid].map(waitProcessGone));
+      expectProcesses([...processIds, ...shellPids, hostPid]).toBeDead();
       expect(supervisor.process.exitCode).toBe(0);
       expect(supervisor.process.signalCode).toBeNull();
     });
@@ -870,12 +871,13 @@ describe("WindowsProcessSupervisor", { skip: process.platform !== "win32", timeo
     await start(supervisor);
 
     const processIds = await Promise.all([0, 1, 2].map((level) => fixture.readProcessId(`level-${level}.pid`)));
+    const shellPids = await Promise.all([1, 2].map((level) => fixture.readProcessId(`level-${level}.shell.pid`)));
     const hostPid = supervisor.process.pid!;
 
     await step("Verify all three processes are ready before requesting graceful stop", async () => {
       expect(processIds[0]).toBe(supervisor.startupInfo.pid);
-      expect(new Set([...processIds, hostPid]).size).toBe(4);
-      expectProcesses([...processIds, hostPid]).toBeAlive();
+      expect(new Set([...processIds, ...shellPids, hostPid]).size).toBe(6);
+      expectProcesses([...processIds, ...shellPids, hostPid]).toBeAlive();
       expect(supervisor.completed).toBe(false);
     });
 
@@ -890,8 +892,8 @@ describe("WindowsProcessSupervisor", { skip: process.platform !== "win32", timeo
       expect(signal).toBeNull();
       expect(stdout).toBe("");
       expect(stderr).toBe("");
-      await Promise.all([...processIds, hostPid].map(waitProcessGone));
-      expectProcesses([...processIds, hostPid]).toBeDead();
+      await Promise.all([...processIds, ...shellPids, hostPid].map(waitProcessGone));
+      expectProcesses([...processIds, ...shellPids, hostPid]).toBeDead();
       expect(supervisor.process.exitCode).toBe(0);
       expect(supervisor.process.signalCode).toBeNull();
     });
@@ -918,12 +920,13 @@ describe("WindowsProcessSupervisor", { skip: process.platform !== "win32", timeo
     await start(supervisor);
 
     const processIds = await Promise.all([0, 1, 2].map((level) => fixture.readProcessId(`level-${level}.pid`)));
+    const shellPids = await Promise.all([1, 2].map((level) => fixture.readProcessId(`level-${level}.shell.pid`)));
     const hostPid = supervisor.process.pid!;
 
     await step("Verify root, child, and grandchild are ready and alive", async () => {
       expect(processIds[0]).toBe(supervisor.startupInfo.pid);
-      expect(new Set([...processIds, hostPid]).size).toBe(4);
-      expectProcesses([...processIds, hostPid]).toBeAlive();
+      expect(new Set([...processIds, ...shellPids, hostPid]).size).toBe(6);
+      expectProcesses([...processIds, ...shellPids, hostPid]).toBeAlive();
       expect(supervisor.completed).toBe(false);
       await attachment(
         "Process tree before termination",
@@ -939,8 +942,8 @@ describe("WindowsProcessSupervisor", { skip: process.platform !== "win32", timeo
       expect(signal).toBeNull();
       expect(stdout).toBe("");
       expect(stderr).toBe("");
-      await Promise.all([...processIds, hostPid].map(waitProcessGone));
-      expectProcesses([...processIds, hostPid]).toBeDead();
+      await Promise.all([...processIds, ...shellPids, hostPid].map(waitProcessGone));
+      expectProcesses([...processIds, ...shellPids, hostPid]).toBeDead();
       expect(supervisor.process.exitCode).toBe(0);
       expect(supervisor.process.signalCode).toBeNull();
     });
