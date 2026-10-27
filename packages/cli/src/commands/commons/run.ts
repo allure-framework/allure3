@@ -588,7 +588,10 @@ export const executeAllureRun = async (params: {
 
     globalExitCode.original = testProcessResult?.code ?? -1;
 
-    if (withQualityGate) {
+    if (testProcessResult?.interrupted) {
+      const { code } = testProcessResult;
+      globalExitCode.actual = code !== null && code !== 0 ? code : 1;
+    } else if (withQualityGate) {
       globalExitCode.actual = filterFailedQualityGateResults(qualityGateResults).length > 0 ? 1 : 0;
     }
   } catch (error) {

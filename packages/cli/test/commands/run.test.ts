@@ -21,6 +21,7 @@ const {
   supervisorStartMock,
   supervisorStopMock,
   supervisorExitCodeMock,
+  supervisorInterruptedMock,
   supervisorStdoutMock,
   supervisorStderrMock,
 } = vi.hoisted(() => {
@@ -43,6 +44,7 @@ const {
     supervisorStartMock: vi.fn(),
     supervisorStopMock: vi.fn().mockResolvedValue(undefined),
     supervisorExitCodeMock: vi.fn(),
+    supervisorInterruptedMock: vi.fn(),
     supervisorStdoutMock: vi.fn(),
     supervisorStderrMock: vi.fn(),
   };
@@ -137,6 +139,10 @@ vi.mock("../../src/utils/supervisor/index.js", async (importOriginal) => ({
       return supervisorExitCodeMock();
     }
 
+    get interrupted(): "stopped" | "terminated" | undefined {
+      return supervisorInterruptedMock();
+    }
+
     get stdout(): Promise<string> {
       return supervisorStdoutMock();
     }
@@ -169,6 +175,7 @@ beforeEach(async () => {
   supervisorStartMock.mockReset().mockResolvedValue(undefined);
   supervisorStopMock.mockReset().mockResolvedValue(undefined);
   supervisorExitCodeMock.mockReset().mockResolvedValue(0);
+  supervisorInterruptedMock.mockReset().mockReturnValue(undefined);
   supervisorStdoutMock.mockReset().mockResolvedValue("");
   supervisorStderrMock.mockReset().mockResolvedValue("");
   delete process.env[ALLURE_CLI_ACTIVE_COMMAND_ENV];
@@ -1167,6 +1174,65 @@ describe("run command", () => {
     );
     expect(console.info).not.toHaveBeenCalledWith(expect.stringMatching(/\bAttempt \d/u));
   });
+
+  it.each(
+    ["stopped", "terminated"].flatMap((interrupted) =>
+      [20, 0, null].flatMap((code) =>
+        [
+          { withQualityGate: true, muted: false },
+          { withQualityGate: false, muted: true },
+          { withQualityGate: true, muted: true },
+        ].map((scenario) => ({ interrupted, code, ...scenario })),
+      ),
+    ),
+  )(
+    "should prioritize interruption over quality gate ($interrupted, code=$code, qualityGate=$withQualityGate, muted=$muted)",
+    async ({ interrupted, code, withQualityGate, muted }) => {
+      const { AllureReportMock } = await import("../utils.js");
+      const passingRule = {
+        success: true,
+        expected: 0,
+        actual: 0,
+        rule: "maxFailures",
+        message: "No blocking failures",
+        testResults: [],
+      };
+
+      (readConfig as Mock).mockResolvedValueOnce({
+        output: "./allure-report",
+        open: false,
+        plugins: [],
+        ...(withQualityGate ? { qualityGate: { rules: [{ maxFailures: 0 }] } } : {}),
+      });
+      supervisorExitCodeMock.mockResolvedValueOnce(code);
+      supervisorInterruptedMock.mockReturnValue(interrupted);
+      AllureReportMock.prototype.validate.mockResolvedValue({ results: [passingRule] });
+      if (muted) {
+        AllureReportMock.prototype.store.failedTestResults.mockResolvedValue([
+          { fullName: "muted failure", status: "failed", resolution: "muted" },
+        ]);
+      }
+
+      const exitCode = await run(RunCommand, ["run", "--", "npm", "test"]);
+      const expectedCode = code === 20 ? 20 : 1;
+
+      expect(exitCode).toBe(expectedCode);
+      expect(AllureReportMock.prototype.realtimeDispatcher.sendGlobalExitCode).toHaveBeenCalledWith({
+        original: code ?? -1,
+        actual: expectedCode,
+      });
+      expect(AllureReportMock.prototype.realtimeDispatcher.sendGlobalError).toHaveBeenCalledWith({
+        environment: undefined,
+        message: expect.stringContaining(interrupted === "stopped" ? "interrupted" : "forcibly terminated"),
+      });
+      if (withQualityGate) {
+        expect(AllureReportMock.prototype.realtimeDispatcher.sendQualityGateResults).toHaveBeenCalledWith([
+          passingRule,
+        ]);
+      }
+      expect(AllureReportMock.prototype.done).toHaveBeenCalled();
+    },
+  );
 
   it("should preserve raw child exit code when only muted failures remain", async () => {
     (readConfig as Mock).mockResolvedValueOnce({
