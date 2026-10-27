@@ -47,7 +47,7 @@
   "devDependencies": {
     "@allurereport/common-config": "workspace:*",
     "@allurereport/core-api": "workspace:*",
-    "@playwright/test": "catalog:",
+    "@playwright/test": "^1.62.1",
     "@types/d3-array": "^3.2.2",
     "@types/d3-axis": "^3.0.6",
     "@types/d3-brush": "^3.0.6",
@@ -73,7 +73,7 @@
     "d3-scale-chromatic": "^3.1.0",
     "d3-selection": "^3.0.0",
     "d3-shape": "^3.2.0",
-    "filesize": "^10.1.1",
+    "filesize": "^10.1.6",
     "highlight.js": "^11.11.1",
     "i18next": "^26.0.5",
     "normalize-css": "^2.3.1",
@@ -81,11 +81,11 @@
     "postcss": "^8.5.25",
     "rimraf": "^6.1.3",
     "sass": "^1.99.0",
-    "split.js": "^1.6.4",
+    "split.js": "^1.6.5",
     "tsx": "^4.21.0",
     "typescript": "^6.0.2",
-    "vite": "catalog:",
-    "vite-plus": "catalog:"
+    "vite": "npm:@voidzero-dev/vite-plus-core@^1.3.0",
+    "vite-plus": "^1.3.0"
   },
   "browserslist": [
     "defaults"
