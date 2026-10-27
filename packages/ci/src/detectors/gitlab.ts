@@ -1,15 +1,83 @@
 import { type CiDescriptor, CiType, GitProvider } from "@allurereport/core-api";
 
+import { buildPullRequestUrlForProvider } from "../helpers/gitProvider.js";
 import { getEnv } from "../utils.js";
 
 const GITLAB_DEFAULT_SERVER_URL = "https://gitlab.com";
 
 const stripTrailingSlashes = (value: string): string => value.replace(/\/+$/, "");
 
+/** Matches GitLab's CI_*_SLUG rules: lowercase, non [0-9a-z] -> `-`, trim hyphens, max 63 bytes. */
+const slugifyGitlabSegment = (value: string): string => {
+  const slug = value
+    .toLowerCase()
+    .replace(/[^0-9a-z]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+
+  if (slug.length <= 63) {
+    return slug;
+  }
+
+  return slug.slice(0, 63).replace(/-+$/g, "");
+};
+
 const getMergeRequestProjectUrl = (): string => getEnv("CI_MERGE_REQUEST_PROJECT_URL") || getEnv("CI_PROJECT_URL");
 
 const getSourceRef = (): string | undefined =>
   getEnv("CI_MERGE_REQUEST_SOURCE_BRANCH_NAME") || getEnv("CI_COMMIT_REF_NAME") || undefined;
+
+/**
+ * Parses `CI_OPEN_MERGE_REQUESTS` (`path!iid[,path!iid...]`, up to 4).
+ * Prefers an entry matching `CI_PROJECT_PATH`, otherwise the first entry.
+ */
+const parseOpenMergeRequestIid = (): string => {
+  const openMergeRequests = getEnv("CI_OPEN_MERGE_REQUESTS");
+
+  if (!openMergeRequests) {
+    return "";
+  }
+
+  const projectPath = getEnv("CI_PROJECT_PATH");
+  const entries = openMergeRequests
+    .split(",")
+    .map((entry) => entry.trim())
+    .filter(Boolean)
+    .map((entry) => {
+      const separatorIndex = entry.lastIndexOf("!");
+
+      if (separatorIndex <= 0 || separatorIndex === entry.length - 1) {
+        return undefined;
+      }
+
+      return {
+        path: entry.slice(0, separatorIndex),
+        iid: entry.slice(separatorIndex + 1),
+      };
+    })
+    .filter((entry): entry is { path: string; iid: string } => Boolean(entry?.iid));
+
+  if (entries.length === 0) {
+    return "";
+  }
+
+  const matching = projectPath ? entries.find((entry) => entry.path === projectPath) : undefined;
+
+  return (matching ?? entries[0]).iid;
+};
+
+const getMergeRequestIid = (): string => getEnv("CI_MERGE_REQUEST_IID") || parseOpenMergeRequestIid();
+
+const getProjectRootNamespaceSlug = (): string => {
+  const slug = getEnv("CI_PROJECT_ROOT_NAMESPACE_SLUG");
+
+  if (slug) {
+    return slug;
+  }
+
+  const rootNamespace = getEnv("CI_PROJECT_ROOT_NAMESPACE");
+
+  return rootNamespace ? slugifyGitlabSegment(rootNamespace) : "";
+};
 
 const getServerUrl = (): string => stripTrailingSlashes(getEnv("CI_SERVER_URL") || GITLAB_DEFAULT_SERVER_URL);
 
@@ -94,7 +162,7 @@ export const gitlab: GitlabCiDescriptor = {
   },
 
   get pullRequestUrl(): string {
-    const mergeRequestIID = getEnv("CI_MERGE_REQUEST_IID");
+    const mergeRequestIID = getMergeRequestIid();
 
     if (!mergeRequestIID) {
       return "";
@@ -102,11 +170,19 @@ export const gitlab: GitlabCiDescriptor = {
 
     const projectUrl = stripTrailingSlashes(getMergeRequestProjectUrl());
 
-    return projectUrl ? `${projectUrl}/-/merge_requests/${mergeRequestIID}` : "";
+    return projectUrl ? buildPullRequestUrlForProvider(GitProvider.Gitlab, projectUrl, mergeRequestIID) : "";
   },
 
   get pullRequestName(): string {
-    return getEnv("CI_MERGE_REQUEST_TITLE");
+    const title = getEnv("CI_MERGE_REQUEST_TITLE");
+
+    if (title) {
+      return title;
+    }
+
+    const mergeRequestIid = getMergeRequestIid();
+
+    return mergeRequestIid ? `Merge request !${mergeRequestIid}` : "";
   },
 
   get commitSha() {
@@ -137,13 +213,13 @@ export const gitlab: GitlabCiDescriptor = {
   },
 
   get pullRequest() {
-    const mergeRequestIid = getEnv("CI_MERGE_REQUEST_IID");
+    const mergeRequestIid = getMergeRequestIid();
 
     return mergeRequestIid
       ? {
           id: mergeRequestIid,
           url: this.pullRequestUrl || undefined,
-          title: getEnv("CI_MERGE_REQUEST_TITLE") || this.pullRequestName || undefined,
+          title: this.pullRequestName || undefined,
         }
       : undefined;
   },
@@ -190,7 +266,7 @@ export const gitlab: GitlabCiDescriptor = {
 
   get jobArtifactsUrlBase(): string {
     return (
-      `${new URL(getServerUrl()).protocol}//${getEnv("CI_PROJECT_ROOT_NAMESPACE_SLUG")}.${getEnv("CI_PAGES_DOMAIN") || "gitlab.io"}` +
+      `${new URL(getServerUrl()).protocol}//${getProjectRootNamespaceSlug()}.${getEnv("CI_PAGES_DOMAIN") || "gitlab.io"}` +
       `/-/${getEnv("CI_PROJECT_NAME")}/-/jobs/${this.currentJobId}/artifacts`
     );
   },

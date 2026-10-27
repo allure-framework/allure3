@@ -1,3 +1,4 @@
+import { GitProvider } from "@allurereport/core-api";
 import { story } from "allure-js-commons";
 import { beforeEach, describe, expect, it, type Mock, vi } from "vite-plus/test";
 
@@ -292,6 +293,24 @@ describe("azure", () => {
       expect(azure.jobRunBranch).toBe("feature/tools");
     });
 
+    it("should prefer System.PullRequest.SourceBranch over Build.SourceBranch", () => {
+      (getEnv as Mock).mockImplementation((key: string) => {
+        if (key === "SYSTEM_PULLREQUEST_SOURCEBRANCH") {
+          return "refs/heads/feature/tools";
+        }
+
+        if (key === "BUILD_SOURCEBRANCH") {
+          return "refs/pull/9/merge";
+        }
+
+        if (key === "BUILD_SOURCEBRANCHNAME") {
+          return "merge";
+        }
+      });
+
+      expect(azure.jobRunBranch).toBe("feature/tools");
+    });
+
     it("should not return tag refs as a job run branch", () => {
       (getEnv as Mock).mockImplementation((key: string) => {
         if (key === "BUILD_SOURCEBRANCH") {
@@ -324,6 +343,58 @@ describe("azure", () => {
       });
 
       expect(azure.pullRequestUrl).toBe("https://github.com/owner/repo/pull/123");
+    });
+
+    it("should remove user info from GitHub pull request URL", () => {
+      (getEnv as Mock).mockImplementation((key: string) => {
+        if (key === "BUILD_REPOSITORY_PROVIDER") {
+          return "GitHub";
+        }
+
+        if (key === "SYSTEM_PULLREQUEST_SOURCEREPOSITORYURI") {
+          return "https://x-access-token:secret@github.com/owner/repo.git";
+        }
+
+        if (key === "SYSTEM_PULLREQUEST_PULLREQUESTNUMBER") {
+          return "123";
+        }
+      });
+
+      expect(azure.pullRequestUrl).toBe("https://github.com/owner/repo/pull/123");
+    });
+
+    it("should resolve GitHub pull request URL from repository URL when provider string is missing", () => {
+      (getEnv as Mock).mockImplementation((key: string) => {
+        if (key === "SYSTEM_PULLREQUEST_SOURCEREPOSITORYURI") {
+          return "https://github.com/owner/repo";
+        }
+
+        if (key === "SYSTEM_PULLREQUEST_PULLREQUESTNUMBER") {
+          return "123";
+        }
+      });
+
+      expect(azure.pullRequestUrl).toBe("https://github.com/owner/repo/pull/123");
+    });
+
+    it("should return the correct pull request URL for GitHubEnterprise", () => {
+      // Host must not match github.* sniffing so mapAzureRepositoryProvider is exercised
+      (getEnv as Mock).mockImplementation((key: string) => {
+        if (key === "BUILD_REPOSITORY_PROVIDER") {
+          return "GitHubEnterprise";
+        }
+
+        if (key === "SYSTEM_PULLREQUEST_SOURCEREPOSITORYURI") {
+          return "https://ghe.company.com/owner/repo";
+        }
+
+        if (key === "SYSTEM_PULLREQUEST_PULLREQUESTNUMBER") {
+          return "55";
+        }
+      });
+
+      expect(azure.pullRequestUrl).toBe("https://ghe.company.com/owner/repo/pull/55");
+      expect(azure.provider).toBe(GitProvider.Github);
     });
 
     it("should return the correct pull request URL for TfsGit", () => {
@@ -398,6 +469,24 @@ describe("azure", () => {
       expect(azure.pullRequestUrl).toBe("https://dev.azure.com/organization/project/_git/repo/pullrequest/789");
     });
 
+    it("should return the correct pull request URL for Bitbucket", () => {
+      (getEnv as Mock).mockImplementation((key: string) => {
+        if (key === "BUILD_REPOSITORY_PROVIDER") {
+          return "Bitbucket";
+        }
+
+        if (key === "SYSTEM_PULLREQUEST_SOURCEREPOSITORYURI") {
+          return "https://bitbucket.org/owner/repo.git";
+        }
+
+        if (key === "SYSTEM_PULLREQUEST_PULLREQUESTNUMBER") {
+          return "321";
+        }
+      });
+
+      expect(azure.pullRequestUrl).toBe("https://bitbucket.org/owner/repo/pull-requests/321");
+    });
+
     it("should return empty string for other repository providers", () => {
       (getEnv as Mock).mockImplementation((key: string) => {
         if (key === "BUILD_REPOSITORY_PROVIDER") {
@@ -432,6 +521,24 @@ describe("azure", () => {
       });
 
       expect(azure.pullRequestUrl).toBe("");
+    });
+  });
+
+  describe("pullRequestName", () => {
+    it("should synthesize pull request name from pull request id", () => {
+      (getEnv as Mock).mockImplementation((key: string) => {
+        if (key === "SYSTEM_PULLREQUEST_PULLREQUESTNUMBER") {
+          return "123";
+        }
+      });
+
+      expect(azure.pullRequestName).toBe("Pull request #123");
+    });
+
+    it("should return empty string when pull request id is not set", () => {
+      (getEnv as Mock).mockImplementation(() => "");
+
+      expect(azure.pullRequestName).toBe("");
     });
   });
 

@@ -1,6 +1,6 @@
 import { type CiDescriptor, CiType } from "@allurereport/core-api";
 
-import { resolveRepositoryFromGitUrl, stripRefsHeads } from "../helpers/gitProvider.js";
+import { buildPullRequestUrlForProvider, resolveRepositoryFromGitUrl, stripRefsHeads } from "../helpers/gitProvider.js";
 import { getEnv, getReponameFromRepoUrl } from "../utils.js";
 
 const AMAZON_REGEXP = /^arn:aws:codebuild:([^:]+):([\d]+):(?:build|build-batch)\/([^:]+):([\da-f-]+)$/;
@@ -18,7 +18,14 @@ export const parseArnValues = (source: string): string[] => {
   return source.match(AMAZON_REGEXP)?.slice(1) ?? [];
 };
 
-export const isBatchBuild = (): boolean => getEnv("CODEBUILD_BUILD_BATCH_TRIGGERED") === "true";
+export const isBatchBuild = (): boolean =>
+  !!getEnv("CODEBUILD_BATCH_BUILD_IDENTIFIER") || getEnv("CODEBUILD_BUILD_BATCH_TRIGGERED") === "true";
+
+const getDocumentedBuildUrl = (): string => {
+  const buildUrl = (getEnv("CODEBUILD_BUILD_URL") || "").trim();
+
+  return /^https?:\/\//i.test(buildUrl) ? buildUrl : "";
+};
 
 export const getRegionID = (source: string): string => parseArnValues(source)?.[0] ?? "";
 
@@ -219,10 +226,10 @@ export const amazon: CiDescriptor = {
   },
 
   get jobRunUrl(): string {
-    const buildUrl = getEnv("CODEBUILD_BUILD_URL");
+    const documentedBuildUrl = getDocumentedBuildUrl();
 
-    if (buildUrl) {
-      return buildUrl;
+    if (documentedBuildUrl) {
+      return documentedBuildUrl;
     }
 
     const pipelineName = getPipelineName();
@@ -272,11 +279,22 @@ export const amazon: CiDescriptor = {
   },
 
   get pullRequestUrl(): string {
-    return "";
+    const pullRequestId =
+      parsePullRequestFromWebhookTrigger() || parsePullRequestFromSourceVersion(getEnv("CODEBUILD_SOURCE_VERSION"));
+    const repository = getRepository();
+
+    if (!pullRequestId || !repository) {
+      return "";
+    }
+
+    return buildPullRequestUrlForProvider(repository.provider, repository.url, pullRequestId);
   },
 
   get pullRequestName(): string {
-    return "";
+    const pullRequestId =
+      parsePullRequestFromWebhookTrigger() || parsePullRequestFromSourceVersion(getEnv("CODEBUILD_SOURCE_VERSION"));
+
+    return pullRequestId ? `Pull request #${pullRequestId}` : "";
   },
 
   get commitSha() {

@@ -306,6 +306,16 @@ describe("gitlab", () => {
 
       expect(gitlab.jobArtifactsUrlBase).toBe(expected);
     });
+
+    it("should fall back to CI_PROJECT_ROOT_NAMESPACE when slug is missing", () => {
+      mockEnv({
+        CI_PROJECT_ROOT_NAMESPACE: "My-Org",
+        CI_PROJECT_NAME: "myrepo",
+        CI_JOB_ID: "678",
+      });
+
+      expect(gitlab.jobArtifactsUrlBase).toBe("https://my-org.gitlab.io/-/myrepo/-/jobs/678/artifacts");
+    });
   });
 
   describe("GitLab integration metadata", () => {
@@ -401,6 +411,61 @@ describe("gitlab", () => {
       });
 
       expect(gitlab.pullRequestUrl).toBe("");
+    });
+
+    it("should resolve MR from CI_OPEN_MERGE_REQUESTS when IID is empty", () => {
+      mockEnv({
+        CI_PROJECT_PATH: "myorg/myrepo",
+        CI_PROJECT_URL: "https://gitlab.com/myorg/myrepo",
+        CI_OPEN_MERGE_REQUESTS: "other/repo!11,myorg/myrepo!333",
+      });
+
+      expect(gitlab.pullRequestUrl).toBe("https://gitlab.com/myorg/myrepo/-/merge_requests/333");
+      expect(gitlab.pullRequest).toEqual({
+        id: "333",
+        url: "https://gitlab.com/myorg/myrepo/-/merge_requests/333",
+        title: "Merge request !333",
+      });
+      expect(gitlab.pullRequestName).toBe("Merge request !333");
+    });
+
+    it("should use the first open MR when no project path match exists", () => {
+      mockEnv({
+        CI_PROJECT_PATH: "myorg/myrepo",
+        CI_PROJECT_URL: "https://gitlab.com/myorg/myrepo",
+        CI_OPEN_MERGE_REQUESTS: "gitlab-org/gitlab!7,gitlab-org/gitlab-foss!11",
+      });
+
+      expect(gitlab.pullRequest).toEqual({
+        id: "7",
+        url: "https://gitlab.com/myorg/myrepo/-/merge_requests/7",
+        title: "Merge request !7",
+      });
+    });
+
+    it("should prefer CI_MERGE_REQUEST_IID over CI_OPEN_MERGE_REQUESTS", () => {
+      mockEnv({
+        CI_MERGE_REQUEST_IID: "9",
+        CI_MERGE_REQUEST_TITLE: "Real title",
+        CI_PROJECT_URL: "https://gitlab.com/myorg/myrepo",
+        CI_OPEN_MERGE_REQUESTS: "myorg/myrepo!333",
+      });
+
+      expect(gitlab.pullRequest).toEqual({
+        id: "9",
+        url: "https://gitlab.com/myorg/myrepo/-/merge_requests/9",
+        title: "Real title",
+      });
+    });
+
+    it("should synthesize Merge request !N when title is missing", () => {
+      mockEnv({
+        CI_MERGE_REQUEST_IID: "15",
+        CI_PROJECT_URL: "https://gitlab.com/myorg/myrepo",
+      });
+
+      expect(gitlab.pullRequestName).toBe("Merge request !15");
+      expect(gitlab.pullRequest?.title).toBe("Merge request !15");
     });
   });
 });

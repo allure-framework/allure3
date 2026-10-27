@@ -49,7 +49,11 @@ describe("CI descriptor git fields", () => {
     });
     expect(amazon.sourceBranch).toBe("feature/foo");
     expect(amazon.targetBranch).toBe("main");
-    expect(amazon.pullRequest).toMatchObject({ id: "12" });
+    expect(amazon.pullRequest).toEqual({
+      id: "12",
+      url: "https://github.com/myorg/myrepo/pull/12",
+      title: "Pull request #12",
+    });
   });
 
   it("maps CodeBuild branch source version with slashes", () => {
@@ -107,9 +111,11 @@ describe("CI descriptor git fields", () => {
     });
     expect(azure.sourceBranch).toBe("feature/foo");
     expect(azure.targetBranch).toBe("main");
+    expect(azure.jobRunBranch).toBe("feature/foo");
     expect(azure.pullRequest).toMatchObject({
       id: "9",
       url: "https://github.com/myorg/myrepo/pull/9",
+      title: "Pull request #9",
     });
   });
 
@@ -169,6 +175,7 @@ describe("CI descriptor git fields", () => {
     expect(bitbucket.pullRequest).toMatchObject({
       id: "15",
       url: "https://bitbucket.org/myorg/myrepo/pull-requests/15",
+      title: "Pull request #15",
     });
   });
 
@@ -188,6 +195,7 @@ describe("CI descriptor git fields", () => {
     expect(bitbucket.pullRequest).toMatchObject({
       id: "15",
       url: "https://bitbucket.org/myorg/myrepo/pull-requests/15",
+      title: "Pull request #15",
     });
   });
 
@@ -218,6 +226,7 @@ describe("CI descriptor git fields", () => {
     expect(circle.pullRequest).toMatchObject({
       id: "55",
       url: "https://github.com/myorg/myrepo/pull/55",
+      title: "Pull request #55",
     });
   });
 
@@ -232,6 +241,7 @@ describe("CI descriptor git fields", () => {
     expect(circle.pullRequest).toMatchObject({
       id: "55",
       url: "https://github.com/myorg/myrepo/pull/55",
+      title: "Pull request #55",
     });
   });
 
@@ -392,6 +402,7 @@ describe("CI descriptor git fields", () => {
   it("maps Jenkins github repository and pull request", () => {
     mockEnv({
       GIT_URL: "https://github.com/myorg/myrepo.git",
+      BRANCH_NAME: "PR-15",
       CHANGE_ID: "15",
       CHANGE_BRANCH: "feature/foo",
       CHANGE_TARGET: "main",
@@ -405,6 +416,7 @@ describe("CI descriptor git fields", () => {
       url: "https://github.com/myorg/myrepo",
     });
     expect(jenkins.sourceBranch).toBe("feature/foo");
+    expect(jenkins.jobRunBranch).toBe("feature/foo");
     expect(jenkins.targetBranch).toBe("main");
     expect(jenkins.pullRequest).toEqual({
       id: "15",

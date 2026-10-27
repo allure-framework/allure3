@@ -105,7 +105,9 @@ export const circle: CiDescriptor = {
   },
 
   get pullRequestName(): string {
-    return "";
+    const pullRequestNumber = getPullRequestNumber();
+
+    return pullRequestNumber ? `Pull request #${pullRequestNumber}` : "";
   },
 
   get commitSha() {
