@@ -29,6 +29,41 @@ const countErrorStatuses = (step: TestStepResult): Record<string, number> => {
   return result;
 };
 
+/**
+ * Counts all nested steps under `step` (not including `step` itself), recursively.
+ * Matches Allure 2 `stepsCount` and keeps parity with recursive failed-substep badges.
+ */
+export const countDescendantSteps = (step: TestStepResult): number => {
+  if (step.type !== "step") {
+    return 0;
+  }
+
+  return (step.steps ?? []).reduce((count, child) => {
+    if (child.type !== "step") {
+      return count;
+    }
+
+    return count + 1 + countDescendantSteps(child);
+  }, 0);
+};
+
+/**
+ * Counts all nested attachments under `step`, recursively (Allure 2 `attachmentsCount` parity).
+ */
+export const countDescendantAttachments = (step: TestStepResult): number => {
+  if (step.type !== "step") {
+    return 0;
+  }
+
+  return (step.steps ?? []).reduce((count, child) => {
+    if (child.type === "attachment") {
+      return count + 1;
+    }
+
+    return count + countDescendantAttachments(child);
+  }, 0);
+};
+
 const {
   lineGeneralCheckCircle,
   lineGeneralHelpCircle,
@@ -48,8 +83,8 @@ const icons = {
 export const TrStepInfo = (props: { item: DefaultTestStepResult }) => {
   const { item } = props;
   const formattedDuration = formatDuration(item?.duration as number);
-  const stepLength = item.steps?.length;
-  const attachmentLength = item.steps?.filter((step) => step.type === "attachment")?.length;
+  const stepLength = countDescendantSteps(item);
+  const attachmentLength = countDescendantAttachments(item);
 
   const failedStepsInTree = countErrorStatuses(item) || {};
 
