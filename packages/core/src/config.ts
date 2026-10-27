@@ -4,7 +4,6 @@ import * as process from "node:process";
 
 import { parseIntegerConfigValue, validateEnvironmentName } from "@allurereport/core-api";
 import type { Config, Plugin, PluginConstructorContext, PluginDescriptor } from "@allurereport/plugin-api";
-import { createJiti } from "jiti";
 import { parse } from "yaml";
 
 import type { FullConfig, PluginInstance } from "./api.js";
@@ -19,6 +18,7 @@ import {
   validateAllowedEnvironmentId,
 } from "./utils/environment.js";
 import { importWrapper } from "./utils/module.js";
+import { assertNodeSupportsTsConfig } from "./utils/nodeVersion.js";
 import { normalizeImportPath } from "./utils/path.js";
 import { normalizeResultsDir } from "./utils/resultsDir.js";
 import { assertValidPluginIdForWindows, isWindows } from "./utils/windows.js";
@@ -237,13 +237,13 @@ export const loadJsConfig = async (configPath: string): Promise<Config> => {
 };
 
 /**
- * Loads the TypeScript config from the given path
+ * Loads the TypeScript config from the given path via Node native type stripping
  * @param configPath
  */
 export const loadTsConfig = async (configPath: string): Promise<Config> => {
-  const jiti = createJiti(import.meta.url);
+  assertNodeSupportsTsConfig();
 
-  return await jiti.import<Config>(resolve(configPath), { default: true });
+  return loadJsConfig(configPath);
 };
 
 const resolveConfigEnvironments = (config: Config) => {

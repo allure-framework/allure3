@@ -269,7 +269,7 @@ In this example, the generated report is named _Allure Report Example_ and saved
 
 ### TypeScript Configuration File
 
-TypeScript configuration files are loaded directly by the Allure CLI, so you don't need to precompile them or install `tsx` or `ts-node`.
+TypeScript configuration files are loaded with Node.js native type stripping, so you don't need to precompile them or install `tsx` or `ts-node`. This requires Node.js 22.18+ and erasable TypeScript syntax only.
 
 ```ts
 import type { AllureConfig } from "allure";
