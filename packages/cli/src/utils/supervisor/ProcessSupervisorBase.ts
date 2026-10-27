@@ -224,7 +224,7 @@ export abstract class ProcessSupervisorBase {
     }
 
     if (this.completed) {
-      return Promise.resolve();
+      return (this.#stopPromise ??= Promise.resolve());
     }
 
     return (this.#stopPromise ??= this.stopOnce(Boolean(escalate), escalationTimeout));
@@ -236,7 +236,7 @@ export abstract class ProcessSupervisorBase {
     }
 
     if (this.completed) {
-      return Promise.resolve();
+      return (this.#terminationPromise ??= Promise.resolve());
     }
 
     return (this.#terminationPromise ??= this.terminateOnce());
