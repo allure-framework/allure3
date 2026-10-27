@@ -37,7 +37,6 @@ export interface MetricSample extends AllurePerformanceResult {
   group?: string;
   groupTitle?: string;
   better?: MetricBetter;
-  parent?: string;
 }
 
 /** A hierarchy of metric keys, without interpreting or aggregating their values. */
@@ -46,14 +45,27 @@ export interface MetricHierarchyNode {
   children: MetricHierarchyNode[];
 }
 
-export const buildMetricHierarchy = (
-  metrics: readonly Pick<MetricSample, "key" | "parent">[],
-): MetricHierarchyNode[] => {
-  const byKey = new Map(metrics.map((metric) => [metric.key, metric]));
-  const nodes = new Map<string, MetricHierarchyNode>([...byKey.keys()].map((key) => [key, { key, children: [] }]));
+export const buildMetricHierarchy = (performance: PerformanceConfig = {}): MetricHierarchyNode[] => {
+  const definitions = performance.metrics ?? {};
+  const metrics = Object.keys(definitions)
+    .sort()
+    .map((key) => ({ key, parent: definitions[key]?.parent }));
+  for (const { key, parent } of metrics) {
+    if (parent === undefined) continue;
+    if (typeof parent !== "string" || parent.length === 0) {
+      throw new Error(`performance.metrics[${JSON.stringify(key)}].parent must be a non-empty metric key`);
+    }
+    if (parent === key) {
+      throw new Error(`Performance metric ${JSON.stringify(key)} cannot be its own parent`);
+    }
+    if (!Object.hasOwn(definitions, parent)) {
+      throw new Error(`Unknown parent ${JSON.stringify(parent)} for performance metric ${JSON.stringify(key)}`);
+    }
+  }
+  const nodes = new Map<string, MetricHierarchyNode>(metrics.map(({ key }) => [key, { key, children: [] }]));
   const roots: MetricHierarchyNode[] = [];
 
-  for (const { key, parent } of byKey.values()) {
+  for (const { key, parent } of metrics) {
     const node = nodes.get(key)!;
     const parentNode = parent === undefined ? undefined : nodes.get(parent);
     if (parentNode) parentNode.children.push(node);
@@ -75,25 +87,11 @@ export const buildMetricHierarchy = (
 };
 
 export const validatePerformanceConfig = (performance: PerformanceConfig = {}): void => {
-  const definitions = performance.metrics ?? {};
-  const metrics = Object.entries(definitions).map(([key, config]) => ({ key, parent: config?.parent }));
-  for (const { key, parent } of metrics) {
-    if (parent === undefined) continue;
-    if (typeof parent !== "string" || parent.length === 0) {
-      throw new Error(`performance.metrics[${JSON.stringify(key)}].parent must be a non-empty metric key`);
-    }
-    if (parent === key) {
-      throw new Error(`Performance metric ${JSON.stringify(key)} cannot be its own parent`);
-    }
-    if (!Object.hasOwn(definitions, parent)) {
-      throw new Error(`Unknown parent ${JSON.stringify(parent)} for performance metric ${JSON.stringify(key)}`);
-    }
-  }
-  buildMetricHierarchy(metrics);
+  buildMetricHierarchy(performance);
 };
 
 export type ResolvableMetric = AllurePerformanceResult &
-  Partial<Pick<MetricSample, "source" | "title" | "unit" | "group" | "groupTitle" | "better" | "parent">>;
+  Partial<Pick<MetricSample, "source" | "title" | "unit" | "group" | "groupTitle" | "better">>;
 
 const isValidMetricResult = (metric: ResolvableMetric) =>
   typeof metric.id === "string" &&
@@ -119,19 +117,16 @@ export const resolveMetricSamples = (
 
     const metricConfig = Object.hasOwn(metricsConfig, metric.key) ? metricsConfig[metric.key] : undefined;
     const group = metricConfig?.group ?? metric.group;
-    const groupConfig = group ? groupsConfig[group] : undefined;
+    const groupConfig = group && Object.hasOwn(groupsConfig, group) ? groupsConfig[group] : undefined;
 
-    // Parent relationships are owned by the report config, including after restoring a dump.
-    const { parent: _parent, ...sample } = metric;
     acc.push({
-      ...sample,
+      ...metric,
       value,
       ...(metricConfig?.title ? { title: metricConfig.title } : {}),
       ...(metricConfig?.unit ? { unit: metricConfig.unit } : {}),
       ...(group ? { group } : {}),
       ...(groupConfig?.title ? { groupTitle: groupConfig.title } : {}),
       ...(metricConfig?.better ? { better: metricConfig.better } : {}),
-      ...(metricConfig?.parent !== undefined ? { parent: metricConfig.parent } : {}),
     });
 
     return acc;

@@ -2120,15 +2120,6 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       );
       this.#qualityGateResults.push(result);
     });
-    // Reapply only the hierarchy: the remaining metadata is an existing dump snapshot contract.
-    const metricConfigs = this.#performance.metrics ?? {};
-    this.#metrics.push(
-      ...metrics.map((metric) => {
-        const parent = Object.hasOwn(metricConfigs, metric.key) ? metricConfigs[metric.key]?.parent : undefined;
-        if (metric.parent === parent) return metric;
-        const { parent: _parent, ...sample } = metric;
-        return { ...sample, ...(parent !== undefined ? { parent } : {}) };
-      }),
-    );
+    this.#metrics.push(...metrics);
   }
 }

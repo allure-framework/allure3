@@ -16,36 +16,35 @@ const definition = (parent?: string): PerformanceMetricConfig => ({
 });
 
 describe("performance metric hierarchy", () => {
-  it("builds explicit parent links independently of key prefixes and input order", () => {
-    const metrics = [
-      { key: "prepare", parent: "render" },
-      { key: "run.read", parent: "run" },
-      { key: "render", parent: "run" },
-      { key: "run" },
-      { key: "run.unrelated" },
-    ];
+  it("builds explicit parent links independently of key prefixes, groups and definition order", () => {
+    const metrics = {
+      "prepare": definition("render"),
+      "run.read": definition("run"),
+      "render": { ...definition("run"), group: "another group" },
+      "run": definition(),
+      "run.unrelated": definition(),
+    };
     const original = structuredClone(metrics);
-    expect(buildMetricHierarchy(metrics)).toEqual([
+    const expected = [
       {
         key: "run",
         children: [
-          { key: "run.read", children: [] },
           { key: "render", children: [{ key: "prepare", children: [] }] },
+          { key: "run.read", children: [] },
         ],
       },
       { key: "run.unrelated", children: [] },
-    ]);
+    ];
+    expect(buildMetricHierarchy({ metrics })).toEqual(expected);
+    expect(buildMetricHierarchy({ metrics: Object.fromEntries(Object.entries(metrics).reverse()) })).toEqual(expected);
     expect(metrics).toEqual(original);
   });
 
-  it("deduplicates metric keys but does not invent missing parent measurements", () => {
-    expect(
-      buildMetricHierarchy([{ key: "read", parent: "run" }, { key: "read", parent: "run" }, { key: "unrelated" }]),
-    ).toEqual([
-      { key: "read", children: [] },
-      { key: "unrelated", children: [] },
+  it("retains the full configured chain without requiring measured results or inventing values", () => {
+    expect(buildMetricHierarchy({ metrics: { a: definition(), b: definition("a"), c: definition("b") } })).toEqual([
+      { key: "a", children: [{ key: "b", children: [{ key: "c", children: [] }] }] },
     ]);
-    expect(buildMetricHierarchy([])).toEqual([]);
+    expect(buildMetricHierarchy()).toEqual([]);
   });
 
   it("handles prototype-like keys as ordinary keys", () => {
@@ -53,7 +52,7 @@ describe("performance metric hierarchy", () => {
       '{"__proto__":{"title":"Root","unit":"ms","better":"lower"},"constructor":{"title":"Child","unit":"ms","better":"lower","parent":"__proto__"}}',
     );
     expect(() => validatePerformanceConfig({ metrics })).not.toThrow();
-    expect(buildMetricHierarchy([{ key: "constructor", parent: "__proto__" }, { key: "__proto__" }])).toEqual([
+    expect(buildMetricHierarchy({ metrics })).toEqual([
       { key: "__proto__", children: [{ key: "constructor", children: [] }] },
     ]);
   });
@@ -61,7 +60,7 @@ describe("performance metric hierarchy", () => {
   it("matches parent keys exactly without trimming or inferring a hierarchy from names", () => {
     const metrics = { " root ": definition(), "root.child": definition(" root ") };
     expect(() => validatePerformanceConfig({ metrics })).not.toThrow();
-    expect(buildMetricHierarchy([{ key: "root.child", parent: " root " }, { key: " root " }])).toEqual([
+    expect(buildMetricHierarchy({ metrics })).toEqual([
       { key: " root ", children: [{ key: "root.child", children: [] }] },
     ]);
   });
@@ -98,24 +97,32 @@ describe("performance metric hierarchy", () => {
           a: definition("b"),
           b: definition("c"),
           c: definition("a"),
+          leaf: definition("b"),
           unrelated: definition(),
+          reachable: definition("unrelated"),
         },
       }),
-    ).toThrow('Cyclic performance metric parents: "a", "b", "c"');
+    ).toThrow('Cyclic performance metric parents: "a", "b", "c", "leaf"');
   });
 
-  it("enriches parents only from current config without changing samples or collapsing repeats", () => {
+  it("keeps samples flat and preserves repeated measurements independently of configured parents", () => {
     const samples: ResolvableMetric[] = [
-      { id: "one", key: "read", value: 2, start: 1, stop: 3, parent: "stale" },
+      { id: "one", key: "read", value: 2, start: 1, stop: 3 },
       { id: "two", key: "read", value: 4, start: 2, stop: 6 },
     ];
     const original = structuredClone(samples);
     const resolved = resolveMetricSamples(samples, { metrics: { read: definition("run"), run: definition() } });
-    expect(resolved.map(({ id, value, start, stop, parent }) => ({ id, value, start, stop, parent }))).toEqual([
-      { id: "one", value: 2, start: 1, stop: 3, parent: "run" },
-      { id: "two", value: 4, start: 2, stop: 6, parent: "run" },
-    ]);
-    expect(resolveMetricSamples(samples).every((sample) => !Object.hasOwn(sample, "parent"))).toBe(true);
+    expect(resolved).toEqual(samples.map((sample) => ({ ...sample, title: "Operation", unit: "ms", better: "lower" })));
     expect(samples).toEqual(original);
+  });
+
+  it("resolves metric and group metadata only from own config properties", () => {
+    const sample = { id: "one", key: "constructor", group: "__proto__", value: 2, start: 1, stop: 3 };
+    expect(resolveMetricSamples([sample])).toEqual([sample]);
+    const metrics = JSON.parse('{"constructor":{"title":"Own metric","unit":"ms","better":"lower"}}');
+    const groups = JSON.parse('{"__proto__":{"title":"Own group"}}');
+    expect(resolveMetricSamples([sample], { metrics, groups })).toEqual([
+      { ...sample, title: "Own metric", unit: "ms", better: "lower", groupTitle: "Own group" },
+    ]);
   });
 });
