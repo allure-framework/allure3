@@ -91,9 +91,12 @@ const compileWithBuiltInCsc = async (source, target) => {
     throw new Error("Windows directory not found");
   }
 
-  const cscPath = join(winDir, "Microsoft.NET", "Framework", "v4.0.30319", "csc.exe");
-  if (!existsSync(cscPath)) {
-    throw new Error(`C# compiler not found at ${cscPath}`);
+  const csc64Path = join(winDir, "Microsoft.NET", "Framework64", "v4.0.30319", "csc.exe");
+  const csc32Path = join(winDir, "Microsoft.NET", "Framework", "v4.0.30319", "csc.exe");
+  const cscPath = [csc64Path, csc32Path].find(existsSync);
+
+  if (!cscPath) {
+    throw new Error(`C# compiler not found at "${csc64Path}" or "${csc32Path}"`);
   }
 
   await runCompiler(cscPath, ["/nologo", "/utf8output", "/t:exe", "/o", "/out:" + target, source]);
