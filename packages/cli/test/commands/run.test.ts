@@ -667,6 +667,10 @@ describe("run command", () => {
       allTestResults: vi.fn().mockResolvedValue([]),
     };
 
+    supervisorExitCodeMock
+      .mockResolvedValueOnce(1)
+      .mockRejectedValueOnce(new Error("rerun process failed unexpectedly"));
+
     await executeAllureRun({
       allureReport: new AllureReportMock() as never,
       cwd: "/cwd",
