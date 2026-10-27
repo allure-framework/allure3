@@ -20,7 +20,7 @@ jobs:
         with:
           dotnet-version: "10.x"
 
-      - name: Compose process-host.exe
+      - name: Compile process-host.exe
         run: |
           yarn workspace allure run compile:process-host --force --use-dotnet
           test -s packages/cli/dist/utils/supervisor/windows/process-host.exe
