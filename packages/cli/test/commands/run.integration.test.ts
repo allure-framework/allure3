@@ -1823,6 +1823,7 @@ console.log(\`selected selectors: \${Array.from(selectors).join(",")}\`);
       const scriptPath = join(fixtureDir, "run.mjs");
       const targetPath = join(fixtureDir, "target.mjs");
       const outputPath = join(fixtureDir, "console.json");
+      const tracePath = join(fixtureDir, "console.trace.log");
 
       // allurerc.mjs: a minimal config with no report plugins
       await writeFile(configPath, "export default { plugins: {} };\n");
@@ -1845,6 +1846,7 @@ console.log(\`selected selectors: \${Array.from(selectors).join(",")}\`);
 
       const args = [
         cliPath,
+        "-v",
         "run",
         "--config",
         configPath,
@@ -1876,23 +1878,49 @@ console.log(\`selected selectors: \${Array.from(selectors).join(",")}\`);
         // to create separate console output buffers on Windows.
         // Capturing stdout/stderr through redirection would change console to pipes,
         // which cannot prove --ignore-logs actually works.
-        await runCommand(
-          "powershell.exe",
-          [
-            "-NoProfile",
-            "-NonInteractive",
-            "-ExecutionPolicy",
-            "Bypass",
-            "-File",
-            join(commandsDir, "fixtures", "console-output.ps1"),
-            process.execPath,
-            scriptPath,
-            outputPath,
-            input,
-            scenario === "write-only output" ? "write-only" : "read-write",
-          ],
-          { timeout: 40_000, windowsHide: true },
-        );
+        try {
+          await runCommand(
+            "powershell.exe",
+            [
+              "-NoProfile",
+              "-NonInteractive",
+              "-ExecutionPolicy",
+              "Bypass",
+              "-File",
+              join(commandsDir, "fixtures", "console-output.ps1"),
+              process.execPath,
+              scriptPath,
+              outputPath,
+              input,
+              scenario === "write-only output" ? "write-only" : "read-write",
+              tracePath,
+            ],
+            { timeout: 40_000, windowsHide: true },
+          );
+        } catch (error) {
+          const commandError = error as Error & {
+            code?: number | string | null;
+            killed?: boolean;
+            signal?: string | null;
+            stderr?: string;
+            stdout?: string;
+          };
+          const trace = await readFile(tracePath, "utf8").catch(() => "<trace file was not created>");
+          const diagnostics = [
+            `code: ${String(commandError.code)}`,
+            `signal: ${String(commandError.signal)}`,
+            `killed: ${String(commandError.killed)}`,
+            `stdout: ${commandError.stdout || "<empty>"}`,
+            `stderr: ${commandError.stderr || "<empty>"}`,
+            "trace:",
+            trace,
+          ].join("\n");
+
+          await attachment("console fixture timeout diagnostics", diagnostics, "text/plain");
+          commandError.message += `\n\nConsole fixture timeout diagnostics:\n${diagnostics}`;
+          commandError.stack = `${commandError.stack ?? commandError.message}\n\nConsole fixture timeout diagnostics:\n${diagnostics}`;
+          throw commandError;
+        }
       });
 
       // Read the output removing the BOM if present.

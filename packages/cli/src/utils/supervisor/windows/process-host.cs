@@ -590,6 +590,7 @@ namespace Allure.Run.Supervisor.Windows
             private readonly Action<Exception> onFatalError;
             private readonly Action<Exception> onError;
             private readonly ManualResetEvent ready = new ManualResetEvent(false);
+            private readonly string name;
             private bool cleanupFailed = false;
             private bool cancellationErrorReported = false;
 
@@ -599,6 +600,7 @@ namespace Allure.Run.Supervisor.Windows
             private Exception error;
             private readonly Stopwatch cancellationTimer = new Stopwatch();
 
+            internal string Name { get { return this.name; } }
             protected IntPtr Console { get { return this.console; } }
             protected IntPtr Pipe { get { return this.pipe; } }
             protected bool Cancelled { get { return this.cancelled; } }
@@ -614,12 +616,14 @@ namespace Allure.Run.Supervisor.Windows
             }
 
             internal ConsoleRelay(
+                string name,
                 IntPtr console,
                 IntPtr pipe,
                 Action<Exception> onFatalError,
                 Action<Exception> onError
             )
             {
+                this.name = name;
                 this.console = console;
                 this.pipe = pipe;
                 this.onFatalError = onFatalError;
@@ -669,7 +673,7 @@ namespace Allure.Run.Supervisor.Windows
 
                     if (!success)
                     {
-                        throw Win32("DuplicateHandle(relay thread)");
+                        throw Win32(this.FormatOperation("DuplicateHandle(relay thread)"));
                     }
 
                     this.ready.Set();
@@ -705,6 +709,15 @@ namespace Allure.Run.Supervisor.Windows
                 return true;
             }
 
+            internal string FormatOperation(string operation)
+            {
+                return string.Format(
+                    "ConsoleRelay({0}).{1}",
+                    this.name,
+                    operation
+                );
+            }
+
             public void Dispose()
             {
                 this.cancelled = true;
@@ -723,7 +736,7 @@ namespace Allure.Run.Supervisor.Windows
                             this.cleanupFailed = true;
                             this.onError(
                                 new Failure(
-                                    string.Format("{0}.Dispose()", this.GetType().Name),
+                                    this.FormatOperation("Dispose()"),
                                     string.Format(
                                         "The relay worker did not exit within {0} "
                                             + "second(s) after cancellation was requested.",
@@ -772,18 +785,19 @@ namespace Allure.Run.Supervisor.Windows
                     return null;
                 }
 
-                return new Failure("CancelSynchronousIo(relay)", code);
+                return new Failure(this.FormatOperation("CancelSynchronousIo()"), code);
             }
         }
 
         private sealed class InputConsoleRelay : ConsoleRelay
         {
             internal InputConsoleRelay(
+                string name,
                 IntPtr console,
                 IntPtr pipe,
                 Action<Exception> onFatalError,
                 Action<Exception> onError
-            ) : base(console, pipe, onFatalError, onError)
+            ) : base(name, console, pipe, onFatalError, onError)
             {
             }
 
@@ -804,7 +818,7 @@ namespace Allure.Run.Supervisor.Windows
                     );
                     if (!success)
                     {
-                        throw Win32("ReadConsoleW(relay)");
+                        throw Win32(this.FormatOperation("ReadConsoleW()"));
                     }
 
                     if (count == 0 || this.Cancelled)
@@ -850,12 +864,12 @@ namespace Allure.Run.Supervisor.Windows
                                     return;
                                 }
 
-                                throw new Failure("WriteFile(stdin relay)", code);
+                                throw new Failure(this.FormatOperation("WriteFile()"), code);
                             }
 
                             if (written == 0)
                             {
-                                throw new Failure("WriteFile(stdin relay)", "No progress writing input.");
+                                throw new Failure(this.FormatOperation("WriteFile()"), "No progress writing input.");
                             }
 
                             offset += (int)written;
@@ -872,11 +886,12 @@ namespace Allure.Run.Supervisor.Windows
         private sealed class OutputConsoleRelay : ConsoleRelay
         {
             internal OutputConsoleRelay(
+                string name,
                 IntPtr console,
                 IntPtr pipe,
                 Action<Exception> onFatalError,
                 Action<Exception> onError
-            ) : base(console, pipe, onFatalError, onError)
+            ) : base(name, console, pipe, onFatalError, onError)
             {
             }
 
@@ -901,7 +916,7 @@ namespace Allure.Run.Supervisor.Windows
                         int code = Marshal.GetLastWin32Error();
                         if (code != Native.ERROR_BROKEN_PIPE)
                         {
-                            throw new Failure("ReadFile(output relay)", code);
+                            throw new Failure(this.FormatOperation("ReadFile()"), code);
                         }
 
                         // The pipe reached EOF.
@@ -933,11 +948,14 @@ namespace Allure.Run.Supervisor.Windows
                         );
                         if (!success)
                         {
-                            throw Win32("WriteConsoleW(relay)");
+                            throw Win32(this.FormatOperation("WriteConsoleW()"));
                         }
                         if (written == 0)
                         {
-                            throw new Failure("WriteConsoleW(relay)", "No progress writing output.");
+                            throw new Failure(
+                                this.FormatOperation("WriteConsoleW()"),
+                                "No progress writing output."
+                            );
                         }
 
                         offset += (int)written;
@@ -957,7 +975,7 @@ namespace Allure.Run.Supervisor.Windows
                     if (this.CancellationTimedOut)
                     {
                         throw new Failure(
-                            "OutputRelayCancellationTimeout",
+                            this.FormatOperation("OutputRelayCancellationTimeout"),
                             string.Format(
                                 "The output relay worker did not exit within {0} "
                                     + "second(s) after cancellation was requested.",
@@ -980,6 +998,15 @@ namespace Allure.Run.Supervisor.Windows
 
         private abstract class ConsoleRelayFactory
         {
+            private readonly string name;
+
+            internal string Name { get { return this.name; } }
+
+            internal ConsoleRelayFactory(string name)
+            {
+                this.name = name;
+            }
+
             protected sealed class PipeEnds
             {
                 public IntPtr HostEnd { get; set; }
@@ -1077,6 +1104,10 @@ namespace Allure.Run.Supervisor.Windows
 
         private sealed class InputRelayFactory : ConsoleRelayFactory
         {
+            internal InputRelayFactory(string name) : base(name)
+            {
+            }
+
             protected override bool ProbeConsoleHandle(IntPtr handle)
             {
                 uint mode;
@@ -1107,12 +1138,16 @@ namespace Allure.Run.Supervisor.Windows
                 Action<Exception> onError
             )
             {
-                return new InputConsoleRelay(console, pipe, onFatalError, onError);
+                return new InputConsoleRelay(this.Name, console, pipe, onFatalError, onError);
             }
         }
 
         private sealed class OutputRelayFactory : ConsoleRelayFactory
         {
+            internal OutputRelayFactory(string name) : base(name)
+            {
+            }
+
             protected override bool ProbeConsoleHandle(IntPtr handle)
             {
                 uint mode;
@@ -1156,7 +1191,7 @@ namespace Allure.Run.Supervisor.Windows
                 Action<Exception> onError
             )
             {
-                return new OutputConsoleRelay(console, pipe, onFatalError, onError);
+                return new OutputConsoleRelay(this.Name, console, pipe, onFatalError, onError);
             }
 
             private static bool ProbeConsoleWrite(IntPtr handle)
@@ -1196,8 +1231,13 @@ namespace Allure.Run.Supervisor.Windows
             {
                 if (pipe == null || !pipe.IsConnected)
                 {
+                    TryWriteToDiagnosticFile(
+                        string.Format("ProcessDiagnostics.{0}", stage),
+                        details
+                    );
                     return;
                 }
+
                 Dictionary<string, object> message = Message("diagnostics");
                 message["hostPid"] = Native.GetCurrentProcessId();
                 message["timestamp"] = DateTime.UtcNow.ToString("o");
@@ -1347,7 +1387,37 @@ namespace Allure.Run.Supervisor.Windows
             }
         }
 
-        private void ReportCleanupError(string source, Exception error)
+        private void TryWriteToDiagnosticFile(string source, object data)
+        {
+            string entry;
+            try
+            {
+                entry = json.Serialize(data);
+            }
+            catch
+            {
+                return;
+            }
+
+            TryWriteToDiagnosticFile(source, entry);
+        }
+
+        private void TryWriteToDiagnosticFile(string source, Exception error)
+        {
+            string entry;
+            try
+            {
+                entry = error.ToString();
+            }
+            catch
+            {
+                return;
+            }
+
+            TryWriteToDiagnosticFile(source, entry);
+        }
+
+        private void TryWriteToDiagnosticFile(string source, string message)
         {
             if (string.IsNullOrEmpty(this.diagnosticFilePath))
             {
@@ -1360,7 +1430,7 @@ namespace Allure.Run.Supervisor.Windows
                     "{0:o} [{1}] {2}{3}",
                     DateTime.UtcNow,
                     source,
-                    error,
+                    message,
                     Environment.NewLine
                 );
 
@@ -1974,7 +2044,7 @@ namespace Allure.Run.Supervisor.Windows
                             },
                             onError: delegate (Exception error)
                             {
-                                TryReportError(id, error);
+                                TryReportRelayError(relayFactory.Name, error);
                             },
                             targetPipeEnd: out targetPipeEnd
                         )
@@ -1996,19 +2066,21 @@ namespace Allure.Run.Supervisor.Windows
             return PrepareNullHandle(access);
         }
 
-        private void TryReportError(int handleId, Exception error)
+        private void TryReportRelayError(string relayName, Exception error)
         {
+            string source = string.Format("ConsoleRelay({0})", relayName);
+
             if (this.pipe != null && this.pipe.IsConnected)
             {
                 try
                 {
                     Failure failure = error as Failure;
-                    string stdHandleName = GetHandleName(handleId);
 
                     Dictionary<string, object> message = Error(error, null, false);
-                    message["operation"] = failure != null
-                        ? string.Format("ConsoleRelay({0}).{1}", stdHandleName, failure.Operation)
-                        : string.Format("ConsoleRelay({0})", stdHandleName);
+                    if (failure == null)
+                    {
+                        message["operation"] = source;
+                    }
 
                     this.Send(message);
                     return;
@@ -2018,22 +2090,7 @@ namespace Allure.Run.Supervisor.Windows
                 }
             }
 
-            ReportCleanupError(GetHandleName(handleId), error);
-        }
-
-        private static string GetHandleName(int id)
-        {
-            switch (id)
-            {
-                case Native.STD_INPUT_HANDLE:
-                    return "stdin";
-                case Native.STD_OUTPUT_HANDLE:
-                    return "stdout";
-                case Native.STD_ERROR_HANDLE:
-                    return "stderr";
-                default:
-                    return "unknown";
-            }
+            TryWriteToDiagnosticFile(source, error);
         }
 
         private static IntPtr PrepareNullHandle(uint access)
@@ -2065,14 +2122,14 @@ namespace Allure.Run.Supervisor.Windows
             }
         }
 
-        private IntPtr PrepareTargetStandardInputHandle(int id)
+        private IntPtr PrepareTargetStandardInputHandle(string name, int id)
         {
-            return PrepareTargetStandardHandle(id, Native.GENERIC_READ, new InputRelayFactory());
+            return PrepareTargetStandardHandle(id, Native.GENERIC_READ, new InputRelayFactory(name));
         }
 
-        private IntPtr PrepareTargetStandardOutputHandle(int id)
+        private IntPtr PrepareTargetStandardOutputHandle(string name, int id)
         {
-            return PrepareTargetStandardHandle(id, Native.GENERIC_WRITE, new OutputRelayFactory());
+            return PrepareTargetStandardHandle(id, Native.GENERIC_WRITE, new OutputRelayFactory(name));
         }
 
         private uint Launch(string command, IEnumerable<string> arguments, string cwd)
@@ -2155,9 +2212,9 @@ namespace Allure.Run.Supervisor.Windows
             Native.PROCESS_INFORMATION process = new Native.PROCESS_INFORMATION();
             try
             {
-                handles[0] = PrepareTargetStandardInputHandle(Native.STD_INPUT_HANDLE);
-                handles[1] = PrepareTargetStandardOutputHandle(Native.STD_OUTPUT_HANDLE);
-                handles[2] = PrepareTargetStandardOutputHandle(Native.STD_ERROR_HANDLE);
+                handles[0] = PrepareTargetStandardInputHandle("stdin", Native.STD_INPUT_HANDLE);
+                handles[1] = PrepareTargetStandardOutputHandle("stdout", Native.STD_OUTPUT_HANDLE);
+                handles[2] = PrepareTargetStandardOutputHandle("stderr", Native.STD_ERROR_HANDLE);
 
                 UIntPtr bytes = UIntPtr.Zero;
                 bool probe = Native.InitializeProcThreadAttributeList(IntPtr.Zero, 2, 0, ref bytes);
@@ -2787,6 +2844,7 @@ namespace Allure.Run.Supervisor.Windows
 
                 while (true)
                 {
+                    bool jobWasEmpty = this.jobEmpty;
                     int timeout = this.jobEmpty
                         ? (waitingForOutputDrain ? 100 : Timeout.Infinite)
                         : (int)Math.Max(
@@ -2840,6 +2898,11 @@ namespace Allure.Run.Supervisor.Windows
                             completionClock.ElapsedMilliseconds + CompletionCheckIntervalMs;
                     }
 
+                    if (!jobWasEmpty && this.jobEmpty)
+                    {
+                        this.Diagnostic("job became empty", new { this.rootPid });
+                    }
+
                     if (this.diagnosticsEnabled && Native.WaitForSingleObject(this.root, 0) == Native.WAIT_OBJECT_0)
                     {
                         if (!rootExitReported)
@@ -2890,11 +2953,34 @@ namespace Allure.Run.Supervisor.Windows
 
                         bool outputsFinished = true;
 
+                        if (!waitingForOutputDrain)
+                        {
+                            this.Diagnostic(
+                                "console relay drain starting",
+                                new { this.rootPid, relayCount = this.consoleRelays.Count }
+                            );
+                        }
+
                         // The entire job has exited, so no target can keep a pipe writer open.
                         // Some data might still reside in output buffers, so we need to drain them.
-                        foreach (ConsoleRelay relay in this.consoleRelays)
+                        for (int index = 0; index < this.consoleRelays.Count; index++)
                         {
-                            outputsFinished &= relay.TryFinishDraining();
+                            ConsoleRelay relay = this.consoleRelays[index];
+                            bool relayFinished = relay.TryFinishDraining();
+                            outputsFinished &= relayFinished;
+
+                            if (!relayFinished && !waitingForOutputDrain)
+                            {
+                                this.Diagnostic(
+                                    "console relay drain pending",
+                                    new
+                                    {
+                                        this.rootPid,
+                                        index,
+                                        relay = relay.Name
+                                    }
+                                );
+                            }
                         }
 
                         if (!outputsFinished)
@@ -2906,6 +2992,7 @@ namespace Allure.Run.Supervisor.Windows
                         }
 
                         waitingForOutputDrain = false;
+                        this.Diagnostic("console relay drain finished", new { this.rootPid });
 
                         Dictionary<string, object> completed = Message("completed");
                         completed["rootExitCode"] = code;
@@ -2942,7 +3029,7 @@ namespace Allure.Run.Supervisor.Windows
                     }
                     else
                     {
-                        ReportCleanupError("ProcessHost", e);
+                        TryWriteToDiagnosticFile("ProcessHost", e);
                     }
                 }
                 catch
@@ -3010,7 +3097,7 @@ namespace Allure.Run.Supervisor.Windows
                 if (!shutdownFinished)
                 {
                     this.cleanupFailed = true;
-                    this.ReportCleanupError(
+                    this.TryWriteToDiagnosticFile(
                         "ShutdownWorker",
                         new Failure(
                             "ShutdownCleanup",
