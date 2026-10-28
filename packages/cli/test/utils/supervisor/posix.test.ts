@@ -364,7 +364,7 @@ describe("PosixProcessSupervisor", { skip: process.platform === "win32", timeout
       const fixture = await SupervisorFixture.create();
       const treeScriptPath = fixture.resolvePath("three-level-tree.mjs");
       const supervisor = new PosixProcessSupervisor(process.execPath, {
-        arguments: [treeScriptPath, "0", fixture.workingDirectory, "graceful-stop"],
+        arguments: [treeScriptPath, "0", fixture.workingDirectory],
         silent: true,
       });
 
@@ -472,7 +472,7 @@ describe("PosixProcessSupervisor", { skip: process.platform === "win32", timeout
       const fixture = await SupervisorFixture.create();
       const treeScriptPath = fixture.resolvePath("three-level-tree.mjs");
       const supervisor = new PosixProcessSupervisor(process.execPath, {
-        arguments: [treeScriptPath, "0", fixture.workingDirectory, "graceful-stop"],
+        arguments: [treeScriptPath, "0", fixture.workingDirectory],
         silent: true,
       });
 
