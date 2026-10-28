@@ -19,6 +19,10 @@ vi.mock("@allurereport/web-components/core", () => ({
   TooltipWrapper: (props: { children: ComponentChildren }) => props.children,
 }));
 
+vi.mock("@/components/ReportHeader/GitInfo", () => ({
+  GitInfo: () => <div data-testid="git-info" />,
+}));
+
 vi.mock("@/components/ReportHeader/ReportHeaderLogo", () => ({
   ReportHeaderLogo: () => <div data-testid="report-logo" />,
 }));
@@ -66,6 +70,7 @@ describe("components > ReportHeader", () => {
     render(<ReportHeader />);
 
     expect(screen.getByTestId("report-data")).toHaveTextContent("long:1000");
+    expect(screen.getByTestId("report-data").nextElementSibling).toBe(screen.getByTestId("git-info"));
     expect(screen.getByTestId("report-data")).not.toHaveTextContent("long:2500");
     expect(screen.getByTestId("report-data")).not.toHaveTextContent("long:42");
   });

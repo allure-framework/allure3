@@ -12,7 +12,6 @@ beforeEach(async () => {
 });
 
 import { Header } from "@/components/Header";
-import { GitInfo } from "@/components/Header/GitInfo";
 import type * as routerModule from "@/stores/router";
 import { testResultStore } from "@/stores/testResults";
 
@@ -36,10 +35,6 @@ vi.mock("@/components/SectionPicker", () => ({
 
 vi.mock("@/components/TestResult/TrHeader/TrBreadcrumbs", () => ({
   TrBreadcrumbs: () => <div data-testid="breadcrumbs" />,
-}));
-
-vi.mock("@/components/Header/GitInfo", () => ({
-  GitInfo: vi.fn().mockImplementation(() => <div data-testid="git-info" />),
 }));
 
 // Mock router module with controllable testResultRoute
@@ -73,31 +68,19 @@ beforeEach(() => {
 });
 
 describe("components > Header", () => {
-  it("should render ci info only when testResultId route parameter doesn't exists and ci report option is available", () => {
-    mockRouteParams.value = {};
-    vi.spyOn(webCommons, "getReportOptions").mockReturnValue({
-      ci: fixtures.ci,
-    });
+  it.each([{}, { testResultId: "1" }])(
+    "should keep Git metadata out of the navigation header on route %j",
+    (params) => {
+      mockRouteParams.value = params;
+      vi.spyOn(webCommons, "getReportOptions").mockReturnValue({ ci: fixtures.ci, git: { branch: "main" } });
 
-    render(<Header />);
+      render(<Header />);
 
-    expect(GitInfo).toHaveBeenCalled();
-    expect(screen.getByTestId("git-info")).toBeInTheDocument();
-  });
-
-  it("shouldn't render ci info when testResultId route parameter exists", () => {
-    mockRouteParams.value = {
-      testResultId: "1",
-    };
-    vi.spyOn(webCommons, "getReportOptions").mockReturnValue({
-      ci: fixtures.ci,
-    });
-
-    render(<Header />);
-
-    expect(GitInfo).not.toHaveBeenCalled();
-    expect(screen.queryByTestId("git-info")).not.toBeInTheDocument();
-  });
+      expect(screen.queryByTestId("git-info")).not.toBeInTheDocument();
+      expect(screen.getByTestId("section-picker")).toBeInTheDocument();
+      expect(screen.getByTestId("header-controls")).toBeInTheDocument();
+    },
+  );
 
   it("should render breadcrumbs when testResultId route parameter exists", () => {
     mockRouteParams.value = {

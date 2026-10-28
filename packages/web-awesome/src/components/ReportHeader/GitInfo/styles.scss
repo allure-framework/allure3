@@ -1,0 +1,52 @@
+.git-info {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 16px;
+  margin-top: 4px;
+  color: var(--color-text-secondary);
+}
+
+.git-info-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  max-width: 100%;
+
+  > svg,
+  > button {
+    flex-shrink: 0;
+  }
+}
+
+.git-info-value {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+button.git-info-value {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  flex-shrink: 1;
+}
+
+a.git-info-value {
+  color: var(--color-text-primary);
+  text-decoration: none;
+}
+
+.git-info-value:hover {
+  text-decoration: underline;
+}
+
+.git-info-value:focus-visible {
+  outline: 2px solid var(--color-text-primary);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
