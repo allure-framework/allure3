@@ -76,11 +76,6 @@ export const nodeScripts = {
       if (sigintMode === "exit") {
         process.exit(20 + level);
       }
-
-      if (sigintMode === "graceful-stop" && level === 0) {
-        await writeFile(gracefulStopReleasePath, "", "utf-8");
-        process.exit(20);
-      }
     });
 
     if (level < 2) {
@@ -116,22 +111,6 @@ export const nodeScripts = {
     }
 
     await writeProcessId(readyPath(level));
-
-    if (sigintMode === "graceful-stop" && level > 0) {
-      while (true) {
-        try {
-          await readFile(gracefulStopReleasePath, "utf-8");
-          process.exit(30 + level);
-        } catch (error) {
-          if (error.code !== "ENOENT") {
-            throw error;
-          }
-        }
-
-        await delay(25);
-      }
-    }
-
     await delay(10_000);
   `,
   sigintReporter: `
