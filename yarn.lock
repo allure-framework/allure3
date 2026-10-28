@@ -813,7 +813,7 @@ __metadata:
     "@types/node": "npm:^24.12.2"
     allure-js-commons: "npm:^3.14.0"
     allure-playwright: "npm:^3.14.0"
-    autoprefixer: "npm:^10.5.0"
+    autoprefixer: "npm:^10.6.1"
     axe-core: "npm:^4.11.4"
     d3-array: "npm:^3.2.4"
     d3-axis: "npm:^3.0.0"
@@ -832,7 +832,7 @@ __metadata:
     npm-run-all2: "npm:^7.0.1"
     postcss: "npm:^8.5.25"
     rimraf: "npm:^6.1.3"
-    sass: "npm:^1.99.0"
+    sass: "npm:^1.106.1"
     split.js: "npm:^1.6.5"
     tsx: "npm:^4.21.0"
     typescript: "npm:^6.0.2"
@@ -872,11 +872,11 @@ __metadata:
     "@vitest/snapshot": "npm:^5.0.5"
     allure-js-commons: "npm:^3.14.0"
     allure-vitest: "npm:^3.14.0"
-    autoprefixer: "npm:^10.5.0"
+    autoprefixer: "npm:^10.6.1"
     babel-loader: "npm:^10.1.1"
     babel-plugin-prismjs: "npm:^2.1.0"
     clsx: "npm:^2.1.1"
-    css-loader: "npm:^7.1.4"
+    css-loader: "npm:^7.1.5"
     d3-shape: "npm:^3.2.0"
     diff: "npm:^8.0.3"
     filesize: "npm:^10.1.6"
@@ -891,8 +891,8 @@ __metadata:
     preact: "npm:^10.29.8"
     prismjs: "npm:^1.30.0"
     rimraf: "npm:^6.1.3"
-    sass: "npm:^1.99.0"
-    sass-loader: "npm:^16.0.1"
+    sass: "npm:^1.106.1"
+    sass-loader: "npm:^17.0.1"
     split.js: "npm:^1.6.5"
     style-loader: "npm:^4.0.0"
     terser-webpack-plugin: "npm:^5.6.1"
@@ -932,11 +932,11 @@ __metadata:
     "@vitest/snapshot": "npm:^5.0.5"
     allure-js-commons: "npm:^3.14.0"
     allure-vitest: "npm:^3.14.0"
-    autoprefixer: "npm:^10.5.0"
+    autoprefixer: "npm:^10.6.1"
     babel-loader: "npm:^10.1.1"
     babel-plugin-prismjs: "npm:^2.1.0"
     clsx: "npm:^2.1.1"
-    css-loader: "npm:^7.1.4"
+    css-loader: "npm:^7.1.5"
     d3-shape: "npm:^3.2.0"
     filesize: "npm:^10.1.6"
     fork-ts-checker-webpack-plugin: "npm:^9.0.2"
@@ -950,8 +950,8 @@ __metadata:
     preact: "npm:^10.29.8"
     prismjs: "npm:^1.30.0"
     rimraf: "npm:^6.1.3"
-    sass: "npm:^1.99.0"
-    sass-loader: "npm:^16.0.1"
+    sass: "npm:^1.106.1"
+    sass-loader: "npm:^17.0.1"
     split.js: "npm:^1.6.5"
     style-loader: "npm:^4.0.0"
     typescript: "npm:^5.9.3"
@@ -1066,7 +1066,7 @@ __metadata:
     "@vitest/snapshot": "npm:^5.0.5"
     allure-js-commons: "npm:^3.14.0"
     allure-vitest: "npm:^3.14.0"
-    autoprefixer: "npm:^10.5.0"
+    autoprefixer: "npm:^10.6.1"
     babel-plugin-prismjs: "npm:^2.1.0"
     clsx: "npm:^2.1.1"
     d3-array: "npm:^3.2.4"
@@ -1087,7 +1087,7 @@ __metadata:
     mermaid: "npm:^12.2.0"
     npm-run-all2: "npm:^7.0.1"
     postcss: "npm:^8.5.25"
-    postcss-import: "npm:^17.0.0"
+    postcss-import: "npm:^17.0.1"
     preact: "npm:^10.29.8"
     prismjs: "npm:^1.30.0"
     react: "npm:@preact/compat@*"
@@ -1097,7 +1097,7 @@ __metadata:
     rollup-plugin-copy: "npm:^3.5.0"
     rollup-plugin-dts: "npm:^6.2.1"
     rollup-plugin-postcss: "npm:^4.0.2"
-    sass: "npm:^1.99.0"
+    sass: "npm:^1.106.1"
     sortablejs: "npm:^1.15.7"
     storybook: "npm:^10.6.2"
     ts-node: "npm:^10.9.2"
@@ -1138,11 +1138,11 @@ __metadata:
     "@vitest/snapshot": "npm:^5.0.5"
     allure-js-commons: "npm:^3.14.0"
     allure-vitest: "npm:^3.14.0"
-    autoprefixer: "npm:^10.5.0"
+    autoprefixer: "npm:^10.6.1"
     babel-loader: "npm:^10.1.1"
     babel-plugin-prismjs: "npm:^2.1.0"
     clsx: "npm:^2.1.1"
-    css-loader: "npm:^7.1.4"
+    css-loader: "npm:^7.1.5"
     fork-ts-checker-webpack-plugin: "npm:^9.0.2"
     globals: "npm:^15.9.0"
     html-webpack-plugin: "npm:^5.6.3"
@@ -1152,8 +1152,8 @@ __metadata:
     postcss: "npm:^8.5.25"
     preact: "npm:^10.29.8"
     rimraf: "npm:^6.1.3"
-    sass: "npm:^1.99.0"
-    sass-loader: "npm:^16.0.1"
+    sass: "npm:^1.106.1"
+    sass-loader: "npm:^17.0.1"
     style-loader: "npm:^4.0.0"
     typescript: "npm:^5.9.3"
     vite: "npm:@voidzero-dev/vite-plus-core@^1.3.0"
@@ -1185,10 +1185,10 @@ __metadata:
     "@types/babel__core": "npm:^7.20.5"
     "@types/md5": "npm:^2.3.6"
     "@types/node": "npm:^20.19.43"
-    autoprefixer: "npm:^10.5.0"
+    autoprefixer: "npm:^10.6.1"
     babel-loader: "npm:^10.1.1"
     clsx: "npm:^2.1.1"
-    css-loader: "npm:^7.1.4"
+    css-loader: "npm:^7.1.5"
     fork-ts-checker-webpack-plugin: "npm:^9.0.2"
     globals: "npm:^15.9.0"
     html-webpack-plugin: "npm:^5.6.3"
@@ -1197,8 +1197,8 @@ __metadata:
     postcss: "npm:^8.5.25"
     preact: "npm:^10.29.8"
     rimraf: "npm:^6.1.3"
-    sass: "npm:^1.99.0"
-    sass-loader: "npm:^16.0.1"
+    sass: "npm:^1.106.1"
+    sass-loader: "npm:^17.0.1"
     style-loader: "npm:^4.0.0"
     typescript: "npm:^5.9.3"
     webpack: "npm:^5.112.0"
@@ -8364,12 +8364,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"autoprefixer@npm:^10.5.0":
-  version: 10.5.4
-  resolution: "autoprefixer@npm:10.5.4"
+"autoprefixer@npm:^10.6.1":
+  version: 10.6.1
+  resolution: "autoprefixer@npm:10.6.1"
   dependencies:
-    browserslist: "npm:^4.28.6"
-    caniuse-lite: "npm:^1.0.30001806"
+    browserslist: "npm:^4.28.9"
+    caniuse-lite: "npm:^1.0.30001810"
     fraction.js: "npm:^5.3.4"
     picocolors: "npm:^1.1.1"
     postcss-value-parser: "npm:^4.2.0"
@@ -8377,7 +8377,7 @@ __metadata:
     postcss: ^8.1.0
   bin:
     autoprefixer: bin/autoprefixer
-  checksum: 10/3d9546c185f8e56d1f7cbb6bc4c06e19a158d994dc60cf651749a58fc89c0aaaf13ac65ff0fa04c3f0876021920921e809f750b20cfddaf417404d855fdc86a6
+  checksum: 10/186b2e62c6fd6a5b25787f944e24951a914b4fbc96374b89a51243b7d2241365ce33e4c5698b40973749432f39ad18aa3f4ffa446ac3745166ca9149b0b5e957
   languageName: node
   linkType: hard
 
@@ -8521,6 +8521,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"baseline-browser-mapping@npm:^2.11.29":
+  version: 2.11.32
+  resolution: "baseline-browser-mapping@npm:2.11.32"
+  bin:
+    baseline-browser-mapping: dist/cli.cjs
+  checksum: 10/970c9f6e3c56717f5ba8ef6af8fa919da249d57fbcd5d6f7de70b85141fdbafdd952d9e041a29da644287e3c9fc68c584311beca8ed4681bc1d7cd46b7e84211
+  languageName: node
+  linkType: hard
+
 "baseline-browser-mapping@npm:^2.11.33":
   version: 2.11.33
   resolution: "baseline-browser-mapping@npm:2.11.33"
@@ -8599,7 +8608,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"browserslist@npm:^4.0.0, browserslist@npm:^4.21.4, browserslist@npm:^4.24.0, browserslist@npm:^4.28.1, browserslist@npm:^4.28.2, browserslist@npm:^4.28.6":
+"browserslist@npm:^4.0.0, browserslist@npm:^4.21.4, browserslist@npm:^4.24.0, browserslist@npm:^4.28.1, browserslist@npm:^4.28.2":
   version: 4.29.5
   resolution: "browserslist@npm:4.29.5"
   dependencies:
@@ -8611,6 +8620,21 @@ __metadata:
   bin:
     browserslist: cli.js
   checksum: 10/24444adc9486a4608f6dee95d7be10d0ff32b9e3f5ae60377d7b284c942f528c8f50a23efe120dbd411960d277f79e15f1c53a7126ac8061ef6adfe86013e925
+  languageName: node
+  linkType: hard
+
+"browserslist@npm:^4.28.9":
+  version: 4.29.4
+  resolution: "browserslist@npm:4.29.4"
+  dependencies:
+    baseline-browser-mapping: "npm:^2.11.29"
+    caniuse-lite: "npm:^1.0.30001816"
+    electron-to-chromium: "npm:^1.5.459"
+    node-releases: "npm:^2.0.59"
+    update-browserslist-db: "npm:^1.3.4"
+  bin:
+    browserslist: cli.js
+  checksum: 10/464cf2ecd1783c17f5c2195b58f4a0732922157e2262ceb1c4fcfaab8d39cb5f044296b4cfe54cfa08e7a0beb2ace2c2001a0d055a4b2c254063a30670401e39
   languageName: node
   linkType: hard
 
@@ -8750,7 +8774,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"caniuse-lite@npm:^1.0.0, caniuse-lite@npm:^1.0.30001806, caniuse-lite@npm:^1.0.30001819":
+"caniuse-lite@npm:^1.0.0, caniuse-lite@npm:^1.0.30001810, caniuse-lite@npm:^1.0.30001816, caniuse-lite@npm:^1.0.30001819":
   version: 1.0.30001819
   resolution: "caniuse-lite@npm:1.0.30001819"
   checksum: 10/3ddcc8c96dab52d87c76caee88afd2409b0e66b4b67c9ce9dfe98b84a16b90f1d931ea0c31f52693d45b4318aaa25965b75ab51c1f12d03e261531d716cb34cd
@@ -9329,9 +9353,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"css-loader@npm:^7.1.4":
-  version: 7.1.4
-  resolution: "css-loader@npm:7.1.4"
+"css-loader@npm:^7.1.5":
+  version: 7.1.5
+  resolution: "css-loader@npm:7.1.5"
   dependencies:
     icss-utils: "npm:^5.1.0"
     postcss: "npm:^8.4.40"
@@ -9349,7 +9373,7 @@ __metadata:
       optional: true
     webpack:
       optional: true
-  checksum: 10/4a37f3bd5db6d7d13a71f6ffff6d7afc3b243d4e2105c98dd1df9c1ae719cf95c3b46c47aeb6c5fd3675caf60bdb144e9baeba979a432df0906613e8f07b7623
+  checksum: 10/f7e75f19336eab641a5bacf9e4fa6a5d0a7cba660efc2902d07d5017931413541608117d5c582cce2f9aba96a6974cceae5f61ac21c43bb69e6dd3fb5245897d
   languageName: node
   linkType: hard
 
@@ -10461,6 +10485,13 @@ __metadata:
   version: 1.1.1
   resolution: "ee-first@npm:1.1.1"
   checksum: 10/1b4cac778d64ce3b582a7e26b218afe07e207a0f9bfe13cc7395a6d307849cfe361e65033c3251e00c27dd060cab43014c2d6b2647676135e18b77d2d05b3f4f
+  languageName: node
+  linkType: hard
+
+"electron-to-chromium@npm:^1.5.459":
+  version: 1.5.464
+  resolution: "electron-to-chromium@npm:1.5.464"
+  checksum: 10/d9d3eb5332511229222885de8bf5efa2851fb35e464a849d29fbc9b913f172443c9448b2e006035f36e89a67a7e73d50c6866f7592afeacdced86263a4a7b2cd
   languageName: node
   linkType: hard
 
@@ -14010,7 +14041,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"node-releases@npm:^2.0.60":
+"node-releases@npm:^2.0.59, node-releases@npm:^2.0.60":
   version: 2.0.60
   resolution: "node-releases@npm:2.0.60"
   checksum: 10/2354967ce9722674f4b2fb8e0af3a8e6f575620a049d041a13035f10f7c87ec2ad606214c4dd86692c6f9574786fc3b6992c23a79d61747ad5f4dfab7d6cb52e
@@ -15088,16 +15119,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"postcss-import@npm:^17.0.0":
-  version: 17.0.0
-  resolution: "postcss-import@npm:17.0.0"
+"postcss-import@npm:^17.0.1":
+  version: 17.0.1
+  resolution: "postcss-import@npm:17.0.1"
   dependencies:
     postcss-value-parser: "npm:^4.0.0"
     read-cache: "npm:^1.0.0"
     resolve: "npm:^1.1.7"
   peerDependencies:
     postcss: ^8.0.0
-  checksum: 10/03f1b09a1de0a2c837f79e791fbf4b7d193f752e55ec1d5f977c46cea5f5744519132eb978ce32f589a6b06672ae6b7c5f6e2e313fb42427cd4bfb5cb13cc364
+  checksum: 10/7ecb1f8955a60f0bd63d3e816cf50164c5da0698321aeb8baf7c9dfe1052ca304688c3083991eb75f375ba7336ad173602a31129cd357ce22121951610749ab0
   languageName: node
   linkType: hard
 
@@ -16485,21 +16516,16 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"sass-loader@npm:^16.0.1":
-  version: 16.0.1
-  resolution: "sass-loader@npm:16.0.1"
-  dependencies:
-    neo-async: "npm:^2.6.2"
+"sass-loader@npm:^17.0.1":
+  version: 17.0.1
+  resolution: "sass-loader@npm:17.0.1"
   peerDependencies:
-    "@rspack/core": 0.x || 1.x
-    node-sass: ^4.0.0 || ^5.0.0 || ^6.0.0 || ^7.0.0 || ^8.0.0 || ^9.0.0
+    "@rspack/core": 0.x || ^1.0.0 || ^2.0.0-0
     sass: ^1.3.0
     sass-embedded: "*"
     webpack: ^5.0.0
   peerDependenciesMeta:
     "@rspack/core":
-      optional: true
-    node-sass:
       optional: true
     sass:
       optional: true
@@ -16507,13 +16533,13 @@ __metadata:
       optional: true
     webpack:
       optional: true
-  checksum: 10/3ba0ecfbfd3c0caa48fe58e9a1f4ccd08e5a95b1233978f985567be04fb153ef6736b95e54cc1a5a6e7a3485c3fa09dc165d028c031ae431f71f64f5ddd93608
+  checksum: 10/c5e97f75f6dfab2b8fc9a9ea1f75005b1333475bf7142422ff39b2b610963c2cee9049f915c1e63d5a57b9da0ea7135ec364f3e764a48aaa47f787b07220089f
   languageName: node
   linkType: hard
 
-"sass@npm:^1.99.0":
-  version: 1.103.1
-  resolution: "sass@npm:1.103.1"
+"sass@npm:^1.106.1":
+  version: 1.106.1
+  resolution: "sass@npm:1.106.1"
   dependencies:
     "@parcel/watcher": "npm:^2.4.1"
     chokidar: "npm:^5.0.0"
@@ -16524,7 +16550,7 @@ __metadata:
       optional: true
   bin:
     sass: sass.js
-  checksum: 10/b66acf027bbd0e6bfd9eb2a171779ae7c59115d10b2b55d52f547a7835bf63c108879ba699b47bcf5328042067a9e1b7f38141da3b8cd6af8d6805a9b5666609
+  checksum: 10/8138ca5abfd6713130a1e28814eb695578d9916a77a9d585651b2bb9f5f6219ce513b7fde58acb49a0634f29b1ffb0a7a4a4988865acb4d508d4e329b1ffd452
   languageName: node
   linkType: hard
 
