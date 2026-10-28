@@ -260,7 +260,7 @@
     "@types/d3-tip": "^0",
     "@types/d3-transition": "^3",
     "@types/lodash": "^4",
-    "@types/markdown-it": "^14.1.2",
+    "@types/markdown-it": "^14.2.0",
     "@types/md5": "^2.3.6",
     "@types/node": "^20.19.43",
     "@types/postcss-import": "^14.0.3",
