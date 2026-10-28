@@ -7,11 +7,12 @@ const { ALLURE_QUALITY_GATE, ALLURE_REQUIRE_NEW_TESTS, ALLURE_SERVICE_ACCESS_TOK
 const qualityGateEnabled = Boolean(ALLURE_QUALITY_GATE);
 const requireNewTests = ALLURE_REQUIRE_NEW_TESTS === "1";
 
-const msMetric = (title, group) => ({
+const msMetric = (title, group, parent) => ({
   title,
   unit: "ms",
   better: "lower",
   group,
+  ...(parent === undefined ? {} : { parent }),
 });
 
 const awesomeMetricTitles = {
@@ -38,7 +39,7 @@ const awesomeMetricTitles = {
 const awesomeMetrics = Object.fromEntries(
   Object.entries(awesomeMetricTitles).map(([key, title]) => [
     `generate.plugin.awesome.${key}`,
-    msMetric(title, "awesome"),
+    msMetric(title, "awesome", key === "summary.create" ? "summary.generate" : "generate.plugin.done.awesome"),
   ]),
 );
 
@@ -50,7 +51,7 @@ const readResultsMetricTitles = {
 const readResultsMetrics = Object.fromEntries(
   Object.entries(readResultsMetricTitles).map(([key, title]) => [
     `generate.readResults.${key}`,
-    msMetric(title, "generate"),
+    msMetric(title, "generate", "generate.readResults"),
   ]),
 );
 
@@ -186,25 +187,25 @@ const config = {
       "aql.workflow.parseAndFilter": msMetric("Parse and filter", "aql"),
       "aql.workflow.multipleFilters": msMetric("Run multiple filters", "aql"),
       "allure.total": msMetric("Allure total", "allure"),
-      "restoreState.total": msMetric("Restore state total", "restoreState"),
-      "restoreState.dump": msMetric("Restore state dump", "restoreState"),
-      "restoreState.attachments": msMetric("Restore state attachments", "restoreState"),
-      "restoreState.storeRestore": msMetric("Restore state store restore", "restoreState"),
-      "generate.total": msMetric("Generate total", "generate"),
-      "generate.readResults": msMetric("Read results", "generate"),
-      "generate.plugins.done": msMetric("Plugins done", "generate"),
-      "generate.plugin.done.awesome": msMetric("Awesome plugin done", "generate"),
-      "generate.plugin.done.classic": msMetric("Classic plugin done", "generate"),
-      "generate.plugin.done.allure2": msMetric("Allure 2 plugin done", "generate"),
-      "generate.plugin.done.log": msMetric("Log plugin done", "generate"),
-      "generate.plugin.done.dashboard": msMetric("Dashboard plugin done", "generate"),
-      "generate.plugin.done.testops": msMetric("Allure TestOps plugin done", "generate"),
-      "summary.generate": msMetric("Generate summary", "summary"),
+      "restoreState.total": msMetric("Restore state total", "restoreState", "allure.total"),
+      "restoreState.dump": msMetric("Restore state dump", "restoreState", "restoreState.total"),
+      "restoreState.attachments": msMetric("Restore state attachments", "restoreState", "restoreState.dump"),
+      "restoreState.storeRestore": msMetric("Restore state store restore", "restoreState", "restoreState.dump"),
+      "generate.total": msMetric("Generate total", "generate", "allure.total"),
+      "generate.readResults": msMetric("Read results", "generate", "generate.total"),
+      "generate.plugins.done": msMetric("Plugins done", "generate", "generate.total"),
+      "generate.plugin.done.awesome": msMetric("Awesome plugin done", "generate", "generate.plugins.done"),
+      "generate.plugin.done.classic": msMetric("Classic plugin done", "generate", "generate.plugins.done"),
+      "generate.plugin.done.allure2": msMetric("Allure 2 plugin done", "generate", "generate.plugins.done"),
+      "generate.plugin.done.log": msMetric("Log plugin done", "generate", "generate.plugins.done"),
+      "generate.plugin.done.dashboard": msMetric("Dashboard plugin done", "generate", "generate.plugins.done"),
+      "generate.plugin.done.testops": msMetric("Allure TestOps plugin done", "generate", "generate.plugins.done"),
+      "summary.generate": msMetric("Generate summary", "summary", "allure.total"),
       "publish.upload.total": msMetric("Upload total", "publish"),
-      "publish.upload.plugin.awesome": msMetric("Awesome upload", "publish"),
-      "publish.upload.plugin.classic": msMetric("Classic upload", "publish"),
-      "publish.upload.plugin.allure2": msMetric("Allure 2 upload", "publish"),
-      "publish.upload.plugin.dashboard": msMetric("Dashboard upload", "publish"),
+      "publish.upload.plugin.awesome": msMetric("Awesome upload", "publish", "publish.upload.total"),
+      "publish.upload.plugin.classic": msMetric("Classic upload", "publish", "publish.upload.total"),
+      "publish.upload.plugin.allure2": msMetric("Allure 2 upload", "publish", "publish.upload.total"),
+      "publish.upload.plugin.dashboard": msMetric("Dashboard upload", "publish", "publish.upload.total"),
       ...readResultsMetrics,
       ...awesomeMetrics,
     },
