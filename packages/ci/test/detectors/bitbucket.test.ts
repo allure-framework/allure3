@@ -150,24 +150,40 @@ describe("bitbucket", () => {
         if (key === "BITBUCKET_GIT_HTTP_ORIGIN") {
           return "https://bitbucket.org/myorg/myrepo";
         }
-        if (key === "BITBUCKET_PIPELINE_UUID") {
-          return "12345-abcde-67890";
+        if (key === "BITBUCKET_BUILD_NUMBER") {
+          return "42";
         }
       });
 
-      expect(bitbucket.jobRunUrl).toBe("https://bitbucket.org/myorg/myrepo/pipelines/results/12345-abcde-67890");
+      expect(bitbucket.jobRunUrl).toBe("https://bitbucket.org/myorg/myrepo/pipelines/results/42");
+    });
+
+    it("should return empty string when BITBUCKET_BUILD_NUMBER is missing", () => {
+      mockEnv({
+        BITBUCKET_GIT_HTTP_ORIGIN: "https://bitbucket.org/myorg/myrepo",
+      });
+
+      expect(bitbucket.jobRunUrl).toBe("");
+    });
+
+    it("should return empty string when BITBUCKET_GIT_HTTP_ORIGIN is missing", () => {
+      mockEnv({
+        BITBUCKET_BUILD_NUMBER: "42",
+      });
+
+      expect(bitbucket.jobRunUrl).toBe("");
     });
   });
 
   describe("jobRunName", () => {
     it("should return the correct job run name", () => {
       (getEnv as Mock).mockImplementation((key: string) => {
-        if (key === "BITBUCKET_PIPELINE_UUID") {
-          return "12345-abcde-67890";
+        if (key === "BITBUCKET_BUILD_NUMBER") {
+          return "42";
         }
       });
 
-      expect(bitbucket.jobRunName).toBe("12345-abcde-67890");
+      expect(bitbucket.jobRunName).toBe("42");
     });
   });
 
@@ -208,6 +224,22 @@ describe("bitbucket", () => {
     });
   });
 
+  describe("pullRequestName", () => {
+    it("should synthesize pull request name from BITBUCKET_PR_ID", () => {
+      mockEnv({
+        BITBUCKET_PR_ID: "123",
+      });
+
+      expect(bitbucket.pullRequestName).toBe("Pull request #123");
+    });
+
+    it("should return empty string when BITBUCKET_PR_ID is not set", () => {
+      mockEnv({});
+
+      expect(bitbucket.pullRequestName).toBe("");
+    });
+  });
+
   describe("git fields", () => {
     it("should normalize repository URLs from BITBUCKET_GIT_HTTP_ORIGIN", () => {
       mockEnv({
@@ -221,6 +253,10 @@ describe("bitbucket", () => {
         url: "https://bitbucket.org/myorg/myrepo",
       });
       expect(bitbucket.pullRequestUrl).toBe("https://bitbucket.org/myorg/myrepo/pull-requests/123");
+      expect(bitbucket.pullRequest).toMatchObject({
+        id: "123",
+        title: "Pull request #123",
+      });
     });
 
     it("should not map tag builds to branch fields", () => {
