@@ -70,8 +70,7 @@ Display names and titles accept full `${{ ... }}` expressions with `env` and `da
 ```yaml
 name: "${{ (has(env.REPORT_NAME) ? env.REPORT_NAME : 'Allure Report') + ' - ' + date.isoDate }}"
 plugins:
-  export:
-    import: '@allurereport/plugin-csv'
+  csv:
     options:
       fields:
         - header: "${{ 'Test name - ' + date.isoDate }}"
@@ -82,7 +81,7 @@ Supported fields:
 
 - Top-level `name`, `environments.<id>.name`, and category `name` in either the array or `{ rules: [...] }` form.
 - Awesome, Classic, Dashboard, and Allure 2: `options.reportName`.
-- Mail: `options.title`; TestOps: `options.launchName`; Agent: `options.agentName`.
+- TestOps: `options.launchName`.
 - Awesome: `options.charts[].title`; Dashboard: `options.layout[].title`.
 - CSV: `options.fields[].header`.
 
@@ -176,8 +175,7 @@ read the supplied test and quality-gate data directly.
 
 ```yaml
 plugins:
-  export:
-    import: '@allurereport/plugin-csv'
+  csv:
     options:
       filter: >-
         ${{ !has(env.ALLURE_EXPORT_STATUS) || test.status == env.ALLURE_EXPORT_STATUS }}
