@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { basename, join } from "node:path";
-import { env } from "node:process";
+import { env, platform } from "node:process";
 
 import type { Label } from "allure-js-commons";
 import type { TestUserConfig, ViteUserConfig } from "vite-plus";
@@ -83,8 +83,13 @@ export const defaultTasksConfig = (
     if (env.CI === "true" || env.GITHUB_ACTIONS === "true") {
       // automated file tracking for cache picks up removal or addition of these folders and even explicit exclusion
       // still does not prevent cache invalidation so simply ensure empty folders exist before tests run
+      //
+      // on windows platform, vitest internal cache is not properly ignored for some reason like it is on linux and macos
+      const paths = [allureResultsDir, ".vitest", "node_modules"];
+      if (platform == "win32") paths.push("node_modules/.vite/vitest");
+      const pathArrString = paths.map((str) => `'${str}'`).join(",");
       cleanup.push(
-        `node -e "for (const dir of ['${allureResultsDir}','.vitest','node_modules']) require('node:fs').mkdirSync(dir,{recursive:true})"`,
+        `node -e "for (const dir of [${pathArrString}]) require('node:fs').mkdirSync(dir,{recursive:true})"`,
       );
     }
     tasks["vp:clean:test"] = {
