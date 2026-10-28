@@ -1,15 +1,66 @@
-param([string]$NodePath, [string]$ScriptPath, [string]$OutputPath, [string]$InputText = "", [string]$OutputAccess = "read-write")
+param(
+    [string]$NodePath,
+    [string]$ScriptPath,
+    [string]$OutputPath,
+    [string]$InputText = "",
+    [string]$OutputAccess = "read-write",
+    [string]$TracePath = "$OutputPath.trace.log"
+)
 $ErrorActionPreference = "Stop"
 
+function Write-FixtureTrace([string]$Stage) {
+    Add-Content -LiteralPath $TracePath -Value ("{0:o} powershell pid={1} {2}" -f [DateTime]::UtcNow, $PID, $Stage) -Encoding UTF8
+}
+
+Write-FixtureTrace "script started"
+
 # Run the CLI with real console handles even when Vitest itself uses pipes.
+Write-FixtureTrace "Add-Type starting"
 Add-Type -TypeDefinition @'
 using System;
 using System.ComponentModel;
+using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading;
 
 public static class ConsoleOutputFixture
 {
+    static void Trace(string path, string stage)
+    {
+        try
+        {
+            File.AppendAllText(
+                path,
+                string.Format(
+                    "{0:o} csharp pid={1} thread={2} {3}{4}",
+                    DateTime.UtcNow,
+                    System.Diagnostics.Process.GetCurrentProcess().Id,
+                    Thread.CurrentThread.ManagedThreadId,
+                    stage,
+                    Environment.NewLine
+                ),
+                new UTF8Encoding(false)
+            );
+        }
+        catch
+        {
+            // Temporary best-effort diagnostics must not change fixture behavior.
+        }
+    }
+
+    static string Snapshot(string value)
+    {
+        const int partLength = 8000;
+        return value.Length <= partLength * 2
+            ? value
+            : value.Substring(0, partLength)
+                + Environment.NewLine
+                + "<snapshot truncated>"
+                + Environment.NewLine
+                + value.Substring(value.Length - partLength);
+    }
+
     [StructLayout(LayoutKind.Sequential)]
     struct StartupInfo
     {
@@ -314,12 +365,23 @@ public static class ConsoleOutputFixture
         return text.ToString();
     }
 
-    public static string[] Run(string node, string script, string inputText, bool writeOnlyOutput)
+    public static string[] Run(
+        string node,
+        string script,
+        string inputText,
+        bool writeOnlyOutput,
+        string tracePath
+    )
     {
+        Trace(tracePath, "Run entered");
+
         // This fixture changes the active screen buffer and may inject keyboard input.
         // It allocates a new console to prevent interference with the caller of the test.
+        Trace(tracePath, "FreeConsole starting");
         FreeConsole();
+        Trace(tracePath, "FreeConsole finished; AllocConsole starting");
         Check(AllocConsole());
+        Trace(tracePath, "AllocConsole finished");
 
         IntPtr stdin = IntPtr.Zero;
         IntPtr stdout = IntPtr.Zero;
@@ -331,23 +393,30 @@ public static class ConsoleOutputFixture
 
         try
         {
+            Trace(tracePath, "stdout screen buffer creation starting");
             stdout = CreateScreenBuffer();
+            Trace(tracePath, "stdout screen buffer creation finished; stderr starting");
             stderr = CreateScreenBuffer();
+            Trace(tracePath, "stderr screen buffer creation finished");
 
             // The fixture will use the original handles to capture the output.
             // The target will receives copies with the selected access only.
             int stdoutModeError, stderrModeError;
+            Trace(tracePath, "stdout target handle creation starting");
             targetStdout = CreateInheritableConsoleOutputHandle(
                 screenBuffer: stdout,
                 writeOnly: writeOnlyOutput,
                 modeError: out stdoutModeError
             );
+            Trace(tracePath, "stdout target handle creation finished; stderr starting");
             targetStderr = CreateInheritableConsoleOutputHandle(
                 screenBuffer: stderr,
                 writeOnly: writeOnlyOutput,
                 modeError: out stderrModeError
             );
+            Trace(tracePath, "stderr target handle creation finished");
 
+            Trace(tracePath, "stdin handle creation starting");
             stdin = CreateFileW(
                 name: "CONIN$",
                 access: 0xC0000000, // GENERIC_READ | GENERIC_WRITE
@@ -361,6 +430,7 @@ public static class ConsoleOutputFixture
 
             // Enable handle inheritance.
             Check(SetHandleInformation(stdin, 1, 1)); // HANDLE_FLAG_INHERIT
+            Trace(tracePath, "stdin handle creation finished");
 
             StartupInfo startup = new StartupInfo();
             startup.cb = Marshal.SizeOf(typeof(StartupInfo));
@@ -369,6 +439,7 @@ public static class ConsoleOutputFixture
             startup.stdout = targetStdout;
             startup.stderr = targetStderr;
 
+            Trace(tracePath, "CreateProcessW starting");
             Check(CreateProcessW(
                 application: node,
                 command: new StringBuilder("\"" + node + "\" \"" + script + "\""),
@@ -381,9 +452,11 @@ public static class ConsoleOutputFixture
                 startup: ref startup,
                 process: out process
             ));
+            Trace(tracePath, "CreateProcessW finished; child pid=" + process.pid);
 
             if (inputText.Length > 0)
             {
+                Trace(tracePath, "stdin-ready wait starting");
                 var deadline = System.Diagnostics.Stopwatch.StartNew();
 
                 // Waiting for the launcher script to create a marker file
@@ -395,6 +468,7 @@ public static class ConsoleOutputFixture
                         throw new Exception("Target did not become ready for console input");
                     }
                 }
+                Trace(tracePath, "stdin-ready marker observed");
 
                 string line = inputText + "\r";
                 InputRecord[] records = new InputRecord[line.Length];
@@ -411,27 +485,48 @@ public static class ConsoleOutputFixture
                 }
 
                 uint written;
+                Trace(tracePath, "WriteConsoleInputW starting");
                 Check(WriteConsoleInputW(stdin, records, (uint)records.Length, out written));
                 Check(written == records.Length);
+                Trace(tracePath, "WriteConsoleInputW finished");
             }
 
             // Wait for the process to exit or timeout before reading the output.
-            if (WaitForSingleObject(process.process, 30000) != 0)
+            Trace(tracePath, "30-second child wait starting");
+            uint waitResult = WaitForSingleObject(process.process, 30000);
+            Trace(tracePath, "child wait finished; result=" + waitResult);
+            if (waitResult != 0)
             {
+                Trace(tracePath, "child timeout; TerminateProcess starting");
                 TerminateProcess(process.process, code: 1);
+                Trace(tracePath, "TerminateProcess finished; timeout stdout read starting");
+                string timeoutStdout = Read(stdout);
+                Trace(tracePath, "timeout stdout read finished; stderr starting");
+                string timeoutStderr = Read(stderr);
+                Trace(tracePath, "timeout stdout snapshot:" + Environment.NewLine + Snapshot(timeoutStdout));
+                Trace(tracePath, "timeout stderr snapshot:" + Environment.NewLine + Snapshot(timeoutStderr));
+                Trace(tracePath, "timeout stderr read finished; throwing timeout error");
                 throw new Exception(
-                    "Console fixture timed out waiting for the CLI. stdout: " + Read(stdout)
-                        + "; stderr: " + Read(stderr)
+                    "Console fixture timed out waiting for the CLI. stdout: " + timeoutStdout
+                        + "; stderr: " + timeoutStderr
                 );
             }
 
             uint code;
+            Trace(tracePath, "GetExitCodeProcess starting");
             Check(GetExitCodeProcess(process.process, out code));
+            Trace(tracePath, "GetExitCodeProcess finished; code=" + code);
+
+            Trace(tracePath, "stdout buffer read starting");
+            string stdoutText = Read(stdout);
+            Trace(tracePath, "stdout buffer read finished; stderr starting");
+            string stderrText = Read(stderr);
+            Trace(tracePath, "stderr buffer read finished; returning result");
 
             return new string[]
             {
-                Read(stdout),
-                Read(stderr),
+                stdoutText,
+                stderrText,
                 code.ToString(),
                 stdoutModeError.ToString(),
                 stderrModeError.ToString()
@@ -439,6 +534,7 @@ public static class ConsoleOutputFixture
         }
         finally
         {
+            Trace(tracePath, "cleanup entered");
             if (targetStdout != IntPtr.Zero)
             {
                 CloseHandle(targetStdout);
@@ -448,26 +544,33 @@ public static class ConsoleOutputFixture
             {
                 CloseHandle(targetStderr);
             }
+            Trace(tracePath, "target output handles closed");
 
             if (stdin != IntPtr.Zero && stdin != new IntPtr(-1))
             {
                 CloseHandle(stdin);
             }
+            Trace(tracePath, "stdin handle closed");
 
             if (process.thread != IntPtr.Zero)
             {
                 CloseHandle(process.thread);
             }
+            Trace(tracePath, "child thread handle closed");
 
             if (process.process != IntPtr.Zero)
             {
+                Trace(tracePath, "child process cleanup starting");
                 if (WaitForSingleObject(process.process, 0) != 0)
                 {
+                    Trace(tracePath, "child still running during cleanup; TerminateProcess starting");
                     TerminateProcess(process.process, code: 1);
+                    Trace(tracePath, "cleanup TerminateProcess finished");
                 }
 
                 CloseHandle(process.process);
             }
+            Trace(tracePath, "child process handle closed");
 
             if (stdout != IntPtr.Zero)
             {
@@ -478,14 +581,24 @@ public static class ConsoleOutputFixture
             {
                 CloseHandle(stderr);
             }
+            Trace(tracePath, "screen buffer handles closed; FreeConsole starting");
 
             FreeConsole();
+            Trace(tracePath, "FreeConsole finished; cleanup complete");
         }
     }
 }
 '@
 
-$result = [ConsoleOutputFixture]::Run($NodePath, $ScriptPath, $InputText, $OutputAccess -eq "write-only")
+Write-FixtureTrace "Add-Type finished; Run starting"
+$result = [ConsoleOutputFixture]::Run(
+    $NodePath,
+    $ScriptPath,
+    $InputText,
+    $OutputAccess -eq "write-only",
+    $TracePath
+)
+Write-FixtureTrace "Run finished; JSON write starting"
 @{
     stdout = $result[0]
     stderr = $result[1]
@@ -493,3 +606,4 @@ $result = [ConsoleOutputFixture]::Run($NodePath, $ScriptPath, $InputText, $Outpu
     stdoutModeError = [int]$result[3]
     stderrModeError = [int]$result[4]
 } | ConvertTo-Json | Set-Content -LiteralPath $OutputPath -Encoding UTF8
+Write-FixtureTrace "JSON write finished; script complete"
