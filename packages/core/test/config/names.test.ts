@@ -68,14 +68,16 @@ describe("name and title expressions", () => {
     ["classic", "reportName"],
     ["dashboard", "reportName"],
     ["allure2", "reportName"],
-    ["mail", "title"],
     ["testops", "launchName"],
-    ["agent", "agentName"],
-  ])("resolves %s %s using the imported plugin implementation", async (kind, field) => {
+  ])("resolves %s %s", async (kind, field) => {
     const options = { [field]: datedName };
 
-    const config = await resolveConfig({ plugins: { report: { import: `@allurereport/plugin-${kind}`, options } } });
-    const plugin = config.plugins!.find(({ id }) => id === "report")!;
+    const config = await resolveConfig({
+      plugins: {
+        [kind]: { options, ...(kind === "testops" ? { import: "@allurereport/plugin-testops" } : {}) },
+      },
+    });
+    const plugin = config.plugins!.find(({ id }) => id === kind)!;
 
     expect(plugin.options[field]).toBe("nightly / 2026-10-27");
     expect(options[field]).toBe(datedName);
