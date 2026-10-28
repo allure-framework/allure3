@@ -2,11 +2,13 @@ import {
   type CategoriesConfig,
   type CategoryMatchingData,
   type Matcher,
+  type NameContext,
   compilePredicate,
+  resolveName,
 } from "@allurereport/core-api";
 import type { Config } from "@allurereport/plugin-api";
 
-export const resolveCategories = (value: Config["categories"]): CategoriesConfig | undefined => {
+export const resolveCategories = (value: Config["categories"], context: NameContext): CategoriesConfig | undefined => {
   if (value === undefined || value === false) {
     return value;
   }
@@ -37,6 +39,11 @@ export const resolveCategories = (value: Config["categories"]): CategoriesConfig
     const { matchers } = rule;
     return {
       ...rule,
+      name: resolveName(
+        rule.name,
+        `${Array.isArray(value) ? "categories" : "categories.rules"}[${index}].name`,
+        context,
+      )!,
       matchers: Array.isArray(matchers)
         ? matchers.map((matcher, matcherIndex) => resolveMatcher(matcher, `${path}[${matcherIndex}]`))
         : matchers === undefined
