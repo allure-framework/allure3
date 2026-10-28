@@ -9,7 +9,8 @@ param(
 $ErrorActionPreference = "Stop"
 
 function Write-FixtureTrace([string]$Stage) {
-    Add-Content -LiteralPath $TracePath -Value ("{0:o} powershell pid={1} {2}" -f [DateTime]::UtcNow, $PID, $Stage) -Encoding UTF8
+    $line = "{0:o} powershell pid={1} {2}" -f [DateTime]::UtcNow, $PID, $Stage
+    [System.IO.File]::AppendAllText($TracePath, $line + [Environment]::NewLine)
 }
 
 Write-FixtureTrace "script started"
