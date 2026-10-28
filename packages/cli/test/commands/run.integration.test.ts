@@ -1878,8 +1878,17 @@ console.log(\`selected selectors: \${Array.from(selectors).join(",")}\`);
         // to create separate console output buffers on Windows.
         // Capturing stdout/stderr through redirection would change console to pipes,
         // which cannot prove --ignore-logs actually works.
+        type CommandError = Error & {
+          code?: number | string | null;
+          killed?: boolean;
+          signal?: string | null;
+          stderr?: string;
+          stdout?: string;
+        };
+        let commandError: CommandError | undefined;
+        let result: Awaited<ReturnType<typeof runCommand>> = { stdout: "", stderr: "" };
         try {
-          await runCommand(
+          result = await runCommand(
             "powershell.exe",
             [
               "-NoProfile",
@@ -1898,25 +1907,26 @@ console.log(\`selected selectors: \${Array.from(selectors).join(",")}\`);
             { timeout: 40_000, windowsHide: true },
           );
         } catch (error) {
-          const commandError = error as Error & {
-            code?: number | string | null;
-            killed?: boolean;
-            signal?: string | null;
-            stderr?: string;
-            stdout?: string;
+          commandError = error as CommandError;
+          result = {
+            stdout: commandError.stdout ?? "",
+            stderr: commandError.stderr ?? "",
           };
-          const trace = await readFile(tracePath, "utf8").catch(() => "<trace file was not created>");
-          const diagnostics = [
-            `code: ${String(commandError.code)}`,
-            `signal: ${String(commandError.signal)}`,
-            `killed: ${String(commandError.killed)}`,
-            `stdout: ${commandError.stdout || "<empty>"}`,
-            `stderr: ${commandError.stderr || "<empty>"}`,
-            "trace:",
-            trace,
-          ].join("\n");
+        }
+        const trace = await readFile(tracePath, "utf8").catch(() => "<trace file was not created>");
+        const diagnostics = [
+          `code: ${String(commandError ? commandError.code : 0)}`,
+          `signal: ${String(commandError?.signal ?? null)}`,
+          `killed: ${String(commandError?.killed ?? false)}`,
+          `stdout: ${result.stdout || "<empty>"}`,
+          `stderr: ${result.stderr || "<empty>"}`,
+          "trace:",
+          trace,
+        ].join("\n");
 
-          await attachment("console fixture timeout diagnostics", diagnostics, "text/plain");
+        console.log(`Console fixture diagnostics (${scenario}):\n${diagnostics}`);
+        await attachment("console fixture diagnostics", diagnostics, "text/plain");
+        if (commandError) {
           commandError.message += `\n\nConsole fixture timeout diagnostics:\n${diagnostics}`;
           commandError.stack = `${commandError.stack ?? commandError.message}\n\nConsole fixture timeout diagnostics:\n${diagnostics}`;
           throw commandError;
