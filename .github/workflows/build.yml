@@ -146,11 +146,19 @@ jobs:
         env:
           ALLURE_RESULTS_DIR: ${{ github.workspace }}/allure-perf-probe-results
         run: yarn workspace @allurereport/core test --config=vitest.perf.config.ts
+      - name: Start TestOps upload with performance probe result
+        run: yarn allure generate --config=./.github/allurerc.testops-probe.mjs ./allure-perf-probe-results --output=./allure-perf-testops-upload
+      - name: Attach main report upload to performance probe launch
+        id: performance-probe-launch
+        run: |
+          node -e 'const { appendFileSync, readFileSync } = require("node:fs"); const summary = JSON.parse(readFileSync("./allure-perf-testops-upload/summary.json", "utf8")); const launchId = Number(new URL(summary.remoteHref).pathname.split("/").filter(Boolean).at(-1)); if (!Number.isInteger(launchId) || launchId <= 0) throw new Error("TestOps summary does not contain a valid launch id"); appendFileSync(process.env.GITHUB_OUTPUT, `launch-id=${launchId}\n`);'
       - name: Prepare report metrics
         run: |
           mkdir -p ./allure-perf-results
           cp ./allure-perf-probe-results/*-perf.json ./allure-perf-results/
       - name: Generate report
+        env:
+          ALLURE_LAUNCH_ID: ${{ steps.performance-probe-launch.outputs.launch-id }}
         run: yarn allure generate --config=./allurerc.mjs --dump="allure-results-*/*.zip" ./allure-perf-results --output=./allure-report
       - name: Allure Report Official
         if: ${{ !cancelled() }}

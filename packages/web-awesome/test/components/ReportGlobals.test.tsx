@@ -1,6 +1,6 @@
 import { signal } from "@preact/signals";
-import { cleanup, render, screen } from "@testing-library/preact";
-import { epic, feature, label, story } from "allure-js-commons";
+import { cleanup, fireEvent, render, screen } from "@testing-library/preact";
+import { allureId, epic, feature, label, story } from "allure-js-commons";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 beforeEach(async () => {
@@ -42,8 +42,20 @@ const setupGlobalsComponent = async (data: Record<string, unknown>, selectedEnvi
     globalsStore,
   }));
   vi.doMock("@/components/MetadataButton", () => ({
-    MetadataButton: ({ title, counter }: { title?: string; counter?: number }) => (
-      <div>{counter === undefined ? title : `${title} (${counter})`}</div>
+    MetadataButton: ({
+      title,
+      counter,
+      isOpened,
+      setIsOpen,
+    }: {
+      title?: string;
+      counter?: number;
+      isOpened?: boolean;
+      setIsOpen?: (opened: boolean) => void;
+    }) => (
+      <button type="button" aria-expanded={isOpened} onClick={() => setIsOpen?.(!isOpened)}>
+        {counter === undefined ? title : `${title} (${counter})`}
+      </button>
     ),
   }));
   vi.doMock("@/components/TestResult/TrSteps/TrAttachment", () => ({
@@ -239,5 +251,55 @@ describe("components > Report globals", () => {
     expect(screen.queryByText('environment: "default" (1)')).not.toBeInTheDocument();
     expect(screen.queryByText('environment: "Prod" (1)')).not.toBeInTheDocument();
     expect(screen.getByText("QA failure")).toBeInTheDocument();
+  }, 15000);
+
+  it("should collapse and expand global error environment groups independently", async () => {
+    await allureId("304053");
+    await story("global-errors");
+    await label("coverage", "global-errors");
+
+    await setupGlobalsComponent({
+      errors: [
+        { message: "QA failure one", environment: "QA" },
+        { message: "QA failure two", environment: "QA" },
+        { message: "Prod failure", environment: "Prod" },
+      ],
+      errorsByEnv: {
+        qa_env: [
+          { message: "QA failure one", environment: "QA" },
+          { message: "QA failure two", environment: "QA" },
+        ],
+        prod_env: [{ message: "Prod failure", environment: "Prod" }],
+      },
+    });
+
+    const { ReportGlobalErrors } = await import("@/components/ReportGlobalErrors");
+
+    render(<ReportGlobalErrors />);
+
+    const qaButton = screen.getByRole("button", { name: 'environment: "QA" (2)' });
+    const prodButton = screen.getByRole("button", { name: 'environment: "Prod" (1)' });
+
+    expect(qaButton).toHaveAttribute("aria-expanded", "true");
+    expect(prodButton).toHaveAttribute("aria-expanded", "true");
+
+    fireEvent.click(qaButton);
+    expect(screen.queryByText("QA failure one")).not.toBeInTheDocument();
+    expect(screen.queryByText("QA failure two")).not.toBeInTheDocument();
+    expect(screen.getByText("Prod failure")).toBeInTheDocument();
+    expect(prodButton).toHaveAttribute("aria-expanded", "true");
+
+    fireEvent.click(qaButton);
+    expect(screen.getByText("QA failure one")).toBeInTheDocument();
+    expect(screen.getByText("QA failure two")).toBeInTheDocument();
+    expect(screen.getByText("Prod failure")).toBeInTheDocument();
+
+    fireEvent.click(prodButton);
+    expect(screen.queryByText("Prod failure")).not.toBeInTheDocument();
+    expect(screen.getByText("QA failure one")).toBeInTheDocument();
+    expect(screen.getByText("QA failure two")).toBeInTheDocument();
+
+    fireEvent.click(prodButton);
+    expect(screen.getByText("Prod failure")).toBeInTheDocument();
   }, 15000);
 });
