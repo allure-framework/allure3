@@ -1036,7 +1036,9 @@ describe("WindowsProcessSupervisor", { skip: process.platform !== "win32", timeo
   });
 
   it("forwards the environment variables", async ({ onTestFinished }) => {
-    onTestFinished(() => vi.unstubAllEnvs());
+    onTestFinished(() => {
+      vi.unstubAllEnvs();
+    });
     vi.stubEnv("ALLURE_SUPERVISOR_TEST_INHERITED", "inherited value");
     vi.stubEnv("foo", "parent value");
 
