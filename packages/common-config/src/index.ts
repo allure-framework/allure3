@@ -99,6 +99,7 @@ export const defaultTasksConfig = (
         input: [
           { auto: true },
           { pattern: "!.yarn/install-state.gz", base: "workspace" },
+          { pattern: "!allure-report/**", base: "workspace" },
           `!${allureResultsDir}/**`,
           "!.vitest/**",
           "!test-results/**",

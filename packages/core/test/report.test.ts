@@ -146,6 +146,7 @@ describe("report", () => {
     const config = await resolveConfig(
       {
         name: "Allure Report",
+        output: "out/allure-report",
       },
       { plugins: {} },
     );
