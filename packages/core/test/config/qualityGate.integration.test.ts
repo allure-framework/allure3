@@ -2,7 +2,7 @@ import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
-import type { TestResult } from "@allurereport/core-api";
+import type { TestResult, TestStatus } from "@allurereport/core-api";
 import { afterEach, describe, expect, it } from "vite-plus/test";
 
 import { readConfig } from "../../src/config.js";
@@ -15,8 +15,25 @@ const load = async (source: string) => {
   await writeFile(join(cwd, "allurerc.yml"), source);
   return readConfig(cwd, undefined, { plugins: {} });
 };
-const testResult = (id: string, status = "passed", extra = {}) =>
-  ({ id, name: id, status, labels: [], ...extra }) as TestResult;
+const testResult = (id: string, status: TestStatus = "passed", extra: Partial<TestResult> = {}): TestResult => ({
+  id,
+  name: id,
+  status,
+  testCaseHash: null,
+  parametersHash: "",
+  environmentHash: null,
+  retryHash: null,
+  flaky: false,
+  muted: false,
+  known: false,
+  isRetry: false,
+  labels: [],
+  parameters: [],
+  links: [],
+  steps: [],
+  sourceMetadata: { readerId: "test", metadata: {} },
+  ...extra,
+});
 
 afterEach(async () => {
   await Promise.all(directories.splice(0).map((directory) => rm(directory, { recursive: true, force: true })));
@@ -118,7 +135,7 @@ qualityGate:
 
     const result = await new QualityGate(config.qualityGate!).validate({
       trs: [],
-      metrics: [{ key: "duration", value: 5 }],
+      metrics: [{ id: "duration", key: "duration", value: 5, start: 0, stop: 5 }],
       previousHistory: [{ metrics: { duration: 2 } }],
       environment: "qa",
     });
