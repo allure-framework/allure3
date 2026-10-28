@@ -25,7 +25,7 @@ export type TreeLeaf = {
   resolution?: ResolutionCategory;
   transition?: TestStatusTransition;
   transitionTooltip?: string;
-  tooltips?: Record<string, string>;
+  tooltips?: Partial<Record<string, string>>;
   parameters?: string[];
 };
 

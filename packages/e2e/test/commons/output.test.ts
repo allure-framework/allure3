@@ -26,7 +26,7 @@ test.describe("output", () => {
       reportConfig: {
         name: "Sample allure report",
         appendHistory: false,
-        knownIssuesPath: undefined,
+
         plugins: [
           {
             id: "awesome",
@@ -59,7 +59,7 @@ test.describe("output", () => {
       reportConfig: {
         name: "Sample allure report",
         appendHistory: false,
-        knownIssuesPath: undefined,
+
         plugins: [
           {
             id: "awesome1",
@@ -101,7 +101,7 @@ test.describe("output", () => {
       reportConfig: {
         name: "Sample allure report",
         appendHistory: false,
-        knownIssuesPath: undefined,
+
         plugins: [
           {
             id: "awesome1",

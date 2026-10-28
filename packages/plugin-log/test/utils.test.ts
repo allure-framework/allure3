@@ -207,7 +207,7 @@ describe("utils", () => {
       printQualityGateResults(fixture);
 
       // eslint-disable-next-line no-console
-      const result = glueConsoleCalls((console.info as MockedFunction<any>).mock.calls);
+      const result = glueConsoleCalls((console.info as MockedFunction<typeof console.info>).mock.calls);
 
       expect(result).toContain("Quality gates");
       expect(result).toContain("maxFailures");
@@ -259,7 +259,9 @@ describe("utils", () => {
       });
 
       // eslint-disable-next-line no-console
-      const infoCalls = (console.info as MockedFunction<any>).mock.calls.map(([message]) => message as string);
+      const infoCalls = (console.info as MockedFunction<typeof console.info>).mock.calls.map(
+        ([message]) => message as string,
+      );
       const result = stripAnsi(infoCalls.join("\n"));
 
       expect(result.indexOf("maxFailures")).toBeLessThan(result.indexOf("maxRetries"));
@@ -300,7 +302,9 @@ describe("utils", () => {
       printQualityGateResults(fixture);
 
       // eslint-disable-next-line no-console
-      const resultLines = (console.info as MockedFunction<any>).mock.calls.map(([message]) => stripAnsi(message));
+      const resultLines = (console.info as MockedFunction<typeof console.info>).mock.calls.map(([message]) =>
+        stripAnsi(message),
+      );
       const summary = resultLines.find((line) => line.startsWith("Quality gates:"));
 
       expect(summary).toBe("Quality gates: 2 passed");
@@ -334,7 +338,7 @@ describe("utils", () => {
       printGlobalErrors(fixture);
 
       // eslint-disable-next-line no-console
-      const result = glueConsoleCalls((console.info as MockedFunction<any>).mock.calls);
+      const result = glueConsoleCalls((console.info as MockedFunction<typeof console.info>).mock.calls);
 
       expect(result).toContain("Global errors");
       expect(result).toContain("⨯ Global setup failed");
@@ -351,7 +355,9 @@ describe("utils", () => {
       });
 
       // eslint-disable-next-line no-console
-      const infoCalls = (console.info as MockedFunction<any>).mock.calls.map(([message]) => message as string);
+      const infoCalls = (console.info as MockedFunction<typeof console.info>).mock.calls.map(
+        ([message]) => message as string,
+      );
 
       expect(infoCalls).toContain("  \u001B[31m⨯\u001B[39m \u001B[31mGlobal setup failed\u001B[39m");
       expect(infoCalls).toContain("Global errors: \u001B[31m1 failed\u001B[39m");
@@ -371,7 +377,7 @@ describe("utils", () => {
       printGlobalErrors(fixture);
 
       // eslint-disable-next-line no-console
-      const withoutTrace = glueConsoleCalls((console.info as MockedFunction<any>).mock.calls);
+      const withoutTrace = glueConsoleCalls((console.info as MockedFunction<typeof console.info>).mock.calls);
 
       expect(withoutTrace).not.toContain("at setup.ts:1:1");
 
@@ -379,7 +385,7 @@ describe("utils", () => {
       printGlobalErrors(fixture, { withTrace: true });
 
       // eslint-disable-next-line no-console
-      const withTrace = glueConsoleCalls((console.info as MockedFunction<any>).mock.calls);
+      const withTrace = glueConsoleCalls((console.info as MockedFunction<typeof console.info>).mock.calls);
 
       expect(withTrace).toContain("Error: Global setup failed");
       expect(withTrace).toContain("at setup.ts:1:1");
@@ -392,7 +398,9 @@ describe("utils", () => {
       printGlobalErrors([{}, { message: "" }, { message: " \n " }]);
 
       // eslint-disable-next-line no-console
-      const resultLines = (console.info as MockedFunction<any>).mock.calls.map(([message]) => stripAnsi(message));
+      const resultLines = (console.info as MockedFunction<typeof console.info>).mock.calls.map(([message]) =>
+        stripAnsi(message),
+      );
 
       expect(resultLines.filter((line) => line === "  ⨯ No message provided")).toHaveLength(3);
     });
@@ -433,7 +441,7 @@ describe("utils", () => {
       printTest(fixture);
 
       // eslint-disable-next-line no-console
-      const result = glueConsoleCalls((console.info as MockedFunction<any>).mock.calls);
+      const result = glueConsoleCalls((console.info as MockedFunction<typeof console.info>).mock.calls);
 
       expect(result).toMatchSnapshot();
     });
@@ -470,7 +478,7 @@ describe("utils", () => {
       printTest(fixture);
 
       // eslint-disable-next-line no-console
-      const result = glueConsoleCalls((console.info as MockedFunction<any>).mock.calls);
+      const result = glueConsoleCalls((console.info as MockedFunction<typeof console.info>).mock.calls);
 
       expect(result).toMatchSnapshot();
     });
@@ -509,7 +517,7 @@ describe("utils", () => {
       printTest(fixture, { allSteps: true });
 
       // eslint-disable-next-line no-console
-      const result = glueConsoleCalls((console.info as MockedFunction<any>).mock.calls);
+      const result = glueConsoleCalls((console.info as MockedFunction<typeof console.info>).mock.calls);
 
       expect(result).toMatchSnapshot();
     });
@@ -551,7 +559,7 @@ describe("utils", () => {
       printTest(fixture);
 
       // eslint-disable-next-line no-console
-      const result = glueConsoleCalls((console.info as MockedFunction<any>).mock.calls);
+      const result = glueConsoleCalls((console.info as MockedFunction<typeof console.info>).mock.calls);
 
       expect(result).toMatchSnapshot();
     });
@@ -580,7 +588,7 @@ describe("utils", () => {
       });
 
       // eslint-disable-next-line no-console
-      const result = glueConsoleCalls((console.info as MockedFunction<any>).mock.calls);
+      const result = glueConsoleCalls((console.info as MockedFunction<typeof console.info>).mock.calls);
 
       expect(result).toMatchSnapshot();
     });

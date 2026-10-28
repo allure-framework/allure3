@@ -97,7 +97,7 @@ export const metricRows = (data: MetricsWidgetData): MetricRow[] => {
         .map(({ metrics }) => metrics[key])
         .filter((value): value is number => Number.isFinite(value));
       const previousValue = latestPreviousValue(history, key);
-      const delta = Number.isFinite(previousValue) ? value - previousValue : undefined;
+      const delta = previousValue !== undefined && Number.isFinite(previousValue) ? value - previousValue : undefined;
 
       return {
         ...metric,
@@ -150,7 +150,7 @@ export const metricHistoryRows = (data: MetricsWidgetData, key: string): MetricH
         value,
       };
     })
-    .filter((row): row is Omit<MetricHistoryRow, "delta"> => Boolean(row));
+    .filter((row): row is Omit<MetricHistoryRow, "delta"> => !!row);
 
   return rows.map((row, index) => {
     const previousValue = rows[index - 1]?.value;

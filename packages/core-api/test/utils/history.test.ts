@@ -18,9 +18,19 @@ beforeEach(async () => {
 
 describe("history utils", () => {
   it("should select the first matching history candidate for each datapoint", () => {
-    const primaryHistoryResult = { id: "primary", name: "primary", status: "passed", url: "https://primary" };
-    const fallbackHistoryResult = { id: "fallback", name: "fallback", status: "failed", url: "https://fallback" };
-    const historyDataPoints = [
+    const primaryHistoryResult: HistoryTestResult = {
+      id: "primary",
+      name: "primary",
+      status: "passed",
+      url: "https://primary",
+    };
+    const fallbackHistoryResult: HistoryTestResult = {
+      id: "fallback",
+      name: "fallback",
+      status: "failed",
+      url: "https://fallback",
+    };
+    const historyDataPoints: HistoryDataPoint[] = [
       {
         uuid: "first",
         name: "Entry 1",
@@ -53,7 +63,7 @@ describe("history utils", () => {
   });
 
   it("should ignore missing history test results while selecting candidates", () => {
-    const historyDataPoints = [
+    const historyDataPoints: HistoryDataPoint[] = [
       {
         uuid: "first",
         name: "Entry 1",
@@ -68,8 +78,13 @@ describe("history utils", () => {
   });
 
   it("should not mutate selected history entries", () => {
-    const historyTestResult = { id: "primary", name: "primary", status: "passed", url: "https://history" };
-    const historyDataPoints = [
+    const historyTestResult: HistoryTestResult = {
+      id: "primary",
+      name: "primary",
+      status: "passed",
+      url: "https://history",
+    };
+    const historyDataPoints: HistoryDataPoint[] = [
       {
         uuid: "first",
         name: "Entry 1",
@@ -238,8 +253,8 @@ describe("history utils", () => {
   });
 
   it("should normalize nested history urls from datapoint url when needed", () => {
-    const historyTestResult = { id: "primary", name: "primary", status: "passed", url: "" };
-    const historyDataPoint = {
+    const historyTestResult: HistoryTestResult = { id: "primary", name: "primary", status: "passed", url: "" };
+    const historyDataPoint: HistoryDataPoint = {
       uuid: "first",
       name: "Entry 1",
       timestamp: 1,
@@ -287,7 +302,7 @@ describe("history utils", () => {
   });
 
   it("should normalize missing history fields", () => {
-    const historyDataPoint = {
+    const historyDataPoint: HistoryDataPoint = {
       uuid: "first",
       name: "Entry 1",
       timestamp: 1,

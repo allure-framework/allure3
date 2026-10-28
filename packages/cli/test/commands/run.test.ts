@@ -32,7 +32,7 @@ const { exitMock, processStream, nameWatcherMock, globWatcherMock } = vi.hoisted
 });
 
 vi.mock("node:console", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("node:console")>();
+  const actual = await importOriginal<typeof import("node:console") & { default: typeof import("node:console") }>();
   const methods = {
     log: vi.fn(),
     debug: vi.fn(),

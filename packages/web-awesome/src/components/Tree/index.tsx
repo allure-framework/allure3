@@ -84,7 +84,7 @@ export const TreeList = () => {
 
   const localizers = useMemo(
     () => ({
-      tooltip: (key: string, options: Record<string, string>) => tooltip(`description.${key}`, options),
+      tooltip: (key: string, options?: Record<string, string | number>) => tooltip(`description.${key}`, options),
     }),
     [tooltip],
   );

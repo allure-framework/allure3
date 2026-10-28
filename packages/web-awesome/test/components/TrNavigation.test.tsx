@@ -137,11 +137,15 @@ describe("components > TestResult > TrNavigation", () => {
     const menu = screen.getByTestId("test-result-copy-menu");
     fireEvent.mouseEnter(menu);
 
-    await act(() => vi.advanceTimersByTimeAsync(300));
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(300);
+    });
     expect(screen.getByTestId("test-result-copy-fullname")).toBeInTheDocument();
 
     fireEvent.mouseLeave(menu);
-    await act(() => vi.advanceTimersByTimeAsync(300));
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(300);
+    });
     expect(screen.queryByTestId("test-result-copy-fullname")).not.toBeInTheDocument();
   });
 

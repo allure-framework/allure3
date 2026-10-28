@@ -36,7 +36,7 @@ export const TestResultError: FunctionalComponent<TestError> = ({ message, trace
             size={"s"}
             icon={allureIcons.lineGeneralCopy3}
             onClick={() => {
-              copyToClipboard(message);
+              copyToClipboard(message ?? "");
             }}
           />
         </TooltipWrapper>

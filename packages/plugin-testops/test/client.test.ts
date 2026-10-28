@@ -637,7 +637,7 @@ describe("testops http client", () => {
       await client.createLaunch(fixtures.launchName, fixtures.launchTags);
       await client.startUpload(fixtures.ci);
 
-      const call = AxiosMock.post.mock.calls.find(([url]: [string]) => url === "/api/upload/start");
+      const call = AxiosMock.post.mock.calls.find(([url]) => url === "/api/upload/start");
       expect(call?.[1].job).not.toHaveProperty("parameters");
       expect(call?.[1].jobRun).not.toHaveProperty("parameters");
     });
@@ -692,7 +692,7 @@ describe("testops http client", () => {
       await client.createLaunch(fixtures.launchName, fixtures.launchTags);
       await client.startUpload(fixtures.ci);
 
-      const call = AxiosMock.post.mock.calls.find(([url]: [string]) => url === "/api/upload/start");
+      const call = AxiosMock.post.mock.calls.find(([url]) => url === "/api/upload/start");
       expect(call?.[1].job).not.toHaveProperty("parameters");
 
       vi.unstubAllEnvs();
@@ -731,7 +731,7 @@ describe("testops http client", () => {
         expect.anything(),
       );
 
-      const call = AxiosMock.post.mock.calls.find(([url]: [string]) => url === "/api/upload/start");
+      const call = AxiosMock.post.mock.calls.find(([url]) => url === "/api/upload/start");
       expect(call?.[1].jobRun).not.toHaveProperty("parameters");
     });
 
@@ -818,7 +818,7 @@ describe("testops http client", () => {
 
       await expect(client.startUpload(fixtures.ci)).resolves.not.toThrow();
 
-      const call = AxiosMock.post.mock.calls.find(([url]: [string]) => url === "/api/upload/start");
+      const call = AxiosMock.post.mock.calls.find(([url]) => url === "/api/upload/start");
       expect(call?.[1].job).not.toHaveProperty("parameters");
     });
 
@@ -842,7 +842,7 @@ describe("testops http client", () => {
 
       await expect(client.startUpload(fixtures.ci)).rejects.toThrow();
 
-      expect(AxiosMock.post.mock.calls.some(([url]: [string]) => url === "/api/upload/start")).toBe(false);
+      expect(AxiosMock.post.mock.calls.some(([url]) => url === "/api/upload/start")).toBe(false);
     });
   });
 
@@ -1287,7 +1287,7 @@ describe("testops http client", () => {
           headers: expect.objectContaining({ Authorization: `api-token ${fixtures.accessToken}` }),
         }),
       );
-      const sessionCall = AxiosMock.post.mock.calls.find(([url]: [string]) => url === "/api/upload/session");
+      const sessionCall = AxiosMock.post.mock.calls.find(([url]) => url === "/api/upload/session");
       expect(sessionCall?.[2]?.params).toBeUndefined();
     });
 
@@ -1310,7 +1310,7 @@ describe("testops http client", () => {
       await client.createLaunch(fixtures.launchName, fixtures.launchTags);
 
       await expect(client.createSession()).rejects.toThrow(`Launch ${fixtures.launch.id} is closed`);
-      expect(AxiosMock.post.mock.calls.some(([url]: [string]) => url === "/api/upload/session")).toBe(false);
+      expect(AxiosMock.post.mock.calls.some(([url]) => url === "/api/upload/session")).toBe(false);
     });
 
     it("should reopen a closed launch and proceed when reopenClosedLaunch is set", async () => {
@@ -1339,7 +1339,7 @@ describe("testops http client", () => {
           headers: expect.objectContaining({ Authorization: `api-token ${fixtures.accessToken}` }),
         }),
       );
-      expect(AxiosMock.post.mock.calls.some(([url]: [string]) => url === "/api/upload/session")).toBe(true);
+      expect(AxiosMock.post.mock.calls.some(([url]) => url === "/api/upload/session")).toBe(true);
     });
   });
 

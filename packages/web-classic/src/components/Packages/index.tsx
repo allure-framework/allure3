@@ -29,7 +29,7 @@ const Packages = () => {
     <Loadable
       source={testResultStore}
       renderLoader={() => <PageLoader />}
-      transformData={(data) => data[testResultId]}
+      transformData={(data) => (testResultId ? data[testResultId] : undefined)}
       renderError={() => <div />}
       renderData={(testResultItem) => (
         <>

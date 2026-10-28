@@ -26,7 +26,7 @@ export const TestResultNavigation: FunctionalComponent<TestResultNavigationProps
             style={"ghost"}
             size={"s"}
             icon={allureIcons.lineGeneralCopy3}
-            onClick={() => copyToClipboard(fullName)}
+            onClick={() => copyToClipboard(fullName ?? "")}
           />
         </TooltipWrapper>
         <Code tag={"div"} size={"s"} className={styles["test-result-fullName-text"]}>

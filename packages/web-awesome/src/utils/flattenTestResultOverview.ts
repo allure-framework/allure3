@@ -59,7 +59,8 @@ const flattenBodyItems = (
 
   for (const bodyItem of bodyItems) {
     if (bodyItem.type === "step") {
-      const stepId = bodyItem.item.stepId;
+      // Core assigns an id to every converted body step.
+      const stepId = bodyItem.item.stepId!;
       const openedByDefault = isStepOpenedByDefault(policy, bodyItem.item.status, bodyItem.bodyItems);
       const hasContent = hasStepContent(bodyItem);
       const isExpanded = isGroupOpened(stepId, openedByDefault);

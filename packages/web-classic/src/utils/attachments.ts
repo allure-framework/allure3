@@ -1,12 +1,6 @@
 import { fetchFromUrl, normalizeAttachmentContentType } from "@allurereport/web-commons";
 
-export interface Attachments {
-  id?: string;
-  ext?: string;
-  contentType?: string;
-}
-
-export const fetchAttachment = async (id: string, ext: string, contentType: string) => {
+export const fetchAttachment = async (id: string, ext: string, contentType?: string) => {
   if (!id && !ext) {
     return;
   }
@@ -42,7 +36,7 @@ export const fetchAttachment = async (id: string, ext: string, contentType: stri
   }
 };
 
-export const attachmentType = (type: string) => {
+export const attachmentType = (type?: string) => {
   const normalizedType = normalizeAttachmentContentType(type);
 
   switch (normalizedType) {

@@ -24,7 +24,7 @@ import * as styles from "./styles.scss";
 const loadComparison = () =>
   import(/* webpackChunkName: "error-diff" */ "./TrDiff").then((module) => ({ default: module.TrDiff }));
 
-const Comparison = (props: Pick<TestError, "actual" | "expected">) => {
+const Comparison = (props: Required<Pick<TestError, "actual" | "expected">>) => {
   const { t } = useI18n("controls");
   return (
     <LazyComponent
@@ -64,15 +64,17 @@ export const TrError: FunctionalComponent<
   const { t } = useI18n("ui");
   const { t: tooltip } = useI18n("controls");
   const { t: empty } = useI18n("empty");
-  const hasTrace = Boolean(trace?.length);
+  const hasTrace = !!trace?.length;
   const hasDiff = hasErrorDiff({ actual, expected });
   const toggleTrace = () => setIsOpen((open) => !open);
-  const openDiff = () =>
+  const openDiff = () => {
+    if (!actual || !expected) return;
     openModal({
       title: tooltip("comparison"),
       data: { actual, expected },
       component: <Comparison actual={actual} expected={expected} />,
     });
+  };
   const sanitizedMessage = showMessage && message ? ansiStatusDetailsToHTML(message) : "";
 
   return (

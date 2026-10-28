@@ -24,7 +24,7 @@ export type ModalGalleryProps = {
 
 export interface ModalDataProps<T = any> {
   data?: T;
-  component: VNode;
+  component: VNode | null;
   preview?: boolean;
   isModalOpen?: boolean;
   closeModal?: () => void;

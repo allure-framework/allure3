@@ -1,4 +1,4 @@
-/// <reference types="allure-vitest" />
+import * as allure from "allure-js-commons";
 import { epic, feature, label, story } from "allure-js-commons";
 import { beforeEach, it } from "vite-plus/test";
 

@@ -13,7 +13,13 @@ import type { ReportOptions } from "../../../types";
 
 import * as styles from "./styles.scss";
 
-const tabs = [
+const tabs: {
+  tabName: string;
+  title: string;
+  icon: keyof typeof allureIcons;
+  active: boolean;
+  comingSoon?: boolean;
+}[] = [
   { tabName: "overview", title: "Overview", icon: "lineGeneralHomeLine", active: false },
   { tabName: "behaviors", title: "Behaviors", icon: "lineFilesClipboardCheck", active: false },
   { tabName: "categories", title: "Categories", icon: "lineFilesFile2", active: false },

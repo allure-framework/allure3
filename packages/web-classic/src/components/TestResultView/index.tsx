@@ -11,14 +11,14 @@ export const TestResultView = () => {
   const { id: testResultId } = params;
 
   useEffect(() => {
-    fetchTestResult(testResultId);
+    if (testResultId) fetchTestResult(testResultId);
   }, []);
 
   return (
     <Loadable
       source={testResultStore}
       renderLoader={() => <PageLoader />}
-      transformData={(data) => data[testResultId]}
+      transformData={(data) => (testResultId ? data[testResultId] : undefined)}
       renderError={() => <TestResultEmpty />}
       renderData={(testResultItem) => (
         <>

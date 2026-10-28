@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from "vite-plus/test";
 import { allureResultsDirectoriesGlobWatcher } from "../../../src/commands/commons/resultsDiscovery.js";
 
 const { watchMock, differenceMock, findDirectoriesByGlobsMock } = vi.hoisted(() => ({
-  watchMock: vi.fn((initial: () => Promise<void>) => {
+  watchMock: vi.fn((initial: () => Promise<void>, _poll: () => Promise<void>) => {
     void initial();
     return {
       initialScan: vi.fn().mockResolvedValue(undefined),

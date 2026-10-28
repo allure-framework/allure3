@@ -31,12 +31,12 @@
     "lint": "yarn workspaces foreach -Avvp run lint",
     "lint:fix": "yarn workspaces foreach -Avvp run lint:fix",
     "lint:type": "vp lint --type-aware",
-    "verify": "yarn check --quiet && yarn typecheck --quiet",
+    "verify": "yarn check --quiet",
     "format:check": "vp fmt --check",
     "format:write": "vp fmt --write",
     "allure:size": "node ./scripts/allure-bundle-size.mjs --progress --emojis --include-closure",
     "allure:size:docker": "bash ./scripts/run-allure-bundle-size-docker.sh",
-    "typecheck": "node ./scripts/check-types.mjs"
+    "typecheck": "vp lint --type-check"
   },
   "devDependencies": {
     "@playwright/test": "^1.62.1",

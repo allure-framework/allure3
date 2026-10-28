@@ -11,6 +11,9 @@ describe("utils > tree", () => {
       nodeId: "tr-1",
       name: "failed test",
       resolution: "issue",
+      status: "failed",
+      flaky: false,
+      retry: false,
     });
 
     expect(tooltip).toHaveBeenCalledWith("resolution.issue");

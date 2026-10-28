@@ -27,7 +27,7 @@ const makeLeaf = (id: string, status: "passed" | "failed" = "passed"): ReportTre
     start: 0,
     groupOrder: 0,
     flaky: false,
-    transition: false,
+    transition: undefined,
     retry: false,
     retriesCount: 0,
   }) as ReportTreeLeaf;

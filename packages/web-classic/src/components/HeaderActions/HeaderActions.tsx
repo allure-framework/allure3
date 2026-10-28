@@ -36,7 +36,7 @@ export const HeaderActions = () => {
             renderData={(stats) => {
               const allStatuses = statusesList
                 .map((status) => ({ status, value: stats[status] }))
-                .filter(({ value }) => value)
+                .filter((entry): entry is typeof entry & { value: number } => !!entry.value)
                 .map(({ status, value }) => (
                   <Tab data-testid={`tab-${status}`} key={status} id={status}>
                     {capitalize(t(status) ?? status)} <Counter count={value} size="s" status={status} />

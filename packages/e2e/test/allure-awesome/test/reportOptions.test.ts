@@ -44,7 +44,7 @@ test.describe("allure-awesome", () => {
         reportConfig: {
           name: "Sample allure report",
           appendHistory: false,
-          knownIssuesPath: undefined,
+
           plugins: [
             {
               id: "awesome",
@@ -70,7 +70,7 @@ test.describe("allure-awesome", () => {
           reportConfig: {
             name: "Sample allure report",
             appendHistory: false,
-            knownIssuesPath: undefined,
+
             plugins: [
               {
                 id: "awesome",
@@ -97,7 +97,7 @@ test.describe("allure-awesome", () => {
           reportConfig: {
             name: "Sample allure report",
             appendHistory: false,
-            knownIssuesPath: undefined,
+
             plugins: [
               {
                 id: "awesome",
@@ -120,7 +120,7 @@ test.describe("allure-awesome", () => {
           reportConfig: {
             name: "Sample allure report",
             appendHistory: false,
-            knownIssuesPath: undefined,
+
             plugins: [
               {
                 id: "awesome",
@@ -148,16 +148,16 @@ test.describe("allure-awesome", () => {
         reportConfig: {
           name: "Sample allure report",
           appendHistory: false,
-          knownIssuesPath: undefined,
+
           plugins: [
             {
               id: "awesome",
               enabled: true,
               plugin: new AwesomePlugin({
-                filter: ({ name }) => name === "0 sample passed test",
+                filter: ({ name }: { name: string }) => name === "0 sample passed test",
               }),
               options: {
-                filter: ({ name }) => name === "0 sample passed test",
+                filter: ({ name }: { name: string }) => name === "0 sample passed test",
               },
             },
           ],

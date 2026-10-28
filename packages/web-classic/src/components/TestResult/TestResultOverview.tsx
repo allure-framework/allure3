@@ -26,16 +26,16 @@ export const TestResultOverview: FunctionalComponent<TestResultOverviewProps> = 
           <TestResultError {...error} />
         </div>
       )}
-      {Boolean(parameters?.length) && <TestResultParameters parameters={parameters} />}
+      {parameters && parameters.length > 0 && <TestResultParameters parameters={parameters} />}
       {Boolean(groupedLabels && Object.keys(groupedLabels || {})?.length) && (
         <TestResultMetadata testResult={testResult} />
       )}
-      {Boolean(links?.length) && <TestResultLinks links={links} />}
-      {Boolean(descriptionHtml) && <TestResultDescription descriptionHtml={descriptionHtml} />}
+      {links && links.length > 0 && <TestResultLinks links={links} />}
+      {descriptionHtml && <TestResultDescription descriptionHtml={descriptionHtml} />}
       <div className={styles["test-results"]}>
-        {Boolean(setup?.length) && <TestResultSetup setup={setup} />}
-        {Boolean(steps?.length) && <TestResultSteps steps={steps} />}
-        {Boolean(teardown?.length) && <TestResultTeardown teardown={teardown} />}
+        {setup && setup.length > 0 && <TestResultSetup setup={setup} />}
+        {steps && steps.length > 0 && <TestResultSteps steps={steps} />}
+        {teardown && teardown.length > 0 && <TestResultTeardown teardown={teardown} />}
       </div>
     </>
   );

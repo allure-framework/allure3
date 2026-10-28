@@ -26,8 +26,16 @@ const baseTestResult: Pick<
   | "links"
   | "steps"
   | "sourceMetadata"
+  | "testCaseHash"
+  | "parametersHash"
+  | "environmentHash"
+  | "retryHash"
 > = {
   id: "tr-1",
+  testCaseHash: null,
+  parametersHash: "",
+  environmentHash: null,
+  retryHash: null,
   name: "Test",
   flaky: false,
   muted: false,

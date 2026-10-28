@@ -67,7 +67,7 @@ export const categoriesRoute = computed(() =>
 export const testResultRoute = computed(() =>
   createRoute<{ testResultId: string; tab?: string }>("/:testResultId/:tab?", ({ params }) => {
     return (
-      params.testResultId &&
+      !!params.testResultId &&
       params.testResultId !== "categories" &&
       !SECTION_ROUTE_NAMES.includes(params.testResultId as SectionRouteName) &&
       !rootTabs.includes(params.testResultId)

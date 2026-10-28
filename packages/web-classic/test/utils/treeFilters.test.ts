@@ -2,7 +2,7 @@ import { epic, feature, label, story } from "allure-js-commons";
 import { beforeEach, describe, expect, it } from "vite-plus/test";
 
 import { createRecursiveTree, filterLeaves } from "../../src/utils/treeFilters.js";
-import type { ReportTestResult } from "../../types.js";
+import type { ReportTreeLeaf, ReportTreeGroup } from "../../types.js";
 
 beforeEach(async () => {
   await epic("coverage");
@@ -11,24 +11,39 @@ beforeEach(async () => {
   await label("coverage", "filters");
 });
 
+const makeLeaf = (overrides: Partial<ReportTreeLeaf>): ReportTreeLeaf => ({
+  nodeId: overrides.name ?? "leaf",
+  name: "leaf",
+  status: "unknown",
+  flaky: false,
+  retry: false,
+  ...overrides,
+});
+const makeGroup = (overrides: Partial<ReportTreeGroup>): ReportTreeGroup => ({
+  nodeId: overrides.name ?? "group",
+  name: "group",
+  statistic: { total: 0 },
+  ...overrides,
+});
+
 describe("utils > treeFilters", () => {
   describe("filterLeaves", () => {
     it("returns the leaves as is when no filter options are provided", () => {
       const baseDate = Date.now();
       const leaves = ["a1", "b2", "c3"];
       const leavesById = {
-        a1: {
+        a1: makeLeaf({
           name: "a1",
           start: baseDate,
-        } as ReportTestResult,
-        b2: {
+        }),
+        b2: makeLeaf({
           name: "b2",
           start: baseDate + 1000,
-        } as ReportTestResult,
-        c3: {
+        }),
+        c3: makeLeaf({
           name: "c3",
           start: baseDate + 2000,
-        } as ReportTestResult,
+        }),
       };
       const result = filterLeaves(leaves, leavesById, {
         query: "",
@@ -53,21 +68,21 @@ describe("utils > treeFilters", () => {
       const baseDate = Date.now();
       const leaves = ["a1", "b2", "c3"];
       const leavesById = {
-        a1: {
+        a1: makeLeaf({
           name: "a1",
           status: "passed",
           start: baseDate,
-        } as ReportTestResult,
-        b2: {
+        }),
+        b2: makeLeaf({
           name: "b2",
           status: "failed",
           start: baseDate + 1000,
-        } as ReportTestResult,
-        c3: {
+        }),
+        c3: makeLeaf({
           name: "c3",
           status: "passed",
           start: baseDate + 2000,
-        } as ReportTestResult,
+        }),
       };
       const result = filterLeaves(leaves, leavesById, {
         query: "",
@@ -88,21 +103,21 @@ describe("utils > treeFilters", () => {
       const baseDate = Date.now();
       const leaves = ["a1", "b2", "c3"];
       const leavesById = {
-        a1: {
+        a1: makeLeaf({
           name: "a1",
           start: baseDate,
           flaky: true,
-        } as ReportTestResult,
-        b2: {
+        }),
+        b2: makeLeaf({
           name: "b2",
           start: baseDate + 1000,
           flaky: false,
-        } as ReportTestResult,
-        c3: {
+        }),
+        c3: makeLeaf({
           name: "c3",
           start: baseDate + 2000,
           flaky: true,
-        } as ReportTestResult,
+        }),
       };
       const result = filterLeaves(leaves, leavesById, {
         query: "",
@@ -123,24 +138,30 @@ describe("utils > treeFilters", () => {
       const baseDate = Date.now();
       const leaves = ["a1", "b2", "c3"];
       const leavesById = {
-        a1: {
+        a1: makeLeaf({
           name: "a1",
           start: baseDate,
           retry: true,
-        } as ReportTestResult,
-        b2: {
+        }),
+        b2: makeLeaf({
           name: "b2",
           start: baseDate + 1000,
           retry: false,
-        } as ReportTestResult,
-        c3: {
+        }),
+        c3: makeLeaf({
           name: "c3",
           start: baseDate + 2000,
           retry: false,
-        } as ReportTestResult,
+        }),
       };
       const result = filterLeaves(leaves, leavesById, {
+        query: "",
+        status: "total",
+        sortBy: "order",
+        direction: "asc",
         filter: {
+          flaky: false,
+          new: false,
           retry: true,
         },
       });
@@ -151,20 +172,23 @@ describe("utils > treeFilters", () => {
     it("sorts leave by duration in ascending order", () => {
       const leaves = ["a1", "b2", "c3"];
       const leavesById = {
-        a1: {
+        a1: makeLeaf({
           name: "a1",
           duration: 1000,
-        } as ReportTestResult,
-        b2: {
+        }),
+        b2: makeLeaf({
           name: "b2",
           duration: 2000,
-        } as ReportTestResult,
-        c3: {
+        }),
+        c3: makeLeaf({
           name: "c3",
           duration: 3000,
-        } as ReportTestResult,
+        }),
       };
       const result = filterLeaves(leaves, leavesById, {
+        query: "",
+        status: "total",
+        filter: { flaky: false, retry: false, new: false },
         direction: "asc",
         sortBy: "duration",
       });
@@ -179,20 +203,23 @@ describe("utils > treeFilters", () => {
     it("sorts leave by duration in descending order", () => {
       const leaves = ["a1", "b2", "c3"];
       const leavesById = {
-        a1: {
+        a1: makeLeaf({
           name: "a1",
           duration: 1000,
-        } as ReportTestResult,
-        b2: {
+        }),
+        b2: makeLeaf({
           name: "b2",
           duration: 2000,
-        } as ReportTestResult,
-        c3: {
+        }),
+        c3: makeLeaf({
           name: "c3",
           duration: 3000,
-        } as ReportTestResult,
+        }),
       };
       const result = filterLeaves(leaves, leavesById, {
+        query: "",
+        status: "total",
+        filter: { flaky: false, retry: false, new: false },
         direction: "desc",
         sortBy: "duration",
       });
@@ -207,17 +234,20 @@ describe("utils > treeFilters", () => {
     it("sorts leaves by title in ascending order", () => {
       const leaves = ["a1", "b2", "c3"];
       const leavesById = {
-        a1: {
+        a1: makeLeaf({
           name: "a1",
-        } as ReportTestResult,
-        b2: {
+        }),
+        b2: makeLeaf({
           name: "b2",
-        } as ReportTestResult,
-        c3: {
+        }),
+        c3: makeLeaf({
           name: "c3",
-        } as ReportTestResult,
+        }),
       };
       const result = filterLeaves(leaves, leavesById, {
+        query: "",
+        status: "total",
+        filter: { flaky: false, retry: false, new: false },
         direction: "asc",
         sortBy: "alphabet",
       });
@@ -232,17 +262,20 @@ describe("utils > treeFilters", () => {
     it("sorts leaves by title in descending order", () => {
       const leaves = ["a1", "b2", "c3"];
       const leavesById = {
-        a1: {
+        a1: makeLeaf({
           name: "a1",
-        } as ReportTestResult,
-        b2: {
+        }),
+        b2: makeLeaf({
           name: "b2",
-        } as ReportTestResult,
-        c3: {
+        }),
+        c3: makeLeaf({
           name: "c3",
-        } as ReportTestResult,
+        }),
       };
       const result = filterLeaves(leaves, leavesById, {
+        query: "",
+        status: "total",
+        filter: { flaky: false, retry: false, new: false },
         direction: "desc",
         sortBy: "alphabet",
       });
@@ -257,28 +290,31 @@ describe("utils > treeFilters", () => {
     it("sorts leaves by status in ascending order", () => {
       const leaves = ["a1", "b2", "c3", "d4", "e5"];
       const leavesById = {
-        a1: {
+        a1: makeLeaf({
           name: "a1",
           status: "passed",
-        } as ReportTestResult,
-        b2: {
+        }),
+        b2: makeLeaf({
           name: "b2",
           status: "failed",
-        } as ReportTestResult,
-        c3: {
+        }),
+        c3: makeLeaf({
           name: "c3",
           status: "broken",
-        } as ReportTestResult,
-        d4: {
+        }),
+        d4: makeLeaf({
           name: "d4",
           status: "unknown",
-        } as ReportTestResult,
-        e5: {
+        }),
+        e5: makeLeaf({
           name: "e5",
           status: "skipped",
-        } as ReportTestResult,
+        }),
       };
       const result = filterLeaves(leaves, leavesById, {
+        query: "",
+        status: "total",
+        filter: { flaky: false, retry: false, new: false },
         direction: "asc",
         sortBy: "status",
       });
@@ -295,36 +331,39 @@ describe("utils > treeFilters", () => {
     it("sorts leaves by status in descending order", () => {
       const leaves = ["a1", "b2", "c3", "d4", "e5", "f6", "z9"];
       const leavesById = {
-        a1: {
+        a1: makeLeaf({
           name: "a1",
           status: "passed",
-        } as ReportTestResult,
-        b2: {
+        }),
+        b2: makeLeaf({
           name: "b2",
           status: "failed",
-        } as ReportTestResult,
-        c3: {
+        }),
+        c3: makeLeaf({
           name: "c3",
           status: "broken",
-        } as ReportTestResult,
-        d4: {
+        }),
+        d4: makeLeaf({
           name: "d4",
           status: "unknown",
-        } as ReportTestResult,
-        e5: {
+        }),
+        e5: makeLeaf({
           name: "e5",
           status: "skipped",
-        } as ReportTestResult,
-        f6: {
+        }),
+        f6: makeLeaf({
           name: "f6",
           status: "failed",
-        } as ReportTestResult,
-        z9: {
+        }),
+        z9: makeLeaf({
           name: "z9",
           status: "passed",
-        } as ReportTestResult,
+        }),
       };
       const result = filterLeaves(leaves, leavesById, {
+        query: "",
+        status: "total",
+        filter: { flaky: false, retry: false, new: false },
         direction: "desc",
         sortBy: "status",
       });
@@ -344,23 +383,26 @@ describe("utils > treeFilters", () => {
       const baseDate = Date.now();
       const leaves = ["a1", "b2", "c3"];
       const leavesById = {
-        a1: {
+        a1: makeLeaf({
           name: "a1",
           start: baseDate + 2000,
           groupOrder: 3,
-        } as ReportTestResult,
-        b2: {
+        }),
+        b2: makeLeaf({
           name: "b2",
           start: baseDate + 1000,
           groupOrder: 2,
-        } as ReportTestResult,
-        c3: {
+        }),
+        c3: makeLeaf({
           name: "c3",
           start: baseDate,
           groupOrder: 1,
-        } as ReportTestResult,
+        }),
       };
       const result = filterLeaves(leaves, leavesById, {
+        query: "",
+        status: "total",
+        filter: { flaky: false, retry: false, new: false },
         direction: "asc",
         sortBy: "order",
       });
@@ -376,23 +418,26 @@ describe("utils > treeFilters", () => {
       const baseDate = Date.now();
       const leaves = ["a1", "b2", "c3"];
       const leavesById = {
-        a1: {
+        a1: makeLeaf({
           name: "a1",
           start: baseDate + 2000,
           groupOrder: 3,
-        } as ReportTestResult,
-        b2: {
+        }),
+        b2: makeLeaf({
           name: "b2",
           start: baseDate + 1000,
           groupOrder: 2,
-        } as ReportTestResult,
-        c3: {
+        }),
+        c3: makeLeaf({
           name: "c3",
           start: baseDate,
           groupOrder: 1,
-        } as ReportTestResult,
+        }),
       };
       const result = filterLeaves(leaves, leavesById, {
+        query: "",
+        status: "total",
+        filter: { flaky: false, retry: false, new: false },
         direction: "desc",
         sortBy: "order",
       });
@@ -408,39 +453,42 @@ describe("utils > treeFilters", () => {
   describe("createRecursiveTree", () => {
     it("creates recursive tree with filtered and sorted leaves objects", () => {
       const baseDate = Date.now();
-      const group = {
+      const group = makeGroup({
         leaves: ["a1"],
         groups: ["a1"],
-      };
+      });
       const leavesById = {
-        a1: {
+        a1: makeLeaf({
           name: "a1",
           start: baseDate,
-        } as ReportTestResult,
-        b2: {
+        }),
+        b2: makeLeaf({
           name: "b2",
           start: baseDate + 1000,
-        } as ReportTestResult,
-        c3: {
+        }),
+        c3: makeLeaf({
           name: "c3",
           start: baseDate + 2000,
-        } as ReportTestResult,
+        }),
       };
       const groupsById = {
-        a1: {
+        a1: makeGroup({
           leaves: ["b2"],
           groups: ["b2"],
-        },
-        b2: {
+        }),
+        b2: makeGroup({
           leaves: ["c3"],
           groups: [],
-        },
+        }),
       };
       const result = createRecursiveTree({
         group,
         leavesById,
         groupsById,
         filterOptions: {
+          query: "",
+          status: "total",
+          filter: { flaky: false, retry: false, new: false },
           sortBy: "alphabet",
           direction: "asc",
         },
@@ -465,57 +513,57 @@ describe("utils > treeFilters", () => {
     });
 
     it("keeps problem-heavy groups first when sorting by status in descending order", () => {
-      const group = {
+      const group = makeGroup({
         leaves: [],
         groups: ["passedHeavy", "failedAlpha", "brokenGroup", "failedZulu"],
-      };
+      });
       const leavesById = {
-        failedAlphaTest: {
+        failedAlphaTest: makeLeaf({
           name: "failedAlphaTest",
           status: "failed",
-        } as ReportTestResult,
-        failedZuluTest: {
+        }),
+        failedZuluTest: makeLeaf({
           name: "failedZuluTest",
           status: "failed",
-        } as ReportTestResult,
-        brokenTest1: {
+        }),
+        brokenTest1: makeLeaf({
           name: "brokenTest1",
           status: "broken",
-        } as ReportTestResult,
-        brokenTest2: {
+        }),
+        brokenTest2: makeLeaf({
           name: "brokenTest2",
           status: "broken",
-        } as ReportTestResult,
-        passedTest1: {
+        }),
+        passedTest1: makeLeaf({
           name: "passedTest1",
           status: "passed",
-        } as ReportTestResult,
-        passedTest2: {
+        }),
+        passedTest2: makeLeaf({
           name: "passedTest2",
           status: "passed",
-        } as ReportTestResult,
+        }),
       };
       const groupsById = {
-        passedHeavy: {
+        passedHeavy: makeGroup({
           name: "passedHeavy",
           leaves: ["passedTest1", "passedTest2"],
           groups: [],
-        },
-        brokenGroup: {
+        }),
+        brokenGroup: makeGroup({
           name: "brokenGroup",
           leaves: ["brokenTest1", "brokenTest2"],
           groups: [],
-        },
-        failedAlpha: {
+        }),
+        failedAlpha: makeGroup({
           name: "failedAlpha",
           leaves: ["failedAlphaTest"],
           groups: [],
-        },
-        failedZulu: {
+        }),
+        failedZulu: makeGroup({
           name: "failedZulu",
           leaves: ["failedZuluTest"],
           groups: [],
-        },
+        }),
       };
       const result = createRecursiveTree({
         group,

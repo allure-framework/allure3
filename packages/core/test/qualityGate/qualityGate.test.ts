@@ -765,8 +765,9 @@ describe("QualityGate", () => {
       const mockRule: QualityGateRule<number> = {
         rule: "mockRule",
         message: () => "Done",
-        validate: vi.fn(async ({ state, trs }) => {
-          const actual = (state.getResult() ?? 0) + trs.length;
+        validate: vi.fn<QualityGateRule<number>["validate"]>(async ({ state, trs }) => {
+          const previous = state.getResult();
+          const actual = (typeof previous === "number" ? previous : 0) + trs.length;
           const testResults = trs.map(({ id }) => id);
 
           state.setResult(actual, testResults);
@@ -868,9 +869,10 @@ describe("QualityGate", () => {
         rule: "mockRule",
         message: ({ actual, expected }) => `Mock rule failed with ${actual} vs ${expected}`,
         validate: async ({ state }) => {
-          const actual = (state.getResult() ?? 0) + 1;
+          const previous = state.getResult();
+          const actual = (typeof previous === "number" ? previous : 0) + 1;
 
-          state.setResult(actual);
+          state.setResult(actual, []);
 
           return {
             success: true,

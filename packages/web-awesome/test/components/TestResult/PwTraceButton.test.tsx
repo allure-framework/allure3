@@ -1,5 +1,6 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/preact";
 import { epic, feature, label, story } from "allure-js-commons";
+import type { ComponentChildren } from "preact";
 import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 beforeEach(async () => {
@@ -37,8 +38,8 @@ const setup = async ({ canOpenInNewTab, failFetch }: SetupOptions) => {
   }));
   vi.doMock("@allurereport/web-components/core", () => ({
     Button: ({ onClick, text }: { onClick?: () => void; text?: string }) => <button onClick={onClick}>{text}</button>,
-    Text: ({ children }: { children: unknown }) => <div>{children}</div>,
-    TooltipWrapper: ({ children }: { children: unknown }) => <div>{children}</div>,
+    Text: ({ children }: { children: ComponentChildren }) => <div>{children}</div>,
+    TooltipWrapper: ({ children }: { children: ComponentChildren }) => <div>{children}</div>,
     IconButton: ({ onClick }: { onClick?: () => void }) => <button onClick={onClick}>open trace</button>,
     allureIcons: { lineArrowsExpand3: "lineArrowsExpand3" },
   }));
@@ -57,6 +58,9 @@ const setup = async ({ canOpenInNewTab, failFetch }: SetupOptions) => {
     <PwTraceButton
       link={{
         id: "trace-id",
+        originalFileName: "trace.zip",
+        used: true,
+        missed: false,
         ext: ".zip",
         name: "trace",
         contentType: "application/vnd.allure.playwright-trace",

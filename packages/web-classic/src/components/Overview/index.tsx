@@ -26,7 +26,7 @@ const Overview = () => {
         source={chartsStore}
         renderLoader={() => <PageLoader />}
         renderData={(data) => {
-          const charts = Object.entries(data.trends).map(([chartId, value]) => {
+          const charts = Object.entries(data.trends ?? {}).map(([chartId, value]) => {
             return (
               <GridItem key={chartId} className={styles["overview-grid-item"]}>
                 <ChartWidget chartData={value} t={t} empty={empty} />

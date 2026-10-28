@@ -4,7 +4,7 @@ import { join } from "node:path";
 import { pathToFileURL } from "node:url";
 import { gunzipSync } from "node:zlib";
 
-import { ChartType } from "@allurereport/charts-api";
+import { ChartType, type ChartOptions } from "@allurereport/charts-api";
 import { AllureReport, FileSystemReportFiles } from "@allurereport/core";
 import { readReportStaticAssets } from "@allurereport/plugin-api/static-assets";
 import AwesomePlugin from "@allurereport/plugin-awesome";
@@ -30,7 +30,7 @@ const embeddedScripts = (html: string): Record<string, string> =>
 
 for (const frontend of ["awesome", "dashboard"] as const) {
   test(`${frontend} embeds only pie dependencies and renders offline in an Azure-style iframe`, async ({ page }) => {
-    const charts = [{ type: ChartType.CurrentStatus, title: "Selected pie" }];
+    const charts = [{ type: ChartType.CurrentStatus, title: "Selected pie" }] satisfies ChartOptions[];
     report = await bootstrapReport({
       reportConfig: {
         appendHistory: false,
@@ -206,6 +206,9 @@ test("a Mermaid attachment present only in a failed retry remains available afte
             name: "failed attempt",
             status: Status.FAILED,
             stage: Stage.FINISHED,
+            statusDetails: {},
+            steps: [],
+            parameters: [],
             attachments: [
               { name: "Retry diagram", source: "retry.mmd", type: "application/vnd.allure.diagrams.mermaid" },
             ],
@@ -312,6 +315,9 @@ test("dump-only restoration retains fixture viewers in a regenerated single-file
     });
     const newReport = () =>
       new AllureReport({
+        name: "Allure Report",
+        open: false,
+        port: undefined,
         output: report!.reportDir,
         reportFiles: new FileSystemReportFiles(report!.reportDir),
         appendHistory: false,
@@ -354,6 +360,9 @@ test("live generation keeps viewers for attachments arriving after the page open
   const resultsDir = join(root, "results");
   await mkdir(resultsDir);
   const generation = new AllureReport({
+    name: "Allure Report",
+    open: false,
+    port: undefined,
     realTime: true,
     appendHistory: false,
     output: reportDir,

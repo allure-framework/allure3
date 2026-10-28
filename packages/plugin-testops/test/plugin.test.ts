@@ -9,6 +9,7 @@ import { epic, feature, label, story } from "allure-js-commons";
 import type { Mock } from "vite-plus/test";
 import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
+import type { TestOpsClient } from "../src/client.js";
 import { Logger } from "../src/logger.js";
 import type { TestOpsPluginOptions } from "../src/model.js";
 import { TestOpsPlugin } from "../src/plugin.js";
@@ -1784,10 +1785,12 @@ describe("testops plugin", () => {
         AllureStoreMock.prototype.attachmentContentById.mockResolvedValue(fixtures.attachmentContent);
         AllureStoreMock.prototype.fixturesByTrId.mockResolvedValue([]);
 
-        TestOpsClientMock.prototype.uploadTestResults.mockImplementationOnce(async (params) => {
-          params.onChunkUploaded?.([{ id: firstTr.id }]);
-          throw serviceDownError;
-        });
+        TestOpsClientMock.prototype.uploadTestResults.mockImplementationOnce(
+          async (params: Parameters<TestOpsClient["uploadTestResults"]>[0]) => {
+            params.onChunkUploaded?.([firstTr]);
+            throw serviceDownError;
+          },
+        );
         TestOpsClientMock.prototype.uploadTestResults.mockResolvedValueOnce([{ id: secondTr.id }]);
 
         await plugin.done({} as PluginContext, store);

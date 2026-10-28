@@ -152,7 +152,7 @@ describe("resolution rules", () => {
       resolution: "issue",
       issue: { id: "SHOP $& 42", type: "jira" },
       testCaseId: ["tc-1"],
-    } as const;
+    } satisfies ResolutionRule;
 
     expect(createResolutionIssue(rule, config)).toEqual({
       id: "SHOP $& 42",
@@ -171,7 +171,7 @@ describe("resolution rules", () => {
       issue: { id: "SHOP-42", type: "jira" },
       comment: "Tracked elsewhere",
       testCaseId: ["tc-1"],
-    } as const;
+    } satisfies ResolutionRule;
 
     expect(createResolutionIssue(rule)).toEqual({
       id: "SHOP-42",
@@ -271,17 +271,17 @@ describe("resolution rules", () => {
       comment: "Expired mute",
       expiresAt: "2000-01-01T00:00:00Z",
       testCaseId: ["tc-deadline"],
-    } as const;
+    } satisfies ResolutionRule;
     const active = {
       ...outdated,
       comment: "Active mute",
       expiresAt: "2999-01-01T00:00:00Z",
-    } as const;
+    } satisfies ResolutionRule;
     const accepted = {
       resolution: "accepted",
       comment: "Accepted risk",
       testCaseId: ["tc-deadline"],
-    } as const;
+    } satisfies ResolutionRule;
 
     expect(getResolutionByRules(result, { rules: [accepted, outdated] })).toBe(outdated);
     expect(getResolutionByRules(result, { rules: [outdated, active] })).toBe(outdated);

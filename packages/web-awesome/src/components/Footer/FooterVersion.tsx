@@ -12,7 +12,7 @@ export const FooterVersion = () => {
   const { t } = useI18n("ui");
   const [createdAt] = useState(() => getReportOptions<ReportOptions>()?.createdAt);
 
-  const [currentVersion] = useState<string>(() => {
+  const [currentVersion] = useState<string | undefined>(() => {
     const reportOptions = getReportOptions<ReportOptions>();
 
     if (reportOptions?.allureVersion) {

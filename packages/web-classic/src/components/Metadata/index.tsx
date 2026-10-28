@@ -19,7 +19,7 @@ export const MetadataList: FunctionalComponent<MetadataProps & { columns?: numbe
       style={{ gridTemplateColumns: `repeat(${columns}, ${100 / columns - 5}%)` }}
     >
       {envInfo?.map(({ name, values, value }) => (
-        <MetadataKeyValue key={name} size={size} title={name} value={value} values={values} />
+        <MetadataKeyValue key={name} size={size} title={name} value={value ?? ""} values={values} />
       ))}
     </div>
   );
@@ -72,7 +72,7 @@ const MetaDataKeyLabel: FunctionalComponent<{
       )}
     >
       <Menu.Section>
-        <MetadataTooltip value={value} />
+        <MetadataTooltip value={value ?? ""} />
       </Menu.Section>
     </Menu>
   );
@@ -101,7 +101,7 @@ const MetadataKeyValue: FunctionalComponent<{
         </div>
       ) : (
         <div className={styles["report-metadata-values"]}>
-          <MetaDataKeyLabel value={value} />
+          <MetaDataKeyLabel value={value ?? ""} />
         </div>
       )}
     </div>

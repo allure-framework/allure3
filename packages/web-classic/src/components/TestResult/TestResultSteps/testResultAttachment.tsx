@@ -53,7 +53,10 @@ export const TestResultAttachment: FunctionComponent<{
       >
         <ArrowButton isOpened={isOpened} />
         <div className={styles["test-result-attachment-icon"]}>
-          <SvgIcon size="s" id={iconMap[link.contentType] ?? lineFilesFileAttachment2} />
+          <SvgIcon
+            size="s"
+            id={(link.contentType ? iconMap[link.contentType] : undefined) ?? lineFilesFileAttachment2}
+          />
         </div>
 
         <Code size="s" className={styles["test-result-step-number"]}>
