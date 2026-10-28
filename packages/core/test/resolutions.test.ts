@@ -198,6 +198,34 @@ describe("resolution rules", () => {
     );
   });
 
+  it("applies result-level muted and known precedence over configured ignored rules", () => {
+    const mutedRule = {
+      resolution: "muted",
+      comment: "Configured mute",
+      testCaseId: ["tc-1"],
+    } satisfies ResolutionRule;
+    const acceptedRule = {
+      resolution: "accepted",
+      comment: "Configured acceptance",
+      testCaseId: ["tc-1"],
+    } satisfies ResolutionRule;
+    const configWithIgnoredRules = { rules: [mutedRule, acceptedRule] };
+    const matchingResult = { status: "failed", testCase: { id: "tc-1" } } as TestResult;
+
+    expect(getResolutionByRules({ ...matchingResult, muted: true, known: true }, configWithIgnoredRules)).toBe(
+      MUTED_FROM_RESULT_RESOLUTION,
+    );
+    expect(getResolutionByRules({ ...matchingResult, muted: true }, configWithIgnoredRules)).toBe(
+      MUTED_FROM_RESULT_RESOLUTION,
+    );
+    expect(getResolutionByRules({ ...matchingResult, known: true }, configWithIgnoredRules)).toBe(
+      KNOWN_FROM_RESULT_RESOLUTION,
+    );
+    expect(getResolutionByRules({ ...matchingResult, known: true }, { rules: [acceptedRule] })).toBe(
+      KNOWN_FROM_RESULT_RESOLUTION,
+    );
+  });
+
   it("lets known beat matching muted config rules", () => {
     const result = {
       known: true,
@@ -378,6 +406,20 @@ describe("resolution config validation", () => {
         rules: [{ resolution: "accepted", comment: "expected", retryHash: [], messageRegexp: "[" }],
       }),
     ).toThrow(/non-empty array.*valid regular expression/);
+  });
+
+  it("rejects malformed rule collections, missing matchers, and unsupported resolutions", () => {
+    expect(() => validateResolutionsConfig({ rules: {} } as never)).toThrow(/resolutions\.rules must be an array/);
+    expect(() =>
+      validateResolutionsConfig({
+        rules: [{ resolution: "muted", comment: "No matcher" } as ResolutionRule],
+      }),
+    ).toThrow(/resolutions\.rules\[0\] must contain at least one matcher/);
+    expect(() =>
+      validateResolutionsConfig({
+        rules: [{ resolution: "ignored", retryHash: ["hash"] } as unknown as ResolutionRule],
+      }),
+    ).toThrow(/resolutions\.rules\[0\]\.resolution must be issue, muted, or accepted/);
   });
 });
 

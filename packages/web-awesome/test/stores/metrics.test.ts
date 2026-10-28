@@ -1,6 +1,28 @@
-import { describe, expect, it } from "vite-plus/test";
+import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
-import { metricHistoryRows, metricSummaryRows, metricRows, type MetricsWidgetData } from "@/stores/metrics";
+const { fetchReportJsonDataMock } = vi.hoisted(() => ({
+  fetchReportJsonDataMock: vi.fn(),
+}));
+
+vi.mock("@allurereport/web-commons", async () => {
+  const actual = await vi.importActual<typeof import("@allurereport/web-commons")>("@allurereport/web-commons");
+
+  return {
+    ...actual,
+    fetchReportJsonData: fetchReportJsonDataMock,
+  };
+});
+
+import { ReportFetchError } from "@allurereport/web-commons";
+
+import {
+  fetchMetricsData,
+  metricHistoryRows,
+  metricSummaryRows,
+  metricRows,
+  metricsStore,
+  type MetricsWidgetData,
+} from "@/stores/metrics";
 
 const data: MetricsWidgetData = {
   current: [
@@ -87,6 +109,11 @@ const data: MetricsWidgetData = {
 };
 
 describe("metrics store helpers", () => {
+  beforeEach(() => {
+    fetchReportJsonDataMock.mockReset();
+    metricsStore.value = { loading: true, error: undefined, data: undefined };
+  });
+
   it("should compute metric rows with nearest available previous value", () => {
     expect(metricRows(data)).toEqual(
       expect.arrayContaining([
@@ -206,5 +233,39 @@ describe("metrics store helpers", () => {
         delta: -20,
       }),
     ]);
+  });
+
+  it("should expose loading and store fetched metrics", async () => {
+    let resolveFetch: (value: MetricsWidgetData) => void = () => {};
+    fetchReportJsonDataMock.mockReturnValue(
+      new Promise<MetricsWidgetData>((resolve) => {
+        resolveFetch = resolve;
+      }),
+    );
+
+    const pending = fetchMetricsData();
+
+    expect(metricsStore.value).toEqual({ loading: true, error: undefined, data: undefined });
+    resolveFetch(data);
+    await pending;
+    expect(fetchReportJsonDataMock).toHaveBeenCalledWith("widgets/metrics.json", { bustCache: true });
+    expect(metricsStore.value).toEqual({ loading: false, error: undefined, data });
+  });
+
+  it("should treat a missing optional widget as empty and expose other fetch errors", async () => {
+    fetchReportJsonDataMock.mockRejectedValueOnce(
+      new ReportFetchError("missing metrics", new Response(null, { status: 404, statusText: "Not Found" })),
+    );
+
+    await fetchMetricsData();
+    expect(metricsStore.value).toEqual({ loading: false, error: undefined, data: undefined });
+
+    fetchReportJsonDataMock.mockRejectedValueOnce(new Error("metrics service unavailable"));
+    await fetchMetricsData();
+    expect(metricsStore.value).toEqual({
+      loading: false,
+      error: "metrics service unavailable",
+      data: undefined,
+    });
   });
 });
