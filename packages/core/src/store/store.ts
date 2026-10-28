@@ -44,6 +44,7 @@ import {
   ordinal,
   reverse,
   resolveMetricSamples,
+  validatePerformanceConfig,
   validateEnvironmentId,
   validateEnvironmentName,
 } from "@allurereport/core-api";
@@ -264,6 +265,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     this.#history = history;
     this.#detectFlaky = createFlakyDetector(flakyDetection);
     this.#resolutionsConfig = resolutionsConfig;
+    validatePerformanceConfig(performance);
     this.#performance = performance;
 
     this.#realtimeDispatcher = realtimeDispatcher;

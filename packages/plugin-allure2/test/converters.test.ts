@@ -119,10 +119,10 @@ describe("convertTestResult", () => {
       { name: "visible", value: "value", hidden: false, masked: false, excluded: false },
       { name: "token", value: "<masked>", hidden: false, masked: true, excluded: false },
     ]);
-    expect(result.testStage.steps[0].parameters).toEqual([
+    expect(result.testStage!.steps[0].parameters).toEqual([
       { name: "step-token", value: "<masked>", hidden: false, masked: true, excluded: false },
     ]);
-    expect(result.testStage.steps[0].steps[0].parameters).toEqual([
+    expect(result.testStage!.steps[0].steps[0].parameters).toEqual([
       { name: "nested-token", value: "<masked>", hidden: false, masked: true, excluded: false },
     ]);
 
@@ -234,8 +234,8 @@ describe("convertTestResult", () => {
       { name: "Report", url: "https://example.org/report", type: "custom" },
       { name: "Label without URL", type: "custom" },
     ]);
-    expect(result.testStage.steps).toHaveLength(1);
-    expect(result.testStage.steps[0]).toMatchObject({
+    expect(result.testStage!.steps).toHaveLength(1);
+    expect(result.testStage!.steps[0]).toMatchObject({
       steps: [],
       stepsCount: 0,
       attachments: [expect.objectContaining({ name: "Page", source: "page.html" })],
@@ -243,7 +243,7 @@ describe("convertTestResult", () => {
       hasContent: true,
       attachmentStep: false,
     });
-    expect(result.testStage.attachments).toEqual([
+    expect(result.testStage!.attachments).toEqual([
       expect.objectContaining({ name: "actual", source: "actual.png" }),
       expect.objectContaining({ name: "expected", source: "expected.png" }),
       expect.objectContaining({ name: "diff", source: "diff.png" }),

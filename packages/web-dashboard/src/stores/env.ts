@@ -10,7 +10,7 @@ import { effect, signal } from "@preact/signals";
 
 import type { StoreSignalState } from "@/stores/types";
 
-export const environmentsStore = signal<StoreSignalState<EnvironmentIdentity[]>>({
+export const environmentsStore = signal<StoreSignalState<EnvironmentIdentity[]> & { data: EnvironmentIdentity[] }>({
   loading: false,
   error: undefined,
   data: [],

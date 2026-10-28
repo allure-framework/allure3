@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { Status } from "allure-js-commons";
 
 import { TestResultPage, TreePage } from "../../pageObjects/index.js";
 import { bootstrapReport } from "../utils/index.js";
@@ -13,7 +14,7 @@ for (const singleFile of [false, true]) {
         testResults: [
           {
             name: "test with missing attachments",
-            status: "passed",
+            status: Status.PASSED,
             attachments: [
               { name: "archive", source: "missing.zip", type: "application/zip" },
               { name: "screenshot", source: "missing.png", type: "image/png" },

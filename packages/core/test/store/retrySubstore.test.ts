@@ -20,6 +20,9 @@ const makeTr = (id: string, retryHash = "same-retry"): TestResult => ({
   sourceMetadata,
   titlePath: [],
   retryHash,
+  testCaseHash: null,
+  parametersHash: "",
+  environmentHash: null,
 });
 
 const upsertInOrder = (rs: RetrySubstore, ...attempts: TestResult[]) => {

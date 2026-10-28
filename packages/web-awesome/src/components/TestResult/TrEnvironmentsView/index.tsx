@@ -38,10 +38,10 @@ export const TrEnvironmentsView: FunctionalComponent<{
 
   return (
     <div className={styles["test-result-environments"]}>
-      <Loadable<Record<string, TestEnvGroup>, TestEnvGroup | undefined>
+      <Loadable<Record<string, TestEnvGroup | undefined>, TestEnvGroup | undefined>
         source={testEnvGroupsStore}
         renderData={(group) => {
-          if (!getRealEnvsCount(group)) {
+          if (!group || !getRealEnvsCount(group)) {
             return <div className={styles["test-result-empty"]}>{t("no-environments-results")}</div>;
           }
 

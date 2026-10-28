@@ -25,10 +25,12 @@ import { collapsedTrees, expandedTrees } from "@/stores/tree";
 const nestedPassedStep = {
   type: "step",
   item: {
+    type: "step",
+    steps: [],
+    parameters: [],
     stepId: "nested-passed-step",
     name: "nested passed step",
     status: "passed",
-    parameters: [],
     message: "",
     trace: "",
     hasSimilarErrorInSubSteps: false,
@@ -40,10 +42,12 @@ const nestedPassedStep = {
 const passedStepWithContent = {
   type: "step",
   item: {
+    type: "step",
+    steps: [],
+    parameters: [],
     stepId: "passed-step",
     name: "passed step",
     status: "passed",
-    parameters: [],
     message: "",
     trace: "",
     hasSimilarErrorInSubSteps: false,
@@ -55,10 +59,12 @@ const passedStepWithContent = {
 const failedStepWithContent = {
   type: "step",
   item: {
+    type: "step",
+    steps: [],
+    parameters: [],
     stepId: "failed-step",
     name: "failed step",
     status: "failed",
-    parameters: [],
     message: "failed",
     trace: "trace",
     hasSimilarErrorInSubSteps: false,
@@ -70,10 +76,12 @@ const failedStepWithContent = {
 const createTopLevelStep = (index: number, status: "passed" | "failed"): TrBodyItem => ({
   type: "step",
   item: {
+    type: "step",
+    steps: [],
+    parameters: [],
     stepId: `step-${index}`,
     name: `${status} step ${index}`,
     status,
-    parameters: [],
     message: status === "failed" ? "failed" : "",
     trace: status === "failed" ? "trace" : "",
     hasSimilarErrorInSubSteps: false,
@@ -84,7 +92,10 @@ const createTopLevelStep = (index: number, status: "passed" | "failed"): TrBodyI
       type: "attachment",
       link: {
         id: `attachment-${index}`,
-        source: `attachment-${index}.png`,
+        originalFileName: `attachment-${index}.png`,
+        ext: ".png",
+        used: true,
+        missed: false,
         name: `attachment ${index}`,
         contentType: "image/png",
       },

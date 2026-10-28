@@ -13,7 +13,7 @@ import { openModal } from "@/stores/modal";
 const loadComparison = () =>
   import(/* webpackChunkName: "error-diff" */ "./TrDiff").then((module) => ({ default: module.TrDiff }));
 
-const Comparison = (props: Pick<TestError, "actual" | "expected">) => {
+const Comparison = (props: Required<Pick<TestError, "actual" | "expected">>) => {
   const { t } = useI18n("controls");
   return (
     <LazyComponent
@@ -41,12 +41,14 @@ export const TrError: FunctionalComponent<
       copied: tooltip("clipboardSuccess"),
       showDiff: tooltip("showDiff"),
     })[key];
-  const openDiff = () =>
+  const openDiff = () => {
+    if (!actual || !expected) return;
     openModal({
       title: tooltip("comparison"),
       data: { actual, expected },
       component: <Comparison actual={actual} expected={expected} />,
     });
+  };
 
   return <TestResultError {...props} i18n={i18n} onShowDiff={openDiff} />;
 };

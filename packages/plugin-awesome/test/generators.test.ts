@@ -6,6 +6,7 @@ import { join } from "node:path";
 import { ChartType } from "@allurereport/charts-api";
 import type {
   AttachmentLink,
+  GlobalAttachmentLink,
   EnvironmentIdentity,
   Statistic,
   HistoryTestResult,
@@ -20,6 +21,7 @@ import type {
   PluginContext,
   ResultFile,
 } from "@allurereport/plugin-api";
+import { BufferResultFile } from "@allurereport/reader-api";
 import { epic, feature, label, story } from "allure-js-commons";
 import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
@@ -60,11 +62,22 @@ const getTestResultsStats = (trs: TestResult[], filter: (tr: TestResult) => bool
   );
 };
 
-const mockTestResult = (id: string, name: string, status: TestResult["status"]): TestResult =>
+const mockTestResult = (id: string, name: string, status: TestResult["status"]): TestResult & ReportTestResult =>
   ({
     id,
     name,
     status,
+    known: false,
+    testCaseHash: null,
+    parametersHash: "",
+    environmentHash: null,
+    retryHash: null,
+    setup: [],
+    teardown: [],
+    history: [],
+    groupedLabels: {},
+    breadcrumbs: [],
+    retry: false,
     labels: [],
     flaky: false,
     muted: false,
@@ -73,7 +86,7 @@ const mockTestResult = (id: string, name: string, status: TestResult["status"]):
     parameters: [],
     links: [],
     steps: [],
-  }) as TestResult;
+  }) satisfies TestResult & ReportTestResult;
 
 const createWriter = () => {
   const writtenWidgets = new Map<string, unknown>();
@@ -836,9 +849,16 @@ describe("generateStatistic", () => {
 
 describe("generateGlobals", () => {
   it("should write duplicate global destinations once while preserving payload entries", async () => {
-    const attachment = { id: "shared", ext: ".txt", originalFileName: "shared.txt", missed: false, used: true };
+    const attachment: GlobalAttachmentLink = {
+      name: "shared",
+      id: "shared",
+      ext: ".txt",
+      originalFileName: "shared.txt",
+      missed: false,
+      used: true,
+    };
     const attachments = Array.from({ length: 65 }, () => attachment);
-    const content = { kind: "attachment" } as ResultFile;
+    const content = new BufferResultFile(Buffer.from("attachment"), "shared.txt");
     const writer: AwesomeDataWriter = {
       writeData: vi.fn(),
       writeWidget: vi.fn(),
@@ -862,7 +882,7 @@ describe("generateGlobals", () => {
 
   it("should keep grouped globals by environment and exclude unwritten attachments from grouped payloads", async () => {
     const writtenWidgets = new Map<string, unknown>();
-    const writtenContent = { kind: "attachment" } as any;
+    const writtenContent = new BufferResultFile(Buffer.from("attachment"), "written.txt");
     const writer: AwesomeDataWriter = {
       writeData: vi.fn().mockResolvedValue(undefined),
       writeWidget: vi.fn(async (fileName: string, data: unknown) => {
@@ -878,9 +898,18 @@ describe("generateGlobals", () => {
         qa_env: [{ message: "QA error", environment: "QA" }],
       },
       globalAttachments: [
-        { id: "written", ext: ".txt", originalFileName: "written.txt", missed: false, used: true, environment: "QA" },
+        {
+          name: "written",
+          id: "written",
+          ext: ".txt",
+          originalFileName: "written.txt",
+          missed: false,
+          used: true,
+          environment: "QA",
+        },
         {
           id: "missing",
+          name: "missing",
           ext: ".txt",
           originalFileName: "missing.txt",
           missed: false,
@@ -890,9 +919,18 @@ describe("generateGlobals", () => {
       ],
       globalAttachmentsByEnv: {
         qa_env: [
-          { id: "written", ext: ".txt", originalFileName: "written.txt", missed: false, used: true, environment: "QA" },
+          {
+            name: "written",
+            id: "written",
+            ext: ".txt",
+            originalFileName: "written.txt",
+            missed: false,
+            used: true,
+            environment: "QA",
+          },
           {
             id: "missing",
+            name: "missing",
             ext: ".txt",
             originalFileName: "missing.txt",
             missed: false,
@@ -901,7 +939,7 @@ describe("generateGlobals", () => {
           },
         ],
       },
-      contentFunction: vi.fn(async (id: string) => (id === "written" ? writtenContent : undefined)) as any,
+      contentFunction: vi.fn(async (id: string) => (id === "written" ? writtenContent : undefined)),
     });
 
     expect(writer.writeAttachment).toHaveBeenCalledTimes(1);
@@ -910,6 +948,7 @@ describe("generateGlobals", () => {
     expect(writtenWidgets.get("globals.json")).toEqual({
       attachments: [
         {
+          name: "written",
           id: "written",
           ext: ".txt",
           originalFileName: "written.txt",
@@ -921,6 +960,7 @@ describe("generateGlobals", () => {
       attachmentsByEnv: {
         qa_env: [
           {
+            name: "written",
             id: "written",
             ext: ".txt",
             originalFileName: "written.txt",
@@ -950,6 +990,7 @@ describe("generateSearchIndex", () => {
       writeAttachment: vi.fn().mockResolvedValue(undefined),
     };
     const visibleTest = {
+      ...mockTestResult("tr-visible", "visible test", "failed"),
       id: "tr-visible",
       retryHash: "history-visible",
       name: "visible test",
@@ -1089,7 +1130,7 @@ describe("generateQualityGateResults", () => {
         ...mockTestResult("tr-no-severity", "test without severity", "failed"),
         groupedLabels: {},
       },
-    ] as AwesomeTestResult[];
+    ] as ReportTestResult[];
 
     await generateQualityGateResults(
       writer,
@@ -1108,7 +1149,7 @@ describe("generateQualityGateResults", () => {
       { tests },
     );
 
-    const results = writtenWidgets.get("quality-gate.json") as AwesomeQualityGateResults;
+    const results = writtenWidgets.get("quality-gate.json") as ReportQualityGateResults;
     const leavesById = results.default[0].testResultsTree?.leavesById ?? {};
 
     expect(leavesById["tr-blocker"]).toMatchObject({ severity: "blocker" });
@@ -1144,7 +1185,7 @@ describe("generateQualityGateResults", () => {
 
 describe("generateAttachmentsFiles", () => {
   it("should skip missed attachments and keep writing later available attachments", async () => {
-    const writtenContent = { kind: "attachment" } as ResultFile;
+    const writtenContent = new BufferResultFile(Buffer.from("attachment"), "attachment.txt");
     const writer: AwesomeDataWriter = {
       writeData: vi.fn().mockResolvedValue(undefined),
       writeWidget: vi.fn().mockResolvedValue(undefined),
@@ -1193,7 +1234,7 @@ describe.each(["attachments", "globals"] as const)("concurrent %s writing", (kin
     const output = await mkdtemp(join(tmpdir(), "awesome concurrent output "));
     try {
       const writer = new FileSystemReportDataWriter(output);
-      const attachments: AttachmentLink[] = Array.from({ length: 65 }, (_, index) => ({
+      const attachments: GlobalAttachmentLink[] = Array.from({ length: 65 }, (_, index) => ({
         id: `attachment-${index}`,
         ext: ".txt",
         originalFileName: `attachment-${index}.txt`,
@@ -1230,7 +1271,7 @@ describe.each(["attachments", "globals"] as const)("concurrent %s writing", (kin
   });
 
   it("should limit writes to 8 and preserve input order when writes finish in reverse order", async () => {
-    const attachments: AttachmentLink[] = Array.from({ length: 9 }, (_, index) => ({
+    const attachments: GlobalAttachmentLink[] = Array.from({ length: 9 }, (_, index) => ({
       id: `attachment-${index}`,
       ext: ".txt",
       originalFileName: `attachment-${index}.txt`,
@@ -1238,7 +1279,7 @@ describe.each(["attachments", "globals"] as const)("concurrent %s writing", (kin
       missed: false,
       used: true,
     }));
-    const content = { kind: "attachment" } as ResultFile;
+    const content = new BufferResultFile(Buffer.from("attachment"), "shared.txt");
     const pendingWrites: (() => void)[] = [];
     const writer: AwesomeDataWriter = {
       writeData: vi.fn().mockResolvedValue(undefined),
@@ -1284,7 +1325,7 @@ describe.each(["attachments", "globals"] as const)("concurrent %s writing", (kin
   });
 
   it("should propagate attachment write failures", async () => {
-    const attachment: AttachmentLink = {
+    const attachment: GlobalAttachmentLink = {
       id: "failed",
       ext: ".txt",
       originalFileName: "failed.txt",
@@ -1299,7 +1340,7 @@ describe.each(["attachments", "globals"] as const)("concurrent %s writing", (kin
       writeTestCase: vi.fn(),
       writeAttachment: vi.fn().mockRejectedValue(error),
     };
-    const contentFunction = async () => ({ kind: "attachment" }) as ResultFile;
+    const contentFunction = async () => new BufferResultFile(Buffer.from("attachment"), "attachment.txt");
     const generation =
       kind === "attachments"
         ? generateAttachmentsFiles(writer, [attachment], contentFunction)

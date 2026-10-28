@@ -138,7 +138,7 @@ export type ReportTreeLeaf = Pick<
   nodeId: string;
   id?: string;
   transitionTooltip?: string;
-  tooltips?: Record<string, string>;
+  tooltips?: Partial<Record<string, string>>;
   tags?: string[];
   categories?: string[];
   /**

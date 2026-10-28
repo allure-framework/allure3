@@ -1,5 +1,5 @@
 import { type Statistic, emptyStatistic, incrementStatistic } from "@allurereport/core-api";
-import { fetchReportJsonData, loadFromLocalStorage } from "@allurereport/web-commons";
+import { errorMessageFromUnknown, fetchReportJsonData, loadFromLocalStorage } from "@allurereport/web-commons";
 import { type ReadonlySignal, type Signal, computed, signal } from "@preact/signals";
 import type { ReportRecursiveTree, ReportStatus, ReportTree, ReportTreeGroup } from "types";
 
@@ -119,7 +119,8 @@ export const createTreeStore = (options: { id: TreeId; widgetFileName: string; c
   const showGroupsInfo = signal<boolean>(loadFromLocalStorage<boolean>(treeGroupsInfoStorageKey(id), true) !== false);
 
   const filtered = computed(() => {
-    const { root, leavesById, groupsById } = data.value.data;
+    // The consuming view renders this computed tree only after its Loadable has data.
+    const { root, leavesById, groupsById } = data.value.data!;
 
     return createRecursiveTree({
       group: root as ReportTreeGroup,
@@ -184,7 +185,7 @@ export const createTreeStore = (options: { id: TreeId; widgetFileName: string; c
       } catch (e) {
         data.value = {
           ...data.value,
-          error: e.message,
+          error: errorMessageFromUnknown(e),
           loading: false,
         };
       }

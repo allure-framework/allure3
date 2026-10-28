@@ -9,7 +9,7 @@ import clsx from "clsx";
 
 import * as styles from "@/components/TestResult/TrSteps/styles.scss";
 
-const countErrorStatuses = (step: TestStepResult): Record<string, number> => {
+const countErrorStatuses = (step: TestStepResult): Record<string, number> | undefined => {
   if (step.type !== "step") {
     return;
   }
@@ -106,13 +106,13 @@ export const TrStepInfo = (props: { item: DefaultTestStepResult }) => {
   return (
     <div className={styles["item-info"]}>
       <FailedSteps />
-      {Boolean(stepLength) && (
+      {!!stepLength && (
         <div className={styles["item-info-step"]}>
           <SvgIcon id={allureIcons.lineArrowsCornerDownRight} className={styles["item-info-step-icon"]} />
           <Text size={"s"}>{stepLength}</Text>
         </div>
       )}
-      {Boolean(attachmentLength) && (
+      {!!attachmentLength && (
         <div className={styles["item-info-step"]}>
           <SvgIcon id={allureIcons.lineFilesFileAttachment2} className={styles["item-info-step-icon"]} />
           <Text size={"s"}>{attachmentLength}</Text>

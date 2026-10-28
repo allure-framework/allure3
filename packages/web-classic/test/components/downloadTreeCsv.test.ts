@@ -12,9 +12,9 @@ beforeEach(async () => {
 });
 
 afterEach(() => {
-  delete globalThis.allureReportData;
-  delete globalThis.allureReportDataReady;
-  delete globalThis.allureReportOptions;
+  delete (globalThis as any).allureReportData;
+  delete (globalThis as any).allureReportDataReady;
+  delete (globalThis as any).allureReportOptions;
   vi.restoreAllMocks();
 });
 

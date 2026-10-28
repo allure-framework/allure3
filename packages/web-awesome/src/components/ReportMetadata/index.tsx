@@ -79,7 +79,7 @@ const MetadataVariables: FunctionalComponent<MetadataVariablesProps> = (props) =
   const showAllId = `${sectionId}-showAll`;
   const isOpened = !collapsedTrees.value.has(sectionId);
   const showAll = collapsedTrees.value.has(showAllId);
-  const fullList = Object.entries(props.variables).map(([key, value]) => ({
+  const fullList = Object.entries(props.variables ?? {}).map(([key, value]) => ({
     name: key,
     value,
   })) as MetadataItem[];
@@ -93,7 +93,7 @@ const MetadataVariables: FunctionalComponent<MetadataVariablesProps> = (props) =
         isOpened={isOpened}
         setIsOpen={() => toggleTree(sectionId)}
         title={t("variables")}
-        counter={Object.keys(props.variables).length}
+        counter={Object.keys(props.variables ?? {}).length}
         data-testid={"report-variables-button"}
       />
       {isOpened && (
@@ -156,11 +156,11 @@ export const ReportMetadata = () => {
       />
       <Loadable
         source={envInfoStore}
-        renderError={() => Boolean(executorMetadata.length) && <Metadata envInfo={executorMetadata} />}
+        renderError={() => !!executorMetadata.length && <Metadata envInfo={executorMetadata} />}
         renderData={(data) => {
           const metadata = [...executorMetadata, ...(data ?? [])];
 
-          return Boolean(metadata.length) && <Metadata envInfo={metadata} />;
+          return !!metadata.length && <Metadata envInfo={metadata} />;
         }}
       />
     </div>

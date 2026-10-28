@@ -8,7 +8,7 @@ export const modalData = signal<ModalDataProps>({
   preview: false,
   component: null,
   isModalOpen: isModalOpen.value,
-  closeModal: null,
+  closeModal: undefined,
   title: "",
 });
 

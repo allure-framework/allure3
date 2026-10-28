@@ -38,8 +38,16 @@ const baseTestResult: Pick<
   | "links"
   | "steps"
   | "sourceMetadata"
+  | "testCaseHash"
+  | "parametersHash"
+  | "environmentHash"
+  | "retryHash"
 > = {
   id: "tr-1",
+  testCaseHash: null,
+  parametersHash: "",
+  environmentHash: null,
+  retryHash: null,
   name: "Test",
   flaky: false,
   muted: false,
@@ -115,6 +123,7 @@ describe("generateCharts", () => {
     const store = createStore({
       historyDataPoints: [
         {
+          url: "",
           uuid: "run-1",
           name: "run-1",
           timestamp: 1_700_000_000_000,
@@ -122,6 +131,7 @@ describe("generateCharts", () => {
           metrics: {},
           testResults: {
             [fallbackRetryHash]: {
+              url: "",
               id: "legacy-result-id",
               retryHash: fallbackRetryHash,
               name: "legacy test name",
@@ -164,6 +174,7 @@ describe("generateCharts", () => {
     const store = createStore({
       historyDataPoints: [
         {
+          url: "",
           uuid: "run-1",
           name: "run-1",
           timestamp: 1_700_000_000_000,
@@ -171,6 +182,7 @@ describe("generateCharts", () => {
           metrics: {},
           testResults: {
             [fallbackRetryHash]: {
+              url: "",
               id: "legacy-result-id",
               retryHash: fallbackRetryHash,
               name: "legacy test name",
@@ -243,6 +255,7 @@ describe("generateCharts", () => {
       },
       historyDataPoints: [
         {
+          url: "",
           uuid: "chrome-run",
           name: "chrome-run",
           timestamp: 1_700_000_000_000,
@@ -250,6 +263,7 @@ describe("generateCharts", () => {
           metrics: {},
           testResults: {
             [chromeRetryHash]: {
+              url: "",
               id: "chrome-history-result",
               retryHash: chromeRetryHash,
               name: "chrome test",
@@ -258,6 +272,7 @@ describe("generateCharts", () => {
           },
         },
         {
+          url: "",
           uuid: "firefox-run",
           name: "firefox-run",
           timestamp: 1_700_000_000_100,
@@ -265,6 +280,7 @@ describe("generateCharts", () => {
           metrics: {},
           testResults: {
             [firefoxRetryHash]: {
+              url: "",
               id: "firefox-history-result",
               retryHash: firefoxRetryHash,
               name: "firefox test",
@@ -276,6 +292,7 @@ describe("generateCharts", () => {
       historyDataPointsByEnvironment: {
         chrome: [
           {
+            url: "",
             uuid: "chrome-run",
             name: "chrome-run",
             timestamp: 1_700_000_000_000,
@@ -283,6 +300,7 @@ describe("generateCharts", () => {
             metrics: {},
             testResults: {
               [chromeRetryHash]: {
+                url: "",
                 id: "chrome-history-result",
                 retryHash: chromeRetryHash,
                 name: "chrome test",
@@ -293,6 +311,7 @@ describe("generateCharts", () => {
         ],
         firefox: [
           {
+            url: "",
             uuid: "firefox-run",
             name: "firefox-run",
             timestamp: 1_700_000_000_100,
@@ -300,6 +319,7 @@ describe("generateCharts", () => {
             metrics: {},
             testResults: {
               [firefoxRetryHash]: {
+                url: "",
                 id: "firefox-history-result",
                 retryHash: firefoxRetryHash,
                 name: "firefox test",
@@ -442,6 +462,7 @@ describe("generateCharts", () => {
       allTestResults: [retry, latest],
       historyDataPoints: [
         {
+          url: "",
           uuid: "run-1",
           name: "run-1",
           timestamp: 1_700_000_000_000,
@@ -475,7 +496,7 @@ describe("generateCharts", () => {
         levels: ["blocker", "critical"],
         includeUnset: true,
       },
-    ];
+    ] satisfies Parameters<typeof generateCharts>[0];
     const store = createStore({
       testResults: [
         createTestResult({

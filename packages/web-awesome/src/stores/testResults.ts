@@ -1,4 +1,4 @@
-import { fetchReportJsonData } from "@allurereport/web-commons";
+import { errorMessageFromUnknown, fetchReportJsonData } from "@allurereport/web-commons";
 import { signal } from "@preact/signals";
 
 import { type ReportTestResult } from "../../types";
@@ -34,7 +34,7 @@ export const fetchTestResultNav = async (env?: string) => {
   } catch (err) {
     testResultNavStore.value = {
       ...testResultNavStore.peek(),
-      error: err.message,
+      error: errorMessageFromUnknown(err),
       loading: false,
     };
   }
@@ -42,7 +42,7 @@ export const fetchTestResultNav = async (env?: string) => {
 
 export const fetchTestResult = async (testResultId: string, options?: { force?: boolean }) => {
   const trData = testResultStore.peek().data;
-  const hasCachedTestResult = Boolean(testResultId && trData && testResultId in trData);
+  const hasCachedTestResult = !!(testResultId && trData && testResultId in trData);
 
   if (!testResultId || (!options?.force && hasCachedTestResult)) {
     return;
@@ -69,7 +69,7 @@ export const fetchTestResult = async (testResultId: string, options?: { force?: 
   } catch (err) {
     testResultStore.value = {
       ...testResultStore.peek(),
-      error: err.message,
+      error: errorMessageFromUnknown(err),
       loading: false,
     };
   }

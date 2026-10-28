@@ -45,7 +45,14 @@ export const TestResultAttachment: FunctionComponent<{
       >
         {isValidComponentType ? <ArrowButton isOpened={isOpened} /> : <div className={styles["test-result-strut"]} />}
         <div className={styles["test-result-attachment-icon"]}>
-          <SvgIcon size="s" id={imageAttachmentTypes.has(componentType) ? lineImagesImage : lineFilesFileAttachment2} />
+          <SvgIcon
+            size="s"
+            id={
+              componentType !== null && imageAttachmentTypes.has(componentType)
+                ? lineImagesImage
+                : lineFilesFileAttachment2
+            }
+          />
         </div>
 
         <Code size="s" className={styles["test-result-step-number"]}>

@@ -389,7 +389,7 @@ jobs:
 
       - name: Download updated baseline
         if: needs.measure.outputs.changed == 'true'
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: updated-allure-bundle-size-baseline
           path: .ci-artifacts

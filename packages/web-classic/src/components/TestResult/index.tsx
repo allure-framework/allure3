@@ -24,7 +24,7 @@ const TestResultView: FunctionalComponent<TestResultViewProps> = ({ testResult }
     attachments: TestResultAttachmentView,
     retries: TestResultRetriesView,
   };
-  const ViewComponent = viewMap[currentTab] ?? TestResultOverview;
+  const ViewComponent = viewMap[currentTab ?? "overview"] ?? TestResultOverview;
 
   return <ViewComponent testResult={testResult} />;
 };

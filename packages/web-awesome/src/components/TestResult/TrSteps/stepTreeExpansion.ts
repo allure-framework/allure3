@@ -24,11 +24,11 @@ export const hasFailedStepContext = (bodyItems: TrBodyItem[]): boolean =>
 
 const hasInlineStepError = (stepItem: TrStepItem) => {
   const { item: stepData, suppressInlineError } = stepItem;
-  return Boolean((stepData.message || stepData.trace) && !stepData.hasSimilarErrorInSubSteps && !suppressInlineError);
+  return !!((stepData.message || stepData.trace) && !stepData.hasSimilarErrorInSubSteps && !suppressInlineError);
 };
 
 export const hasStepContent = (stepItem: TrStepItem): boolean => {
-  return Boolean(stepItem.bodyItems.length || stepItem.item.parameters?.length || hasInlineStepError(stepItem));
+  return !!(stepItem.bodyItems.length || stepItem.item.parameters?.length || hasInlineStepError(stepItem));
 };
 
 export const isStepOpenedByDefault = (
@@ -57,7 +57,7 @@ export const collectExpandableStepNodes = (
     if (bodyItem.type === "step") {
       if (hasStepContent(bodyItem)) {
         nodes.push({
-          id: bodyItem.item.stepId,
+          id: bodyItem.item.stepId!,
           openedByDefault: isStepOpenedByDefault(policy, bodyItem.item.status, bodyItem.bodyItems),
         });
       }

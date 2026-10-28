@@ -19,7 +19,7 @@ import * as styles from "./styles.scss";
 type SideNavTab = {
   tabName: string;
   title: string;
-  icon: string;
+  icon: keyof typeof allureIcons;
   active: boolean;
   comingSoon?: boolean;
 };

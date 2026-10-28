@@ -25,7 +25,6 @@ test.beforeEach(async ({ page, browserName }) => {
       reportConfig: {
         name: "Sample allure report",
         appendHistory: false,
-        knownIssuesPath: undefined,
       },
       rawTestResults: [
         {

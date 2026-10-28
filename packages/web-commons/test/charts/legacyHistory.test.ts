@@ -38,6 +38,7 @@ const current = (id = "current", retryHash = "canonical"): TestResult => ({
   name: id,
   retryHash,
   testCaseHash: "case",
+  environmentHash: null,
   parametersHash: "params",
   status: "passed",
   stop: 3,

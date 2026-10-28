@@ -1,5 +1,5 @@
 import { type Signal } from "@preact/signals";
-import type { JSX } from "preact";
+import type { ComponentChildren } from "preact";
 
 export interface StoreSignalState<T> {
   error?: string;
@@ -10,9 +10,9 @@ export interface StoreSignalState<T> {
 export type LoadableProps<T, K = T> = {
   source: Signal<StoreSignalState<T>>;
   transformData?: (data: T) => K;
-  renderData: (data: K) => JSX.Element;
-  renderLoader?: () => JSX.Element;
-  renderError?: (error: string) => JSX.Element;
+  renderData: (data: K) => ComponentChildren;
+  renderLoader?: () => ComponentChildren;
+  renderError?: (error: string) => ComponentChildren;
 };
 
 export const Loadable = <T, K = T>(props: LoadableProps<T, K>) => {

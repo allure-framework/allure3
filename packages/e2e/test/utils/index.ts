@@ -5,12 +5,22 @@ import { tmpdir } from "node:os";
 import { resolve } from "node:path";
 
 import { AllureReport, FileSystemReportFiles, type FullConfig } from "@allurereport/core";
-import type { HistoryDataPoint, TestError } from "@allurereport/core-api";
-import type { ExitCode, QualityGateValidationResult } from "@allurereport/plugin-api";
+import type { HistoryDataPoint } from "@allurereport/core-api";
+import type { ExitCode, Plugin, PluginGlobalError, QualityGateValidationResult } from "@allurereport/plugin-api";
 import AwesomePlugin from "@allurereport/plugin-awesome";
 import { BufferResultFile } from "@allurereport/reader-api";
+import type { RawTestAttachment } from "@allurereport/reader-api";
 import { serve } from "@allurereport/static-server";
-import type { TestResult } from "allure-js-commons";
+import type { TestResult, Parameter, StepResult } from "allure-js-commons";
+
+type StepFixture = Omit<StepResult, "steps" | "attachments"> & {
+  steps: StepFixture[];
+  attachments?: StepResult["attachments"];
+};
+type TestResultFixture = Omit<Partial<TestResult>, "steps" | "parameters"> & {
+  steps?: (StepFixture | RawTestAttachment)[];
+  parameters?: (Parameter & { hidden?: boolean; masked?: boolean; excluded?: boolean })[];
+};
 import { FileSystemWriter, ReporterRuntime } from "allure-js-commons/sdk/reporter";
 
 export type GeneratorParams = {
@@ -18,7 +28,7 @@ export type GeneratorParams = {
   rootDir: string;
   reportDir: string;
   resultsDir: string;
-  testResults?: Partial<TestResult>[];
+  testResults?: TestResultFixture[];
   rawTestResults?: Partial<TestResult>[];
   rawTestResultContainers?: {
     uuid?: string;
@@ -27,11 +37,11 @@ export type GeneratorParams = {
     befores?: Record<string, unknown>[];
     afters?: Record<string, unknown>[];
   }[];
-  attachments?: { source: string; content: Buffer }[];
-  reportConfig?: Omit<FullConfig, "output" | "reportFiles" | "historyPath" | "port" | "open">;
+  attachments?: { source: string; content: Buffer; contentType?: string }[];
+  reportConfig?: Partial<Omit<FullConfig, "output" | "reportFiles" | "historyPath" | "port" | "open">>;
   globals?: {
     exitCode?: ExitCode;
-    errors?: TestError[];
+    errors?: PluginGlobalError[];
     attachments?: Record<string, Buffer>;
     attachmentsByEnv?: Record<string, Record<string, Buffer>>;
   };
@@ -79,6 +89,9 @@ export const generateReport = async (payload: GeneratorParams) => {
   }
 
   const report = new AllureReport({
+    name: "Allure Report",
+    open: false,
+    port: undefined,
     ...reportConfig,
     output: reportDir,
     reportFiles: new FileSystemReportFiles(reportDir),
@@ -91,8 +104,9 @@ export const generateReport = async (payload: GeneratorParams) => {
   });
   const scopeUuid = runtime.startScope();
 
+  // Preserve legacy attachment steps/parameter flags in serialized reader fixtures.
   testResults.forEach((tr) => {
-    runtime.writeTest(runtime.startTest(tr, [scopeUuid]));
+    runtime.writeTest(runtime.startTest(tr as Partial<TestResult>, [scopeUuid]));
   });
 
   for (const tr of rawTestResults) {
@@ -141,7 +155,7 @@ export const generateReport = async (payload: GeneratorParams) => {
     }
   }
 
-  if (qualityGateResults?.length > 0) {
+  if (qualityGateResults && qualityGateResults.length > 0) {
     report.realtimeDispatcher.sendQualityGateResults(qualityGateResults);
   }
 
@@ -196,8 +210,15 @@ export const bootstrapReport = async (
   };
 };
 
-export class AwesomePluginWithoutSummary extends AwesomePlugin {
-  async info() {
-    return undefined;
+export class AwesomePluginWithoutSummary implements Plugin {
+  readonly start: AwesomePlugin["start"];
+  readonly update: AwesomePlugin["update"];
+  readonly done: AwesomePlugin["done"];
+
+  constructor(options: ConstructorParameters<typeof AwesomePlugin>[0]) {
+    const plugin = new AwesomePlugin(options);
+    this.start = plugin.start;
+    this.update = plugin.update;
+    this.done = plugin.done;
   }
 }

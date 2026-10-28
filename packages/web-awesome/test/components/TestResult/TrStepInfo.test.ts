@@ -28,6 +28,7 @@ const attachment = (name: string): TestStepResult => ({
     originalFileName: `${name}.txt`,
     ext: ".txt",
     missed: false,
+    used: true,
   },
 });
 

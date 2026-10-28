@@ -13,7 +13,7 @@ import { useI18n } from "@/stores";
 import * as styles from "@/components/TestResult/TestResultSteps/styles.scss";
 
 interface TestResultAttachmentInfoProps {
-  item?: AttachmentTestStepResult;
+  item: AttachmentTestStepResult;
   shouldExpand?: boolean;
   isPreviewable?: boolean;
   showPreview?: boolean;

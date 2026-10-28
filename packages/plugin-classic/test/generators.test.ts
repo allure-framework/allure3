@@ -26,6 +26,10 @@ const mockTestResult = (id: string, name: string, status: TestResult["status"]):
     id,
     name,
     status,
+    testCaseHash: null,
+    parametersHash: "",
+    environmentHash: null,
+    retryHash: null,
     labels: [],
     flaky: false,
     muted: false,
@@ -98,6 +102,7 @@ const createWriter = (): ClassicDataWriter => ({
   writeWidget: vi.fn().mockResolvedValue(undefined),
   writeTestCase: vi.fn().mockResolvedValue(undefined),
   writeAttachment: vi.fn().mockResolvedValue(undefined),
+  writeRawData: vi.fn().mockResolvedValue(undefined),
 });
 
 const createStore = (testResults: TestResult[]) =>
@@ -244,6 +249,7 @@ describe("generateTestResults history", () => {
     const testResult = mockTestResult("tr-1", "test", "passed");
     const writer: ClassicDataWriter = {
       writeData: vi.fn().mockResolvedValue(undefined),
+      writeRawData: vi.fn().mockResolvedValue(undefined),
       writeWidget: vi.fn().mockResolvedValue(undefined),
       writeTestCase: vi.fn().mockResolvedValue(undefined),
       writeAttachment: vi.fn().mockResolvedValue(undefined),
@@ -285,6 +291,7 @@ describe("generateTestResults history", () => {
     };
     const writer: ClassicDataWriter = {
       writeData: vi.fn().mockResolvedValue(undefined),
+      writeRawData: vi.fn().mockResolvedValue(undefined),
       writeWidget: vi.fn().mockResolvedValue(undefined),
       writeTestCase: vi.fn().mockResolvedValue(undefined),
       writeAttachment: vi.fn().mockResolvedValue(undefined),

@@ -4,7 +4,7 @@ import { signal } from "@preact/signals";
 
 import type { StoreSignalState } from "@/stores/types";
 
-export const reportStatsStore = signal<StoreSignalState<Statistic>>({
+export const reportStatsStore = signal<StoreSignalState<Statistic> & { data: Statistic }>({
   loading: true,
   error: undefined,
   data: {
@@ -12,7 +12,9 @@ export const reportStatsStore = signal<StoreSignalState<Statistic>>({
   },
 });
 
-export const statsByEnvStore = signal<StoreSignalState<Record<string, Statistic>>>({
+export const statsByEnvStore = signal<
+  StoreSignalState<Record<string, Statistic>> & { data: Record<string, Statistic> }
+>({
   loading: true,
   error: undefined,
   data: {},

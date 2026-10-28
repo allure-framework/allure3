@@ -29,7 +29,7 @@ const Suites = () => {
     <Loadable
       source={testResultStore}
       renderLoader={() => <PageLoader />}
-      transformData={(data) => data[testResultId]}
+      transformData={(data) => (testResultId ? data[testResultId] : undefined)}
       renderData={(testResultItem) => (
         <>
           <div className={styles.wrapper} key={testResultItem?.id}>

@@ -55,17 +55,17 @@ export const TrStepsContent = (props: { item: TrStepItem }) => {
     actual: stepData.error?.actual,
     expected: stepData.error?.expected,
   };
-  const hasInlineError = Boolean(
+  const hasInlineError = !!(
     (inlineError.message || inlineError.trace || hasErrorDiff(inlineError)) &&
     !stepData.hasSimilarErrorInSubSteps &&
-    !suppressInlineError,
+    !suppressInlineError
   );
 
   return (
     <div data-testid={"test-result-step-content"} className={styles["test-result-step-content"]}>
-      {Boolean(stepData.parameters?.length) && <TrStepParameters parameters={stepData.parameters} />}
+      {!!stepData.parameters?.length && <TrStepParameters parameters={stepData.parameters} />}
       {hasInlineError && <TrError {...inlineError} status={stepData.status} />}
-      {Boolean(bodyItems.length) && <TrBodyItems bodyItems={bodyItems} />}
+      {!!bodyItems.length && <TrBodyItems bodyItems={bodyItems} />}
     </div>
   );
 };
@@ -75,27 +75,24 @@ export const TrStep: FunctionComponent<{
   stepIndex?: number;
 }> = ({ item, stepIndex }) => {
   const { item: stepData, bodyItems } = item;
+  // Core assigns stepId when converting raw steps.
+  const stepId = stepData.stepId!;
   const policy = getStepTreeExpansionPolicy();
   const hasContent = hasStepContent(item);
   const openedByDefault = isStepOpenedByDefault(policy, stepData.status, bodyItems);
-  const isOpened = isTreeOpened(stepData.stepId, openedByDefault);
+  const isOpened = isTreeOpened(stepId, openedByDefault);
   const expandableDescendantNodes = collectExpandableStepNodes(bodyItems, policy);
   const hasExpandableDescendants = expandableDescendantNodes.length > 0;
   const subtreeNodes: SubtreeNode[] = hasExpandableDescendants
     ? [
-        { id: stepData.stepId, openedByDefault, isRoot: true },
+        { id: stepId, openedByDefault, isRoot: true },
         ...expandableDescendantNodes.map((node) => ({ ...node, isRoot: false })),
       ]
     : [];
   const [lastSubtreeToggle, setLastSubtreeToggle] = useState<SubtreeToggleState | null>(null);
-  const isRootSubtreeOpened = isTreeOpened(stepData.stepId, openedByDefault);
+  const isRootSubtreeOpened = isTreeOpened(stepId, openedByDefault);
   const isSubtreeCollapsedAll = !isRootSubtreeOpened;
-  const isSubtreeFirstLevelOnly = isSubtreeFirstLevelOnlyOpened(
-    stepData.stepId,
-    openedByDefault,
-    subtreeNodes,
-    isTreeOpened,
-  );
+  const isSubtreeFirstLevelOnly = isSubtreeFirstLevelOnlyOpened(stepId, openedByDefault, subtreeNodes, isTreeOpened);
   const isSubtreeExpandedAll =
     hasExpandableDescendants && subtreeNodes.every((node) => isTreeOpened(node.id, node.openedByDefault));
   const hasOnlyLeafResults = hasExpandableDescendants && subtreeNodes.every((node) => node.isRoot);
@@ -128,14 +125,14 @@ export const TrStep: FunctionComponent<{
 
   const toggleStep = () => {
     setLastSubtreeToggle(null);
-    toggleTree(stepData.stepId, openedByDefault);
+    toggleTree(stepId, openedByDefault);
   };
 
   return (
     <div data-testid={"test-result-step"} className={styles["test-result-step"]}>
       <TrStepHeader
-        className={trOverviewHeaderFocusClass(stepData.stepId)}
-        {...trOverviewFocusAttrs(stepData.stepId)}
+        className={trOverviewHeaderFocusClass(stepId)}
+        {...trOverviewFocusAttrs(stepId)}
         title={stepData.name}
         status={stepData.status}
         stepIndex={stepIndex}

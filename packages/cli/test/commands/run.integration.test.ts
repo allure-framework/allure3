@@ -1,4 +1,4 @@
-import { execFile, spawn } from "node:child_process";
+import { type ExecFileOptionsWithStringEncoding, execFile, spawn } from "node:child_process";
 import { mkdir, mkdtemp, readFile, readdir, rm, stat, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, isAbsolute, join, resolve } from "node:path";
@@ -24,7 +24,7 @@ const cliPath = join(repoRoot, "packages", "cli", "cli.js");
 const simpleResultFixture = join(repoRoot, "packages", "reader", "test", "resources", "allure2data", "simple.json");
 const maxBuffer = 10 * 1024 * 1024;
 
-type RunCommandOptions = Parameters<typeof execFileAsync>[2];
+type RunCommandOptions = ExecFileOptionsWithStringEncoding;
 
 const runCommand = async (command: string, args: string[], options: RunCommandOptions = {}) => {
   const { env: customEnv, ...restOptions } = options;
@@ -37,6 +37,7 @@ const runCommand = async (command: string, args: string[], options: RunCommandOp
     env,
     maxBuffer,
     ...restOptions,
+    encoding: "utf8",
   });
 };
 
@@ -1751,7 +1752,7 @@ describe("serve command integration", () => {
   // re-enable once issues with vite+ caching and hanging powershell are resolved
   it(
     "keeps the HTTP server running when historyPath is configured",
-    { skip: platform === "win32" },
+    { skip: platform === "win32", timeout: 240_000 },
     async () => {
       const historyPath = join(workspace, "allure-history.jsonl");
 
@@ -1822,6 +1823,5 @@ describe("serve command integration", () => {
         await terminate(child);
       }
     },
-    240_000,
   );
 });

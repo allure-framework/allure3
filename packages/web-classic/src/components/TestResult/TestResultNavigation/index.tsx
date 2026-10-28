@@ -120,7 +120,9 @@ export const TestResultNavigation: FunctionalComponent<TestResultNavigationProps
 
         return (
           <div className={styles["test-result-nav"]}>
-            {hasCopyMenu && <TestResultCopyMenu fullName={fullName} testCaseId={testCase?.id} historyId={retryHash} />}
+            {hasCopyMenu && (
+              <TestResultCopyMenu fullName={fullName} testCaseId={testCase?.id} historyId={retryHash ?? undefined} />
+            )}
             {Boolean(data?.length) && testResult && !testResult.isRetry && (
               <div className={styles["test-result-navigator"]}>
                 <NavArrow type="prev" trId={prevId} />

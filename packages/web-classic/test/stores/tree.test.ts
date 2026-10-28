@@ -118,7 +118,7 @@ describe("createTreeStore", () => {
     store.setDirection("desc");
 
     expect(leafNames(store)).toEqual(["third", "second", "first"]);
-    expect(JSON.parse(localStorage.getItem(treeSortStorageKey("suites")))).toEqual({
+    expect(JSON.parse(localStorage.getItem(treeSortStorageKey("suites")) ?? "null")).toEqual({
       sortBy: "alphabet",
       direction: "desc",
     });

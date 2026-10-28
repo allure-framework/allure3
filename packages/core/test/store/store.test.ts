@@ -1,11 +1,13 @@
 /* eslint-disable max-lines */
 import {
   type AllureHistory,
+  type TestResult,
   type AttachmentLinkLinked,
   calculateEnvironmentHash,
   calculateParametersHash,
   calculateRetryHash,
   type HistoryDataPoint,
+  type HistoryTestResult,
   fallbackTestCaseIdLabelName,
 } from "@allurereport/core-api";
 import { type AllureStoreDump, md5 } from "@allurereport/plugin-api";
@@ -5216,6 +5218,16 @@ describe("dump state", () => {
   });
 
   it("should preserve continuity for explicit ids after display name rename", async () => {
+    const legacyHistoryResult = {
+      id: "history-result-1",
+      name: "qa history result",
+      historyId: "history-1",
+      status: "passed",
+      environment: "qa",
+      labels: [],
+      reportLinks: [],
+      url: "",
+    } satisfies HistoryTestResult & { historyId: string };
     const history = new AllureTestHistory([
       {
         uuid: "history-point-1",
@@ -5225,16 +5237,7 @@ describe("dump state", () => {
         metrics: {},
         url: "",
         testResults: {
-          "history-1": {
-            id: "history-result-1",
-            name: "qa history result",
-            historyId: "history-1",
-            status: "passed",
-            environment: "qa",
-            labels: [],
-            reportLinks: [],
-            url: "",
-          },
+          "history-1": legacyHistoryResult,
         },
       },
     ]);
@@ -5723,18 +5726,16 @@ describe("dump state", () => {
       },
     });
 
-    await store.visitTestResult(
-      {
+    const qaResult = {
+      name: "qa result",
+      fullName: "suite qa result",
+      testCase: {
+        id: "tc-qa",
         name: "qa result",
         fullName: "suite qa result",
-        testCase: {
-          id: "tc-qa",
-          name: "qa result",
-          fullName: "suite qa result",
-        },
       },
-      { readerId },
-    );
+    };
+    await store.visitTestResult(qaResult, { readerId });
 
     const trId = (await store.allTestResults())[0]?.id;
 
@@ -5829,10 +5830,10 @@ describe("dump state", () => {
         },
       },
     });
-    const rawTr: RawTestResult = {
+    const rawTr = {
       name: "restored env test",
       fullName: "suite restored env test",
-      status: "passed",
+      status: "passed" as const,
       testCase: {
         id: "restored-env-test",
         externalId: "restored-env-test",
@@ -5849,7 +5850,7 @@ describe("dump state", () => {
     await targetStore.restoreState(dump);
     await targetStore.restoreState(dump);
 
-    const restoredResults = await targetStore.testResultsByEnvironmentId("qa", { includeHidden: true });
+    const restoredResults = await targetStore.testResultsByEnvironmentId("qa");
 
     expect(restoredResults).toEqual([expect.objectContaining({ name: "restored env test", environment: "qa" })]);
   });
@@ -5945,8 +5946,8 @@ describe("dictionary safety", () => {
 
     expect(Object.getPrototypeOf(byLabel)).toBeNull();
     expect(byLabel.__proto__.map((tr) => tr.name)).toEqual(["proto test"]);
-    expect(byLabel.constructor.map((tr) => tr.name)).toEqual(["constructor test"]);
-    expect(byLabel.toString.map((tr) => tr.name)).toEqual(["toString test"]);
+    expect(byLabel[String("constructor")].map((tr) => tr.name)).toEqual(["constructor test"]);
+    expect(byLabel[String("toString")].map((tr) => tr.name)).toEqual(["toString test"]);
     expect(byLabel._.map((tr) => tr.name)).toEqual(["no suite label"]);
   });
 
@@ -6003,6 +6004,13 @@ describe("relatedByTestResultIds", () => {
     const testHistoryId = `${md5("case-id")}.${md5("")}`;
     const retryResultId = md5("retry-result");
     const latestResultId = md5("latest-result");
+    const legacyHistoryResult = {
+      id: "history-result",
+      name: "historical test",
+      status: "failed",
+      url: "https://example.com/history/history-result",
+      historyId: testHistoryId,
+    } satisfies HistoryTestResult & { historyId: string };
     const store = new DefaultAllureStore({
       history: new AllureTestHistory([
         {
@@ -6013,13 +6021,7 @@ describe("relatedByTestResultIds", () => {
           metrics: {},
           url: "https://example.com/history",
           testResults: {
-            "history-result": {
-              id: "history-result",
-              name: "historical test",
-              status: "failed",
-              url: "https://example.com/history/history-result",
-              historyId: testHistoryId,
-            },
+            "history-result": legacyHistoryResult,
           },
         },
       ]),

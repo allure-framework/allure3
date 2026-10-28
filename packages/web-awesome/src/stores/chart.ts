@@ -1,6 +1,6 @@
 import type { PieChartValues } from "@allurereport/charts-api";
 import type { ChartsResponse, UIChartsDataWithEnvs } from "@allurereport/web-commons";
-import { createChartsWithEnvs, fetchReportJsonData } from "@allurereport/web-commons";
+import { errorMessageFromUnknown, createChartsWithEnvs, fetchReportJsonData } from "@allurereport/web-commons";
 import { signal } from "@preact/signals";
 
 import type { StoreSignalState } from "@/stores/types";
@@ -33,7 +33,7 @@ export const fetchPieChartData = async (env: string) => {
     };
   } catch (err) {
     pieChartStore.value = {
-      error: err.message,
+      error: errorMessageFromUnknown(err),
       loading: false,
     };
   }
@@ -63,7 +63,7 @@ export const fetchChartsData = async () => {
   } catch (err) {
     chartsStore.value = {
       data: undefined,
-      error: err.message,
+      error: errorMessageFromUnknown(err),
       loading: false,
     };
   }

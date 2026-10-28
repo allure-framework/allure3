@@ -26,8 +26,8 @@ import { useI18n } from "@/stores/locale";
 import * as styles from "./styles.scss";
 
 const FilterBtn = (props: {
-  icon: string;
-  text: string;
+  icon?: string;
+  text?: string;
   isActive: boolean;
   counter?: number;
   onClick: () => void;
@@ -59,8 +59,8 @@ const FilterBtn = (props: {
 
   useTooltip({ isVisible: isTooltipVisible, triggerRef, tooltipRef, placement: "top" });
 
-  const hasError = error?.length > 0;
-  const hasDescription = description?.length > 0;
+  const hasError = (error?.length ?? 0) > 0;
+  const hasDescription = (description?.length ?? 0) > 0;
 
   useEffect(() => {
     if (!hasError && !hasDescription) {
@@ -80,7 +80,7 @@ const FilterBtn = (props: {
 
   const commonProps = {
     icon,
-    text,
+    text: text ?? "",
     size: "m",
     style: isActive ? "raised" : "ghost",
     action: hasError ? "danger" : "default",
@@ -153,10 +153,10 @@ export const BooleanFieldFilter = <T extends BooleanField = BooleanField>(props:
   );
 };
 
-export const MultipleChoiceFieldFilter = (props: {
-  group: FieldFilterGroup;
+export const MultipleChoiceFieldFilter = <G extends FieldFilterGroup>(props: {
+  group: G;
   counter?: boolean;
-  onChange: (group: FieldFilterGroup) => void;
+  onChange: (group: G) => void;
   onClear?: () => void;
   options: { key: string; label?: string; description?: string; icon?: string; count?: number }[];
   fieldKey: string;

@@ -38,7 +38,8 @@ const render = (ci: CiDescriptor) => {
 
   return renderReportSummaryMarkdown(createReportContextFromData({ reports: [savedReport] }));
 };
-const mockEnv = (env: Record<string, string>) => vi.mocked(getEnv).mockImplementation((key) => env[key] ?? "");
+const mockEnv = (env: Record<string, string | undefined>) =>
+  vi.mocked(getEnv).mockImplementation((key) => env[key] ?? "");
 
 beforeEach(() => {
   vi.resetAllMocks();
@@ -313,9 +314,9 @@ describe("CI report context", () => {
     expect(markdown).toContain(`/pull/7/commits/${sha}`);
   });
 
-  it.each([[], [{ number: 7, head: { sha: "outdated-pr-head" } }]])(
+  it.each([{ pullRequests: [] }, { pullRequests: [{ number: 7, head: { sha: "outdated-pr-head" } }] }])(
     "uses workflow_run.head_sha when associated PRs are %j",
-    (pullRequests) => {
+    ({ pullRequests }) => {
       mockEnv({
         GITHUB_SHA: "downstream",
         GITHUB_SERVER_URL: "https://github.com",

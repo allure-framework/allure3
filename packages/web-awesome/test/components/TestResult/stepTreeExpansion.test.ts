@@ -23,6 +23,9 @@ describe("components > TestResult > stepTreeExpansion", () => {
       {
         type: "step",
         item: {
+          type: "step",
+          steps: [],
+          parameters: [],
           name: "top-level step",
           status: "passed",
         },
@@ -31,6 +34,9 @@ describe("components > TestResult > stepTreeExpansion", () => {
           {
             type: "step",
             item: {
+              type: "step",
+              steps: [],
+              parameters: [],
               name: "failed nested step",
               status: "failed",
             },
@@ -39,7 +45,7 @@ describe("components > TestResult > stepTreeExpansion", () => {
           },
         ],
       },
-    ] as TrBodyItem[];
+    ] satisfies TrBodyItem[];
 
     expect(hasFailedStepContext(bodyItems)).toBe(true);
   });
@@ -49,6 +55,9 @@ describe("components > TestResult > stepTreeExpansion", () => {
       {
         type: "step",
         item: {
+          type: "step",
+          steps: [],
+          parameters: [],
           name: "top-level step",
           status: "passed",
         },
@@ -59,12 +68,15 @@ describe("components > TestResult > stepTreeExpansion", () => {
         type: "attachment",
         link: {
           id: "attachment-1",
-          source: "attachment-1.txt",
+          originalFileName: "attachment-1.txt",
+          ext: ".txt",
+          used: true,
+          missed: false,
           name: "attachment",
-          type: "text/plain",
+          contentType: "text/plain",
         },
       },
-    ] as TrBodyItem[];
+    ] satisfies TrBodyItem[];
 
     expect(hasFailedStepContext(bodyItems)).toBe(false);
   });
@@ -81,13 +93,16 @@ describe("components > TestResult > stepTreeExpansion", () => {
       {
         type: "step",
         item: {
+          type: "step",
+          steps: [],
+          parameters: [],
           name: "nested failed step",
           status: "failed",
         },
         suppressInlineError: false,
         bodyItems: [],
       },
-    ] as TrBodyItem[];
+    ] satisfies TrBodyItem[];
 
     expect(isStepOpenedByDefault("expand_failed_only", "passed", failedBodyItems)).toBe(true);
     expect(isStepOpenedByDefault("expand_failed_only", "passed", [])).toBe(false);
@@ -98,10 +113,12 @@ describe("components > TestResult > stepTreeExpansion", () => {
       {
         type: "step",
         item: {
+          type: "step",
+          steps: [],
+          parameters: [],
           stepId: "parent-step",
           name: "parent step",
           status: "passed",
-          parameters: [],
           message: "",
           trace: "",
           hasSimilarErrorInSubSteps: false,
@@ -111,10 +128,12 @@ describe("components > TestResult > stepTreeExpansion", () => {
           {
             type: "step",
             item: {
+              type: "step",
+              steps: [],
+              parameters: [],
               stepId: "failed-child-step",
               name: "failed child step",
               status: "failed",
-              parameters: [],
               message: "child failed",
               trace: "trace",
               hasSimilarErrorInSubSteps: false,
@@ -134,7 +153,7 @@ describe("components > TestResult > stepTreeExpansion", () => {
           },
         ],
       },
-    ] as TrBodyItem[];
+    ] satisfies TrBodyItem[];
 
     expect(collectExpandableStepNodes(bodyItems, "expand_failed_only")).toEqual([
       { id: "parent-step", openedByDefault: true },

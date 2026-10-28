@@ -7,7 +7,7 @@ export { test } from "@playwright/test";
 export const expect = baseExpect.extend({
   async toHaveDetails(step: StepResultFixture, message: string | RegExp, trace?: string | RegExp) {
     const assertionName = "toHaveDetails";
-    let pass: boolean;
+    let pass = false;
     let matcherResult: any;
 
     let locator = step.stepMessageLocator;

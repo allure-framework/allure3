@@ -150,7 +150,7 @@ for (const scenario of scenarios) {
                 target.evaluate((element) => {
                   const probe = document.createElementNS("http://www.w3.org/2000/svg", "rect");
 
-                  element.ownerSVGElement?.append(probe);
+                  if (element instanceof SVGElement) element.ownerSVGElement?.append(probe);
                   probe.setAttribute("fill", "var(--color-status-skipped-chart-fill)");
 
                   const neutral = getComputedStyle(probe).fill;

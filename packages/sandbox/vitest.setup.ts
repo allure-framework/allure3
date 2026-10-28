@@ -37,27 +37,31 @@ const emitNestedStepBranch = async (branchName: string, seed: number) => {
 };
 
 const emitNestedBrokenBranch = async (seed: number) => {
-  await step("broken subtree (caught)", async () => {
-    await step("broken layer-1", async () => {
-      await step("broken layer-2", async () => {
-        await step("broken layer-3", async () => {
-          throw new Error(`sandbox synthetic nested error: ${seed}`);
+  await Promise.resolve(
+    step("broken subtree (caught)", async () => {
+      await step("broken layer-1", async () => {
+        await step("broken layer-2", async () => {
+          await step("broken layer-3", async () => {
+            throw new Error(`sandbox synthetic nested error: ${seed}`);
+          });
         });
       });
-    });
-  }).catch(() => undefined);
+    }),
+  ).catch(() => undefined);
 };
 
 const emitNestedFailedBranch = async (seed: number) => {
-  await step("failed subtree (caught)", async () => {
-    await step("failed layer-1", async () => {
-      await step("failed layer-2", async () => {
-        await step("failed layer-3", () => {
-          expect(seed % 2).toBe(3);
+  await Promise.resolve(
+    step("failed subtree (caught)", async () => {
+      await step("failed layer-1", async () => {
+        await step("failed layer-2", async () => {
+          await step("failed layer-3", () => {
+            expect(seed % 2).toBe(3);
+          });
         });
       });
-    });
-  }).catch(() => undefined);
+    }),
+  ).catch(() => undefined);
 };
 
 beforeEach(async () => {

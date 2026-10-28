@@ -15,7 +15,7 @@ interface TreeItemProps {
   status: TestStatus;
   duration?: number;
   id: string;
-  groupOrder: number;
+  groupOrder?: number;
   parentNodeId?: string;
   isMarked?: boolean;
   flaky?: boolean;

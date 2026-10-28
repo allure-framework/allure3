@@ -15,7 +15,7 @@ const loadComparison = () =>
     default: module.TestResultDiff,
   }));
 
-const Comparison = (props: Pick<TestError, "actual" | "expected">) => {
+const Comparison = (props: Required<Pick<TestError, "actual" | "expected">>) => {
   const { t } = useI18n("controls");
 
   return (
@@ -53,12 +53,14 @@ export const TestResultError: FunctionalComponent<TestResultErrorProps> = ({
       copied: tooltip("clipboardSuccess"),
       showDiff: tooltip("showDiff"),
     })[key];
-  const openDiff = () =>
+  const openDiff = () => {
+    if (!actual || !expected) return;
     openModal({
       title: tooltip("comparison"),
       data: { actual, expected },
       component: <Comparison actual={actual} expected={expected} />,
     });
+  };
 
   return (
     <TestResultErrorBlock

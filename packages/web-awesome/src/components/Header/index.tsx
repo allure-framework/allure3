@@ -18,10 +18,8 @@ interface HeaderProps {
   className?: ClassValue;
 }
 
-const isTestResultRoute = computed(
-  () => testResultRoute.value.matches || Boolean(rootTabRoute.value.params.testResultId),
-);
-const testResult = computed(() => testResultStore.value?.data?.[currentTrId.value]);
+const isTestResultRoute = computed(() => testResultRoute.value.matches || !!rootTabRoute.value.params.testResultId);
+const testResult = computed(() => (currentTrId.value ? testResultStore.value?.data?.[currentTrId.value] : undefined));
 
 export const Header = ({ className }: HeaderProps) => {
   return (

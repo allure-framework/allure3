@@ -1,4 +1,4 @@
-import type { TestStepResult } from "@allurereport/core-api";
+import type { GlobalAttachmentLink, TestStepResult } from "@allurereport/core-api";
 import type { PluginGlobals, ReportTestResult } from "@allurereport/plugin-api";
 import { feature, story } from "allure-js-commons";
 import { beforeEach, expect, it } from "vite-plus/test";
@@ -27,10 +27,16 @@ it("retains source viewers and nested/fixture/retry attachments", () => {
   const test = {
     ...empty,
     steps: [{ type: "step", name: "nested", status: "passed", parameters: [], steps: [attachment("text/markdown")] }],
-    setup: [{ steps: [attachment("text/html")] }],
-    teardown: [{ steps: [attachment("text/csv")] }],
-    retries: [{ steps: [attachment("application/vnd.allure.diagrams.mermaid")] }],
-  } as ReportTestResult;
+    setup: [{ id: "setup", name: "setup", type: "before", status: "passed", steps: [attachment("text/html")] }],
+    teardown: [{ id: "teardown", name: "teardown", type: "after", status: "passed", steps: [attachment("text/csv")] }],
+    retries: [
+      {
+        ...empty,
+        sourceMetadata: { readerId: "test", metadata: {} },
+        steps: [attachment("application/vnd.allure.diagrams.mermaid")],
+      },
+    ],
+  } satisfies ReportTestResult;
   expect(collectViewerAssetFeatures([test], [{ contentType: "application/vnd.allure.http+json" }], globals)).toEqual([
     "attachment-code",
     "attachment-html",
@@ -41,7 +47,7 @@ it("retains source viewers and nested/fixture/retry attachments", () => {
   ]);
 });
 it("preserves image-diff previews from environment globals and omits download-only/ordinary images", () => {
-  const link = {
+  const link: GlobalAttachmentLink = {
     id: "global",
     ext: ".json",
     name: "global",

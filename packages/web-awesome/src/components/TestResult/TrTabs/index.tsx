@@ -13,7 +13,7 @@ export const TrTab = (props: { id: string; children: ComponentChildren }) => {
   const isCurrentTab = getCurrentTestResultTab() === id;
 
   const handleTabClick = () => {
-    if (isCurrentTab) {
+    if (isCurrentTab || !currentTrId.value) {
       return;
     }
 

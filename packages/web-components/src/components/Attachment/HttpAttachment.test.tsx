@@ -237,7 +237,7 @@ describe("HttpAttachment", () => {
 
     expect(screen.getByText("Parts (1)")).toBeTruthy();
     expect(screen.getByText("metadata")).toBeTruthy();
-    const metadataPart = screen.getByText("metadata").closest("[data-http-part]")!;
+    const metadataPart = screen.getByText("metadata").closest<HTMLElement>("[data-http-part]")!;
     expect(within(metadataPart).getByText("Headers")).toBeTruthy();
     expect(within(metadataPart).getByText("authorization")).toBeTruthy();
     expect(within(metadataPart).getByLabelText("Value is masked")).toBeTruthy();

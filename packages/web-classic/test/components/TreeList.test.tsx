@@ -99,7 +99,7 @@ describe("TreeList", () => {
     const leaf = (name: string) =>
       screen
         .getAllByTestId("tree-leaf")
-        .find((el) => el.querySelector("[data-testid=tree-leaf-title]")?.textContent === name);
+        .find((el) => el.querySelector("[data-testid=tree-leaf-title]")?.textContent === name)!;
 
     expect(leaf("first").querySelector("[data-testid=tree-leaf-flaky]")).toBeTruthy();
     expect(leaf("second").querySelector("[data-testid=tree-leaf-transition-new]")).toBeTruthy();

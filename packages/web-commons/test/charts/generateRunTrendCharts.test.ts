@@ -25,6 +25,10 @@ beforeEach(async () => {
 
 const createTestResult = (overrides: Partial<TestResult> & { id: string; status: TestStatus }): TestResult => ({
   name: overrides.id,
+  testCaseHash: null,
+  parametersHash: "",
+  environmentHash: null,
+  retryHash: null,
   flaky: false,
   muted: false,
   known: true,

@@ -18,7 +18,7 @@ export interface TreeItemInfoProps {
   resolution?: ResolutionCategory;
   transition?: TestStatusTransition;
   transitionTooltip?: string;
-  tooltips?: Record<string, string>;
+  tooltips?: Partial<Record<string, string>>;
   /** Render no duration instead of the "unknown" text when the duration is missing */
   hideUnknownDuration?: boolean;
 }

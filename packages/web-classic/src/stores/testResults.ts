@@ -1,4 +1,4 @@
-import { fetchReportJsonData } from "@allurereport/web-commons";
+import { errorMessageFromUnknown, fetchReportJsonData } from "@allurereport/web-commons";
 import { signal } from "@preact/signals";
 import { type ReportTestResult } from "types";
 
@@ -32,7 +32,7 @@ export const fetchTestResultNav = async () => {
   } catch (err) {
     testResultNavStore.value = {
       ...testResultNavStore.value,
-      error: err.message,
+      error: errorMessageFromUnknown(err),
       loading: false,
     };
   }
@@ -60,7 +60,7 @@ export const fetchTestResult = async (testResultId: string) => {
   } catch (err) {
     testResultStore.value = {
       ...testResultStore.value,
-      error: err.message,
+      error: errorMessageFromUnknown(err),
       loading: false,
     };
   }

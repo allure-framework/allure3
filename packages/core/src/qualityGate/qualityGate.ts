@@ -2,7 +2,6 @@ import { type MetricSample, type TestError, type TestResult } from "@allurerepor
 import type {
   QualityGateConfig,
   QualityGateMetricHistoryPoint,
-  QualityGateRule,
   QualityGateValidationResult,
 } from "@allurereport/plugin-api";
 import { bold, gray, red } from "yoctocolors";
@@ -116,7 +115,7 @@ export class QualityGate {
     }
 
     const trsToValidate = [...trsToValidateById.values()];
-    const { rules, use = [...qualityGateDefaultRules] as QualityGateRule[] } = this.config;
+    const { rules, use = [...qualityGateDefaultRules] as NonNullable<QualityGateConfig["use"]> } = this.config;
     const results: QualityGateValidationResult[] = [];
     let fastFailed = false;
 

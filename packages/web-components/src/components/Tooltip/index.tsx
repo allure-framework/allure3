@@ -47,8 +47,8 @@ export const useTooltip = <
 >(props: {
   placement?: Placement;
   isVisible: boolean;
-  triggerRef: MutableRefObject<TriggerRef>;
-  tooltipRef: MutableRefObject<TooltipRef>;
+  triggerRef: MutableRefObject<TriggerRef | null>;
+  tooltipRef: MutableRefObject<TooltipRef | null>;
 }) => {
   const { placement = "top", triggerRef: triggerRefProp, tooltipRef: tooltipRefProp, isVisible } = props;
   const triggerRef = useRef<HTMLElement>(null);

@@ -38,7 +38,7 @@ export const defaultTasksConfig = (
     testInput?: string[];
     testOutput?: string[];
   } = {},
-): ViteUserConfig => {
+): Pick<ViteUserConfig, "run"> => {
   // custom command parsing exists for compatibility with running builds and tests with plain yarn while allowing
   // to define the same command counterparts with a more granular caching configuration
   const packageJson = JSON.parse(readFileSync(join(packageRoot, "package.json"), "utf8"));
