@@ -1,9 +1,9 @@
-import type { AllureStore, ReportFiles } from "@allurereport/plugin-api";
+import type { AllureStore, PluginContext, ReportFiles } from "@allurereport/plugin-api";
 import { readReportStaticAssets } from "@allurereport/plugin-api/static-assets";
 import { epic, feature, label, story } from "allure-js-commons";
 import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
-import { generateEnvirontmentsList, generateStaticFiles } from "../src/generators.js";
+import { generateAllCharts, generateEnvirontmentsList, generateStaticFiles } from "../src/generators.js";
 import type { DashboardDataWriter } from "../src/writer.js";
 
 beforeEach(async () => {
@@ -127,4 +127,18 @@ describe("generateEnvirontmentsList", () => {
       },
     ]);
   });
+});
+
+it("writes a valid empty charts widget when the layout is empty", async () => {
+  const writeWidget = vi.fn().mockResolvedValue(undefined);
+  const writer: DashboardDataWriter = { writeWidget };
+  const store = {
+    allEnvironmentIdentities: async () => [],
+    allTestResults: async () => [],
+    allHistoryDataPoints: async () => [],
+  } as unknown as AllureStore;
+
+  await generateAllCharts(writer, store, { layout: [] }, { reportName: "Empty dashboard" } as PluginContext);
+
+  expect(writeWidget).toHaveBeenCalledWith("charts.json", { general: {}, byEnv: {} });
 });

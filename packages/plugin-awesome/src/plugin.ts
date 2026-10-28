@@ -390,10 +390,9 @@ export class AwesomePlugin implements Plugin {
       ? [...new Set([...configuredSections, "metrics"])]
       : configuredSections.filter((section) => section !== "metrics");
 
-    const chartFeatures =
-      singleFile && !this.#retainAllAssets
-        ? collectChartAssetFeatures(this.options.charts ?? defaultChartsConfig)
-        : undefined;
+    const chartFeatures = !this.#retainAllAssets
+      ? collectChartAssetFeatures(this.options.charts ?? defaultChartsConfig)
+      : undefined;
 
     await measure("staticFiles", () =>
       generateStaticFiles({

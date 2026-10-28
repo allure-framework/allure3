@@ -62,6 +62,11 @@ export const defaultTasksConfig = (
         env: ["NODE_ENV"],
         input: [
           { auto: true },
+          // Every command restores dist, including files emitted by earlier commands.
+          // Packaging steps must also invalidate when compiler inputs change.
+          "src/**",
+          "tsconfig*.json",
+          "package.json",
           { pattern: "!.yarn/install-state.gz", base: "workspace" },
           "!out/**",
           "!dist/**",

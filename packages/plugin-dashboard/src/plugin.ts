@@ -41,10 +41,9 @@ export class DashboardPlugin implements Plugin {
       allureVersion: context.allureVersion,
       reportFiles: context.reportFiles,
       reportDataFiles,
-      requiredAssetFeatures:
-        this.options.singleFile && !this.#retainAllAssets
-          ? collectChartAssetFeatures(this.options.layout ?? defaultChartsConfig)
-          : undefined,
+      requiredAssetFeatures: !this.#retainAllAssets
+        ? collectChartAssetFeatures(this.options.layout ?? defaultChartsConfig)
+        : undefined,
       reportUuid: context.reportUuid,
       reportName: context.reportName,
       overviewHref: context.overviewHref,
