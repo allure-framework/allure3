@@ -1,14 +1,16 @@
-import type { QualityGateConfig, QualityGateRule, QualityGateRules } from "../qualityGate.js";
+import type { QualityGateConfig, QualityGateRules } from "../qualityGate.js";
+
+type RegisteredQualityGateRule = NonNullable<QualityGateConfig["use"]>[number];
 
 /** Serialized rule definitions are normalized to runtime callbacks by the configuration loader. */
 export type QualityGateRuleInput =
   | string
   | {
       rule: string;
-      message?: string | QualityGateRule["message"];
-      successMessage?: string | QualityGateRule["successMessage"];
+      message?: string | RegisteredQualityGateRule["message"];
+      successMessage?: string | RegisteredQualityGateRule["successMessage"];
       /** Trusted async JavaScript function body, or a native JavaScript validator. */
-      validate?: string | QualityGateRule["validate"];
+      validate?: string | RegisteredQualityGateRule["validate"];
     };
 
 export type QualityGateRulesInput = Omit<QualityGateRules, "filter"> & {
