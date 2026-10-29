@@ -24,6 +24,32 @@ const showMetrics = (value: number, unit?: string, history: MetricsWidgetData["h
 };
 
 describe("components > ReportMetrics", () => {
+  it("compares the current mean for repeated measurements while displaying each individual value", async () => {
+    metricsStore.value = {
+      loading: false,
+      data: {
+        current: [
+          { id: "a", key: "size", value: 2048, unit: "bytes", start: 0, stop: 1 },
+          { id: "b", key: "size", value: 4096, unit: "bytes", start: 1, stop: 2 },
+        ],
+        history: [{ uuid: "before", name: "Before", timestamp: 1, metrics: { size: 1024 } }],
+      },
+    };
+    render(<ReportMetrics />);
+    fireEvent.click(screen.getByRole("button", { name: "metrics.timelineView" }));
+    const timeline = await screen.findByTestId("metrics-timeline");
+    const bars = within(timeline).getAllByTestId("metric-interval");
+    expect(bars[0]).toHaveTextContent("2 KiB (Δ metrics.table.avg +2 KiB)");
+    expect(bars[1]).toHaveTextContent("4 KiB (Δ metrics.table.avg +2 KiB)");
+  });
+
+  it("labels chart bars with metric values and signed history deltas rather than interval durations", async () => {
+    showMetrics(2048, "bytes", [{ uuid: "before", name: "Before", timestamp: 1, metrics: { size: 1024 } }]);
+    fireEvent.click(screen.getByRole("button", { name: "metrics.timelineView" }));
+    const timeline = await screen.findByTestId("metrics-timeline");
+    expect(within(timeline).getByTestId("metric-interval")).toHaveTextContent("2 KiB (+1 KiB)");
+  });
+
   it("shows an empty timeline without a root or zoom controls when no measurements exist", async () => {
     metricsStore.value = { loading: false, data: { current: [], history: [] } };
     render(<ReportMetrics />);
@@ -112,6 +138,12 @@ describe("components > ReportMetrics", () => {
     [1048576, "bytes", "1 MiB"],
     [1073741824, "bytes", "1 GiB"],
     [12.3456, "ms", "12.346 ms"],
+    [999.99, "ms", "999.99 ms"],
+    [1000, "ms", "1 s"],
+    [1234.567, "ms", "1.23 s"],
+    [28888.704, "ms", "28.89 s"],
+    [-14998.925, "ms", "-15 s"],
+    [0.001, "ms", "0.001 ms"],
     [42, undefined, "42"],
   ])("formats %s %s without changing other units", (value, unit, expected) => {
     showMetrics(value, unit);

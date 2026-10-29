@@ -355,22 +355,26 @@ const ReportMetricsContent = ({ data }: { data: MetricsWidgetData }) => {
           {t("metrics.summary", { groups: metricSummaryRows(data).length, metrics: metricRows(data).length })}
         </span>
       </header>
-      <NavTabsList>
-        <NavTab id="table">{t("metrics.tableView")}</NavTab>
-        <NavTab id="timeline">{t("metrics.timelineView")}</NavTab>
-      </NavTabsList>
-      <div hidden={currentTab !== "table"} className={styles.view}>
-        <ReportMetricsTable data={data} />
+      <div className={styles.card}>
+        <div className={styles.tabs}>
+          <NavTabsList>
+            <NavTab id="table">{t("metrics.tableView")}</NavTab>
+            <NavTab id="timeline">{t("metrics.timelineView")}</NavTab>
+          </NavTabsList>
+        </div>
+        <div hidden={currentTab !== "table"} className={styles.view}>
+          <ReportMetricsTable data={data} />
+        </div>
+        {currentTab === "timeline" && (
+          <LazyComponent
+            loader={loadMetricsTimeline}
+            componentProps={{ data, selectedRoot: root, onSelectRoot: setRoot }}
+            fallback={<PageLoader />}
+            errorMessage={t("loadError")}
+            retryLabel={t("retry")}
+          />
+        )}
       </div>
-      {currentTab === "timeline" && (
-        <LazyComponent
-          loader={loadMetricsTimeline}
-          componentProps={{ data, selectedRoot: root, onSelectRoot: setRoot }}
-          fallback={<PageLoader />}
-          errorMessage={t("loadError")}
-          retryLabel={t("retry")}
-        />
-      )}
     </div>
   );
 };

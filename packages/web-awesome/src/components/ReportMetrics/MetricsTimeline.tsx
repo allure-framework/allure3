@@ -15,6 +15,7 @@ const Interval = ({
   start,
   duration,
   text,
+  valueLabel,
   direction,
   visible,
   onHover,
@@ -26,6 +27,7 @@ const Interval = ({
   start: number;
   duration: number;
   text: string;
+  valueLabel: string;
   direction: ReturnType<typeof deltaDirection>;
   visible: boolean;
   onHover: (index?: number) => void;
@@ -57,7 +59,7 @@ const Interval = ({
           width: `${duration ? ((Math.min(sample.stop, start + duration) - Math.max(sample.start, start)) / duration) * 100 : 0}%`,
           top: `${lane * 36 + 2}px`,
         }}
-        onMouseEnter={() => onHover(interval.index)}
+        onMouseMove={() => onHover(interval.index)}
         onMouseLeave={() => onHover(undefined)}
         onFocus={() => onFocus(interval.index)}
         onBlur={() => onFocus(undefined)}
@@ -73,7 +75,7 @@ const Interval = ({
           {sample.title ?? sample.key}
         </span>
         <span className={styles.elapsed} aria-hidden="true">
-          {formatValue(sample.stop - sample.start, "ms")}
+          {valueLabel}
         </span>
       </button>
       {visible &&
@@ -106,7 +108,13 @@ export default function MetricsTimeline({
   const activeIndex =
     focused?.root === model.root ? focused?.index : hovered?.root === model.root ? hovered?.index : undefined;
   const setHoveredIndex = (index?: number) =>
-    setHovered(index === undefined ? undefined : { root: model.root!, index });
+    setHovered((current) =>
+      index === undefined
+        ? undefined
+        : current?.root === model.root && current.index === index
+          ? current
+          : { root: model.root!, index },
+    );
   const setFocusedIndex = (index?: number) =>
     setFocused(index === undefined ? undefined : { root: model.root!, index });
   const dismissTooltip = () => {
@@ -222,6 +230,12 @@ export default function MetricsTimeline({
                     const metric = rows.get(sample.key)!;
                     const direction = deltaDirection(metric);
                     const previous = metric?.previousValue;
+                    const delta = metric.delta;
+                    const deltaLabel =
+                      typeof delta === "number" && Number.isFinite(delta)
+                        ? `${metric.count > 1 ? `Δ ${t("metrics.table.avg")} ` : ""}${delta > 0 ? "+" : ""}${formatValue(delta, metric.unit)}`
+                        : undefined;
+                    const valueLabel = `${formatValue(sample.value, sample.unit)}${deltaLabel ? ` (${deltaLabel})` : ""}`;
                     const text = [
                       title(sample.key),
                       sample.key,
@@ -246,6 +260,7 @@ export default function MetricsTimeline({
                         start={view.start}
                         duration={duration}
                         text={text}
+                        valueLabel={valueLabel}
                         direction={direction}
                         visible={activeIndex === interval.index}
                         onHover={setHoveredIndex}
