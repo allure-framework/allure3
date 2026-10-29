@@ -258,9 +258,10 @@ describe("Process supervisor color environment", () => {
     const environmentPath = join(directory, "environment.json");
     try {
       const script = `
-        const { writeFileSync } = require("node:fs");
+        const { renameSync, writeFileSync } = require("node:fs");
+        const temporaryPath = process.argv[1] + "." + process.pid + ".tmp";
         writeFileSync(
-          process.argv[1],
+          temporaryPath,
           JSON.stringify(
             Object.fromEntries([
               "NO_COLOR",
@@ -272,6 +273,7 @@ describe("Process supervisor color environment", () => {
             ].map(key => [key, process.env[key]])),
           ),
         );
+        renameSync(temporaryPath, process.argv[1]);
       `;
       const supervisor = new TestProcessSupervisor({
         arguments: ["-e", script, environmentPath],
