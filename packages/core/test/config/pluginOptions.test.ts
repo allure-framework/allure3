@@ -5,7 +5,7 @@ import { resolveConfig } from "../../src/config.js";
 
 const resolvePlugin = async (id: string, options: Record<string, unknown>, path?: string) => {
   const config = await resolveConfig({ plugins: { [id]: { import: path, options } } });
-  return config.plugins.find((plugin) => plugin.id === id)!;
+  return config.plugins!.find((plugin) => plugin.id === id)!;
 };
 const test = (name: string, status = "passed") => ({ name, status, labels: [] }) as unknown as TestResult;
 
