@@ -48,6 +48,25 @@ environments:
     expect(matched).toEqual({ id: "firefox", name: "Firefox" });
   });
 
+  it.each([
+    ["a scalar environment map", "environments: true", "Invalid environments: expected an object"],
+    ["an array environment map", "environments: []", "Invalid environments: expected an object"],
+    ["an empty environment entry", "environments:\n  firefox:", 'Invalid environments["firefox"]: expected an object'],
+    [
+      "a boolean matcher",
+      "environments:\n  firefox:\n    matcher: true",
+      'Invalid environments["firefox"].matcher: expected a function or expression string',
+    ],
+  ])("rejects %s during configuration loading", async (_, source, message) => {
+    const cwd = await mkdtemp(join(tmpdir(), "allure-cel-environments-"));
+    fixtures.push(cwd);
+    await writeFile(join(cwd, "allurerc.yml"), source);
+
+    const resolution = readConfig(cwd, undefined, { plugins: {} });
+
+    await expect(resolution).rejects.toThrow(message);
+  });
+
   it("validates allowed environment IDs for expression-based descriptors", async () => {
     const input: Config = { allowedEnvironments: ["firefox"], environments: { unlisted: { matcher: firefox } } };
 
@@ -137,8 +156,11 @@ environments:
     expect(matched).toEqual({ id: "firefox", name: "firefox" });
   });
 
-  it("retains empty environment configuration", async () => {
-    const config = await resolve(undefined);
+  it.each(["{}", "environments: null"])("retains empty environment configuration for YAML %s", async (source) => {
+    const cwd = await mkdtemp(join(tmpdir(), "allure-cel-environments-"));
+    fixtures.push(cwd);
+    await writeFile(join(cwd, "allurerc.yml"), source);
+    const config = await readConfig(cwd, undefined, { plugins: {} });
 
     const matched = resolveStoredEnvironmentIdentity({}, config.environments!);
 
