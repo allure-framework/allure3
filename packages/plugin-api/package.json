@@ -39,12 +39,12 @@
   },
   "dependencies": {
     "@allurereport/core-api": "workspace:*",
-    "tar-stream": "3.1.7"
+    "tar-stream": "3.2.2"
   },
   "devDependencies": {
     "@allurereport/common-config": "workspace:*",
     "@types/node": "^20.19.43",
-    "@types/tar-stream": "^3.1.4",
+    "@types/tar-stream": "^3.1.5",
     "@vitest/coverage-istanbul": "^5.0.5",
     "@vitest/runner": "^4.1.12",
     "@vitest/snapshot": "^5.0.5",
