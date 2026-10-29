@@ -1491,29 +1491,27 @@ categories:
     expect(matched?.name).toBe("Slow");
   });
 
-  it("loads valid YAML entries alongside malformed expressions", async () => {
-    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
-    const content = `
-hideLabels:
+  it.each([
+    [
+      `hideLabels:
   - owner
   - "\${{ name. }}"
-  - "\${{ name.startsWith('internal_') }}"
-categories:
+`,
+      "hideLabels[1]",
+    ],
+    [
+      `categories:
   - name: Malformed
     matchers: "\${{ data. }}"
-  - name: Timeout
-    matchers: "\${{ has(data.message) && data.message.matches('timeout') }}"
-`;
+`,
+      "categories[0].matchers",
+    ],
+  ])("rejects malformed YAML expressions with their configuration path: %s", async (content, path) => {
     await writeFile(join(fixturesDir, "allurerc.yaml"), content, "utf-8");
 
-    const config = await readConfig(fixturesDir, undefined, { plugins: {} });
-    const categories = normalizeCategoriesConfig(config.categories);
-    const matched = matchCategory(categories, { status: "failed", flaky: false, labels: [], message: "timeout" });
+    const resolution = readConfig(fixturesDir, undefined, { plugins: {} });
 
-    expect(shouldHideLabel("internal_id", config.hideLabels)).toBe(true);
-    expect(matched?.name).toBe("Timeout");
-    expect(warn).toHaveBeenCalledWith(expect.stringContaining("hideLabels[1]"));
-    expect(warn).toHaveBeenCalledWith(expect.stringContaining("categories[0].matchers"));
+    await expect(resolution).rejects.toThrow(`Invalid expression at ${path}:`);
   });
 
   it("should preserve the requested working directory", async () => {

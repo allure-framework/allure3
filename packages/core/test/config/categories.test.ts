@@ -1,7 +1,7 @@
 import { matchCategory, normalizeCategoriesConfig } from "@allurereport/core-api";
 import type { CategoryMatchingData } from "@allurereport/core-api";
 import type { Config } from "@allurereport/plugin-api";
-import { afterEach, describe, expect, it, vi } from "vite-plus/test";
+import { describe, expect, it } from "vite-plus/test";
 
 import { resolveCategories } from "../../src/config/categories.js";
 
@@ -12,8 +12,6 @@ const data: CategoryMatchingData = {
   message: "connection refused",
   duration: 100,
 };
-
-afterEach(() => vi.restoreAllMocks());
 
 describe("category configuration expressions", () => {
   it.each([undefined, false] as const)("preserves absent or disabled categories", (input) => {
@@ -60,22 +58,20 @@ describe("category configuration expressions", () => {
     expect(matched?.name).toBe("No message");
   });
 
-  it("warns and disables malformed predicates without broadening their category", () => {
-    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+  it("rejects an unwrapped matcher with its array index", () => {
+    const resolve = () => resolveCategories([{ name: "Connections", matchers: [{ message: "unrelated" }, "true"] }]);
+
+    expect(resolve).toThrow("Invalid expression at categories[0].matchers[1]:");
+  });
+
+  it("propagates evaluation errors from category matching", () => {
     const categories = normalizeCategoriesConfig(
-      resolveCategories([
-        { name: "Invalid", matchers: ["${{ data. }}", "not an expression", "${{ data.message.matches('[') }}"] },
-        { name: "Connections", matchers: "${{ data.status == 'failed' }}" },
-      ]),
+      resolveCategories([{ name: "Timeout", matchers: "${{ data.trace.contains('timeout') }}" }]),
     );
 
-    const matched = matchCategory(categories, data);
+    const match = () => matchCategory(categories, data);
 
-    expect(matched?.name).toBe("Connections");
-    expect(warn).toHaveBeenCalledTimes(3);
-    expect(warn).toHaveBeenCalledWith(expect.stringContaining("categories[0].matchers[0]"));
-    expect(warn).toHaveBeenCalledWith(expect.stringContaining("categories[0].matchers[1]"));
-    expect(warn).toHaveBeenCalledWith(expect.stringContaining("categories[0].matchers[2]"));
+    expect(match).toThrow("Invalid expression at categories[0].matchers:");
   });
 
   it("retains native regex, object patterns and compatibility matching", () => {

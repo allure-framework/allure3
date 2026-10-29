@@ -81,10 +81,11 @@ hideLabels:
 
 ### Errors and resource use
 
-A malformed expression, failed evaluation, or non-boolean result produces a warning containing its
-configuration path and evaluates to `false`. Warnings are emitted at most once per configured
-predicate. A runtime failure does not disable future evaluations. Invalid category predicates never
-become match-all conditions; other OR matchers can still match.
+Expressions must be wrapped in `${{ ... }}`. Missing or incomplete wrappers, invalid CEL, and
+statically incompatible result types fail configuration loading with the configuration path.
+Evaluation failures and dynamically incompatible result types also throw with that path. Only a
+boolean `false` is a normal predicate non-match; errors do not fall through to other matchers.
+Guard optional fields explicitly, for example `has(data.message) && data.message.contains('timeout')`.
 
 Only plain-data snapshots are supplied to expressions, with no environment variables, filesystem,
 network, imports, plugin instances, or custom functions. Non-finite numbers, cycles, and non-plain

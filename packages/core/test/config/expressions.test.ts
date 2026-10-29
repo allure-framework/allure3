@@ -1,8 +1,6 @@
-import { afterEach, describe, expect, it, vi } from "vite-plus/test";
+import { describe, expect, it } from "vite-plus/test";
 
-import { compilePredicate, isExpression } from "../../src/config/expressions.js";
-
-afterEach(() => vi.restoreAllMocks());
+import { compileExpression, compilePredicate, isExpression } from "../../src/config/expressions.js";
 
 describe("configuration expressions", () => {
   it("recognizes explicit expression prefixes only", () => {
@@ -35,45 +33,32 @@ describe("configuration expressions", () => {
     expect(results).toEqual([false, true, false]);
   });
 
-  it.each([
-    "${{",
-    "${{ }}",
-    "${{ name. }}",
-    "${{ process.env.SECRET == 'x' }}",
-    "${{ name.matches('a', 'i') }}",
-    "${{ 42 }}",
-  ])("warns once and disables an invalid predicate: %s", (input) => {
-    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
-
-    const predicate = compilePredicate(input, "hideLabels[2]", { name: "string" });
-    const results = [predicate({ name: "owner" }), predicate({ name: "tag" })];
-
-    expect(results).toEqual([false, false]);
-    expect(warn).toHaveBeenCalledTimes(1);
-    expect(warn).toHaveBeenCalledWith(expect.stringContaining("hideLabels[2]"));
-  });
-
-  it.each(["${{ data.value }}", "${{ data.message.matches('[') }}", "${{ data.missing == true }}"])(
-    "deduplicates runtime failures without broadening matching: %s",
+  it.each(["true", "${{ true", "${{ name. }}", "${{ process.env.SECRET == 'x' }}", "${{ 42 }}"])(
+    "rejects an invalid predicate with its configuration path: %s",
     (input) => {
-      const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
-      const predicate = compilePredicate(input, "categories[1].matchers", { data: "map" });
+      const compile = () => compilePredicate(input, "hideLabels[2]", { name: "string" });
 
-      const results = [1, 2].map(() => predicate({ data: { value: "truthy", message: "timeout" } }));
-
-      expect(results).toEqual([false, false]);
-      expect(warn).toHaveBeenCalledTimes(1);
-      expect(warn).toHaveBeenCalledWith(expect.stringContaining("categories[1].matchers"));
+      expect(compile).toThrow("Invalid expression at hideLabels[2]:");
     },
   );
 
-  it("continues evaluating after a runtime failure and exposes only declared context", () => {
-    vi.spyOn(console, "warn").mockImplementation(() => {});
+  it.each(["${{ data.value }}", "${{ data.message.matches('[') }}"])(
+    "raises evaluation errors with their configuration path: %s",
+    (input) => {
+      const predicate = compilePredicate(input, "categories[1].matchers", { data: "map" });
+
+      const evaluate = () => predicate({ data: { value: "truthy", message: "timeout" } });
+
+      expect(evaluate).toThrow("Invalid expression at categories[1].matchers:");
+    },
+  );
+
+  it("evaluates only declared context variables", () => {
     const predicate = compilePredicate("${{ data.message == 'timeout' }}", "categories[0].matchers", { data: "map" });
 
-    const results = [predicate({ data: {}, process }), predicate({ data: { message: "timeout" }, process })];
+    const result = predicate({ data: { message: "timeout" }, ignored: new Date() });
 
-    expect(results).toEqual([false, true]);
+    expect(result).toBe(true);
   });
 
   it("copies plain context data while omitting undefined fields", () => {
@@ -82,7 +67,6 @@ describe("configuration expressions", () => {
       "categories[0].matchers",
       { data: "map" },
     );
-
     const owner = { name: "owner", value: "alice" };
 
     const result = predicate({
@@ -95,27 +79,47 @@ describe("configuration expressions", () => {
   it.each([{ name: () => true }, { name: new Date() }, { name: Infinity }])(
     "rejects unsupported context data",
     (context) => {
-      const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
       const predicate = compilePredicate("${{ true }}", "hideLabels[0]", { name: "string" });
 
-      const result = predicate(context);
+      const evaluate = () => predicate(context);
 
-      expect(result).toBe(false);
-      expect(warn).toHaveBeenCalledTimes(1);
+      expect(evaluate).toThrow(
+        "Invalid expression at hideLabels[0]: expression context must contain only finite numbers and plain data",
+      );
     },
   );
 
   it("rejects cyclic context with a plain-data diagnostic", () => {
-    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
     const data: Record<string, unknown> = {};
     data.self = data;
     const predicate = compilePredicate("${{ true }}", "categories[0].matchers", { data: "map" });
 
-    const result = predicate({ data });
+    const evaluate = () => predicate({ data });
 
-    expect(result).toBe(false);
-    expect(warn).toHaveBeenCalledWith(
+    expect(evaluate).toThrow(
       "Invalid expression at categories[0].matchers: expression context must contain only finite numbers and plain data",
     );
+  });
+
+  it.each([undefined, "string"] as const)("evaluates string expressions with result type %s", (resultType) => {
+    const expression = compileExpression("${{ name }}", "expression", { name: "string" }, { resultType });
+
+    const result = expression({ name: "Report" });
+
+    expect(result).toBe("Report");
+  });
+
+  it("rejects a statically incompatible string result", () => {
+    const compile = () => compileExpression("${{ true }}", "expression", {}, { resultType: "string" });
+
+    expect(compile).toThrow("Invalid expression at expression: expression must return a string");
+  });
+
+  it("checks dynamically typed string results at evaluation", () => {
+    const expression = compileExpression("${{ data.value }}", "expression", { data: "map" }, { resultType: "string" });
+
+    const evaluate = () => expression({ data: { value: false } });
+
+    expect(evaluate).toThrow("Invalid expression at expression: expression must return a string");
   });
 });
