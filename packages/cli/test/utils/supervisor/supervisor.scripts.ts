@@ -1,7 +1,7 @@
 export const nodeScripts = {
   rootWithInheritedOutput: `
     import { spawn } from "node:child_process";
-    import { stat, writeFile } from "node:fs/promises";
+    import { rename, stat, writeFile } from "node:fs/promises";
     import { join } from "node:path";
     import { setTimeout as delay } from "node:timers/promises";
 
@@ -26,7 +26,11 @@ export const nodeScripts = {
       await delay(25);
     }
 
-    await writeFile(join(directory, "root.pid"), String(process.pid));
+    const readyPath = join(directory, "root.pid");
+    const temporaryReadyPath = readyPath + "." + process.pid + ".tmp";
+    await writeFile(temporaryReadyPath, String(process.pid), "utf-8");
+    await rename(temporaryReadyPath, readyPath);
+
     while (true) {
       try {
         await stat(join(directory, "root-release"));
@@ -101,10 +105,10 @@ export const nodeScripts = {
     const readyPath = (targetLevel) => join(readyDirectory, \`level-\${targetLevel}.pid\`);
     const sigintPath = (targetLevel) => join(readyDirectory, \`level-\${targetLevel}.sigint\`);
     const gracefulStopReleasePath = join(readyDirectory, "graceful-stop-release");
-    const writeProcessId = async (targetPath) => {
+    const writeProcessId = async (targetPath, pid = process.pid) => {
       const temporaryPath = targetPath + "." + process.pid + ".tmp";
 
-      await writeFile(temporaryPath, String(process.pid), "utf-8");
+      await writeFile(temporaryPath, String(pid), "utf-8");
       await rename(temporaryPath, targetPath);
     };
 
@@ -135,7 +139,7 @@ export const nodeScripts = {
       });
       child.on("error", (error) => { throw error; });
       if (shell) {
-        await writeFile(join(readyDirectory, \`level-\${level + 1}.shell.pid\`), String(child.pid), "utf-8");
+        await writeProcessId(join(readyDirectory, \`level-\${level + 1}.shell.pid\`), child.pid);
       }
 
       while (true) {
@@ -158,11 +162,17 @@ export const nodeScripts = {
   rootWithDetachedWorker: `
     import { spawn } from "node:child_process";
     import { once } from "node:events";
-    import { stat, writeFile } from "node:fs/promises";
+    import { rename, stat, writeFile } from "node:fs/promises";
     import { join } from "node:path";
     import { setTimeout as delay } from "node:timers/promises";
 
     const [workerScriptPath, directory] = process.argv.slice(2);
+    const writeProcessId = async (targetPath, pid = process.pid) => {
+      const temporaryPath = targetPath + "." + process.pid + ".tmp";
+
+      await writeFile(temporaryPath, String(pid), "utf-8");
+      await rename(temporaryPath, targetPath);
+    };
     const workerReadyPath = join(directory, "worker.pid");
     const worker = spawn(process.execPath, [workerScriptPath, workerReadyPath, join(directory, "worker-release")], {
       stdio: "ignore",
@@ -174,7 +184,7 @@ export const nodeScripts = {
       await delay(100);
       worker.kill("SIGTERM");
       await workerExit;
-      await writeFile(join(directory, "cleanup-complete"), String(worker.pid));
+      await writeProcessId(join(directory, "cleanup-complete"), worker.pid);
       process.exit(0);
     });
 
@@ -192,7 +202,7 @@ export const nodeScripts = {
       await delay(25);
     }
 
-    await writeFile(join(directory, "root.pid"), String(process.pid));
+    await writeProcessId(join(directory, "root.pid"));
     await delay(10_000);
   `,
   sigintReporter: `

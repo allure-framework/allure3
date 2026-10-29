@@ -569,7 +569,9 @@ describe("WindowsProcessSupervisor", { skip: process.platform !== "win32", timeo
         const [readyPath, acknowledgmentPath] = process.argv.slice(2);
         setTimeout(() => process.exit(42), 30_000);
         process.once("SIGINT", async () => {
-          await writeFile(acknowledgmentPath, String(process.pid), "utf-8");
+          const temporaryPath = acknowledgmentPath + ".tmp";
+          await writeFile(temporaryPath, String(process.pid), "utf-8");
+          await rename(temporaryPath, acknowledgmentPath);
           process.exit(20);
         });
         const temporaryPath = readyPath + ".tmp";
@@ -704,7 +706,9 @@ describe("WindowsProcessSupervisor", { skip: process.platform !== "win32", timeo
         const [readyPath, acknowledgmentPath] = process.argv.slice(2);
         setTimeout(() => process.exit(42), 30_000);
         process.once("SIGINT", async () => {
-          await writeFile(acknowledgmentPath, String(process.pid), "utf-8");
+          const temporaryPath = acknowledgmentPath + ".tmp";
+          await writeFile(temporaryPath, String(process.pid), "utf-8");
+          await rename(temporaryPath, acknowledgmentPath);
           process.exit(20);
         });
         const temporaryPath = readyPath + ".tmp";
