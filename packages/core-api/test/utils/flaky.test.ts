@@ -127,7 +127,7 @@ describe("Status Changes", () => {
         { id: "skipped", name: "skipped", status: "skipped" as const, url: "" },
         { id: "unknown", name: "unknown", status: "unknown" as const, url: "" },
         ...history,
-      ].map((result) => ({ ...result, retries: [] }));
+      ].map((result) => (result ? { ...result, retries: [] } : undefined));
       const snapshot = structuredClone({ current, entries });
       Object.freeze(current);
       entries.forEach((entry) => Object.freeze(entry));

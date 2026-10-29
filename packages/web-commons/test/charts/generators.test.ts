@@ -142,7 +142,8 @@ describe("generateCharts", () => {
           timestamp: 1,
           knownTestCaseIds: [],
           metrics: {},
-          testResults: { test: { id: "previous", name: "Test", status: "passed" } },
+          url: "",
+          testResults: { test: { id: "previous", name: "Test", status: "passed", url: "" } },
         },
       ],
     });
@@ -177,8 +178,9 @@ describe("generateCharts", () => {
           timestamp: 1,
           knownTestCaseIds: [],
           metrics: {},
+          url: "",
           testResults: {
-            "retry-failure-rate-test": { id: "previous", name: "Test", status: "passed", retries: ["failed"] },
+            "retry-failure-rate-test": { id: "previous", name: "Test", status: "passed", retries: ["failed"], url: "" },
           },
         },
       ],
