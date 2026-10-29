@@ -10,6 +10,7 @@ import { supervisorDiagnosticsEnabled } from "./diagnostics.js";
 import type {
   InterruptionLevel,
   JobMonitor,
+  ProcessCompletion,
   ProcessGroupCompletion,
   ProcessStartupInfo,
   RootCompletion,
@@ -38,6 +39,7 @@ export abstract class ProcessSupervisorBase {
   #terminationPromise: Promise<void> | undefined;
 
   #gracefulStopAbortController?: AbortController;
+  readonly #rootCloseAbortController = new AbortController();
 
   #started: boolean = false;
   #completed: boolean = false;
@@ -198,6 +200,13 @@ export abstract class ProcessSupervisorBase {
         errors.push(e);
       }
 
+      if (this.#rootCloseAbortController.signal.aborted) {
+        // The group/job has finished while 'close' might've not been received.
+        // Inherited pipes must not keep Allure alive.
+        target.stdout?.destroy();
+        target.stderr?.destroy();
+      }
+
       if (errors.length === 1) {
         throw errors[0];
       }
@@ -356,7 +365,8 @@ export abstract class ProcessSupervisorBase {
     const onExit = (code: number | null, signal: NodeJS.Signals | null) => {
       this.diagnostic("supervised process exited", { pid: target.pid, code, signal });
       if (this.diagnosticsEnabled) {
-        // Descendants can keep stdio open, delaying close and monitor.wait().
+        // Descendants can keep stdio open, delaying close and, unless
+        // termination was requested, monitor.wait().
         void inspect();
         diagnosticTimer = setInterval(() => void inspect(), 30_000);
         diagnosticTimer.unref();
@@ -391,6 +401,8 @@ export abstract class ProcessSupervisorBase {
     return new Promise((resolve) => {
       let spawned = target.pid !== undefined;
       let processError: Error | undefined;
+      let rootExit: ProcessCompletion | undefined;
+      const closeWaitSignal = this.#rootCloseAbortController.signal;
 
       const onSpawn = () => {
         spawned = true;
@@ -400,9 +412,12 @@ export abstract class ProcessSupervisorBase {
         processError ??= error;
       };
 
-      const onClose = (code: number | null, signal: NodeJS.Signals | null) => {
+      const finish = (code: number | null, signal: NodeJS.Signals | null) => {
         target.off("spawn", onSpawn);
         target.off("error", onError);
+        target.off("exit", onExit);
+        target.off("close", finish);
+        closeWaitSignal.removeEventListener("abort", onAbort);
 
         resolve({
           code,
@@ -412,9 +427,28 @@ export abstract class ProcessSupervisorBase {
         });
       };
 
+      const onExit = (code: number | null, signal: NodeJS.Signals | null) => {
+        rootExit = { code, signal };
+        if (closeWaitSignal.aborted) {
+          // Termination requested before 'exit' was received.
+          // Do not wait for stdio to close as that may delay or even hang the termination.
+          finish(code, signal);
+        }
+      };
+
+      const onAbort = () => {
+        if (rootExit) {
+          // Termination was requested between 'exit' and 'close'.
+          // Do not wait for stdio to close as that may delay or even hang the termination.
+          finish(rootExit.code, rootExit.signal);
+        }
+      };
+
       target.once("spawn", onSpawn);
       target.on("error", onError);
-      target.once("close", onClose);
+      target.once("exit", onExit);
+      target.once("close", finish);
+      closeWaitSignal.addEventListener("abort", onAbort, { once: true });
     });
   }
 
@@ -495,6 +529,10 @@ export abstract class ProcessSupervisorBase {
   }
 
   private async terminateOnce() {
+    // This abort controller only bypasses the root's stdio drain.
+    // The platform-specific monitor still runs in full.
+    this.#rootCloseAbortController.abort();
+
     if (this.#gracefulStopAbortController && !this.#gracefulStopAbortController.signal.aborted) {
       this.diagnostic("aborting graceful shutdown");
       this.#gracefulStopAbortController.abort("Termination requested.");
