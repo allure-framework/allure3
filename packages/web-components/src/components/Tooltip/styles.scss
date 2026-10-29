@@ -5,7 +5,7 @@
   padding: 2px 8px;
   border-radius: 6px;
   font-size: 12px;
-  max-width: min(32rem, calc(100vw - 16px));
+  max-width: var(--tooltip-max-width, min(32rem, calc(100vw - 16px)));
   width: max-content;
   white-space: pre-line;
   overflow-wrap: anywhere;

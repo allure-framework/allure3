@@ -60,7 +60,6 @@ export const TreeMapChartWidget: FunctionalComponent<
         emptyLabel={emptyLabel}
         emptyAriaLabel={emptyLabel}
         {...restProps}
-        isInteractive={chartType !== ChartType.SuccessRateDistribution}
         colors={chartType === ChartType.CoverageDiff ? coverageDiffColors : successRateDistributionColors}
         missingValueColor={chartType === ChartType.SuccessRateDistribution ? successRateMissingValueColor : undefined}
         showLegend={false}
