@@ -118,6 +118,12 @@ export const resolveQualityGate = (input: QualityGateConfigInput | undefined): Q
       if (typeof ruleset !== "object" || ruleset === null || Array.isArray(ruleset)) {
         return invalid(path, "expected a ruleset object");
       }
+      if (ruleset.id !== undefined && typeof ruleset.id !== "string") {
+        return invalid(`${path}.id`, "expected a string");
+      }
+      if (ruleset.fastFail !== undefined && typeof ruleset.fastFail !== "boolean") {
+        return invalid(`${path}.fastFail`, "expected a boolean");
+      }
       if (ruleset.filter !== undefined && typeof ruleset.filter !== "string" && typeof ruleset.filter !== "function") {
         return invalid(`${path}.filter`, "expected a CEL expression or filter callback");
       }

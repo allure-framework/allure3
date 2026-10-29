@@ -14,6 +14,8 @@ export type QualityGateRuleInput =
     };
 
 export type QualityGateRulesInput = Omit<QualityGateRules, "filter"> & {
+  id?: QualityGateRules["id"];
+  fastFail?: QualityGateRules["fastFail"];
   filter?: string | QualityGateRules["filter"];
 };
 
