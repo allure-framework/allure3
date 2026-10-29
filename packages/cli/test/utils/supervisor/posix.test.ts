@@ -4,7 +4,7 @@ import process from "node:process";
 import { setTimeout as delay } from "node:timers/promises";
 
 import { epic, feature, label, story } from "allure-js-commons";
-import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
+import { beforeEach, describe, expect, it, onTestFinished, vi } from "vite-plus/test";
 
 import { PosixProcessSupervisor } from "../../../src/utils/supervisor/index.js";
 import { SupervisorFixture, expectProcesses } from "./supervisor.helpers.js";
@@ -200,9 +200,7 @@ describe("PosixProcessSupervisor", { skip: process.platform === "win32", timeout
   });
 
   describe("terminate", () => {
-    it("reports forced termination when the root exited successfully but a descendant remains", async ({
-      onTestFinished,
-    }) => {
+    it("reports termination when the root exited successfully but a descendant remains", async ({ onTestFinished }) => {
       const fixture = await SupervisorFixture.create();
       const descendantScriptPath = fixture.resolvePath("descendant.mjs");
       const rootScriptPath = fixture.resolvePath("root.mjs");
@@ -238,7 +236,7 @@ describe("PosixProcessSupervisor", { skip: process.platform === "win32", timeout
 
       await supervisor.terminate();
 
-      await expect(supervisor.completion).resolves.toEqual({ code: null, signal: "SIGKILL" });
+      await expect(supervisor.completion).resolves.toEqual({ code: null, signal: "SIGTERM" });
       expect(supervisor.completed).toBe(true);
       expectProcesses([descendantPid]).toBeDead();
     });
@@ -270,16 +268,47 @@ describe("PosixProcessSupervisor", { skip: process.platform === "win32", timeout
       await supervisor.terminate();
 
       expect(supervisor.completed).toBe(true);
-      await expect(supervisor.completion).resolves.toEqual({ code: null, signal: "SIGKILL" });
+      await expect(supervisor.completion).resolves.toEqual({ code: null, signal: "SIGTERM" });
       expectProcesses(processIds).toBeDead();
       expect(() => process.kill(-rootPid, 0)).toThrow(expect.objectContaining({ code: "ESRCH" }));
     });
 
-    it("reuses one termination operation for repeated calls", async ({ onTestFinished }) => {
+    it("allows SIGTERM cleanup to tear down a detached worker without SIGKILL", async ({ onTestFinished }) => {
+      const fixture = await SupervisorFixture.create();
+      const supervisor = new PosixProcessSupervisor(process.execPath, {
+        arguments: [fixture.resolvePath("root.mjs"), fixture.resolvePath("worker.mjs"), fixture.workingDirectory],
+        silent: true,
+      });
+
+      onTestFinished(() => fixture.cleanup({ beforeTerminate: () => fixture.touchFile("worker-release"), supervisor }));
+      await fixture.writeScript("root.mjs", nodeScripts.rootWithDetachedWorker);
+      await fixture.writeScript("worker.mjs", nodeScripts.descendant);
+      await supervisor.start();
+
+      const rootPid = await fixture.readProcessId("root.pid");
+      const workerPid = await fixture.readProcessId("worker.pid");
+      const killMock = vi.spyOn(process, "kill");
+
+      try {
+        await supervisor.terminate();
+
+        expect(fixture.fileExists("cleanup-complete")).toBe(true);
+        expectProcesses([rootPid, workerPid]).toBeDead();
+        expect(killMock).toHaveBeenCalledWith(-rootPid, "SIGTERM");
+        expect(killMock).not.toHaveBeenCalledWith(-rootPid, "SIGKILL");
+        await expect(supervisor.completion).resolves.toEqual({ code: null, signal: "SIGTERM" });
+      } finally {
+        killMock.mockRestore();
+      }
+    });
+
+    it("reuses one termination operation and automatically sends SIGKILL after one second", async ({
+      onTestFinished,
+    }) => {
       const fixture = await SupervisorFixture.create();
       const treeScriptPath = fixture.resolvePath("three-level-tree.mjs");
       const supervisor = new PosixProcessSupervisor(process.execPath, {
-        arguments: [treeScriptPath, "0", fixture.workingDirectory],
+        arguments: [treeScriptPath, "0", fixture.workingDirectory, "ignore", "ignore"],
         silent: true,
       });
 
@@ -294,14 +323,26 @@ describe("PosixProcessSupervisor", { skip: process.platform === "win32", timeout
       const killMock = vi.spyOn(process, "kill");
 
       try {
+        const startedAt = performance.now();
         const firstTermination = supervisor.terminate();
         const secondTermination = supervisor.terminate();
 
         expect(secondTermination).toBe(firstTermination);
+        expect(killMock).toHaveBeenCalledWith(-rootPid, "SIGTERM");
+        expect(killMock).not.toHaveBeenCalledWith(-rootPid, "SIGKILL");
+
+        const signalledProcessIds = await Promise.all(
+          [0, 1, 2].map((level) => fixture.readProcessId(`level-${level}.sigterm`)),
+        );
+        expect(signalledProcessIds).toEqual(processIds);
+        expectProcesses(processIds).toBeAlive();
+        expect(supervisor.completed).toBe(false);
 
         await firstTermination;
 
+        expect(performance.now() - startedAt).toBeGreaterThanOrEqual(1_000);
         expect(supervisor.terminate()).toBe(firstTermination);
+        expect(killMock.mock.calls.filter(([pid, signal]) => pid === -rootPid && signal === "SIGTERM")).toHaveLength(1);
         expect(killMock.mock.calls.filter(([pid, signal]) => pid === -rootPid && signal === "SIGKILL")).toHaveLength(1);
         await expect(supervisor.completion).resolves.toEqual({ code: null, signal: "SIGKILL" });
         expect(supervisor.completed).toBe(true);
@@ -354,7 +395,7 @@ describe("PosixProcessSupervisor", { skip: process.platform === "win32", timeout
       await expect(Promise.race([operations, delay(2_000, "timeout" as const, { ref: false })])).resolves.toBe(
         "completed",
       );
-      await expect(supervisor.completion).resolves.toEqual({ code: null, signal: "SIGKILL" });
+      await expect(supervisor.completion).resolves.toEqual({ code: null, signal: "SIGTERM" });
       expect(supervisor.completed).toBe(true);
       expectProcesses(processIds).toBeDead();
       expect(() => process.kill(-rootPid, 0)).toThrow(expect.objectContaining({ code: "ESRCH" }));
@@ -392,37 +433,58 @@ describe("PosixProcessSupervisor", { skip: process.platform === "win32", timeout
       expect(() => process.kill(-rootPid, 0)).toThrow(expect.objectContaining({ code: "ESRCH" }));
     });
 
-    it("supports escalation when the process group ignores SIGINT", async ({ onTestFinished }) => {
-      const fixture = await SupervisorFixture.create();
-      const treeScriptPath = fixture.resolvePath("three-level-tree.mjs");
-      const supervisor = new PosixProcessSupervisor(process.execPath, {
-        arguments: [treeScriptPath, "0", fixture.workingDirectory, "ignore"],
-        silent: true,
-      });
+    it.each(["exit", "ignore"])(
+      "supports escalation when SIGINT is ignored and SIGTERM mode is %s",
+      async (sigtermMode) => {
+        const fixture = await SupervisorFixture.create();
+        const treeScriptPath = fixture.resolvePath("three-level-tree.mjs");
+        const supervisor = new PosixProcessSupervisor(process.execPath, {
+          arguments: [treeScriptPath, "0", fixture.workingDirectory, "ignore", sigtermMode],
+          silent: true,
+        });
 
-      onTestFinished(() => fixture.cleanup({ supervisor }));
+        onTestFinished(() => fixture.cleanup({ supervisor }));
 
-      await fixture.writeScript("three-level-tree.mjs", nodeScripts.threeLevelTree);
+        await fixture.writeScript("three-level-tree.mjs", nodeScripts.threeLevelTree);
 
-      await supervisor.start();
+        await supervisor.start();
 
-      const rootPid = supervisor.process.pid!;
-      const processIds = await Promise.all([0, 1, 2].map((level) => fixture.readProcessId(`level-${level}.pid`)));
+        const rootPid = supervisor.process.pid!;
+        const processIds = await Promise.all([0, 1, 2].map((level) => fixture.readProcessId(`level-${level}.pid`)));
 
-      expectProcesses(processIds).toBeAlive();
+        expectProcesses(processIds).toBeAlive();
 
-      await supervisor.stop({ escalate: true, escalationTimeout: 100 });
+        const startedAt = performance.now();
+        const killMock = vi.spyOn(process, "kill");
+        try {
+          await supervisor.stop({ escalate: true, escalationTimeout: 100 });
 
-      const signalledProcessIds = await Promise.all(
-        [0, 1, 2].map((level) => fixture.readProcessId(`level-${level}.sigint`)),
-      );
+          expect(killMock).toHaveBeenCalledWith(-rootPid, "SIGINT");
+          expect(killMock).toHaveBeenCalledWith(-rootPid, "SIGTERM");
+          if (sigtermMode === "ignore") {
+            expect(performance.now() - startedAt).toBeGreaterThanOrEqual(1_100);
+            expect(killMock).toHaveBeenCalledWith(-rootPid, "SIGKILL");
+          } else {
+            expect(killMock).not.toHaveBeenCalledWith(-rootPid, "SIGKILL");
+          }
+        } finally {
+          killMock.mockRestore();
+        }
 
-      expect(signalledProcessIds).toEqual(processIds);
-      await expect(supervisor.completion).resolves.toEqual({ code: null, signal: "SIGKILL" });
-      expect(supervisor.completed).toBe(true);
-      expectProcesses(processIds).toBeDead();
-      expect(() => process.kill(-rootPid, 0)).toThrow(expect.objectContaining({ code: "ESRCH" }));
-    });
+        const signalledProcessIds = await Promise.all(
+          [0, 1, 2].map((level) => fixture.readProcessId(`level-${level}.sigint`)),
+        );
+
+        expect(signalledProcessIds).toEqual(processIds);
+        await expect(supervisor.completion).resolves.toEqual({
+          code: null,
+          signal: sigtermMode === "ignore" ? "SIGKILL" : "SIGTERM",
+        });
+        expect(supervisor.completed).toBe(true);
+        expectProcesses(processIds).toBeDead();
+        expect(() => process.kill(-rootPid, 0)).toThrow(expect.objectContaining({ code: "ESRCH" }));
+      },
+    );
 
     it("delivers SIGINT to a test runner behind a shell", async ({ onTestFinished }) => {
       const fixture = await SupervisorFixture.create();
@@ -557,7 +619,7 @@ describe("PosixProcessSupervisor", { skip: process.platform === "win32", timeout
       const fixture = await SupervisorFixture.create();
       const treeScriptPath = fixture.resolvePath("three-level-tree.mjs");
       const supervisor = new PosixProcessSupervisor(process.execPath, {
-        arguments: [treeScriptPath, "0", fixture.workingDirectory, "ignore"],
+        arguments: [treeScriptPath, "0", fixture.workingDirectory, "ignore", "ignore"],
         silent: true,
       });
       const existingSigintListeners = new Set(process.listeners("SIGINT"));
@@ -588,6 +650,13 @@ describe("PosixProcessSupervisor", { skip: process.platform === "win32", timeout
       expect(supervisor.completed).toBe(false);
 
       supervisorSigintListeners[0]!("SIGINT");
+
+      expect(process.listeners("SIGINT")).not.toContain(supervisorSigintListeners[0]);
+      const terminatedProcessIds = await Promise.all(
+        [0, 1, 2].map((level) => fixture.readProcessId(`level-${level}.sigterm`)),
+      );
+      expect(terminatedProcessIds).toEqual(processIds);
+      expectProcesses(processIds).toBeAlive();
 
       await expect(supervisor.completion).resolves.toEqual({
         code: null,
@@ -643,7 +712,7 @@ describe("PosixProcessSupervisor", { skip: process.platform === "win32", timeout
 
         await expect(supervisor.completion).resolves.toEqual({
           code: null,
-          signal: "SIGKILL",
+          signal: "SIGTERM",
           externalInterruption: "terminated",
         });
         expect(supervisor.completed).toBe(true);
@@ -656,70 +725,81 @@ describe("PosixProcessSupervisor", { skip: process.platform === "win32", timeout
   });
 
   describe("SIGTERM", () => {
-    it("kills the process tree before passing the signal through to the supervisor", async ({ onTestFinished }) => {
-      const fixture = await SupervisorFixture.create();
-      const treeScriptPath = fixture.resolvePath("three-level-tree.mjs");
-      const supervisor = new PosixProcessSupervisor(process.execPath, {
-        arguments: [treeScriptPath, "0", fixture.workingDirectory],
-        silent: true,
-      });
-      const existingSigtermListeners = new Set(process.listeners("SIGTERM"));
+    it.each(["exit", "ignore"])(
+      "terminates the process tree before passing SIGTERM through when SIGTERM mode is %s",
+      async (sigtermMode) => {
+        const fixture = await SupervisorFixture.create();
+        const treeScriptPath = fixture.resolvePath("three-level-tree.mjs");
+        const supervisor = new PosixProcessSupervisor(process.execPath, {
+          arguments: [treeScriptPath, "0", fixture.workingDirectory, "exit", sigtermMode],
+          silent: true,
+        });
+        const existingSigtermListeners = new Set(process.listeners("SIGTERM"));
 
-      onTestFinished(() => fixture.cleanup({ supervisor }));
+        onTestFinished(() => fixture.cleanup({ supervisor }));
 
-      await fixture.writeScript("three-level-tree.mjs", nodeScripts.threeLevelTree);
+        await fixture.writeScript("three-level-tree.mjs", nodeScripts.threeLevelTree);
 
-      await supervisor.start();
+        await supervisor.start();
 
-      const rootPid = supervisor.process.pid!;
-      const processIds = await Promise.all([0, 1, 2].map((level) => fixture.readProcessId(`level-${level}.pid`)));
-      const supervisorSigtermListeners = process
-        .listeners("SIGTERM")
-        .filter((listener) => !existingSigtermListeners.has(listener));
-      const realKill = process.kill.bind(process);
-      let resolveSelfSigterm!: () => void;
-      const selfSigterm = new Promise<void>((resolve) => {
-        resolveSelfSigterm = resolve;
-      });
-      let processGroupWasDeadBeforeSelfSigterm = false;
-      const killMock = vi.spyOn(process, "kill").mockImplementation((pid, signal) => {
-        if (pid === process.pid && signal === "SIGTERM") {
-          try {
-            realKill(-rootPid, 0);
-          } catch (error) {
-            if ((error as NodeJS.ErrnoException).code === "ESRCH") {
-              processGroupWasDeadBeforeSelfSigterm = true;
-            } else {
-              throw error;
+        const rootPid = supervisor.process.pid!;
+        const processIds = await Promise.all([0, 1, 2].map((level) => fixture.readProcessId(`level-${level}.pid`)));
+        const supervisorSigtermListeners = process
+          .listeners("SIGTERM")
+          .filter((listener) => !existingSigtermListeners.has(listener));
+        const realKill = process.kill.bind(process);
+        let resolveSelfSigterm!: () => void;
+        const selfSigterm = new Promise<void>((resolve) => {
+          resolveSelfSigterm = resolve;
+        });
+        let processGroupWasDeadBeforeSelfSigterm = false;
+        const killMock = vi.spyOn(process, "kill").mockImplementation((pid, signal) => {
+          if (pid === process.pid && signal === "SIGTERM") {
+            try {
+              realKill(-rootPid, 0);
+            } catch (error) {
+              if ((error as NodeJS.ErrnoException).code === "ESRCH") {
+                processGroupWasDeadBeforeSelfSigterm = true;
+              } else {
+                throw error;
+              }
             }
+
+            resolveSelfSigterm();
+            return true;
           }
 
-          resolveSelfSigterm();
-          return true;
+          return realKill(pid, signal);
+        });
+
+        try {
+          expect(supervisorSigtermListeners).toHaveLength(1);
+          expectProcesses(processIds).toBeAlive();
+          expect(supervisor.completed).toBe(false);
+
+          supervisorSigtermListeners[0]!("SIGTERM");
+
+          await expect(supervisor.completion).resolves.toEqual({
+            code: null,
+            signal: sigtermMode === "ignore" ? "SIGKILL" : "SIGTERM",
+          });
+          await selfSigterm;
+
+          expect(processGroupWasDeadBeforeSelfSigterm).toBe(true);
+          expect(supervisor.completed).toBe(true);
+          expectProcesses(processIds).toBeDead();
+          expect(killMock).toHaveBeenCalledWith(-rootPid, "SIGTERM");
+          if (sigtermMode === "ignore") {
+            expect(killMock).toHaveBeenCalledWith(-rootPid, "SIGKILL");
+          } else {
+            expect(killMock).not.toHaveBeenCalledWith(-rootPid, "SIGKILL");
+          }
+          expect(killMock).toHaveBeenCalledWith(process.pid, "SIGTERM");
+          expect(process.listeners("SIGTERM")).not.toContain(supervisorSigtermListeners[0]);
+        } finally {
+          killMock.mockRestore();
         }
-
-        return realKill(pid, signal);
-      });
-
-      try {
-        expect(supervisorSigtermListeners).toHaveLength(1);
-        expectProcesses(processIds).toBeAlive();
-        expect(supervisor.completed).toBe(false);
-
-        supervisorSigtermListeners[0]!("SIGTERM");
-
-        await expect(supervisor.completion).resolves.toEqual({ code: null, signal: "SIGKILL" });
-        await selfSigterm;
-
-        expect(processGroupWasDeadBeforeSelfSigterm).toBe(true);
-        expect(supervisor.completed).toBe(true);
-        expectProcesses(processIds).toBeDead();
-        expect(killMock).toHaveBeenCalledWith(-rootPid, "SIGKILL");
-        expect(killMock).toHaveBeenCalledWith(process.pid, "SIGTERM");
-        expect(process.listeners("SIGTERM")).not.toContain(supervisorSigtermListeners[0]);
-      } finally {
-        killMock.mockRestore();
-      }
-    });
+      },
+    );
   });
 });

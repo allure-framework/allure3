@@ -484,8 +484,8 @@ export abstract class ProcessSupervisorBase {
     };
 
     // Request graceful stop.
-    // If no completion is reported within the timeout, terminate by force
-    // (SIGKILL in POSIX, TerminateProcess).
+    // If no completion is reported within the timeout, terminate the process
+    // (SIGTERM with a short SIGKILL fallback in POSIX, TerminateProcess in Windows).
     const result = await Promise.race([requestStopAndWait(), delay(escalationTimeout, "timeout" as const, { signal })]);
 
     if (result === "timeout") {

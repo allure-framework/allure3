@@ -58,7 +58,7 @@ export const nodeScripts = {
     import { setTimeout as delay } from "node:timers/promises";
     import { fileURLToPath } from "node:url";
 
-    const [levelValue, readyDirectory, sigintMode = "exit"] = process.argv.slice(2);
+    const [levelValue, readyDirectory, sigintMode = "exit", sigtermMode = "exit"] = process.argv.slice(2);
     const level = Number(levelValue);
     const readyPath = (targetLevel) => join(readyDirectory, \`level-\${targetLevel}.pid\`);
     const sigintPath = (targetLevel) => join(readyDirectory, \`level-\${targetLevel}.sigint\`);
@@ -78,8 +78,12 @@ export const nodeScripts = {
       }
     });
 
+    if (sigtermMode === "ignore") {
+      process.on("SIGTERM", () => writeProcessId(join(readyDirectory, \`level-\${level}.sigterm\`)));
+    }
+
     if (level < 2) {
-      const args = [fileURLToPath(import.meta.url), String(level + 1), readyDirectory, sigintMode];
+      const args = [fileURLToPath(import.meta.url), String(level + 1), readyDirectory, sigintMode, sigtermMode];
       // libuv's Windows job kills direct children when the parent exits. Spawn
       // through cmd.exe so Node descendants escape that job, but retain the
       // shared console and the supervisor's enclosing job. This makes tree
@@ -111,6 +115,46 @@ export const nodeScripts = {
     }
 
     await writeProcessId(readyPath(level));
+    await delay(10_000);
+  `,
+  rootWithDetachedWorker: `
+    import { spawn } from "node:child_process";
+    import { once } from "node:events";
+    import { stat, writeFile } from "node:fs/promises";
+    import { join } from "node:path";
+    import { setTimeout as delay } from "node:timers/promises";
+
+    const [workerScriptPath, directory] = process.argv.slice(2);
+    const workerReadyPath = join(directory, "worker.pid");
+    const worker = spawn(process.execPath, [workerScriptPath, workerReadyPath, join(directory, "worker-release")], {
+      stdio: "ignore",
+      detached: true,
+    });
+
+    const workerExit = once(worker, "exit");
+    process.once("SIGTERM", async () => {
+      await delay(100);
+      worker.kill("SIGTERM");
+      await workerExit;
+      await writeFile(join(directory, "cleanup-complete"), String(worker.pid));
+      process.exit(0);
+    });
+
+    const start = Date.now();
+
+    while (Date.now() - start <= 5_000) {
+      try {
+        await stat(workerReadyPath);
+        break;
+      } catch (error) {
+        if (error.code !== "ENOENT") {
+          throw error;
+        }
+      }
+      await delay(25);
+    }
+
+    await writeFile(join(directory, "root.pid"), String(process.pid));
     await delay(10_000);
   `,
   sigintReporter: `

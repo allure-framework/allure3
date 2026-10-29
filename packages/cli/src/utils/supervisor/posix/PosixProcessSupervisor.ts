@@ -10,6 +10,7 @@ import { ProcessSupervisorBase } from "../ProcessSupervisorBase.js";
 import { createProcessGroupCompletionPoller, scanProcessGroup } from "./processGroup.js";
 
 const MONITOR_INTERVAL_MS = 100;
+const TERMINATION_TIMEOUT_MS = 1_000;
 const inspectProcesses = promisify(execFile);
 
 export class PosixProcessSupervisor extends ProcessSupervisorBase {
@@ -18,7 +19,7 @@ export class PosixProcessSupervisor extends ProcessSupervisorBase {
 
   protected readonly monitor: JobMonitor;
 
-  #forceTerminated: boolean = false;
+  #terminationSignal: NodeJS.Signals | undefined;
 
   constructor(command: string, options: SupervisedCommandOptions = {}) {
     super(command, options);
@@ -44,7 +45,7 @@ export class PosixProcessSupervisor extends ProcessSupervisorBase {
         }
 
         // Returning `undefined` makes the base class use the root process's exit code and signal.
-        return this.#forceTerminated ? { code: null, signal: "SIGKILL" } : undefined;
+        return this.#terminationSignal ? { code: null, signal: this.#terminationSignal } : undefined;
       },
 
       dispose: () => {
@@ -116,7 +117,7 @@ export class PosixProcessSupervisor extends ProcessSupervisorBase {
     }
   }
 
-  protected override requestForcedTermination() {
+  protected override async requestForcedTermination() {
     const pid = this.process.pid;
 
     if (pid === undefined) {
@@ -125,10 +126,21 @@ export class PosixProcessSupervisor extends ProcessSupervisorBase {
       return;
     }
 
+    const controller = new AbortController();
     try {
-      // Unconditionally terminate the process group.
-      process.kill(-pid, "SIGKILL");
-      this.#forceTerminated = true;
+      // Give the runner a short opportunity to tear down its detached workers.
+      process.kill(-pid, "SIGTERM");
+      this.#terminationSignal = "SIGTERM";
+
+      const result = await Promise.race([
+        this.completion.then(() => "completed" as const),
+        delay(TERMINATION_TIMEOUT_MS, "timeout" as const, { signal: controller.signal }),
+      ]);
+
+      if (result === "timeout") {
+        process.kill(-pid, "SIGKILL");
+        this.#terminationSignal = "SIGKILL";
+      }
     } catch (error) {
       if ((error as NodeJS.ErrnoException).code !== "ESRCH") {
         throw error;
@@ -136,6 +148,8 @@ export class PosixProcessSupervisor extends ProcessSupervisorBase {
 
       // The process group completed concurrently.
       // This is fine, we can continue normally.
+    } finally {
+      controller.abort();
     }
   }
 
