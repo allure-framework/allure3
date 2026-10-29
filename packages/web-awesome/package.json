@@ -65,7 +65,7 @@
     "clsx": "^2.1.1",
     "css-loader": "^7.1.5",
     "d3-shape": "^3.2.0",
-    "diff": "^8.0.3",
+    "diff": "^9.0.0",
     "filesize": "^10.1.6",
     "fork-ts-checker-webpack-plugin": "^9.0.2",
     "globals": "^15.9.0",
