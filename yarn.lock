@@ -827,7 +827,7 @@ __metadata:
     d3-shape: "npm:^3.2.0"
     filesize: "npm:^10.1.6"
     highlight.js: "npm:^11.11.1"
-    i18next: "npm:^26.0.5"
+    i18next: "npm:^26.5.10"
     normalize-css: "npm:^2.3.1"
     npm-run-all2: "npm:^7.0.1"
     postcss: "npm:^8.5.25"
@@ -883,7 +883,7 @@ __metadata:
     fork-ts-checker-webpack-plugin: "npm:^9.0.2"
     globals: "npm:^15.9.0"
     html-webpack-plugin: "npm:^5.6.3"
-    i18next: "npm:^26.0.5"
+    i18next: "npm:^26.5.10"
     jsdom: "npm:^26.1.0"
     md5: "npm:^2.3.0"
     npm-run-all2: "npm:^7.0.1"
@@ -942,7 +942,7 @@ __metadata:
     fork-ts-checker-webpack-plugin: "npm:^9.0.2"
     globals: "npm:^15.9.0"
     html-webpack-plugin: "npm:^5.6.3"
-    i18next: "npm:^26.0.5"
+    i18next: "npm:^26.5.10"
     jsdom: "npm:^26.1.0"
     md5: "npm:^2.3.0"
     npm-run-all2: "npm:^7.0.1"
@@ -1147,7 +1147,7 @@ __metadata:
     fork-ts-checker-webpack-plugin: "npm:^9.0.2"
     globals: "npm:^15.9.0"
     html-webpack-plugin: "npm:^5.6.3"
-    i18next: "npm:^26.0.5"
+    i18next: "npm:^26.5.10"
     jsdom: "npm:^26.1.0"
     npm-run-all2: "npm:^7.0.1"
     postcss: "npm:^8.5.25"
@@ -1193,7 +1193,7 @@ __metadata:
     fork-ts-checker-webpack-plugin: "npm:^9.0.2"
     globals: "npm:^15.9.0"
     html-webpack-plugin: "npm:^5.6.3"
-    i18next: "npm:^26.0.5"
+    i18next: "npm:^26.5.10"
     npm-run-all2: "npm:^7.0.1"
     postcss: "npm:^8.5.25"
     preact: "npm:^10.29.8"
@@ -11807,15 +11807,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"i18next@npm:^26.0.5":
-  version: 26.4.1
-  resolution: "i18next@npm:26.4.1"
+"i18next@npm:^26.5.10":
+  version: 26.5.10
+  resolution: "i18next@npm:26.5.10"
   peerDependencies:
     typescript: ^5 || ^6 || ^7
   peerDependenciesMeta:
     typescript:
       optional: true
-  checksum: 10/b8d546a9dd20b0c3915dd0751827f2461c2694224029a3ffcb65812e941d401df9c3c0e3b02f4d9a4dfea55a8e203e98fd7b0ccd7f43109382d6b04c84532aab
+  checksum: 10/99d62cf9221aabafe9e057f2dd3b6583a727fef7e659ce047c4dd6435db036ba67afcc40075c0b33f1a7415c2aa1accd12c348976f6d35bb15a132be27727b7a
   languageName: node
   linkType: hard
 
