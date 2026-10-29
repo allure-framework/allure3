@@ -344,9 +344,9 @@ export type CurrentStatusChartOptions = {
    */
   statuses?: TestStatus[];
   /**
-   * Status that will be used to calculate
-   * the percentage against total number of tests
-   * in the center of the chart.
+   * Status that will be used to calculate the percentage in the center of the chart.
+   * "passed" shows the success rate (passed / (passed + failed + broken)), the same value
+   * as the report overview. Any other status shows its share of all tests.
    *
    * @default "passed"
    */

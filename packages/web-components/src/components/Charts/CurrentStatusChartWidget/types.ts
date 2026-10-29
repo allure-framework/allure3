@@ -8,6 +8,7 @@ type I18nKeys =
   | "status.broken"
   | "percentage"
   | "of"
+  | "successRate"
   | "tests.new"
   | "tests.flaky"
   | "tests.retries"
