@@ -84,6 +84,10 @@ export type FixtureResult = ExecutableItem;
 export type StepResult = ExecutableItem;
 
 export interface TestResult extends ExecutableItem {
+  precondition?: string;
+  preconditionHtml?: string;
+  expectedResult?: string;
+  expectedResultHtml?: string;
   uuid?: string;
   historyId?: string;
   fullName?: string;

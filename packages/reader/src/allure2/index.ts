@@ -349,6 +349,10 @@ const processTestResult = async (visitor: ResultsVisitor, result: Partial<TestRe
 
     description: ensureString(result.description),
     descriptionHtml: ensureString(result.descriptionHtml),
+    precondition: ensureString(result.precondition),
+    preconditionHtml: ensureString(result.preconditionHtml),
+    expectedResult: ensureString(result.expectedResult),
+    expectedResultHtml: ensureString(result.expectedResultHtml),
 
     status: convertStatus(result.status),
     message,
