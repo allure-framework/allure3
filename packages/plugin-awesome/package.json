@@ -44,7 +44,7 @@
     "@allurereport/common-config": "workspace:*",
     "@allurereport/web-awesome": "workspace:*",
     "@types/d3-shape": "^3.1.8",
-    "@types/markdown-it": "^14.1.2",
+    "@types/markdown-it": "^14.2.0",
     "@types/node": "^20.19.43",
     "@vitest/coverage-istanbul": "^5.0.5",
     "@vitest/runner": "^4.1.12",
