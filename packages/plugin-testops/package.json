@@ -48,7 +48,7 @@
   },
   "devDependencies": {
     "@allurereport/common-config": "workspace:*",
-    "@types/d3-shape": "^3.1.8",
+    "@types/d3-shape": "^3.2.0",
     "@types/lodash-es": "^4",
     "@types/node": "^20.19.43",
     "@vitest/coverage-istanbul": "^5.0.5",

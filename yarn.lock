@@ -41,7 +41,7 @@ __metadata:
     "@allurereport/common-config": "workspace:*"
     "@allurereport/core-api": "workspace:*"
     "@allurereport/plugin-api": "workspace:*"
-    "@types/d3-shape": "npm:^3.1.8"
+    "@types/d3-shape": "npm:^3.2.0"
     "@types/mime-types": "npm:^3.0.1"
     "@types/node": "npm:^20.19.43"
     "@vitest/coverage-istanbul": "npm:^5.0.5"
@@ -132,7 +132,7 @@ __metadata:
   resolution: "@allurereport/core-api@workspace:packages/core-api"
   dependencies:
     "@allurereport/common-config": "workspace:*"
-    "@types/d3-shape": "npm:^3.1.8"
+    "@types/d3-shape": "npm:^3.2.0"
     "@types/node": "npm:^20.19.43"
     "@vitest/coverage-istanbul": "npm:^5.0.5"
     "@vitest/runner": "npm:^4.1.12"
@@ -359,7 +359,7 @@ __metadata:
     "@allurereport/plugin-api": "workspace:*"
     "@allurereport/web-awesome": "workspace:*"
     "@allurereport/web-commons": "workspace:*"
-    "@types/d3-shape": "npm:^3.1.8"
+    "@types/d3-shape": "npm:^3.2.0"
     "@types/markdown-it": "npm:^14.2.0"
     "@types/node": "npm:^20.19.43"
     "@vitest/coverage-istanbul": "npm:^5.0.5"
@@ -387,7 +387,7 @@ __metadata:
     "@allurereport/plugin-api": "workspace:*"
     "@allurereport/web-classic": "workspace:*"
     "@allurereport/web-commons": "workspace:*"
-    "@types/d3-shape": "npm:^3.1.8"
+    "@types/d3-shape": "npm:^3.2.0"
     "@types/markdown-it": "npm:^14.2.0"
     "@types/node": "npm:^20.19.43"
     "@vitest/coverage-istanbul": "npm:^5.0.5"
@@ -435,7 +435,7 @@ __metadata:
     "@allurereport/plugin-api": "workspace:*"
     "@allurereport/web-commons": "workspace:*"
     "@allurereport/web-dashboard": "workspace:*"
-    "@types/d3-shape": "npm:^3.1.8"
+    "@types/d3-shape": "npm:^3.2.0"
     "@types/node": "npm:^20.19.43"
     "@vitest/coverage-istanbul": "npm:^5.0.5"
     "@vitest/runner": "npm:^4.1.12"
@@ -611,7 +611,7 @@ __metadata:
     "@allurereport/plugin-api": "workspace:*"
     "@allurereport/reader-api": "workspace:*"
     "@allurereport/service": "workspace:*"
-    "@types/d3-shape": "npm:^3.1.8"
+    "@types/d3-shape": "npm:^3.2.0"
     "@types/lodash-es": "npm:^4"
     "@types/node": "npm:^20.19.43"
     "@vitest/coverage-istanbul": "npm:^5.0.5"
@@ -808,8 +808,8 @@ __metadata:
     "@types/d3-interpolate": "npm:^3.0.4"
     "@types/d3-scale": "npm:^4.0.9"
     "@types/d3-scale-chromatic": "npm:^3.1.0"
-    "@types/d3-selection": "npm:^3.0.11"
-    "@types/d3-shape": "npm:^3.1.8"
+    "@types/d3-selection": "npm:^3.0.12"
+    "@types/d3-shape": "npm:^3.2.0"
     "@types/node": "npm:^24.12.2"
     allure-js-commons: "npm:^3.14.0"
     allure-playwright: "npm:^3.14.0"
@@ -863,7 +863,7 @@ __metadata:
     "@testing-library/preact": "npm:^3.2.4"
     "@testing-library/user-event": "npm:^14.5.1"
     "@types/babel__core": "npm:^7.20.5"
-    "@types/d3-shape": "npm:^3.1.8"
+    "@types/d3-shape": "npm:^3.2.0"
     "@types/md5": "npm:^2.3.6"
     "@types/node": "npm:^20.19.43"
     "@types/prismjs": "npm:^1.26.6"
@@ -923,7 +923,7 @@ __metadata:
     "@floating-ui/dom": "npm:^1.8.0"
     "@preact/signals": "npm:^2.6.1"
     "@types/babel__core": "npm:^7.20.5"
-    "@types/d3-shape": "npm:^3.1.8"
+    "@types/d3-shape": "npm:^3.2.0"
     "@types/md5": "npm:^2.3.6"
     "@types/node": "npm:^20.19.43"
     "@types/prismjs": "npm:^1.26.6"
@@ -978,7 +978,7 @@ __metadata:
     "@preact/signals-core": "npm:^1.12.2"
     "@types/d3-interpolate": "npm:^3.0.4"
     "@types/d3-scale": "npm:^4.0.9"
-    "@types/d3-shape": "npm:^3.1.8"
+    "@types/d3-shape": "npm:^3.2.0"
     "@vitest/coverage-istanbul": "npm:^5.0.5"
     "@vitest/runner": "npm:^4.1.12"
     allure-js-commons: "npm:^3.14.0"
@@ -1051,9 +1051,9 @@ __metadata:
     "@types/d3-format": "npm:^3"
     "@types/d3-interpolate": "npm:^3.0.4"
     "@types/d3-scale": "npm:^4.0.9"
-    "@types/d3-selection": "npm:^3.0.11"
-    "@types/d3-shape": "npm:^3.1.8"
-    "@types/d3-tip": "npm:^0"
+    "@types/d3-selection": "npm:^3.0.12"
+    "@types/d3-shape": "npm:^3.2.0"
+    "@types/d3-tip": "npm:^3"
     "@types/d3-transition": "npm:^3"
     "@types/lodash": "npm:^4"
     "@types/markdown-it": "npm:^14.2.0"
@@ -1131,7 +1131,7 @@ __metadata:
     "@preact/signals": "npm:^2.6.1"
     "@testing-library/preact": "npm:^3.2.4"
     "@types/babel__core": "npm:^7.20.5"
-    "@types/d3-shape": "npm:^3.1.8"
+    "@types/d3-shape": "npm:^3.2.0"
     "@types/diff": "npm:^7"
     "@types/node": "npm:^20.19.43"
     "@vitest/coverage-istanbul": "npm:^5.0.5"
@@ -6760,19 +6760,35 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/d3-selection@npm:*, @types/d3-selection@npm:^3.0.11":
+"@types/d3-selection@npm:*":
   version: 3.0.11
   resolution: "@types/d3-selection@npm:3.0.11"
   checksum: 10/2d2d993b9e9553d066566cb22916c632e5911090db99e247bd8c32855a344e6b7c25b674f3c27956c367a6b3b1214b09931ce854788c3be2072003e01f2c75d7
   languageName: node
   linkType: hard
 
-"@types/d3-shape@npm:*, @types/d3-shape@npm:^3.1.6, @types/d3-shape@npm:^3.1.8":
+"@types/d3-selection@npm:^3.0.12":
+  version: 3.0.12
+  resolution: "@types/d3-selection@npm:3.0.12"
+  checksum: 10/81d53d1866cd1ed80ff01fa285138e2938d2d03f0af120c06eb367129a38d5fda3feb20897896bebfdd2bd191b69323dc65a5f94f9157a4233e972bcd536085e
+  languageName: node
+  linkType: hard
+
+"@types/d3-shape@npm:*, @types/d3-shape@npm:^3.1.6":
   version: 3.1.8
   resolution: "@types/d3-shape@npm:3.1.8"
   dependencies:
     "@types/d3-path": "npm:*"
   checksum: 10/ebc161d49101d84409829fea516ba7ec71ad51a1e97438ca0fafc1c30b56b3feae802d220375323632723a338dda7237c652e831e0b53527a6222ab0d1bb7809
+  languageName: node
+  linkType: hard
+
+"@types/d3-shape@npm:^3.2.0":
+  version: 3.2.0
+  resolution: "@types/d3-shape@npm:3.2.0"
+  dependencies:
+    "@types/d3-path": "npm:*"
+  checksum: 10/4b34712f1cddc98dfe63b83740dcf31c49dbb0ce5696c58c80195217f933315774ec1ffd0fe9293386ddd2080b0b654644b433eef87d330c965e2c05c9ce71cb
   languageName: node
   linkType: hard
 
@@ -6818,12 +6834,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/d3-tip@npm:^0":
-  version: 0.0.1
-  resolution: "@types/d3-tip@npm:0.0.1"
+"@types/d3-tip@npm:^3":
+  version: 3.5.8
+  resolution: "@types/d3-tip@npm:3.5.8"
   dependencies:
-    "@types/d3": "npm:*"
-  checksum: 10/0991c96367fda1ccda0d360b56109308bcd2fcd1c8ecad35f54b0832977bf519aebc862712213b7ed812eea9914f4b0282c46a15334acd7940e51d5940bf6cfd
+    "@types/d3": "npm:^3"
+  checksum: 10/be884795fcfd89b677fabdf5c932e7c1c5f052d594cfdc37c052cf8e85989fb58a6358d97aa74b3ab25855b5dbf47d2d391d52d7f8495c336fca96532b8ca8ec
   languageName: node
   linkType: hard
 
@@ -6846,7 +6862,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/d3@npm:*, @types/d3@npm:^7.4.3":
+"@types/d3@npm:^3":
+  version: 3.5.53
+  resolution: "@types/d3@npm:3.5.53"
+  checksum: 10/c439487274af476736db26f0dbf42bf87642ded9ce0f1d2687be30d1d6a15c0b45214d6434328dc73db6d75a908237fb6cd924dae5ba779628b5a7a9b791e81a
+  languageName: node
+  linkType: hard
+
+"@types/d3@npm:^7.4.3":
   version: 7.4.3
   resolution: "@types/d3@npm:7.4.3"
   dependencies:
