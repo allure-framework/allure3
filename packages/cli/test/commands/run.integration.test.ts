@@ -1924,7 +1924,7 @@ console.log(\`selected selectors: \${Array.from(selectors).join(",")}\`);
           trace,
         ].join("\n");
 
-        console.log(`Console fixture diagnostics (${scenario}):\n${diagnostics}`);
+        process.stderr.write(`Console fixture diagnostics (${scenario}):\n${diagnostics}\n`);
         await attachment("console fixture diagnostics", diagnostics, "text/plain");
         if (commandError) {
           commandError.message += `\n\nConsole fixture timeout diagnostics:\n${diagnostics}`;
