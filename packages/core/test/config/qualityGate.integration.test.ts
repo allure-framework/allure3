@@ -40,6 +40,33 @@ afterEach(async () => {
 });
 
 describe("YAML quality-gate lifecycle", () => {
+  it.each([
+    {
+      field: "id",
+      type: "string",
+      source: `
+qualityGate:
+  rules:
+    - id: 42
+      maxFailures: 0
+`,
+    },
+    {
+      field: "fastFail",
+      type: "boolean",
+      source: `
+qualityGate:
+  rules:
+    - maxFailures: 0
+      fastFail: "\${{ env.CI == 'true' }}"
+`,
+    },
+  ])("rejects a non-$type ruleset $field", async ({ source, field, type }) => {
+    const config = load(source);
+
+    await expect(config).rejects.toThrow(`Invalid configuration at qualityGate.rules[0].${field}: expected a ${type}`);
+  });
+
   it("accumulates failure and total counts across overlapping batches and recomputes a final snapshot", async () => {
     const config = await load(`
 qualityGate:

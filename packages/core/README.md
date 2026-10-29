@@ -140,9 +140,21 @@ omits the gate before compiling its rules. Expected rule values, including leave
 objects, may use CEL expressions. Enablement and expected-value expressions run once during config
 resolution against `env`, a snapshot of defined process environment variables. Missing variables are
 absent, not empty strings; guard access with `has(env.NAME)` and convert strings explicitly with
-`int(...)` or `double(...)`. IDs and `fastFail` stay literal; filters are evaluated per test. Unmarked
-strings stay literal. CEL map literals are homogeneous; use YAML/JSON objects with individual expression values
-for heterogeneous expected structures.
+`int(...)` or `double(...)`. `id` accepts a literal string and `fastFail` a literal boolean; filters
+are evaluated per test. Unmarked strings stay literal.
+
+To combine text and numbers in a rule's expected value, write a YAML object and put expressions on
+individual fields. A single CEL object expression cannot mix text and numeric values. For example,
+this keeps the metric name as text and reads its numeric threshold from `MAX_DURATION_MS`, defaulting
+to `1000` when the variable is absent:
+
+```yaml
+qualityGate:
+  rules:
+    - metricMax:
+        key: duration
+        value: "${{ has(env.MAX_DURATION_MS) ? double(env.MAX_DURATION_MS) : 1000.0 }}"
+```
 
 Computed expected values must be JSON-compatible, with finite numbers and lossless conversion of CEL integers to JavaScript numbers. Built-in
 values must also match the rule's expected domain: counts/duration are nonnegative numbers, success
