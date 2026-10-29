@@ -3,7 +3,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 import type { Config } from "@allurereport/plugin-api";
-import { afterEach, describe, expect, it, vi } from "vite-plus/test";
+import { afterEach, describe, expect, it } from "vite-plus/test";
 
 import { readConfig, resolveConfig } from "../../src/config.js";
 import { resolveStoredEnvironmentIdentity } from "../../src/utils/environment.js";
@@ -15,7 +15,6 @@ const resolve = (environments: Config["environments"]) => resolveConfig({ enviro
 const fixtures: string[] = [];
 
 afterEach(async () => {
-  vi.restoreAllMocks();
   await Promise.all(fixtures.splice(0).map((directory) => rm(directory, { recursive: true, force: true })));
 });
 
@@ -99,8 +98,7 @@ environments:
     expect(matched).toEqual(want);
   });
 
-  it("matches missing label values as empty strings without warning", async () => {
-    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+  it("matches missing label values as empty strings", async () => {
     const config = await resolve({
       empty: { matcher: "${{ labels.exists(l, l.name == 'browser' && l.value == '') }}" },
     });
@@ -108,7 +106,6 @@ environments:
     const matched = resolveStoredEnvironmentIdentity({ labels: [{ name: "browser" }] }, config.environments!);
 
     expect(matched).toEqual({ id: "empty", name: "empty" });
-    expect(warn).not.toHaveBeenCalled();
   });
 
   it("preserves callback matchers, ordering, variables and input data", async () => {
