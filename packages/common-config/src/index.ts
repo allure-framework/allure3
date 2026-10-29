@@ -59,18 +59,21 @@ export const defaultTasksConfig = (
     tasks["vp:build"] = {
       command: buildCommands,
       dependsOn: ["vp:clean", { task: "vp:build", from: ["dependencies", "devDependencies"] }],
-      cache: {
-        env: ["NODE_ENV"],
-        input: [
-          { auto: true },
-          { pattern: "!.yarn/install-state.gz", base: "workspace" },
-          "!out/**",
-          "!dist/**",
-          "!test/**",
-          ...(options.buildInput ?? []),
-        ],
-        output: ["dist/**", ...(options.buildOutput ?? [])],
-      },
+      cache:
+        env.VITE_NO_CACHE === "true"
+          ? false
+          : {
+              env: ["NODE_ENV"],
+              input: [
+                { auto: true },
+                { pattern: "!.yarn/install-state.gz", base: "workspace" },
+                "!out/**",
+                "!dist/**",
+                "!test/**",
+                ...(options.buildInput ?? []),
+              ],
+              output: ["dist/**", ...(options.buildOutput ?? [])],
+            },
     };
   }
 
@@ -88,22 +91,23 @@ export const defaultTasksConfig = (
     tasks["vp:test"] = {
       command: testCommands,
       dependsOn: ["vp:clean:test"],
-      cache: ci
-        ? false
-        : {
-            env: ["ENABLE_COVERAGE", "ALLURE_TESTPLAN_PATH", "ALLURE_RERUN", "ALLURE_RESULTS_DIR"],
-            input: [
-              { auto: true },
-              { pattern: "!.yarn/install-state.gz", base: "workspace" },
-              { pattern: "!allure-report/**", base: "workspace" },
-              `!${allureResultsDir}/**`,
-              "!.vitest/**",
-              "!test-results/**",
-              "!allure-report/**",
-              ...(options.testInput ?? []),
-            ],
-            output: [`${allureResultsDir}/**`, ".vitest/blob/**", "test-results/**", ...(options.testOutput ?? [])],
-          },
+      cache:
+        ci || env.VITE_NO_CACHE === "true"
+          ? false
+          : {
+              env: ["ENABLE_COVERAGE", "ALLURE_TESTPLAN_PATH", "ALLURE_RERUN", "ALLURE_RESULTS_DIR"],
+              input: [
+                { auto: true },
+                { pattern: "!.yarn/install-state.gz", base: "workspace" },
+                { pattern: "!allure-report/**", base: "workspace" },
+                `!${allureResultsDir}/**`,
+                "!.vitest/**",
+                "!test-results/**",
+                "!allure-report/**",
+                ...(options.testInput ?? []),
+              ],
+              output: [`${allureResultsDir}/**`, ".vitest/blob/**", "test-results/**", ...(options.testOutput ?? [])],
+            },
     };
   } else {
     // vite+ uses fail-fast by default so tests still need to run through yarn workspaces
