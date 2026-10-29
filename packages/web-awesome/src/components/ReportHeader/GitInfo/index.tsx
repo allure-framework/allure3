@@ -1,7 +1,6 @@
 import { sanitizeExternalUrl } from "@allurereport/core-api";
-import { copyToClipboard, getReportOptions } from "@allurereport/web-commons";
-import { IconButton, SvgIcon, TooltipWrapper, allureIcons } from "@allurereport/web-components/core";
-import { useState } from "preact/hooks";
+import { getReportOptions } from "@allurereport/web-commons";
+import { SvgIcon, allureIcons } from "@allurereport/web-components/core";
 
 import { getCiIconId, getCiLabel } from "@/components/Header/CiInfo";
 import { useI18n } from "@/stores/locale";
@@ -20,69 +19,40 @@ const GitValue = ({
   label,
   value,
   text = value,
+  icon,
   href,
   testId,
 }: {
   label: string;
   value: string;
   text?: string;
+  icon: string;
   href?: string;
   testId: string;
 }) => {
-  const { t } = useI18n("controls");
-  const [copyStatus, setCopyStatus] = useState<string>();
-  const copyLabel = `${t("clipboard")}: ${label}`;
-  const copy = async () => {
-    setCopyStatus((await copyToClipboard(value)) ? t("clipboardSuccess") : t("clipboardError"));
-  };
+  const title = `${label}: ${value}`;
   const content = (
     <>
-      {label}: {text}
+      <SvgIcon id={icon} size="s" aria-hidden="true" />
+      <span className={styles["git-info-value"]}>{text}</span>
     </>
   );
 
-  return (
-    <span
+  return href ? (
+    <a
       className={styles["git-info-item"]}
-      onMouseLeave={() => setCopyStatus(undefined)}
-      onBlur={() => setCopyStatus(undefined)}
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      title={title}
+      aria-label={title}
+      data-testid={testId}
     >
-      {href ? (
-        <>
-          <a
-            className={styles["git-info-value"]}
-            href={href}
-            target="_blank"
-            rel="noopener noreferrer"
-            title={value}
-            data-testid={testId}
-          >
-            {content}
-          </a>
-          <TooltipWrapper tooltipText={copyStatus ?? copyLabel}>
-            <IconButton
-              style="ghost"
-              size="s"
-              icon={allureIcons.lineGeneralCopy3}
-              aria-label={copyLabel}
-              onClick={copy}
-            />
-          </TooltipWrapper>
-        </>
-      ) : (
-        <TooltipWrapper tooltipText={copyStatus ?? copyLabel}>
-          <button
-            type="button"
-            className={styles["git-info-value"]}
-            title={value}
-            aria-label={`${copyLabel}: ${value}`}
-            onClick={copy}
-            data-testid={testId}
-          >
-            {content}
-          </button>
-        </TooltipWrapper>
-      )}
+      {content}
+    </a>
+  ) : (
+    <span className={styles["git-info-item"]} title={title} data-testid={testId}>
+      {content}
     </span>
   );
 };
@@ -96,7 +66,9 @@ export const GitInfo = () => {
   const ciUrl = ci?.pullRequestUrl || ci?.jobRunUrl || ci?.jobUrl;
   const ciLabel = getCiLabel(ci, ciUrl);
   const safeCiUrl = sanitizeExternalUrl(ciUrl);
-  const ciIconId = getCiIconId(ci?.type) ?? allureIcons.lineGeneralLink1;
+  const ciIconId = ci?.pullRequestUrl
+    ? allureIcons.lineDevGitPullRequest
+    : (getCiIconId(ci?.type) ?? allureIcons.lineGeneralLink1);
 
   if (!branch && !commit && !ciLabel) {
     return null;
@@ -104,10 +76,19 @@ export const GitInfo = () => {
 
   return (
     <div className={styles["git-info"]} data-testid="git-info">
-      {branch && <GitValue label={t("gitBranch")} value={branch} href={branchUrl} testId="git-info-branch" />}
+      {branch && (
+        <GitValue
+          label={t("gitBranch")}
+          value={branch}
+          icon={allureIcons.lineDevGitBranch}
+          href={branchUrl}
+          testId="git-info-branch"
+        />
+      )}
       {commit && (
         <GitValue
           label={t("gitCommit")}
+          icon={allureIcons.lineDevGitCommit}
           value={commit}
           text={commit.slice(0, SHORT_COMMIT_LENGTH)}
           href={commitUrl}
@@ -115,24 +96,13 @@ export const GitInfo = () => {
         />
       )}
       {ciLabel && (
-        <span className={styles["git-info-item"]}>
-          <SvgIcon id={ciIconId} size="s" />
-          {safeCiUrl ? (
-            <a
-              className={styles["git-info-value"]}
-              href={safeCiUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              data-testid="git-info-ci"
-            >
-              {ciLabel}
-            </a>
-          ) : (
-            <span className={styles["git-info-value"]} data-testid="git-info-ci">
-              {ciLabel}
-            </span>
-          )}
-        </span>
+        <GitValue
+          label={t(ci?.pullRequestUrl ? "openPullRequest" : "openJobRun")}
+          value={ciLabel}
+          icon={ciIconId}
+          href={safeCiUrl}
+          testId="git-info-ci"
+        />
       )}
     </div>
   );

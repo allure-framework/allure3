@@ -14,8 +14,7 @@
   min-width: 0;
   max-width: 100%;
 
-  > svg,
-  > button {
+  > svg {
     flex-shrink: 0;
   }
 }
@@ -25,27 +24,16 @@
   overflow-wrap: anywhere;
 }
 
-button.git-info-value {
-  padding: 0;
-  border: 0;
-  background: none;
-  color: inherit;
-  font: inherit;
-  text-align: left;
-  cursor: pointer;
-  flex-shrink: 1;
-}
-
-a.git-info-value {
+a.git-info-item {
   color: var(--color-text-primary);
   text-decoration: none;
 }
 
-.git-info-value:hover {
+a.git-info-item:hover {
   text-decoration: underline;
 }
 
-.git-info-value:focus-visible {
+a.git-info-item:focus-visible {
   outline: 2px solid var(--color-text-primary);
   outline-offset: 2px;
   border-radius: 2px;

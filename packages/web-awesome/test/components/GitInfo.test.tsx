@@ -1,5 +1,5 @@
-import { copyToClipboard, getReportOptions } from "@allurereport/web-commons";
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/preact";
+import { getReportOptions } from "@allurereport/web-commons";
+import { cleanup, render, screen } from "@testing-library/preact";
 import { epic, feature, label, story } from "allure-js-commons";
 import { type Mock, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
@@ -10,7 +10,6 @@ const COMMIT = "0a1b2c3d4e5f60718293a4b5c6d7e8f901234567";
 vi.mock("@allurereport/web-commons", async (importOriginal) => ({
   ...(await importOriginal()),
   getReportOptions: vi.fn(),
-  copyToClipboard: vi.fn(),
 }));
 vi.mock("@/stores/locale", () => ({
   useI18n: () => ({ t: (key: string) => key }),
@@ -19,7 +18,6 @@ vi.mock("@/stores/locale", () => ({
 beforeEach(async () => {
   cleanup();
   vi.clearAllMocks();
-  (copyToClipboard as Mock).mockResolvedValue(true);
   await epic("coverage");
   await feature("ui-components");
   await story("GitInfo");
@@ -27,7 +25,7 @@ beforeEach(async () => {
 });
 
 describe("components > ReportHeader > GitInfo", () => {
-  it("shows labelled Git values and the PR immediately, preferring the source branch", () => {
+  it("shows Git values with descriptive titles and the PR, preferring the source branch", () => {
     (getReportOptions as Mock).mockReturnValue({
       ci: {
         type: "github",
@@ -41,11 +39,15 @@ describe("components > ReportHeader > GitInfo", () => {
     });
     render(<GitInfo />);
 
-    expect(screen.getByTestId("git-info-branch")).toHaveTextContent("gitBranch: feature/source");
-    expect(screen.getByTestId("git-info-commit")).toHaveTextContent(`gitCommit: ${COMMIT.slice(0, 7)}`);
-    expect(screen.getByTestId("git-info-commit")).toHaveAttribute("title", COMMIT);
+    expect(screen.getByTestId("git-info-branch")).toHaveTextContent("feature/source");
+    expect(screen.getByTestId("git-info-commit")).toHaveTextContent(COMMIT.slice(0, 7));
+    expect(screen.getByTestId("git-info-commit")).toHaveAttribute("title", `gitCommit: ${COMMIT}`);
     expect(screen.getByTestId("git-info-ci")).toHaveTextContent("PR #1");
     expect(screen.getByTestId("git-info-ci")).toHaveAttribute("href", "https://example.com/pull/1");
+    expect(screen.getByTestId("git-info-ci")).toHaveAttribute("title", "openPullRequest: PR #1");
+    expect(screen.getByTestId("git-info-branch").querySelector("svg, img")).not.toBeNull();
+    expect(screen.getByTestId("git-info-commit").querySelector("svg, img")).not.toBeNull();
+    expect(screen.getByTestId("git-info-ci").querySelector("svg, img")).not.toBeNull();
     expect(screen.queryByRole("menu")).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { expanded: false })).not.toBeInTheDocument();
   });
@@ -57,7 +59,7 @@ describe("components > ReportHeader > GitInfo", () => {
   ])("uses the first known branch for %j", (options, branch) => {
     (getReportOptions as Mock).mockReturnValue(options);
     render(<GitInfo />);
-    expect(screen.getByTestId("git-info-branch")).toHaveTextContent(`gitBranch: ${branch}`);
+    expect(screen.getByTestId("git-info-branch")).toHaveTextContent(branch);
   });
 
   it.each([
@@ -66,39 +68,23 @@ describe("components > ReportHeader > GitInfo", () => {
   ])("renders only the short commit when the branch is unknown: %j", (options) => {
     (getReportOptions as Mock).mockReturnValue(options);
     render(<GitInfo />);
-    expect(screen.getByTestId("git-info")).toHaveTextContent(`gitCommit: ${COMMIT.slice(0, 7)}`);
+    expect(screen.getByTestId("git-info")).toHaveTextContent(COMMIT.slice(0, 7));
     expect(screen.queryByTestId("git-info-branch")).not.toBeInTheDocument();
     expect(screen.queryByTestId("git-info-ci")).not.toBeInTheDocument();
   });
 
-  it("copies complete branch and commit values when repository links are unavailable", async () => {
+  it("keeps full values as static text when repository links are unavailable", () => {
     const branch = "feature/" + "long-branch".repeat(20);
     (getReportOptions as Mock).mockReturnValue({ git: { branch, commit: COMMIT } });
     render(<GitInfo />);
     expect(screen.getByTestId("git-info-branch")).toHaveTextContent(branch);
-    fireEvent.click(screen.getByTestId("git-info-branch"));
-    await waitFor(() => expect(copyToClipboard).toHaveBeenCalledWith(branch));
-    fireEvent.click(screen.getByTestId("git-info-commit"));
-    await waitFor(() => expect(copyToClipboard).toHaveBeenCalledWith(COMMIT));
+    expect(screen.getByTestId("git-info-branch")).toHaveAttribute("title", `gitBranch: ${branch}`);
+    expect(screen.getByTestId("git-info-commit")).toHaveAttribute("title", `gitCommit: ${COMMIT}`);
+    expect(screen.queryByRole("button")).not.toBeInTheDocument();
+    expect(screen.queryByRole("link")).not.toBeInTheDocument();
   });
 
-  it.each([
-    [true, "clipboardSuccess"],
-    [false, "clipboardError"],
-  ])("reports clipboard outcome %s without claiming a failed copy succeeded", async (copied, feedback) => {
-    (getReportOptions as Mock).mockReturnValue({ git: { commit: COMMIT } });
-    (copyToClipboard as Mock).mockResolvedValue(copied);
-    render(<GitInfo />);
-    const button = screen.getByTestId("git-info-commit");
-
-    fireEvent.mouseEnter(button.parentElement.parentElement);
-    fireEvent.click(button);
-
-    await waitFor(() => expect(screen.getByText(feedback as string)).toBeInTheDocument());
-    expect(copyToClipboard).toHaveBeenCalledWith(COMMIT);
-  });
-
-  it("keeps repository navigation and full SHA copying available together", async () => {
+  it("links Git values to the repository without copy controls", () => {
     (getReportOptions as Mock).mockReturnValue({
       ci: {
         provider: "github",
@@ -108,11 +94,15 @@ describe("components > ReportHeader > GitInfo", () => {
       git: { commit: COMMIT },
     });
     render(<GitInfo />);
-    expect(screen.getByTestId("git-info-branch")).toHaveAttribute("href", "https://example.com/a/b/tree/feature/x");
-    expect(screen.getByTestId("git-info-commit")).toHaveAttribute("href", `https://example.com/a/b/commit/${COMMIT}`);
-    expect(screen.getByTestId("git-info-commit")).toHaveAttribute("rel", "noopener noreferrer");
-    fireEvent.click(screen.getByRole("button", { name: "clipboard: gitCommit" }));
-    await waitFor(() => expect(copyToClipboard).toHaveBeenCalledWith(COMMIT));
+    expect(screen.getByRole("link", { name: "gitBranch: feature/x" })).toHaveAttribute(
+      "href",
+      "https://example.com/a/b/tree/feature/x",
+    );
+    const commit = screen.getByRole("link", { name: `gitCommit: ${COMMIT}` });
+    expect(commit).toHaveAttribute("href", `https://example.com/a/b/commit/${COMMIT}`);
+    expect(commit).toHaveAttribute("rel", "noopener noreferrer");
+    expect(commit).toHaveAttribute("target", "_blank");
+    expect(screen.queryByRole("button")).not.toBeInTheDocument();
   });
 
   it.each([
