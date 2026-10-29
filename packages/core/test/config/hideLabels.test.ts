@@ -1,10 +1,8 @@
 import { shouldHideLabel } from "@allurereport/core-api";
 import type { Config } from "@allurereport/plugin-api";
-import { afterEach, describe, expect, it, vi } from "vite-plus/test";
+import { describe, expect, it } from "vite-plus/test";
 
 import { resolveHideLabels } from "../../src/config/hideLabels.js";
-
-afterEach(() => vi.restoreAllMocks());
 
 describe("resolveHideLabels", () => {
   it("leaves omitted configuration unset", () => {
@@ -52,19 +50,9 @@ describe("resolveHideLabels", () => {
     expect(resolve).toThrow("hideLabels must be an array");
   });
 
-  it("warns and disables malformed entries while retaining valid predicates", () => {
-    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+  it.each(["${{ name. }}", 42 as unknown as string])("rejects invalid matcher %s during resolution", (matcher) => {
+    const resolve = () => resolveHideLabels(["owner", matcher]);
 
-    const resolved = resolveHideLabels([
-      "owner",
-      "${{ name. }}",
-      "${{ name.startsWith('internal_') }}",
-      42 as unknown as string,
-    ]);
-    const hidden = ["owner", "internal_id", "public"].map((name) => shouldHideLabel(name, resolved));
-
-    expect(hidden).toEqual([true, true, false]);
-    expect(warn).toHaveBeenCalledWith(expect.stringContaining("hideLabels[1]"));
-    expect(warn).toHaveBeenCalledWith(expect.stringContaining("hideLabels[3]"));
+    expect(resolve).toThrow("hideLabels[1]");
   });
 });

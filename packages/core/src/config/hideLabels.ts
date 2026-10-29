@@ -17,8 +17,7 @@ export const resolveHideLabels = (value: Config["hideLabels"]): LabelMatcher[] |
       return matcher;
     }
     if (typeof matcher !== "string") {
-      console.warn(`Invalid hidden-label matcher at ${path}: expected string or RegExp`);
-      return () => false;
+      throw new TypeError(`Invalid hidden-label matcher at ${path}: expected string or RegExp`);
     }
     if (matcher.startsWith("$${{")) {
       return matcher.slice(1);

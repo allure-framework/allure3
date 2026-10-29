@@ -2,8 +2,12 @@ import { Environment } from "@marcbachmann/cel-js";
 
 export const isExpression = (value: string): boolean => value.trimStart().startsWith("${{");
 
-type Variables = Record<string, "string" | "map">;
+/** CEL's dynamic type: rule-specific values are type-checked when the expression runs. */
+export const CEL_DYNAMIC_TYPE = "dyn";
+
+type Variables = Record<string, "string" | "map" | "list" | typeof CEL_DYNAMIC_TYPE>;
 type Predicate = (context: Record<string, unknown>) => boolean;
+type ExpressionOptions = { resultType?: "bool" | "string" };
 
 /** Copy only plain data into the evaluator, never live objects or capabilities. */
 const snapshotContext = (context: Record<string, unknown>, variables: Variables): Record<string, unknown> => {
@@ -44,17 +48,17 @@ const snapshotContext = (context: Record<string, unknown>, variables: Variables)
   return Object.fromEntries(Object.keys(variables).map((key) => [key, copy(context[key])]));
 };
 
-/** Compile a synchronous boolean expression once; malformed predicates never match. */
-export const compilePredicate = (input: string, path: string, variables: Variables): Predicate => {
-  let warned = false;
-  const warn = (error: unknown) => {
-    if (!warned) {
-      const message = error instanceof Error ? error.message : String(error);
-      console.warn(`Invalid expression at ${path}: ${message}`);
-      warned = true;
-    }
-  };
-
+/** Compile once and report failures with the configuration path. */
+export const compileExpression = (
+  input: string,
+  path: string,
+  variables: Variables,
+  options: ExpressionOptions = {},
+): ((context: Record<string, unknown>) => unknown) => {
+  const failure = (error: unknown) =>
+    new Error(`Invalid expression at ${path}: ${error instanceof Error ? error.message : String(error)}`, {
+      cause: error,
+    });
   try {
     const wrapped = input.trim();
     if (!wrapped.startsWith("${{") || !wrapped.endsWith("}}")) {
@@ -72,24 +76,28 @@ export const compilePredicate = (input: string, path: string, variables: Variabl
     if (!checked.valid) {
       throw checked.error;
     }
-    if (checked.type !== "bool" && checked.type !== "dyn") {
-      throw new TypeError("predicate must return a boolean");
+    if (options.resultType && checked.type !== options.resultType && checked.type !== CEL_DYNAMIC_TYPE) {
+      throw new TypeError(`expression must return a ${options.resultType === "bool" ? "boolean" : "string"}`);
     }
 
     return (context) => {
       try {
         const result: unknown = expression(snapshotContext(context, variables));
-        if (typeof result !== "boolean") {
-          throw new TypeError("predicate must return a boolean");
+        if (options.resultType && typeof result !== (options.resultType === "bool" ? "boolean" : "string")) {
+          throw new TypeError(`expression must return a ${options.resultType === "bool" ? "boolean" : "string"}`);
         }
         return result;
       } catch (error) {
-        warn(error);
-        return false;
+        throw failure(error);
       }
     };
   } catch (error) {
-    warn(error);
-    return () => false;
+    throw failure(error);
   }
+};
+
+/** Compile a boolean predicate; compilation and evaluation errors propagate. */
+export const compilePredicate = (input: string, path: string, variables: Variables): Predicate => {
+  const expression = compileExpression(input, path, variables, { resultType: "bool" });
+  return (context) => expression(context) === true;
 };
