@@ -1008,9 +1008,14 @@ describe("plugin", () => {
       return JSON.parse(match![1]);
     };
 
-    it.each([false, true])(
-      "selects a final snapshot but retains live/update scripts and resets on start (realTime=%s)",
-      async (realTime) => {
+    it.each([
+      [false, false],
+      [false, true],
+      [true, false],
+      [true, true],
+    ])(
+      "selects a final snapshot but retains live/update scripts and resets on start (realTime=%s, singleFile=%s)",
+      async (realTime, singleFile) => {
         const files = new Map<string, Buffer>();
         const reportFiles: ReportFiles = {
           addFile: async (name, data) => {
@@ -1020,17 +1025,19 @@ describe("plugin", () => {
         };
         const context = { ...makeSingleFileContext(reportFiles), realTime };
         const store = makeSingleFileStore([]);
-        const plugin = new AwesomePlugin({ singleFile: true, charts: [] });
+        const plugin = new AwesomePlugin({ singleFile, charts: [] });
         const assets = await readReportStaticAssets(new URL("../dist/static/report.tar", import.meta.url));
         const scripts = () =>
-          Object.keys(
-            JSON.parse(
-              files
-                .get("index.html")!
-                .toString()
-                .match(/<script id="allure-single-file-assets" type="application\/json">([^<]+)<\/script>/)![1],
-            ),
-          ).sort();
+          !singleFile
+            ? [...files.keys()].filter((name) => name.endsWith(".js")).sort()
+            : Object.keys(
+                JSON.parse(
+                  files
+                    .get("index.html")!
+                    .toString()
+                    .match(/<script id="allure-single-file-assets" type="application\/json">([^<]+)<\/script>/)![1],
+                ),
+              ).sort();
         const allScripts = [...assets.files.keys()].filter((name) => name.endsWith(".js")).sort();
         const baseScripts = assets.featureAssets!.base.filter((name) => name.endsWith(".js")).sort();
         await plugin.start(context);
@@ -1040,13 +1047,34 @@ describe("plugin", () => {
         expect(scripts()).toEqual(allScripts);
         await plugin.done(context, store);
         expect(scripts()).toEqual(allScripts);
+        files.clear();
         await plugin.start({ ...context, realTime: false });
         await plugin.done({ ...context, realTime: false }, store);
         expect(scripts()).toEqual(baseScripts);
       },
     );
 
-    it("should copy every emitted multi-file asset", async () => {
+    it("keeps configured chart renderers when only the charts section is hidden", async () => {
+      const files = new Set<string>();
+      const writer: ReportFiles = {
+        addFile: async (name) => {
+          files.add(name);
+          return name;
+        },
+      };
+      const plugin = new AwesomePlugin({ sections: ["timeline"] });
+      const context = makeSingleFileContext(writer);
+      await plugin.start(context);
+      await plugin.done(context, makeSingleFileStore([]));
+      for (const renderer of ["pie", "bar", "treemap", "heatmap", "funnel"]) {
+        expect(
+          [...files].some((file) => file.startsWith(`chart-${renderer}-`)),
+          renderer,
+        ).toBe(true);
+      }
+    });
+
+    it("should copy only base assets to a directory without charts or attachments", async () => {
       const addedFiles = new Map<string, Buffer>();
       const reportFiles: ReportFiles = {
         addFile: vi.fn(async (path: string, data: Buffer) => {
@@ -1057,13 +1085,16 @@ describe("plugin", () => {
       const testResults = [
         { id: "tr-1", name: "passed test", status: "passed", environment: "default", labels: [] },
       ] as unknown as TestResult[];
-      const plugin = new AwesomePlugin();
+      const plugin = new AwesomePlugin({ charts: [] });
       const staticAssets = await readReportStaticAssets(new URL("../dist/static/report.tar", import.meta.url));
 
       await plugin.start(makeSingleFileContext(reportFiles));
       await plugin.done(makeSingleFileContext(reportFiles), makeSingleFileStore(testResults));
 
-      for (const fileName of staticAssets.files.keys()) {
+      expect([...addedFiles.keys()].filter((name) => staticAssets.files.has(name)).sort()).toEqual(
+        [...staticAssets.featureAssets!.base].sort(),
+      );
+      for (const fileName of staticAssets.featureAssets!.base) {
         expect(addedFiles.has(fileName), `"${fileName}" must be copied to the report`).toBe(true);
       }
     });

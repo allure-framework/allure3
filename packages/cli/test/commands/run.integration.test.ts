@@ -1631,6 +1631,115 @@ console.log(\`selected selectors: \${Array.from(selectors).join(",")}\`);
       expect(result.stderr).not.toContain("Update available");
     });
   }, 60_000);
+
+  it("retains a viewer from an early rerun and removes stale assets only with clean", async () => {
+    await feature("selective-directory-assets");
+    const root = await mkdtemp(join(tmpdir(), "allure-selective-cli-"));
+    const output = join(root, "report"),
+      results = join(root, "allure-results");
+    const configPath = join(root, "allurerc.mjs"),
+      runner = join(root, "runner.mjs");
+    const dump = join(root, "snapshot.zip");
+    try {
+      await mkdir(results);
+      await writeFile(
+        configPath,
+        `export default { appendHistory: false, plugins: { awesome: { options: { charts: [], sections: ["default"] } } } };`,
+      );
+      await writeFile(
+        runner,
+        `
+      import { writeFile } from "node:fs/promises";
+      const rerun = process.env.ALLURE_RERUN !== undefined;
+      const results = ${JSON.stringify(results)};
+      if (!rerun) await writeFile(results + "/retry.mmd", "sequenceDiagram\\nClient->>Server: early attempt");
+      await writeFile(results + "/" + (rerun ? "passed" : "failed") + "-result.json", JSON.stringify({
+        uuid: rerun ? "passed" : "failed", historyId: "selective-rerun", name: "Selective rerun", fullName: "selective-rerun",
+        status: rerun ? "passed" : "failed", stage: "finished", start: rerun ? 2000 : 1000, stop: rerun ? 2100 : 1100,
+        attachments: rerun ? [] : [{ name: "Early diagram", source: "retry.mmd", type: "application/vnd.allure.diagrams.mermaid" }]
+      }));
+      process.exitCode = rerun ? 0 : 1;
+    `,
+      );
+      const runResult = await runCommand(
+        process.execPath,
+        [
+          cliPath,
+          "run",
+          "--config",
+          configPath,
+          "--output",
+          output,
+          "--results-dir",
+          results,
+          "--rerun",
+          "1",
+          "--",
+          process.execPath,
+          runner,
+        ],
+        { cwd: root },
+      );
+      await attachCommandOutput("selective rerun", runResult);
+      const scripts = async () => (await readdir(output)).filter((file) => file.endsWith(".js"));
+      expect((await scripts()).some((file) => file.startsWith("attachment-mermaid-"))).toBe(true);
+      expect((await scripts()).some((file) => file.startsWith("chart-bar-"))).toBe(false);
+      await rm(results, { recursive: true });
+      await mkdir(results);
+      const dumpResult = await runCommandWithExitCode(
+        process.execPath,
+        [
+          cliPath,
+          "run",
+          "--config",
+          configPath,
+          "--output",
+          join(root, "dump-report"),
+          "--results-dir",
+          results,
+          "--dump",
+          join(root, "snapshot"),
+          "--",
+          process.execPath,
+          runner,
+        ],
+        { cwd: root, env: { ALLURE_RERUN: undefined } },
+      );
+      await attachCommandOutput("selective dump", dumpResult);
+      expect(dumpResult.exitCode).toBe(1);
+      expect(await pathExists(dump)).toBe(true);
+      // The dump contains the failed attempt and its attachment; regeneration must discover that viewer.
+      const restore = await runCommand(
+        process.execPath,
+        [cliPath, "generate", "--config", configPath, "--output", output, "--dump", dump],
+        { cwd: root },
+      );
+      await attachCommandOutput("selective dump restore", restore);
+      expect((await scripts()).some((file) => file.startsWith("attachment-mermaid-"))).toBe(true);
+      await rm(results, { recursive: true });
+      await mkdir(results);
+      await writeJson(join(results, "passed-result.json"), {
+        uuid: "final",
+        name: "No attachments",
+        fullName: "no-attachments",
+        status: "passed",
+      });
+      await writeFile(join(output, "user.txt"), "user");
+      for (const clean of [false, true]) {
+        const generated = await runCommand(
+          process.execPath,
+          [cliPath, "generate", "--config", configPath, "--output", output, ...(clean ? ["--clean"] : []), results],
+          { cwd: root },
+        );
+        await attachCommandOutput(`selective generate clean=${clean}`, generated);
+        expect((await scripts()).some((file) => file.startsWith("attachment-mermaid-"))).toBe(!clean);
+        if (!clean) expect(await readFile(join(output, "user.txt"), "utf8")).toBe("user");
+        else expect(await pathExists(join(output, "user.txt"))).toBe(false);
+      }
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
+  }, 30000);
 });
 
 const waitForOutput = (pattern: RegExp, streams: (NodeJS.ReadableStream | null)[], timeoutMs = 120_000) =>

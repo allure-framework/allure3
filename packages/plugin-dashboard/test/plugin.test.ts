@@ -9,9 +9,14 @@ beforeEach(async () => {
   await feature("selective-single-file-assets");
   await story("dashboard-live-lifecycle");
 });
-it.each([false, true])(
-  "keeps complete live scripts through done and resets selection on start (realTime=%s)",
-  async (realTime) => {
+it.each([
+  [false, false],
+  [false, true],
+  [true, false],
+  [true, true],
+])(
+  "keeps complete live scripts through done and resets selection on start (realTime=%s, singleFile=%s)",
+  async (realTime, singleFile) => {
     const files = new Map<string, Buffer>();
     const reportFiles: ReportFiles = {
       addFile: async (name, data) => {
@@ -32,17 +37,19 @@ it.each([false, true])(
       allHistoryDataPoints: async () => [],
       allTestResults: async () => [],
     } as unknown as AllureStore;
-    const plugin = new DashboardPlugin({ singleFile: true, layout: [] });
+    const plugin = new DashboardPlugin({ singleFile, layout: [] });
     const archive = await readReportStaticAssets(new URL("../dist/static/report.tar", import.meta.url));
     const scripts = () =>
-      Object.keys(
-        JSON.parse(
-          files
-            .get("index.html")!
-            .toString()
-            .match(/<script id="allure-single-file-assets" type="application\/json">([^<]+)<\/script>/)![1],
-        ),
-      ).sort();
+      !singleFile
+        ? [...files.keys()].filter((name) => name.endsWith(".js")).sort()
+        : Object.keys(
+            JSON.parse(
+              files
+                .get("index.html")!
+                .toString()
+                .match(/<script id="allure-single-file-assets" type="application\/json">([^<]+)<\/script>/)![1],
+            ),
+          ).sort();
     const all = [...archive.files.keys()].filter((name) => name.endsWith(".js")).sort();
     const base = archive.featureAssets!.base.filter((name) => name.endsWith(".js")).sort();
     await plugin.start(context);
@@ -52,6 +59,7 @@ it.each([false, true])(
     expect(scripts()).toEqual(all);
     await plugin.done(context, store);
     expect(scripts()).toEqual(all);
+    files.clear();
     await plugin.start({ ...context, realTime: false });
     await plugin.done({ ...context, realTime: false }, store);
     expect(scripts()).toEqual(base);

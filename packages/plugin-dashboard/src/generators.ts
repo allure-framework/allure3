@@ -75,9 +75,8 @@ export const generateAllCharts = async (
 
   const generatedChartsData = await generateCharts(layout, store, context.reportName, randomUUID, filter);
 
-  if (Object.keys(generatedChartsData.general).length > 0) {
-    await writer.writeWidget("charts.json", generatedChartsData);
-  }
+  // The frontend requests this widget even when the layout contains no charts.
+  await writer.writeWidget("charts.json", generatedChartsData);
 };
 
 export const generateEnvirontmentsList = async (writer: DashboardDataWriter, store: AllureStore) => {
@@ -111,12 +110,14 @@ export const generateStaticFiles = async (
   const compile = Handlebars.compile(template);
   const staticAssets = await readReportStaticAssets(reportStaticArchive);
   const { manifest } = staticAssets;
+  const selectedFiles = selectReportStaticFiles(staticAssets, payload.requiredAssetFeatures);
   const headTags: string[] = [];
   const bodyTags: string[] = [];
 
   if (!payload.singleFile) {
     for (const key in manifest) {
       const fileName = manifest[key];
+      if (!selectedFiles.has(fileName)) continue;
 
       if (key.includes(".woff")) {
         headTags.push(createFontLinkTag(fileName));
@@ -130,7 +131,7 @@ export const generateStaticFiles = async (
       }
     }
 
-    await copyReportStaticAssets(staticAssets, reportFiles);
+    await copyReportStaticAssets({ ...staticAssets, files: selectedFiles }, reportFiles);
   } else {
     const mainJs = manifest["main.js"];
     const mainCss = manifest["main.css"];
@@ -144,7 +145,7 @@ export const generateStaticFiles = async (
     // Dashboard previously embedded uncompressed scripts. Keep that browser
     // compatibility while sharing the async chunk loader with Awesome.
     bodyTags.push(
-      createSingleFileScripts(selectReportStaticFiles(staticAssets, payload.requiredAssetFeatures), mainJs, {
+      createSingleFileScripts(selectedFiles, mainJs, {
         compress: false,
       }),
     );
