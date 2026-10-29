@@ -7,6 +7,7 @@ import { env, platform } from "node:process";
 import type { Label } from "allure-js-commons";
 import type { TestUserConfig, ViteUserConfig } from "vite-plus";
 
+const ci = env.CI === "true" || env.GITHUB_ACTIONS === "true";
 const { ENABLE_COVERAGE, GITHUB_ACTIONS } = env;
 const epicByPackagePrefix = new Map([
   ["core", "core"],
@@ -80,18 +81,6 @@ export const defaultTasksConfig = (
     if (testCommands.length > 1 && ["rimraf", "clean"].some((str) => testCommands[0].includes(str))) {
       testCommands = testCommands.slice(1);
     }
-    if (env.CI === "true" || env.GITHUB_ACTIONS === "true") {
-      // automated file tracking for cache picks up removal or addition of these folders and even explicit exclusion
-      // still does not prevent cache invalidation so simply ensure empty folders exist before tests run
-      //
-      // on windows platform, vitest internal cache is not properly ignored for some reason like it is on linux and macos
-      const paths = [allureResultsDir, ".vitest", "node_modules"];
-      if (platform == "win32") paths.push("node_modules/.vite/vitest");
-      const pathArrString = paths.map((str) => `'${str}'`).join(",");
-      cleanup.push(
-        `node -e "for (const dir of [${pathArrString}]) require('node:fs').mkdirSync(dir,{recursive:true})"`,
-      );
-    }
     tasks["vp:clean:test"] = {
       command: cleanup,
       cache: false,
@@ -99,20 +88,22 @@ export const defaultTasksConfig = (
     tasks["vp:test"] = {
       command: testCommands,
       dependsOn: ["vp:clean:test"],
-      cache: {
-        env: ["ENABLE_COVERAGE", "ALLURE_TESTPLAN_PATH", "ALLURE_RERUN", "ALLURE_RESULTS_DIR"],
-        input: [
-          { auto: true },
-          { pattern: "!.yarn/install-state.gz", base: "workspace" },
-          { pattern: "!allure-report/**", base: "workspace" },
-          `!${allureResultsDir}/**`,
-          "!.vitest/**",
-          "!test-results/**",
-          "!allure-report/**",
-          ...(options.testInput ?? []),
-        ],
-        output: [`${allureResultsDir}/**`, ".vitest/blob/**", "test-results/**", ...(options.testOutput ?? [])],
-      },
+      cache: ci
+        ? false
+        : {
+            env: ["ENABLE_COVERAGE", "ALLURE_TESTPLAN_PATH", "ALLURE_RERUN", "ALLURE_RESULTS_DIR"],
+            input: [
+              { auto: true },
+              { pattern: "!.yarn/install-state.gz", base: "workspace" },
+              { pattern: "!allure-report/**", base: "workspace" },
+              `!${allureResultsDir}/**`,
+              "!.vitest/**",
+              "!test-results/**",
+              "!allure-report/**",
+              ...(options.testInput ?? []),
+            ],
+            output: [`${allureResultsDir}/**`, ".vitest/blob/**", "test-results/**", ...(options.testOutput ?? [])],
+          },
     };
   } else {
     // vite+ uses fail-fast by default so tests still need to run through yarn workspaces
