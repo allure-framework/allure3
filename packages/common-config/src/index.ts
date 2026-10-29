@@ -7,6 +7,7 @@ import { env } from "node:process";
 import type { Label } from "allure-js-commons";
 import type { TestUserConfig, ViteUserConfig } from "vite-plus";
 
+const ci = env.CI === "true" || env.GITHUB_ACTIONS === "true";
 const { ENABLE_COVERAGE, GITHUB_ACTIONS } = env;
 const epicByPackagePrefix = new Map([
   ["core", "core"],
@@ -58,18 +59,21 @@ export const defaultTasksConfig = (
     tasks["vp:build"] = {
       command: buildCommands,
       dependsOn: ["vp:clean", { task: "vp:build", from: ["dependencies", "devDependencies"] }],
-      cache: {
-        env: ["NODE_ENV"],
-        input: [
-          { auto: true },
-          { pattern: "!.yarn/install-state.gz", base: "workspace" },
-          "!out/**",
-          "!dist/**",
-          "!test/**",
-          ...(options.buildInput ?? []),
-        ],
-        output: ["dist/**", ...(options.buildOutput ?? [])],
-      },
+      cache:
+        env.VITE_NO_CACHE === "true"
+          ? false
+          : {
+              env: ["NODE_ENV"],
+              input: [
+                { auto: true },
+                { pattern: "!.yarn/install-state.gz", base: "workspace" },
+                "!out/**",
+                "!dist/**",
+                "!test/**",
+                ...(options.buildInput ?? []),
+              ],
+              output: ["dist/**", ...(options.buildOutput ?? [])],
+            },
     };
   }
 
@@ -80,13 +84,6 @@ export const defaultTasksConfig = (
     if (testCommands.length > 1 && ["rimraf", "clean"].some((str) => testCommands[0].includes(str))) {
       testCommands = testCommands.slice(1);
     }
-    if (env.CI === "true" || env.GITHUB_ACTIONS === "true") {
-      // automated file tracking for cache picks up removal or addition of these folders and even explicit exclusion
-      // still does not prevent cache invalidation so simply ensure empty folders exist before tests run
-      cleanup.push(
-        `node -e "for (const dir of ['${allureResultsDir}','.vitest','node_modules']) require('node:fs').mkdirSync(dir,{recursive:true})"`,
-      );
-    }
     tasks["vp:clean:test"] = {
       command: cleanup,
       cache: false,
@@ -94,19 +91,23 @@ export const defaultTasksConfig = (
     tasks["vp:test"] = {
       command: testCommands,
       dependsOn: ["vp:clean:test"],
-      cache: {
-        env: ["ENABLE_COVERAGE", "ALLURE_TESTPLAN_PATH", "ALLURE_RERUN", "ALLURE_RESULTS_DIR"],
-        input: [
-          { auto: true },
-          { pattern: "!.yarn/install-state.gz", base: "workspace" },
-          `!${allureResultsDir}/**`,
-          "!.vitest/**",
-          "!test-results/**",
-          "!allure-report/**",
-          ...(options.testInput ?? []),
-        ],
-        output: [`${allureResultsDir}/**`, ".vitest/blob/**", "test-results/**", ...(options.testOutput ?? [])],
-      },
+      cache:
+        ci || env.VITE_NO_CACHE === "true"
+          ? false
+          : {
+              env: ["ENABLE_COVERAGE", "ALLURE_TESTPLAN_PATH", "ALLURE_RERUN", "ALLURE_RESULTS_DIR"],
+              input: [
+                { auto: true },
+                { pattern: "!.yarn/install-state.gz", base: "workspace" },
+                { pattern: "!allure-report/**", base: "workspace" },
+                `!${allureResultsDir}/**`,
+                "!.vitest/**",
+                "!test-results/**",
+                "!allure-report/**",
+                ...(options.testInput ?? []),
+              ],
+              output: [`${allureResultsDir}/**`, ".vitest/blob/**", "test-results/**", ...(options.testOutput ?? [])],
+            },
     };
   } else {
     // vite+ uses fail-fast by default so tests still need to run through yarn workspaces
