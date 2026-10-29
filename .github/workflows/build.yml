@@ -59,7 +59,7 @@ jobs:
             run: yarn workspace @allurereport/common-config playwright install-deps
       - name: Test Project
         env:
-          ENABLE_COVERAGE: ${{ matrix.os == 'ubuntu-latest' && 'true' || 'false' }}
+          ENABLE_COVERAGE: 'true'
         run: yarn allure run --config=./allurerc.mjs --environment=${{ matrix.os }} --dump=allure-results-${{ matrix.os }} -- yarn test
       - name: Save Vite Task cache
         if: ${{ !cancelled() }}
@@ -76,7 +76,7 @@ jobs:
           path: ./allure-results-${{ matrix.os }}.zip
       - name: Upload blob reports
         uses: actions/upload-artifact@v7
-        if: ${{ matrix.os == 'ubuntu-latest' && !cancelled() }}
+        if: ${{ !cancelled() }}
         with:
           name: vitest-blobs-${{ matrix.os }}
           path: packages/*/.vitest/blob/*.json
