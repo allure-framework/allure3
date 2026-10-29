@@ -1,26 +1,29 @@
+import { once } from "node:events";
 import { mkdtemp, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import process from "node:process";
+import { setTimeout as delay } from "node:timers/promises";
 
 import { epic, feature, story } from "allure-js-commons";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
+import { afterEach, beforeEach, describe, expect, it, onTestFinished, vi } from "vite-plus/test";
 
-import type { JobMonitor, SupervisedCommandOptions } from "../../../src/utils/supervisor/model.js";
+import type { JobMonitor, ProcessCompletion, SupervisedCommandOptions } from "../../../src/utils/supervisor/model.js";
 import { ProcessSupervisorBase } from "../../../src/utils/supervisor/ProcessSupervisorBase.js";
+import { SupervisorFixture, expectProcesses } from "./supervisor.helpers.js";
+import { nodeScripts } from "./supervisor.scripts.js";
 
 class TestProcessSupervisor extends ProcessSupervisorBase {
   protected readonly shell = false;
   protected readonly detached = false;
-  protected readonly monitor: JobMonitor = {
-    wait: async () => undefined,
-  };
+  protected readonly monitor: JobMonitor;
 
   readonly requestGracefulStop = vi.fn();
   readonly requestForcedTermination = vi.fn();
 
-  constructor(options: SupervisedCommandOptions = {}) {
+  constructor(options: SupervisedCommandOptions = {}, monitor: JobMonitor = { wait: async () => undefined }) {
     super(process.execPath, { arguments: ["-e", ""], outputMode: "ignore", ...options });
+    this.monitor = monitor;
   }
 
   protected getStartupInfo() {
@@ -30,6 +33,49 @@ class TestProcessSupervisor extends ProcessSupervisorBase {
 }
 
 describe("Process supervisor completion", () => {
+  const expectPending = (promise: Promise<unknown>) =>
+    expect(Promise.race([promise.then(() => "completed"), delay(50, "pending")])).resolves.toBe("pending");
+
+  const startWithInheritedOutput = async (monitor: JobMonitor, releaseMonitor = () => {}) => {
+    const fixture = await SupervisorFixture.create();
+    let workerPid: number | undefined;
+    const supervisor = new TestProcessSupervisor(
+      {
+        arguments: [fixture.resolvePath("root.mjs"), fixture.resolvePath("worker.mjs"), fixture.workingDirectory],
+        outputMode: "pipe",
+        silent: true,
+      },
+      monitor,
+    );
+
+    supervisor.requestForcedTermination.mockImplementation(() => {
+      supervisor.process.kill("SIGTERM");
+    });
+    supervisor.requestGracefulStop.mockImplementation(() => {
+      supervisor.process.kill("SIGINT");
+    });
+
+    onTestFinished(() =>
+      fixture.cleanup({
+        beforeTerminate: async () => {
+          await fixture.touchFile("worker-release");
+          await fixture.touchFile("root-release");
+          releaseMonitor();
+          if (workerPid !== undefined) {
+            await vi.waitFor(() => expectProcesses([workerPid!]).toBeDead(), { timeout: 5_000 });
+          }
+        },
+        supervisor,
+      }),
+    );
+    await fixture.writeScript("root.mjs", nodeScripts.rootWithInheritedOutput);
+    await fixture.writeScript("worker.mjs", nodeScripts.descendant);
+    await supervisor.start();
+    await fixture.readProcessId("root.pid");
+    workerPid = await fixture.readProcessId("worker.pid");
+    return { fixture, supervisor, workerPid };
+  };
+
   beforeEach(async () => {
     await epic("coverage");
     await feature("cli-run");
@@ -56,6 +102,106 @@ describe("Process supervisor completion", () => {
       expect(supervisor.requestForcedTermination).not.toHaveBeenCalled();
     },
   );
+
+  it.each(["running", "exited", "closed"] as const)(
+    "terminate bypasses root close with a %s root and still waits for the platform monitor",
+    async (rootState) => {
+      let finishGroup!: (completion: ProcessCompletion) => void;
+      const groupCompletion = new Promise<ProcessCompletion>((resolve) => {
+        finishGroup = resolve;
+      });
+      const monitor = { wait: vi.fn(() => groupCompletion), dispose: vi.fn() };
+      const { fixture, supervisor, workerPid } = await startWithInheritedOutput(monitor, () =>
+        finishGroup({ code: 71, signal: null }),
+      );
+      const rootExit = once(supervisor.process, "exit");
+      const rootClose = once(supervisor.process, "close");
+
+      if (rootState !== "running") {
+        await fixture.touchFile("root-release");
+        await rootExit;
+      }
+
+      if (rootState === "closed") {
+        await fixture.touchFile("worker-release");
+        await rootClose;
+        await vi.waitFor(() => expect(monitor.wait).toHaveBeenCalledOnce());
+      } else {
+        expectProcesses([workerPid]).toBeAlive();
+        expect(supervisor.process.stdout?.destroyed).toBe(false);
+        expect(supervisor.process.stderr?.destroyed).toBe(false);
+      }
+
+      await expectPending(supervisor.completion);
+      const terminating = supervisor.terminate();
+      const [code, signal] = await rootExit;
+
+      await vi.waitFor(() => expect(monitor.wait).toHaveBeenCalledWith({ code, signal }));
+      await expectPending(supervisor.completion);
+      await expectPending(terminating);
+      expect(supervisor.completed).toBe(false);
+      expect(monitor.dispose).not.toHaveBeenCalled();
+
+      if (rootState !== "closed") {
+        expectProcesses([workerPid]).toBeAlive();
+        expect(supervisor.process.stdout?.destroyed).toBe(false);
+        expect(supervisor.process.stderr?.destroyed).toBe(false);
+      }
+
+      finishGroup({ code: 71, signal: null });
+
+      await expect(
+        Promise.race([terminating.then(() => "completed"), delay(1_000, "timeout", { ref: false })]),
+      ).resolves.toBe("completed");
+      await expect(supervisor.completion).resolves.toMatchObject({ code: 71, signal: null });
+      expect(supervisor.completed).toBe(true);
+      expect(monitor.wait).toHaveBeenCalledOnce();
+      expect(monitor.dispose).toHaveBeenCalledOnce();
+      expect(supervisor.process.stdout?.destroyed).toBe(true);
+      expect(supervisor.process.stderr?.destroyed).toBe(true);
+      if (rootState !== "closed") {
+        expectProcesses([workerPid]).toBeAlive();
+      }
+    },
+  );
+
+  it.each(["natural completion", "stop"])("%s still waits for inherited output to close", async (operation) => {
+    const monitor = { wait: vi.fn(async () => undefined), dispose: vi.fn() };
+    const { fixture, supervisor } = await startWithInheritedOutput(monitor);
+    const rootExit = once(supervisor.process, "exit");
+    if (operation === "stop") {
+      void supervisor.stop();
+    } else {
+      await fixture.touchFile("root-release");
+    }
+    const [code, signal] = await rootExit;
+
+    await expectPending(supervisor.completion);
+    expect(monitor.wait).not.toHaveBeenCalled();
+    expect(supervisor.process.stdout?.destroyed).toBe(false);
+    expect(supervisor.process.stderr?.destroyed).toBe(false);
+
+    await fixture.touchFile("worker-release");
+
+    await expect(supervisor.completion).resolves.toMatchObject({ code, signal });
+    expect(monitor.wait).toHaveBeenCalledWith({ code, signal });
+    expect(monitor.dispose).toHaveBeenCalledOnce();
+    expect(supervisor.requestForcedTermination).not.toHaveBeenCalled();
+  });
+
+  it("preserves spawn failures when terminate is requested before close", async () => {
+    const fixture = await SupervisorFixture.create();
+    onTestFinished(() => fixture.cleanup());
+    const monitor = { wait: vi.fn(), dispose: vi.fn() };
+    const supervisor = new TestProcessSupervisor({ workingDirectory: fixture.resolvePath("missing") }, monitor);
+    await supervisor.start();
+
+    const terminating = supervisor.terminate();
+    await expect(supervisor.completion).rejects.toMatchObject({ code: "ENOENT" });
+    await expect(terminating).rejects.toMatchObject({ code: "ENOENT" });
+    expect(monitor.wait).not.toHaveBeenCalled();
+    expect(monitor.dispose).toHaveBeenCalledOnce();
+  });
 });
 
 describe("Process supervisor color environment", () => {

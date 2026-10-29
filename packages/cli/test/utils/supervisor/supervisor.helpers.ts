@@ -7,11 +7,11 @@ import { setTimeout as delay } from "node:timers/promises";
 
 import { expect } from "vite-plus/test";
 
-import type { PosixProcessSupervisor } from "../../../src/utils/supervisor/index.js";
+import type { ProcessSupervisorBase } from "../../../src/utils/supervisor/ProcessSupervisorBase.js";
 
 type SupervisorFixtureCleanupOptions = {
   beforeTerminate?: () => Promise<void> | void;
-  supervisor?: PosixProcessSupervisor;
+  supervisor?: ProcessSupervisorBase;
 };
 
 const ensureProcessId = (processId: number, description: string) => {

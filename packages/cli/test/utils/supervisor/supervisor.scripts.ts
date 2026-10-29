@@ -1,4 +1,42 @@
 export const nodeScripts = {
+  rootWithInheritedOutput: `
+    import { spawn } from "node:child_process";
+    import { stat, writeFile } from "node:fs/promises";
+    import { join } from "node:path";
+    import { setTimeout as delay } from "node:timers/promises";
+
+    const [workerScriptPath, directory] = process.argv.slice(2);
+    const workerReadyPath = join(directory, "worker.pid");
+    const args = [workerScriptPath, workerReadyPath, join(directory, "worker-release")];
+    // As with threeLevelTree, escape Node's direct-child Windows job so the
+    // worker can retain the output handles after the root exits.
+    const shell = process.platform === "win32";
+    const command = shell ? [process.execPath, ...args].map(value => '"' + value + '"').join(" ") : process.execPath;
+    const worker = spawn(command, shell ? [] : args, { stdio: "inherit", shell, detached: !shell });
+    worker.on("error", error => { throw error; });
+    worker.unref();
+
+    while (true) {
+      try {
+        await stat(workerReadyPath);
+        break;
+      } catch (error) {
+        if (error.code !== "ENOENT") throw error;
+      }
+      await delay(25);
+    }
+
+    await writeFile(join(directory, "root.pid"), String(process.pid));
+    while (true) {
+      try {
+        await stat(join(directory, "root-release"));
+        process.exit(23);
+      } catch (error) {
+        if (error.code !== "ENOENT") throw error;
+      }
+      await delay(25);
+    }
+  `,
   descendant: `
     import { rename, stat, writeFile } from "node:fs/promises";
     import { setTimeout as delay } from "node:timers/promises";

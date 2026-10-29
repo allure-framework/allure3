@@ -200,6 +200,58 @@ describe("PosixProcessSupervisor", { skip: process.platform === "win32", timeout
   });
 
   describe("terminate", () => {
+    it.each(["running", "exited"])(
+      "completes with a %s root while a detached worker retains stdio",
+      async (rootState) => {
+        const fixture = await SupervisorFixture.create();
+        const supervisor = new PosixProcessSupervisor(process.execPath, {
+          arguments: [fixture.resolvePath("root.mjs"), fixture.resolvePath("worker.mjs"), fixture.workingDirectory],
+          silent: true,
+        });
+        let workerPid: number | undefined;
+        onTestFinished(() =>
+          fixture.cleanup({
+            beforeTerminate: async () => {
+              await fixture.touchFile("worker-release");
+              if (workerPid !== undefined) {
+                await vi.waitFor(() => expectProcesses([workerPid!]).toBeDead(), { timeout: 5_000 });
+              }
+            },
+            supervisor,
+          }),
+        );
+        await fixture.writeScript("root.mjs", nodeScripts.rootWithInheritedOutput);
+        await fixture.writeScript("worker.mjs", nodeScripts.descendant);
+        await supervisor.start();
+        await fixture.readProcessId("root.pid");
+        workerPid = await fixture.readProcessId("worker.pid");
+        const rootExit = once(supervisor.process, "exit");
+        if (rootState === "exited") {
+          await fixture.touchFile("root-release");
+          await rootExit;
+        }
+
+        expectProcesses([workerPid]).toBeAlive();
+        expect(supervisor.process.stdout?.destroyed).toBe(false);
+        expect(supervisor.process.stderr?.destroyed).toBe(false);
+        await expect(Promise.race([supervisor.completion.then(() => "completed"), delay(50, "pending")])).resolves.toBe(
+          "pending",
+        );
+
+        await expect(
+          Promise.race([supervisor.terminate().then(() => "completed"), delay(800, "timeout", { ref: false })]),
+        ).resolves.toBe("completed");
+        await expect(supervisor.completion).resolves.toEqual({
+          code: rootState === "exited" ? 23 : null,
+          signal: rootState === "exited" ? null : "SIGTERM",
+        });
+        expect(supervisor.completed).toBe(true);
+        expectProcesses([workerPid]).toBeAlive();
+        expect(supervisor.process.stdout?.destroyed).toBe(true);
+        expect(supervisor.process.stderr?.destroyed).toBe(true);
+      },
+    );
+
     it("reports termination when the root exited successfully but a descendant remains", async ({ onTestFinished }) => {
       const fixture = await SupervisorFixture.create();
       const descendantScriptPath = fixture.resolvePath("descendant.mjs");
