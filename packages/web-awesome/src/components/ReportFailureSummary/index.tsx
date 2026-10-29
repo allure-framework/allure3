@@ -1,4 +1,4 @@
-import { Counter, Heading, SvgIcon, Text, allureIcons } from "@allurereport/web-components";
+import { Counter, Heading, SvgIcon, Text, allureIcons } from "@allurereport/web-components/core";
 
 import { reportStatsStore } from "@/stores";
 import { globalsStore } from "@/stores/globals";
