@@ -3,9 +3,11 @@ import { env } from "node:process";
 import { defineConfig } from "allure";
 import { qualityGateDefaultRules } from "allure/rules";
 
-const { ALLURE_QUALITY_GATE, ALLURE_REQUIRE_NEW_TESTS, ALLURE_SERVICE_ACCESS_TOKEN } = env;
+const { ALLURE_QUALITY_GATE, ALLURE_REQUIRE_NEW_TESTS, ALLURE_SERVICE_ACCESS_TOKEN, ALLURE_PR_TITLE } = env;
 const qualityGateEnabled = Boolean(ALLURE_QUALITY_GATE);
 const requireNewTests = ALLURE_REQUIRE_NEW_TESTS === "1";
+const launchDate = new Date().toISOString().slice(0, 10);
+const launchName = `${ALLURE_PR_TITLE || "Allure 3 GitHub actions run"} (${launchDate})`;
 
 const msMetric = (title, group, parent) => ({
   title,
@@ -106,7 +108,7 @@ const config = {
     },
     testops: {
       options: {
-        launchName: `Allure 3 GitHub actions run (${new Date().toISOString()})`,
+        launchName,
         gitFlow: true,
       },
     },
