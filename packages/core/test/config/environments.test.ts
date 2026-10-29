@@ -80,6 +80,18 @@ environments:
     expect(matched).toEqual(want);
   });
 
+  it("matches missing label values as empty strings without warning", async () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const config = await resolve({
+      empty: { matcher: "${{ labels.exists(l, l.name == 'browser' && l.value == '') }}" },
+    });
+
+    const matched = resolveStoredEnvironmentIdentity({ labels: [{ name: "browser" }] }, config.environments!);
+
+    expect(matched).toEqual({ id: "empty", name: "empty" });
+    expect(warn).not.toHaveBeenCalled();
+  });
+
   it("preserves callback matchers, ordering, variables and input data", async () => {
     const callback = () => true;
     const input = {

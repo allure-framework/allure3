@@ -22,7 +22,7 @@ export const resolveEnvironments = (value: Config["environments"]): Environments
         {
           ...descriptor,
           matcher: ({ labels }: EnvironmentMatcherPayload) =>
-            predicate({ labels: labels.map(({ name, value: labelValue }) => ({ name, value: labelValue })) }),
+            predicate({ labels: labels.map(({ name, value: labelValue }) => ({ name, value: labelValue ?? "" })) }),
         },
       ];
     }),
