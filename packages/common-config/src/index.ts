@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { basename, join } from "node:path";
-import { env, platform } from "node:process";
+import { env } from "node:process";
 
 import type { Label } from "allure-js-commons";
 import type { TestUserConfig, ViteUserConfig } from "vite-plus";
