@@ -107,6 +107,168 @@ const sequenceInput = (statuses: TestStatus[]): Parameters<typeof generateStabil
   };
 };
 
+describe("stability chart history defaults", () => {
+  it.each(["status-changes", "retry-failure-rate"] as const)(
+    "uses all comparable history when limit is omitted for %s",
+    (algorithm) => {
+      const statuses: TestStatus[] = [
+        "failed",
+        ...Array(4).fill("passed"),
+        ...Array(3).fill("failed"),
+        ...Array(4).fill("passed"),
+      ];
+      const input = sequenceInput(statuses);
+      input.options = { type: ChartType.StabilityDistribution, algorithm };
+      input.storeData.historyDataPoints.forEach((point) => {
+        point.testResults.sequence!.retries = [];
+      });
+      input.storeData.historyDataPoints[0].testResults.sequence!.retries = ["broken"];
+
+      const chart = generateStabilityDistributionChart(input);
+
+      expect(chart.data.map((group) => ({ label: chart.keys[group.id], rate: group.stabilityRate }))).toEqual([
+        { label: "Sequence", rate: 0 },
+      ]);
+    },
+  );
+});
+
+describe("retry failure-rate stability charts", () => {
+  it("aggregates assessed decisions independently of badges and counts uniform failures", () => {
+    const result = createTestResult({
+      id: "recovery",
+      retryHash: "recovery",
+      labels: [{ name: "feature", value: "Auth" }],
+    });
+    const mixedFailure = createTestResult({
+      id: "mixed-failure",
+      retryHash: "mixed-failure",
+      status: "broken",
+      labels: result.labels,
+    });
+    const input = {
+      options: { type: ChartType.StabilityDistribution, algorithm: "retry-failure-rate", threshold: 50 } as const,
+      storeData: createStoreData({
+        testResults: [
+          createTestResult({ id: "clean", retryHash: "clean", labels: result.labels }),
+          createTestResult({ id: "badge-only", retryHash: "badge-only", labels: result.labels, flaky: true }),
+          { ...result, retries: [{ ...result, id: "retry", status: "failed" }] },
+          { ...mixedFailure, retries: [{ ...mixedFailure, id: "mixed-retry", status: "failed" }] },
+          createTestResult({ id: "persistent", retryHash: "persistent", status: "failed", labels: result.labels }),
+          createTestResult({
+            id: "reported",
+            retryHash: "reported",
+            status: "failed",
+            labels: [{ name: "feature", value: "Billing" }],
+            sourceMetadata: { ...baseTestResult.sourceMetadata, reportedFlaky: true },
+          }),
+        ],
+      }),
+    };
+
+    const chart = generateStabilityDistributionChart(input);
+
+    expect(chart.threshold).toBe(50);
+    expect(chart.data.map((group) => ({ label: chart.keys[group.id], rate: group.stabilityRate }))).toEqual([
+      { label: "Auth", rate: 40 },
+      { label: "Billing", rate: 0 },
+    ]);
+  });
+
+  it("forwards the retry cutoff without treating the group threshold as a classifier cutoff", () => {
+    const input = sequenceInput(["passed", "passed"]);
+    const current = input.storeData.testResults[0];
+    current.retries = [{ ...current, id: "retry", status: "failed" }];
+    input.storeData.historyDataPoints[0].testResults[current.retryHash!]!.retries = [];
+    input.options.algorithm = "retry-failure-rate";
+
+    const unstable = generateStabilityDistributionChart(input);
+    const stable = generateStabilityDistributionChart({
+      ...input,
+      options: { ...input.options, retryFailureThreshold: 0.4, threshold: 50 },
+    });
+
+    expect(unstable.data[0].stabilityRate).toBe(0);
+    expect(stable.data[0].stabilityRate).toBe(100);
+    expect(stable.threshold).toBe(50);
+  });
+
+  it("assesses historical mixed failure statuses as unstable", () => {
+    const input = sequenceInput(["broken", "failed"]);
+    const current = input.storeData.testResults[0];
+    input.storeData.historyDataPoints[0].testResults[current.retryHash!]!.retries = ["failed"];
+    input.options.algorithm = "retry-failure-rate";
+
+    const chart = generateStabilityDistributionChart(input);
+
+    expect(chart.data.map((group) => ({ label: chart.keys[group.id], rate: group.stabilityRate }))).toEqual([
+      { label: "Sequence", rate: 0 },
+    ]);
+  });
+
+  it("excludes incomplete historical attempts while counting the current failure", () => {
+    const input = sequenceInput(["passed", "failed"]);
+    const current = input.storeData.testResults[0];
+    input.options.algorithm = "retry-failure-rate";
+    input.options.retryFailureThreshold = 0.75;
+
+    const incomplete = generateStabilityDistributionChart(input);
+    input.storeData.historyDataPoints[0].testResults[current.retryHash!]!.retries = [];
+    const complete = generateStabilityDistributionChart(input);
+
+    expect(incomplete.data.map((group) => ({ label: incomplete.keys[group.id], rate: group.stabilityRate }))).toEqual([
+      { label: "Sequence", rate: 0 },
+    ]);
+    expect(complete.data.map((group) => ({ label: complete.keys[group.id], rate: group.stabilityRate }))).toEqual([
+      { label: "Sequence", rate: 100 },
+    ]);
+  });
+
+  it.each([
+    { executions: 4, expected: [{ label: "Sequence", rate: 0 }] },
+    { executions: 5, expected: [] },
+  ])("assesses uniform retry failures until $executions identical executions", ({ executions, expected }) => {
+    const input = sequenceInput(["passed", ...Array<TestStatus>(executions).fill("failed")]);
+    input.options.algorithm = "retry-failure-rate";
+    input.storeData.historyDataPoints.forEach((point) => {
+      const result = point.testResults.sequence!;
+      result.retries = result.status === "failed" ? ["failed"] : [];
+    });
+    const current = input.storeData.testResults[0];
+    current.retries = [{ ...current, id: "retry", status: "failed" }];
+
+    const chart = generateStabilityDistributionChart(input);
+
+    expect(chart.data.map((group) => ({ label: chart.keys[group.id], rate: group.stabilityRate }))).toEqual(expected);
+  });
+
+  it.each([
+    { name: "clean passes", attempts: ["passed"], expected: [] },
+    { name: "uniform retry failures", attempts: ["failed", "failed"], expected: [] },
+    { name: "uniform broken outcomes", attempts: ["broken", "broken"], expected: [] },
+    { name: "retry recoveries", attempts: ["failed", "passed"], expected: [{ label: "Sequence", rate: 0 }] },
+    { name: "mixed failures", attempts: ["failed", "broken"], expected: [{ label: "Sequence", rate: 0 }] },
+  ] as { name: string; attempts: TestStatus[]; expected: { label: string; rate: number }[] }[])(
+    "assesses five identical $name executions",
+    ({ attempts, expected }) => {
+      const input = sequenceInput(Array<TestStatus>(5).fill(attempts.at(-1)!));
+      input.options.algorithm = "retry-failure-rate";
+      input.storeData.historyDataPoints.forEach((point) => {
+        point.testResults.sequence!.retries = attempts.slice(0, -1);
+      });
+      const current = input.storeData.testResults[0];
+      current.retries = attempts
+        .slice(0, -1)
+        .reverse()
+        .map((status, index) => ({ ...current, id: `retry-${index}`, status }));
+
+      const chart = generateStabilityDistributionChart(input);
+
+      expect(chart.data.map((group) => ({ label: chart.keys[group.id], rate: group.stabilityRate }))).toEqual(expected);
+    },
+  );
+});
+
 describe("stability scenarios", () => {
   it("Example 1: an empty significant sequence is unassessed", () => {
     const statuses: TestStatus[] = [];

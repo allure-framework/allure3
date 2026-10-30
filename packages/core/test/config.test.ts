@@ -39,6 +39,24 @@ beforeEach(async () => {
 });
 
 describe("flaky detection configuration", () => {
+  it.each([
+    ["algorithm", "failure-rate"],
+    ["retryFailureThreshold", -0.1],
+    ["retryFailureThreshold", 1.1],
+    ["retryFailureThreshold", Number.POSITIVE_INFINITY],
+    ["retryFailureThreshold", "0.1"],
+  ])("rejects invalid classifier setting %s=%s", async (field, value) => {
+    const input = { flakyDetection: { [field]: value } } as Config;
+
+    await expect(resolveConfig(input, { plugins: {} })).rejects.toThrow(`flakyDetection.${field}`);
+  });
+  it.each([0, 0.1, 1])("accepts retry failure rate with threshold %s", async (retryFailureThreshold) => {
+    const input: Config = { flakyDetection: { algorithm: "retry-failure-rate", retryFailureThreshold } };
+
+    const config = await resolveConfig(input, { plugins: {} });
+
+    expect(config.flakyDetection).toEqual(input.flakyDetection);
+  });
   it.each([1, 5])("preserves stabilizationPeriod=%s", async (stabilizationPeriod) => {
     const input = { flakyDetection: { stabilizationPeriod } };
 
@@ -62,6 +80,26 @@ describe("flaky detection configuration", () => {
     const resolution = resolveConfig(input, { plugins: {} });
 
     await expect(resolution).rejects.toThrow("flakyDetection.historyDepth");
+  });
+  it.each([
+    { historyDepth: 5 },
+    { historyDepth: 3, stabilizationPeriod: 3 },
+    { historyDepth: 3, stabilizationPeriod: 4 },
+  ])("rejects stabilization periods that cannot fit below bounded history $historyDepth", async (flakyDetection) => {
+    const resolution = resolveConfig({ flakyDetection }, { plugins: {} });
+
+    await expect(resolution).rejects.toThrow("flakyDetection.stabilizationPeriod");
+  });
+  it.each([
+    { historyDepth: 6 },
+    { historyDepth: 3, stabilizationPeriod: 2 },
+    { historyDepth: 0, stabilizationPeriod: 100 },
+    { historyDepth: -1, stabilizationPeriod: 100 },
+    { stabilizationPeriod: 100 },
+  ])("accepts compatible bounded, unlimited and disabled history $historyDepth", async (flakyDetection) => {
+    const config = await resolveConfig({ flakyDetection }, { plugins: {} });
+
+    expect(config.flakyDetection).toEqual(flakyDetection);
   });
   it("rejects a non-boolean includePassedTests", async () => {
     const input = { flakyDetection: { includePassedTests: "true" } } as unknown as Config;
