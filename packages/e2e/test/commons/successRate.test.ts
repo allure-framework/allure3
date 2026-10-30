@@ -180,6 +180,53 @@ for (const scenario of scenarios) {
 
           await page.keyboard.press("Escape");
 
+          await expect(page.getByRole("tooltip")).toHaveCount(0);
+          await target.evaluate((element) => (element as SVGElement).blur());
+
+          await test.step("Treemap keeps one tooltip at the pointer across nested nodes", async () => {
+            await target.scrollIntoViewIfNeeded();
+
+            const box = (await target.boundingBox())!;
+            const pointer = { x: box.x + box.width * 0.85, y: box.y + box.height * 0.75 };
+
+            await page.mouse.move(pointer.x, pointer.y);
+
+            await expect(page.getByRole("tooltip")).toHaveCount(1);
+            await expect(page.getByRole("tooltip")).toContainText("Checkout: Success rate:");
+            await expect
+              .poll(async () => {
+                const tooltipBox = (await page.getByRole("tooltip").boundingBox())!;
+
+                return Math.abs(tooltipBox.y + tooltipBox.height / 2 - pointer.y);
+              })
+              .toBeLessThan(3);
+
+            const root = page.getByRole("img", { name: /^root: Success rate:/ });
+
+            await root.hover({ position: { x: box.width * 0.85, y: 6 } });
+
+            expect(await page.getByRole("tooltip").count()).toBe(1);
+            await expect(page.getByRole("tooltip")).toContainText("root: Success rate:");
+            await page.mouse.move(pointer.x, pointer.y + 20);
+
+            expect(await page.getByRole("tooltip").count()).toBe(1);
+            await expect(page.getByRole("tooltip")).toContainText("Checkout: Success rate:");
+            await expect
+              .poll(async () => {
+                const tooltipBox = (await page.getByRole("tooltip").boundingBox())!;
+
+                return Math.abs(tooltipBox.y + tooltipBox.height / 2 - (pointer.y + 20));
+              })
+              .toBeLessThan(3);
+            await testInfo.attach("treemap pointer tooltip", {
+              body: await page.screenshot(),
+              contentType: "image/png",
+            });
+            await page.mouse.move(0, 0);
+
+            await expect(page.getByRole("tooltip")).toHaveCount(0);
+          });
+
           const layer = page.getByRole("img", {
             name: new RegExp(`Layer: unit;.*Success rate: ${scenario.rate.replace(".", "\\.")}`),
           });
@@ -226,3 +273,92 @@ for (const scenario of scenarios) {
     }
   });
 }
+
+test("treemap edge cells keep focused and hovered tooltip content visible", async ({ page }, testInfo) => {
+  const report = await bootstrapReport({
+    testResults: Array.from({ length: 20 }, (_, index) => ({
+      name: `test ${index}`,
+      fullName: `test ${index}`,
+      status: Status.PASSED,
+      labels: [{ name: "feature", value: `Feature ${index}` }],
+    })),
+    reportConfig: {
+      appendHistory: false,
+      plugins: [
+        { id: "awesome", enabled: true, plugin: new AwesomePlugin({ singleFile: false, charts }), options: {} },
+        { id: "classic", enabled: true, plugin: new ClassicPlugin({ singleFile: false }), options: {} },
+        {
+          id: "dashboard",
+          enabled: true,
+          plugin: new DashboardPlugin({ singleFile: false, layout: charts }),
+          options: {},
+        },
+      ],
+    },
+  });
+
+  try {
+    for (const frontend of ["awesome", "classic", "dashboard"]) {
+      await page.goto(
+        `${report.url}/${frontend}/index.html${frontend === "awesome" ? "#/charts" : frontend === "classic" ? "#overview" : ""}`,
+      );
+
+      const cells = page.getByRole("img", { name: /^Feature \d+: Success rate:/ });
+
+      await expect(cells).toHaveCount(20);
+      await cells.first().scrollIntoViewIfNeeded();
+
+      const leftmost = await cells.evaluateAll((elements) =>
+        elements.reduce(
+          (selected, element, index) =>
+            element.getBoundingClientRect().left < elements[selected].getBoundingClientRect().left ? index : selected,
+          0,
+        ),
+      );
+      const cell = cells.nth(leftmost);
+      const svg = page.locator("svg").filter({ has: cell });
+
+      await cell.scrollIntoViewIfNeeded();
+      await cell.focus();
+
+      const chartBounds = (await svg.boundingBox())!;
+      const tooltip = page.getByRole("tooltip");
+      const cellBounds = (await cell.boundingBox())!;
+
+      expect(cellBounds.x).toBeLessThan(chartBounds.x + 8);
+      await expect(tooltip).toHaveCount(1);
+      expect(cellBounds.width).toBeLessThan((await tooltip.boundingBox())!.width);
+      await expect(tooltip).toContainText("Skipped and unknown tests are excluded.");
+      await expect
+        .poll(async () => {
+          const bounds = (await tooltip.boundingBox())!;
+
+          return bounds.x >= chartBounds.x && bounds.x + bounds.width <= chartBounds.x + chartBounds.width;
+        })
+        .toBe(true);
+      await testInfo.attach(`${frontend} focused left edge`, {
+        body: await page.screenshot(),
+        contentType: "image/png",
+      });
+      await page.keyboard.press("Escape");
+      await cell.evaluate((element) => (element as SVGElement).blur());
+      await cell.hover();
+
+      await expect(tooltip).toHaveCount(1);
+      await expect.poll(async () => (await tooltip.boundingBox())!.x).toBeGreaterThanOrEqual(chartBounds.x);
+
+      await test.step("Tooltip stays open while reading its content", async () => {
+        await tooltip.hover();
+        await page.waitForTimeout(150);
+
+        await expect(tooltip).toBeVisible();
+        await expect(tooltip).toContainText("Skipped and unknown tests are excluded.");
+      });
+      await page.keyboard.press("Escape");
+
+      await expect(tooltip).toHaveCount(0);
+    }
+  } finally {
+    await report.shutdown();
+  }
+});
