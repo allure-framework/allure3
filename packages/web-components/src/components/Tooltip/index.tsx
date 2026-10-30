@@ -2,7 +2,7 @@ import type { Placement } from "@floating-ui/dom";
 import { autoUpdate, computePosition, flip, offset, shift } from "@floating-ui/dom";
 import type { FunctionalComponent, VNode } from "preact";
 import type { MutableRefObject } from "preact/compat";
-import { useEffect, useRef, useState } from "preact/hooks";
+import { useEffect, useLayoutEffect, useRef, useState } from "preact/hooks";
 
 import { Text } from "@/components/Typography";
 
@@ -50,40 +50,39 @@ export const useTooltip = <
   triggerRef: MutableRefObject<TriggerRef | null>;
   tooltipRef: MutableRefObject<TooltipRef | null>;
 }) => {
-  const { placement = "top", triggerRef: triggerRefProp, tooltipRef: tooltipRefProp, isVisible } = props;
-  const triggerRef = useRef<HTMLElement>(null);
-  const tooltipRef = useRef<HTMLElement>(null);
+  const { placement = "top", triggerRef, tooltipRef, isVisible } = props;
 
-  useEffect(() => {
-    triggerRef.current = triggerRefProp.current;
-    tooltipRef.current = tooltipRefProp.current;
-  }, [triggerRefProp, tooltipRefProp]);
-
-  useEffect(() => {
-    if (!isVisible || !triggerRef.current || !tooltipRef.current) {
+  useLayoutEffect(() => {
+    const trigger = triggerRef.current;
+    const tooltip = tooltipRef.current;
+    if (!isVisible || !trigger || !tooltip) {
       return;
     }
 
-    const trigger = triggerRef.current;
-    const tooltip = tooltipRef.current;
+    let active = true;
     const updatePosition = () => {
       computePosition(trigger, tooltip, {
         placement,
         middleware: [offset(6), flip(), shift({ padding: 5 })],
       }).then(({ x, y }) => {
-        Object.assign(tooltip.style, {
-          "left": `${x}px`,
-          "top": `${y}px`,
-          "position": "absolute",
-          "z-index": 100,
-        });
+        if (active)
+          Object.assign(tooltip.style, {
+            "left": `${x}px`,
+            "top": `${y}px`,
+            "position": "absolute",
+            "z-index": 100,
+          });
       });
     };
 
     updatePosition();
 
-    return autoUpdate(trigger, tooltip, updatePosition);
-  }, [isVisible, placement]);
+    const release = autoUpdate(trigger, tooltip, updatePosition);
+    return () => {
+      active = false;
+      release();
+    };
+  }, [isVisible, placement, triggerRef, tooltipRef]);
 };
 
 export const TooltipWrapper: FunctionalComponent<TooltipWrapperProps> = ({

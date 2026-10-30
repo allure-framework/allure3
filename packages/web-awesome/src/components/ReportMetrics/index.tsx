@@ -1,8 +1,8 @@
-import { ArrowButton, Loadable, PageLoader } from "@allurereport/web-components/core";
-import { filesize } from "filesize";
+import { ArrowButton, LazyComponent, Loadable, PageLoader } from "@allurereport/web-components/core";
 import { Fragment } from "preact";
 import { useState } from "preact/hooks";
 
+import { NavTabs, NavTabsList, NavTab, useNavTabsContext } from "@/components/NavTabs";
 import { useI18n } from "@/stores";
 import {
   metricHistoryRows,
@@ -14,29 +14,11 @@ import {
   type MetricsWidgetData,
 } from "@/stores/metrics";
 
+import { deltaDirection, formatValue } from "./format";
+
 import * as styles from "./styles.scss";
 
-const formatValue = (value: number, unit?: string) => {
-  if (unit === "bytes") {
-    return filesize(value, { base: 2, round: 2 });
-  }
-
-  const formatted = Number.isInteger(value) ? String(value) : String(Number(value.toFixed(3)));
-
-  return unit ? `${formatted} ${unit}` : formatted;
-};
-
-const deltaDirection = ({ delta, better = "neutral" }: { delta: number; better?: MetricRow["better"] }) => {
-  if (delta === 0 || better === "neutral") {
-    return "neutral";
-  }
-
-  if (better === "lower") {
-    return delta < 0 ? "good" : "bad";
-  }
-
-  return delta > 0 ? "good" : "bad";
-};
+const loadMetricsTimeline = () => import(/* webpackChunkName: "chart-metrics-timeline" */ "./MetricsTimeline");
 
 const formatDelta = ({ delta, unit, better = "neutral" }: Pick<MetricRow, "delta" | "unit" | "better">) => {
   if (typeof delta !== "number" || !Number.isFinite(delta)) {
@@ -171,7 +153,7 @@ const metricRowId = (scope: MetricRowScope, key: string) => `${scope}:${key}`;
 const metricDetailsId = (scope: MetricRowScope, key: string) =>
   `metrics-${scope}-history-${encodeURIComponent(key).replaceAll("%", "_")}`;
 
-const ReportMetricsContent = ({ data }: { data: MetricsWidgetData }) => {
+const ReportMetricsTable = ({ data }: { data: MetricsWidgetData }) => {
   const { t } = useI18n("charts");
   const { t: tEmpty } = useI18n("empty");
   const rows = metricRows(data);
@@ -216,14 +198,7 @@ const ReportMetricsContent = ({ data }: { data: MetricsWidgetData }) => {
   }
 
   return (
-    <div className={styles.metrics} data-testid="metrics-view">
-      <header className={styles.header}>
-        <h1 className={styles.title}>{t("metrics.title")}</h1>
-        <span className={styles.meta}>
-          {t("metrics.summary", { groups: summaryRows.length, metrics: rows.length })}
-        </span>
-      </header>
-
+    <div>
       {summaryRows.length > 0 && (
         <section className={styles.section} aria-labelledby="metrics-phase-summary">
           <h2 className={styles.sectionTitle} id="metrics-phase-summary">
@@ -368,6 +343,42 @@ const ReportMetricsContent = ({ data }: { data: MetricsWidgetData }) => {
   );
 };
 
+const ReportMetricsContent = ({ data }: { data: MetricsWidgetData }) => {
+  const { t } = useI18n("charts");
+  const { currentTab } = useNavTabsContext();
+  const [root, setRoot] = useState<string>();
+  return (
+    <div className={styles.metrics} data-testid="metrics-view">
+      <header className={styles.header}>
+        <h1 className={styles.title}>{t("metrics.title")}</h1>
+        <span className={styles.meta}>
+          {t("metrics.summary", { groups: metricSummaryRows(data).length, metrics: metricRows(data).length })}
+        </span>
+      </header>
+      <div className={styles.card}>
+        <div className={styles.tabs}>
+          <NavTabsList>
+            <NavTab id="table">{t("metrics.tableView")}</NavTab>
+            <NavTab id="timeline">{t("metrics.timelineView")}</NavTab>
+          </NavTabsList>
+        </div>
+        <div hidden={currentTab !== "table"} className={styles.view}>
+          <ReportMetricsTable data={data} />
+        </div>
+        {currentTab === "timeline" && (
+          <LazyComponent
+            loader={loadMetricsTimeline}
+            componentProps={{ data, selectedRoot: root, onSelectRoot: setRoot }}
+            fallback={<PageLoader />}
+            errorMessage={t("loadError")}
+            retryLabel={t("retry")}
+          />
+        )}
+      </div>
+    </div>
+  );
+};
+
 export const ReportMetrics = () => {
   return (
     <Loadable
@@ -377,7 +388,15 @@ export const ReportMetrics = () => {
           <PageLoader />
         </div>
       )}
-      renderData={(data) => (data ? <ReportMetricsContent data={data} /> : null)}
+      renderData={(data) =>
+        data ? (
+          <NavTabs initialTab="table">
+            <ReportMetricsContent data={data} />
+          </NavTabs>
+        ) : (
+          <></>
+        )
+      }
     />
   );
 };

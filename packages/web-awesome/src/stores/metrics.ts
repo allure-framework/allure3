@@ -1,4 +1,4 @@
-import type { MetricSample } from "@allurereport/core-api";
+import type { MetricHierarchyNode, MetricSample } from "@allurereport/core-api";
 import { ReportFetchError, fetchReportJsonData } from "@allurereport/web-commons";
 import { signal } from "@preact/signals";
 
@@ -15,6 +15,7 @@ export type MetricsHistoryPoint = {
 export type MetricsWidgetData = {
   current: MetricSample[];
   history: MetricsHistoryPoint[];
+  hierarchy?: readonly MetricHierarchyNode[];
 };
 
 export type MetricRow = MetricSample & {

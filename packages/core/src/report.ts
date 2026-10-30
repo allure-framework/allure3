@@ -15,9 +15,10 @@ import type {
   CategoryDefinition,
   CiDescriptor,
   HistoryDataPoint,
+  MetricHierarchyNode,
   TestResult,
 } from "@allurereport/core-api";
-import { normalizeCategoriesConfig, parseIntegerConfigValue } from "@allurereport/core-api";
+import { buildMetricHierarchy, normalizeCategoriesConfig, parseIntegerConfigValue } from "@allurereport/core-api";
 import {
   type AllureStoreDump,
   AllureStoreDumpFiles,
@@ -179,6 +180,7 @@ export class AllureReport {
   readonly #realtimeUpdateScheduler: RealtimeUpdateScheduler;
   readonly #realTime: any;
   readonly #hideLabels: FullConfig["hideLabels"];
+  readonly #metricHierarchy: MetricHierarchyNode[];
   readonly #output: string;
   readonly #history: AllureHistory | undefined;
   readonly #historyBaseUrl: string | undefined;
@@ -281,6 +283,7 @@ export class AllureReport {
     }
 
     this.#categories = normalizeCategoriesConfig(categories);
+    this.#metricHierarchy = buildMetricHierarchy(performance);
 
     this.#historyBaseUrl =
       !this.#allureServiceClient && historyPath && historyBaseUrl ? normalizeHistoryBaseUrl(historyBaseUrl) : undefined;
@@ -1480,6 +1483,7 @@ export class AllureReport {
         reportUuid: this.reportUuid,
         reportName: this.reportName,
         hideLabels: this.#hideLabels,
+        metricHierarchy: this.#metricHierarchy,
         state: pluginState,
         reportFiles: pluginFiles,
         ...(isPerfMetricsEnabled()
