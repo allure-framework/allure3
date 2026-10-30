@@ -27,6 +27,27 @@ export interface PluginConstructorContext {
   enabled?: boolean;
 }
 
+export type PluginExpressionKind = "name" | "testFilter" | "qualityGateFilter";
+
+export interface PluginExpressionContext {
+  path: string;
+  env: Record<string, string>;
+}
+
+export type PluginExpressionResolver = (source: string, context: PluginExpressionContext) => unknown;
+
+export type PluginExpressionFields = {
+  readonly [field: string]:
+    | PluginExpressionKind
+    | PluginExpressionResolver
+    | { readonly items: PluginExpressionFields };
+};
+
+export interface PluginConstructor {
+  new (options?: Record<string, any>, context?: PluginConstructorContext): Plugin;
+  readonly configExpressions?: PluginExpressionFields;
+}
+
 export interface ReportFiles {
   addFile(path: string, data: Buffer): Promise<string>;
 }

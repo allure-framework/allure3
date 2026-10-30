@@ -27,6 +27,7 @@
     "lint:fix": "vp lint --import-plugin --fix src test features stories"
   },
   "dependencies": {
+    "@marcbachmann/cel-js": "^8.0.0",
     "d3-shape": "^3.2.0"
   },
   "devDependencies": {

@@ -2,9 +2,10 @@ import { mkdir, writeFile } from "node:fs/promises";
 import { dirname, isAbsolute } from "node:path";
 
 import { type TestResult, formatDuration } from "@allurereport/core-api";
-import type { AllureStore, Plugin, PluginContext } from "@allurereport/plugin-api";
+import type { AllureStore, Plugin, PluginContext, PluginExpressionFields } from "@allurereport/plugin-api";
 
 import { generateCsv } from "./csv.js";
+import { resolveCsvAccessor, resolveCsvComparator } from "./expressions.js";
 import type { CsvField, CsvPluginOptions } from "./model.js";
 import { formatSteps, labelValue } from "./utils.js";
 
@@ -37,6 +38,12 @@ const defaultFields: CsvField<TestResult>[] = [
 const defaultSort = (a: TestResult, b: TestResult): number => a.name.localeCompare(b.name);
 
 export class CsvPlugin implements Plugin {
+  static readonly configExpressions = {
+    filter: "testFilter",
+    sort: resolveCsvComparator,
+    fields: { items: { header: "name", accessor: resolveCsvAccessor } },
+  } as const satisfies PluginExpressionFields;
+
   constructor(readonly options: CsvPluginOptions = {}) {}
 
   done = async (context: PluginContext, store: AllureStore): Promise<void> => {

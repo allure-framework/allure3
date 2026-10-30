@@ -1,11 +1,13 @@
+import { fileURLToPath } from "node:url";
+
 import type { TestResult } from "@allurereport/core-api";
 import { afterEach, describe, expect, it, vi } from "vite-plus/test";
 
-import { resolveConfig } from "../../src/config.js";
+import { getPluginId, resolveConfig } from "../../src/config.js";
 
 const resolvePlugin = async (id: string, options: Record<string, unknown>, path?: string) => {
   const config = await resolveConfig({ plugins: { [id]: { import: path, options } } });
-  return config.plugins!.find((plugin) => plugin.id === id)!;
+  return config.plugins!.find((plugin) => plugin.id === getPluginId(id))!;
 };
 const test = (name: string, status = "passed") => ({ name, status, labels: [] }) as unknown as TestResult;
 
@@ -15,17 +17,21 @@ afterEach(() => {
 });
 
 describe("plugin option expressions", () => {
-  it.each(["awesome", "classic", "dashboard", "csv", "log", "testops"])("normalizes %s test filters", async (id) => {
-    const plugin = await resolvePlugin(id, { filter: "${{ test.status == 'failed' }}" });
+  it.each(["awesome", "classic", "dashboard", "csv", "log", "testops"])("normalizes %s test filters", async (kind) => {
+    const plugin = await resolvePlugin(
+      `${kind}-failed`,
+      { filter: "${{ test.status == 'failed' }}" },
+      `@allurereport/plugin-${kind}`,
+    );
 
     const selected = [test("passing"), test("failure", "failed")].filter(plugin.options.filter);
 
     expect(selected.map(({ name }) => name)).toEqual(["failure"]);
   });
 
-  it("normalizes explicit builtin imports with custom instance IDs without mutating input", async () => {
+  it("normalizes supported options without mutating input or unrelated fields", async () => {
     const options = { filter: "${{ test.name == 'selected' }}", title: "${{ literal }}" };
-    const plugin = await resolvePlugin("my_report", options, "@allurereport/plugin-awesome");
+    const plugin = await resolvePlugin("awesome", options);
 
     const selected = plugin.options.filter(test("selected"));
 
@@ -72,6 +78,136 @@ describe("plugin option expressions", () => {
     expect(plugin.options.filter).toBe(filter);
   });
 
+  it.each(["export", "@allurereport/plugin-csv"])("normalizes CSV expressions for %s", async (id) => {
+    const plugin = await resolvePlugin(
+      id,
+      {
+        sort: "${{ a.duration - b.duration }}",
+        fields: [{ header: "${{ 'Name' }}", accessor: "${{ test.name }}" }],
+      },
+      id === "export" ? "@allurereport/plugin-csv" : undefined,
+    );
+
+    const rows = [
+      { name: "slow", duration: 2 },
+      { name: "fast", duration: 1 },
+    ].sort(plugin.options.sort);
+    const cells = rows.map(plugin.options.fields[0].accessor);
+
+    expect({ header: plugin.options.fields[0].header, cells }).toEqual({ header: "Name", cells: ["fast", "slow"] });
+  });
+
+  it("reports the configured alias and nested field on invalid expressions", async () => {
+    const plugin = resolvePlugin(
+      "export",
+      {
+        fields: [
+          { header: "Name", accessor: "name" },
+          { header: "Error", accessor: "${{ test. }}" },
+        ],
+      },
+      "@allurereport/plugin-csv",
+    );
+
+    await expect(plugin).rejects.toThrow('Invalid expression at plugins["export"].options.fields[1].accessor');
+  });
+
+  it("normalizes third-party declarations while preserving undeclared values and unchanged entries", async () => {
+    const path = fileURLToPath(new URL("../fixtures/expression-plugin.mjs", import.meta.url));
+    const unchanged = { title: "Literal", fields: [] };
+    const options = {
+      filter: "${{ test.status == 'failed' }}",
+      sections: [
+        null,
+        1,
+        [],
+        unchanged,
+        {
+          title: "${{ 'Dynamic' }}",
+          fields: [{ header: "${{ 'Name' }}" }, { header: "${{ 'Status' }}" }],
+        },
+      ],
+      opaque: "${{ not an expression }}",
+    };
+    const original = structuredClone(options);
+    const plugin = await resolvePlugin("custom", options, path);
+
+    const selected = plugin.options.filter(test("failure", "failed"));
+
+    expect(selected).toBe(true);
+    expect(plugin.options.sections).toEqual([
+      null,
+      1,
+      [],
+      unchanged,
+      {
+        title: "Dynamic",
+        fields: [{ header: "Name" }, { header: "Status" }],
+      },
+    ]);
+    expect(plugin.options.sections[3]).toBe(unchanged);
+    expect(plugin.options.opaque).toBe(options.opaque);
+    expect(options).toEqual(original);
+    expect(Reflect.get(plugin.plugin, "options")).toBe(plugin.options);
+  });
+
+  it("normalizes plugin-owned resolvers with captured env and preserves literal and native accessors", async () => {
+    vi.stubEnv("ALLURE_CUSTOM_SUFFIX", "-captured");
+    const path = fileURLToPath(new URL("../fixtures/custom-expression-plugin.mjs", import.meta.url));
+    const native = { accessor: (item: TestResult) => item.name };
+    const literal = { accessor: "name" };
+    const options = {
+      fields: [native, literal, { accessor: "${{ item.name + env.ALLURE_CUSTOM_SUFFIX }}" }],
+      opaque: "${{ remains literal }}",
+    };
+
+    const plugin = await resolvePlugin("custom", options, path);
+    vi.stubEnv("ALLURE_CUSTOM_SUFFIX", "-changed");
+    const value = plugin.options.fields[2].accessor(test("selected"));
+
+    expect(value).toBe("selected-captured");
+    expect(plugin.options.fields[0]).toBe(native);
+    expect(plugin.options.fields[1]).toBe(literal);
+    expect(plugin.options.opaque).toBe(options.opaque);
+    expect(options.fields[2].accessor).toBe("${{ item.name + env.ALLURE_CUSTOM_SUFFIX }}");
+  });
+
+  it("reports the nested custom resolver path on compilation errors", async () => {
+    const path = fileURLToPath(new URL("../fixtures/custom-expression-plugin.mjs", import.meta.url));
+
+    const plugin = resolvePlugin("custom", { fields: [{ accessor: "${{ item. }}" }] }, path);
+
+    await expect(plugin).rejects.toThrow('Invalid expression at plugins["custom"].options.fields[0].accessor');
+  });
+
+  it("reports the nested custom resolver path on deferred errors", async () => {
+    const path = fileURLToPath(new URL("../fixtures/custom-expression-plugin.mjs", import.meta.url));
+    const plugin = await resolvePlugin("custom", { fields: [{ accessor: "${{ item.missing }}" }] }, path);
+
+    const evaluate = () => plugin.options.fields[0].accessor(test("selected"));
+
+    expect(evaluate).toThrow('Invalid expression at plugins["custom"].options.fields[0].accessor');
+  });
+
+  it.each([undefined, [], "literal"])("preserves third-party collection identity for %j", async (sections) => {
+    const path = fileURLToPath(new URL("../fixtures/expression-plugin.mjs", import.meta.url));
+    const options = { sections };
+
+    const plugin = await resolvePlugin("custom", options, path);
+
+    expect(plugin.options).toBe(options);
+  });
+
+  it("preserves native callbacks and literal options on built-in aliases", async () => {
+    const filter = () => true;
+    const sort = () => 0;
+    const options = { filter, sort, fields: [{ header: "Name", accessor: "name" }], reportName: "${{ literal }}" };
+
+    const plugin = await resolvePlugin("export", options, "@allurereport/plugin-csv");
+
+    expect(plugin.options).toBe(options);
+  });
+
   it("does not reinterpret unsupported plugin options despite a builtin-like instance ID", async () => {
     const options = { filter: "${{ this remains literal }}" };
     const plugin = await resolvePlugin("csv", options, "@allurereport/plugin-progress");
@@ -108,44 +244,6 @@ describe("plugin option expressions", () => {
     expect(plugin.options.fields[0].accessor).toBe(accessor);
     expect(plugin.options.sort).toBe(sort);
   });
-
-  it.each(["${{ a.duration - b.duration }}", "${{ double(a.duration) - double(b.duration) }}"])(
-    "sorts CSV rows numerically using %s",
-    async (sort) => {
-      const plugin = await resolvePlugin("csv", { sort });
-      const rows = [{ duration: 12 }, { duration: 3 }, { duration: 12 }];
-
-      const ordered = [...rows].sort(plugin.options.sort);
-
-      expect(ordered).toEqual([rows[1], rows[0], rows[2]]);
-      expect(plugin.options.sort(rows[0], rows[2])).toBe(0);
-    },
-  );
-
-  it("converts unsigned CEL comparator integers to JavaScript numbers", async () => {
-    const plugin = await resolvePlugin("csv", { sort: "${{ 1u }}" });
-
-    const comparison = plugin.options.sort(test("a"), test("b"));
-
-    expect(comparison).toBe(1);
-  });
-
-  it("rejects non-text CSV cells with the field configuration path", async () => {
-    const plugin = await resolvePlugin("csv", { fields: [{ header: "Duration", accessor: "${{ test.duration }}" }] });
-
-    expect(() => plugin.options.fields[0].accessor({ duration: 12 })).toThrow(
-      'plugins["csv"].options.fields[0].accessor',
-    );
-  });
-
-  it.each(["${{ 9007199254740992 }}", "${{ double(a.value) }}", "${{ 'wrong' }}"])(
-    "rejects unusable comparator results from %s",
-    async (sort) => {
-      const plugin = await resolvePlugin("csv", { sort });
-
-      expect(() => plugin.options.sort({ value: "Infinity" }, {})).toThrow('plugins["csv"].options.sort');
-    },
-  );
 
   it("rejects malformed filters during configuration resolution with their path", async () => {
     await expect(resolvePlugin("csv", { filter: "${{ test. }}" })).rejects.toThrow('plugins["csv"].options.filter');

@@ -1,7 +1,7 @@
+import { compileExpression, isExpression } from "@allurereport/core-api";
 import type { QualityGateRule } from "@allurereport/plugin-api";
 
 import { qualityGateDefaultRules } from "../qualityGate/rules.js";
-import { compileExpression, isExpression } from "./expressions.js";
 import { qualityGateValue } from "./qualityGateValue.js";
 
 const reportableValue = (value: unknown, path: string, convertIntegers = false): unknown => {

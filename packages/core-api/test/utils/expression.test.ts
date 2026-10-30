@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vite-plus/test";
 
-import { compileExpression, compilePredicate, isExpression } from "../../src/config/expressions.js";
+import { compileExpression, compilePredicate, isExpression } from "../../src/utils/expression.js";
 
 describe("configuration expressions", () => {
   it("recognizes explicit expression prefixes only", () => {

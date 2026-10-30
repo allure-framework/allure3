@@ -1,83 +1,42 @@
-import { compileExpression, isExpression } from "./expressions.js";
-import { compileCsvAccessor, compileCsvComparator } from "./pluginExpressions.js";
+import type { NameContext } from "@allurereport/core-api";
+import { type PluginExpressionFields, resolvePluginExpression } from "@allurereport/plugin-api";
 
-type PluginKind = "awesome" | "classic" | "csv" | "dashboard" | "log" | "testops";
-let builtinPlugins: Promise<Map<unknown, PluginKind>> | undefined;
-
-const getBuiltinPlugins = () => {
-  builtinPlugins ??= Promise.all([
-    import("@allurereport/plugin-awesome"),
-    import("@allurereport/plugin-classic"),
-    import("@allurereport/plugin-csv"),
-    import("@allurereport/plugin-dashboard"),
-    import("@allurereport/plugin-log"),
-    import("@allurereport/plugin-testops"),
-  ]).then(
-    ([awesome, classic, csv, dashboard, log, testops]) =>
-      new Map<unknown, PluginKind>([
-        [awesome.default, "awesome"],
-        [classic.default, "classic"],
-        [csv.default, "csv"],
-        [dashboard.default, "dashboard"],
-        [log.default, "log"],
-        [testops.default, "testops"],
-      ]),
-  );
-  return builtinPlugins;
-};
-
-/** Normalize supported built-in options without interpreting third-party configuration. */
-export const resolvePluginOptions = async (
-  Plugin: unknown,
+/** Normalize only fields declared by the plugin constructor. */
+export const resolvePluginOptions = (
   options: Record<string, any> | undefined,
+  fields: PluginExpressionFields | undefined,
   path: string,
-  env: Record<string, string>,
-): Promise<Record<string, any> | undefined> => {
-  if (
-    !options ||
-    !(
-      typeof options.filter === "string" ||
-      typeof options.qualityGateFilter === "string" ||
-      typeof options.sort === "string" ||
-      (Array.isArray(options.fields) &&
-        options.fields.some((field) => typeof field?.accessor === "string" && isExpression(field.accessor)))
-    )
-  ) {
+  context: NameContext,
+): Record<string, any> | undefined => {
+  if (!options || !fields) {
     return options;
   }
-  const kind = (await getBuiltinPlugins()).get(Plugin);
-  if (!kind) {
-    return options;
-  }
-  const normalized = { ...options };
-  if (typeof options.filter === "string") {
-    const evaluate = compileExpression(
-      options.filter,
-      `${path}.filter`,
-      { test: "map", env: "map" },
-      { resultType: "bool" },
-    );
-    normalized.filter = (test: unknown) => evaluate({ test, env });
-  }
-  if (kind === "log" && typeof options.qualityGateFilter === "string") {
-    const evaluate = compileExpression(
-      options.qualityGateFilter,
-      `${path}.qualityGateFilter`,
-      { result: "map", env: "map" },
-      { resultType: "bool" },
-    );
-    normalized.qualityGateFilter = (result: unknown) => evaluate({ result, env });
-  }
-  if (kind === "csv") {
-    if (Array.isArray(options.fields)) {
-      normalized.fields = options.fields.map((field, index) =>
-        typeof field?.accessor === "string" && isExpression(field.accessor)
-          ? { ...field, accessor: compileCsvAccessor(field.accessor, `${path}.fields[${index}].accessor`, env) }
-          : field,
-      );
+  let normalized = options;
+  for (const [key, declaration] of Object.entries(fields)) {
+    const value = options[key];
+    const fieldPath = `${path}.${key}`;
+    let resolved = value;
+    if (typeof declaration === "string" || typeof declaration === "function") {
+      resolved = resolvePluginExpression(declaration, value, fieldPath, context);
+    } else if (Array.isArray(value)) {
+      for (const [index, item] of value.entries()) {
+        if (item === null || typeof item !== "object" || Array.isArray(item)) {
+          continue;
+        }
+        const entry = resolvePluginOptions(item, declaration.items, `${fieldPath}[${index}]`, context);
+        if (entry !== item) {
+          if (resolved === value) {
+            resolved = value.slice();
+          }
+          resolved[index] = entry;
+        }
+      }
     }
-    if (typeof options.sort === "string") {
-      normalized.sort = compileCsvComparator(options.sort, `${path}.sort`, env);
+    if (resolved !== value) {
+      if (normalized === options) {
+        normalized = { ...options };
+      }
+      normalized[key] = resolved;
     }
   }
   return normalized;

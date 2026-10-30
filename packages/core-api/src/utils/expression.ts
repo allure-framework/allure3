@@ -62,3 +62,31 @@ export const compilePredicate = (input: string, path: string, variables: Variabl
   const expression = compileExpression(input, path, variables, { resultType: "bool" });
   return (context) => expression(context) === true;
 };
+
+export type NameContext = ReturnType<typeof createNameContext>;
+
+/** Capture one UTC instant and environment for every name in a configuration. */
+export const createNameContext = () => {
+  const now = new Date();
+  const iso = now.toISOString();
+  return {
+    env: Object.fromEntries(
+      Object.entries(process.env).filter((entry): entry is [string, string] => entry[1] !== undefined),
+    ),
+    date: {
+      iso,
+      isoDate: iso.slice(0, 10),
+      year: now.getUTCFullYear(),
+      month: now.getUTCMonth() + 1,
+      day: now.getUTCDate(),
+      unixMs: now.getTime(),
+    },
+  };
+};
+
+export const resolveName = (value: string | undefined, path: string, context: NameContext): string | undefined => {
+  if (value === undefined || !isExpression(value)) {
+    return value;
+  }
+  return compileExpression(value, path, { env: "map", date: "map" }, { resultType: "string" })(context) as string;
+};
