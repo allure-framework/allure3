@@ -152,40 +152,18 @@ describe("quality-gate configuration", () => {
     expect(input.rules[0].filter).toBe(filter);
   });
 
-  it("falls back to the inherited message when a CEL message fails at runtime", async () => {
-    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+  it.each([
+    { field: "message", expression: "${{ actual.missing }}", trs: [tr("1", "failed")] },
+    { field: "successMessage", expression: "${{ actual }}", trs: [] },
+  ])("reports CEL $field runtime errors with the configuration path", async ({ field, expression, trs }) => {
     const config = await resolve({
       rules: [{ maxFailures: 0 }],
-      use: [{ rule: "maxFailures", message: "${{ actual.missing }}" }],
+      use: [{ rule: "maxFailures", [field]: expression }],
     });
 
-    const result = await new QualityGate(config!).validate({ trs: [tr("1", "failed")] });
+    const result = new QualityGate(config!).validate({ trs });
 
-    expect(result.results[0].message).toBe(maxFailuresRule.message({ actual: 1, expected: 0 }));
-    expect(result.results[0].success).toBe(false);
-    expect(warn).toHaveBeenCalledWith(expect.stringContaining("qualityGate.use[0].message"));
-  });
-
-  it("warns once and retains a failed custom outcome when its message expression cannot evaluate", async () => {
-    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
-    const config = await resolve({
-      rules: [{ custom: 0 }],
-      use: [
-        {
-          rule: "custom",
-          message: "${{ actual.missing }}",
-          validate: async () => ({ success: false, actual: {}, testResults: [] }),
-        },
-      ],
-    });
-    const gate = new QualityGate(config!);
-
-    const first = await gate.validate({ trs: [] });
-    const second = await gate.validate({ trs: [] });
-
-    expect(first.results[0]).toMatchObject({ success: false, message: "Quality gate rule custom failed" });
-    expect(second.results[0].success).toBe(false);
-    expect(warn).toHaveBeenCalledTimes(1);
+    await expect(result).rejects.toThrow(`qualityGate.use[0].${field}`);
   });
 
   it.each([

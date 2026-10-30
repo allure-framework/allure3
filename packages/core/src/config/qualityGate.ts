@@ -16,11 +16,10 @@ const invalid = (path: string, message: string): never => {
 const message = (
   value: string | QualityGateRule["message"] | undefined,
   path: string,
-  fallback: QualityGateRule["message"] | undefined,
-  generic: string,
+  inherited: QualityGateRule["message"] | undefined,
 ): QualityGateRule["message"] | undefined => {
   if (value === undefined || typeof value === "function") {
-    return value ?? fallback;
+    return value ?? inherited;
   }
   if (typeof value !== "string") {
     return invalid(path, "expected a string or message callback");
@@ -34,18 +33,7 @@ const message = (
     { expected: CEL_DYNAMIC_TYPE, actual: CEL_DYNAMIC_TYPE },
     { resultType: "string" },
   );
-  let warned = false;
-  return (payload) => {
-    try {
-      return String(evaluate(payload));
-    } catch (error) {
-      if (!warned) {
-        console.warn(error instanceof Error ? error.message : String(error));
-        warned = true;
-      }
-      return fallback?.(payload) ?? generic;
-    }
-  };
+  return (payload) => String(evaluate(payload));
 };
 
 const resolveRule = (input: QualityGateRuleInput, path: string): QualityGateRule => {
@@ -68,21 +56,11 @@ const resolveRule = (input: QualityGateRuleInput, path: string): QualityGateRule
   }
   const inherited = input.validate === undefined ? builtin : undefined;
   const validate = input.validate ?? inherited?.validate;
-  const resolvedMessage = message(
-    input.message,
-    `${path}.message`,
-    inherited?.message,
-    `Quality gate rule ${name} failed`,
-  );
+  const resolvedMessage = message(input.message, `${path}.message`, inherited?.message);
   if (!validate || !resolvedMessage) {
     return invalid(path, "a custom rule requires validate and message");
   }
-  const successMessage = message(
-    input.successMessage,
-    `${path}.successMessage`,
-    inherited?.successMessage,
-    `Quality gate rule ${name} passed`,
-  );
+  const successMessage = message(input.successMessage, `${path}.successMessage`, inherited?.successMessage);
   if (input.validate === validate && input.message === resolvedMessage && input.successMessage === successMessage) {
     return input as QualityGateRule;
   }

@@ -29,6 +29,16 @@ describe("quality-gate load-time expressions", () => {
     expect(config!.rules?.[0]).toMatchObject({ id: "literal-id", maxFailures: 3, allTestsContainEnv: "qa" });
   });
 
+  it("reports the threshold path when a numeric environment value cannot be converted", async () => {
+    vi.stubEnv("ALLURE_TEST_MAX_FAILURES", "abc");
+
+    const config = resolve({
+      rules: [{ maxFailures: "${{ int(env.ALLURE_TEST_MAX_FAILURES) }}" }],
+    });
+
+    await expect(config).rejects.toThrow("qualityGate.rules[0].maxFailures");
+  });
+
   it("resolves nested metric and custom expected structures", async () => {
     const config = await resolve({
       rules: [
@@ -123,7 +133,7 @@ describe("quality-gate load-time expressions", () => {
 
   it.each([
     { enabled: "${{ 'false' }}" },
-    { enabled: "not-an-expression" },
+    { enabled: "false" },
     { rules: [{ maxFailures: "${{ '3' }}" }] },
     { rules: [{ maxFailures: "${{ -1 }}" }] },
     { rules: [{ maxFailures: "${{ 9007199254740993 }}" }] },

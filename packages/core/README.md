@@ -204,14 +204,11 @@ success message.
 
 #### Quality-gate errors and data
 
-Quality-gate expression syntax/type errors fail configuration loading. Evaluation errors in filters
-and computed values throw with a configuration-path diagnostic; they never silently drop a filter,
-disable a gate, or turn a broken rule into success. Native validator callbacks retain their existing
-exception behavior. Message syntax/type errors fail configuration loading. A runtime message error
-warns once per configured message and falls back to the inherited message or a generic message with
-the rule identity and outcome; it never changes the gate result. CLI threshold flags still replace
-configured gate rules and custom definitions; configuration is resolved before that replacement,
-so invalid enabled configuration is still an error.
+Quality-gate expression syntax/type errors fail configuration loading. Evaluation errors in filters,
+computed values, and messages throw with a configuration-path diagnostic. Native validator callbacks
+retain their existing exception behavior. CLI threshold flags still replace configured gate rules
+and custom definitions; configuration is resolved before that replacement, so invalid enabled
+configuration is still an error.
 
 Computed expected values must be JSON-compatible: non-finite numbers, cycles, and non-plain data
 are rejected.
