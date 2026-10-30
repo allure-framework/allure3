@@ -2,6 +2,7 @@ import console from "node:console";
 import { randomUUID } from "node:crypto";
 import { basename, dirname, extname } from "node:path";
 
+import { ExpressionError } from "@allurereport/core-api";
 import type {
   RawTestAttachment,
   RawTestLabel,
@@ -65,6 +66,9 @@ export const junitXml: ResultsReader = {
       const reportDir = dirname(data instanceof PathResultFile ? data.path : originalFileName);
       return await parseRootElement(visitor, parsed, reportDir);
     } catch (e) {
+      if (e instanceof ExpressionError) {
+        throw e;
+      }
       console.error("error parsing", originalFileName, e);
       return false;
     }

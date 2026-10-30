@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 
+import { ExpressionError } from "@allurereport/core-api";
 import {
   BufferResultFile,
   type RawFixtureResult,
@@ -56,6 +57,9 @@ export const cucumberMessages: ResultsReader = {
       if (!messages.every(isNonNullObject)) return false;
       return await processMessages(visitor, originalFileName, messages);
     } catch (error) {
+      if (error instanceof ExpressionError) {
+        throw error;
+      }
       console.error("error parsing", originalFileName, error);
       return false;
     }

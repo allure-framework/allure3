@@ -1,5 +1,6 @@
 import console from "node:console";
 
+import { ExpressionError } from "@allurereport/core-api";
 import type { ResultsVisitor } from "@allurereport/reader-api";
 
 import { IS_MAC, XCRESULTTOOL_MISSING_MESSAGE, isXcResultBundle } from "./bundle.js";
@@ -66,6 +67,9 @@ const parseBundleWithXcResultTool = async (
     }
     return true;
   } catch (e) {
+    if (e instanceof ExpressionError) {
+      throw e;
+    }
     console.error("error parsing", xcResultPath, e);
   }
 
@@ -93,6 +97,9 @@ const parseWithXcode16OrNewer = async (visitor: ResultsVisitor, xcResultPath: st
       await tryApi(visitor, xcResultPath, legacyApiParser);
       return;
     } catch (e) {
+      if (e instanceof ExpressionError) {
+        throw e;
+      }
       console.error(e);
       if (legacyApiParser.legacyApiSucceeded()) {
         // The legacy API available but some other error has occured. We should not attempt using the new API in
@@ -115,7 +122,7 @@ const tryApi = async (visitor: ResultsVisitor, originalFileName: string, apiPars
     if ("readContent" in x) {
       await visitor.visitAttachmentFile(x, { readerId });
     } else {
-      visitor.visitTestResult(x, { readerId, metadata: { originalFileName } });
+      await visitor.visitTestResult(x, { readerId, metadata: { originalFileName } });
     }
   }
 };

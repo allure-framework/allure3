@@ -1,6 +1,7 @@
 import type {
   CategoriesConfig,
   DynamicEnvironmentResolver,
+  EnvironmentsConfig,
   LabelMatcher,
   PerformanceConfig,
   ResolvedAllureServiceConfig,
@@ -31,6 +32,7 @@ export interface FullConfig
       | "dynamicEnvironments"
       | "hideLabels"
       | "categories"
+      | "environments"
     >,
     FullConfigRequiredFromConfig {
   port: Config["port"] | undefined;
@@ -45,6 +47,7 @@ export interface FullConfig
   allureService?: ResolvedAllureServiceConfig;
   hideLabels?: LabelMatcher[];
   categories?: CategoriesConfig;
+  environments?: EnvironmentsConfig;
   globalAttachments?: string[];
   /**
    * Working directory used for resolving input patterns and local artifact paths.
