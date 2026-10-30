@@ -125,6 +125,13 @@ export class QualityGateCommand extends Command {
       };
     }
 
+    if (config.qualityGate?.enabled === false) {
+      // eslint-disable-next-line no-console
+      console.info("Quality gate is disabled; skipping validation.");
+      exit(0);
+      return;
+    }
+
     const allureReport = new AllureReport({
       ...config,
       environment: resolvedEnvironment?.id,

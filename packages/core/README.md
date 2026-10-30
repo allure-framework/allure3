@@ -143,6 +143,10 @@ absent, not empty strings; guard access with `has(env.NAME)` and convert strings
 `int(...)` or `double(...)`. `id` accepts a literal string and `fastFail` a literal boolean; filters
 are evaluated per test. Unmarked strings stay literal.
 
+When `enabled` is `false`, `allure quality-gate` prints a skip notice and exits successfully without
+reading test results or evaluating rules. Explicit CLI thresholds override the configured gate and
+still run validation. A missing quality-gate configuration remains an error.
+
 To combine text and numbers in a rule's expected value, write a YAML object and put expressions on
 individual fields. A single CEL object expression cannot mix text and numeric values. For example,
 this keeps the metric name as text and reads its numeric threshold from `MAX_DURATION_MS`, defaulting

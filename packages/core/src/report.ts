@@ -283,7 +283,7 @@ export class AllureReport {
     this.#appendHistory = appendHistory ?? true;
     this.#knownIssuesPath = resolutions?.knownIssuesPath;
 
-    if (qualityGate) {
+    if (qualityGate && qualityGate.enabled !== false) {
       this.#qualityGate = new QualityGate(qualityGate);
     }
 

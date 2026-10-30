@@ -47,14 +47,19 @@ describe("quality-gate load-time expressions", () => {
     });
   });
 
-  it.each([false, "${{ false }}"])("omits explicitly disabled gates before compiling scripts: %s", async (enabled) => {
-    const config = await resolve({
-      enabled,
-      use: [{ rule: "unused", message: "unused", validate: "invalid JavaScript {" }],
-    });
+  it.each([false, "${{ has(env.ALLURE_TEST_GATE) && env.ALLURE_TEST_GATE == 'true' }}"])(
+    "preserves disabled gates without compiling scripts: %s",
+    async (enabled) => {
+      vi.stubEnv("ALLURE_TEST_GATE", "false");
 
-    expect(config).toBeUndefined();
-  });
+      const config = await resolve({
+        enabled,
+        use: [{ rule: "unused", message: "unused", validate: "invalid JavaScript {" }],
+      });
+
+      expect(config).toEqual({ enabled: false });
+    },
+  );
 
   it("enables a gate from an environment condition", async () => {
     vi.stubEnv("ALLURE_TEST_GATE", "1");

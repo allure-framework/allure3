@@ -19,7 +19,7 @@ export type QualityGateRulesInput = Omit<QualityGateRules, "filter"> & {
   filter?: string | QualityGateRules["filter"];
 };
 
-export type QualityGateConfigInput = Omit<QualityGateConfig, "rules" | "use"> & {
+export type QualityGateConfigInput = Omit<QualityGateConfig, "enabled" | "rules" | "use"> & {
   enabled?: boolean | string;
   rules?: QualityGateRulesInput[];
   use?: QualityGateRuleInput[];
