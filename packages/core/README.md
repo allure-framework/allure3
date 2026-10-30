@@ -120,13 +120,19 @@ a string. The expression receives `env`, captured when configuration resolves:
 
 ```yaml
 allureService:
-  accessToken: '${{ env.REPORT_TOKEN }}'
+  accessToken: "${{ has(env.REPORT_TOKEN) ? env.REPORT_TOKEN : '' }}"
   private: true
 ```
 
-Use any environment variable name. Optional values can be guarded with `has(env.REPORT_TOKEN)`;
-missing variables, invalid expressions, and non-string results fail configuration resolution with
-the `allureService.accessToken` path. Other token fields do not accept expressions.
+Use any environment variable name. The example treats `REPORT_TOKEN` as optional: when it is
+missing, the expression returns an empty string and the service client remains inactive. For a
+required token, use `${{ env.REPORT_TOKEN }}` directly. An unguarded missing variable, invalid
+expression, or non-string result fails configuration resolution with the `allureService.accessToken`
+path for every command that reads the configuration, even when it does not use the service.
+
+Credential expression support is limited to `allureService.accessToken`; other token fields retain
+their existing behavior. The TestOps plugin's `ALLURE_TOKEN` fallback is separate and is not
+implicitly used by Allure Service.
 
 A recognized token in an explicitly configured service block enables remote history retrieval even
 when no plugin publishes. Uploading reports still requires a plugin's `options.publish: true`.
