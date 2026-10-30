@@ -5,6 +5,7 @@ import type {
   CiDescriptor,
   GlobalAttachmentLink,
   HistoryDataPoint,
+  LabelMatcher,
   MetricHierarchyNode,
   Statistic,
   TestError,
@@ -45,7 +46,7 @@ export interface PluginContext {
   allureVersion: string;
   reportUuid: string;
   reportName: string;
-  hideLabels?: (string | RegExp)[];
+  hideLabels?: LabelMatcher[];
   /** Configured metric-key structure, independent of observed samples and dump metadata. */
   metricHierarchy?: readonly MetricHierarchyNode[];
   reportFiles: ReportFiles;

@@ -350,7 +350,7 @@ const matchObjectMatcher = (m: ObjectMatcher, d: CategoryMatchingData): boolean 
 
   if (m.labels) {
     for (const [labelName, expected] of Object.entries(m.labels)) {
-      const re = toRegExp(expected as any);
+      const re = toRegExp(expected);
       const values = d.labels.filter((l) => l.name === labelName).map((l) => l.value ?? "");
       if (!values.some((v) => re.test(v))) {
         return false;

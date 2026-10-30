@@ -1,6 +1,7 @@
 import type {
   CategoriesConfig,
   DynamicEnvironmentResolver,
+  LabelMatcher,
   PerformanceConfig,
   ResolvedAllureServiceConfig,
 } from "@allurereport/core-api";
@@ -20,7 +21,16 @@ export interface FullConfig
   extends
     Omit<
       Config,
-      "name" | "output" | "open" | "allureService" | "plugins" | "port" | "resultsDir" | "dynamicEnvironments"
+      | "name"
+      | "output"
+      | "open"
+      | "allureService"
+      | "plugins"
+      | "port"
+      | "resultsDir"
+      | "dynamicEnvironments"
+      | "hideLabels"
+      | "categories"
     >,
     FullConfigRequiredFromConfig {
   port: Config["port"] | undefined;
@@ -33,6 +43,7 @@ export interface FullConfig
   qualityGate?: Config["qualityGate"];
   performance?: PerformanceConfig;
   allureService?: ResolvedAllureServiceConfig;
+  hideLabels?: LabelMatcher[];
   categories?: CategoriesConfig;
   globalAttachments?: string[];
   /**
