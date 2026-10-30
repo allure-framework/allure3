@@ -708,6 +708,36 @@ describe("metric quality gate rules", () => {
     });
   });
 
+  it("should validate minimum metric threshold against the current average", async () => {
+    const passing = await metricMinRule.validate({
+      ...basePayload,
+      expected: { key: "bundle.size", value: 10 },
+      metrics: [
+        { id: "1", key: "bundle.size", value: 8, start: 0, stop: 1 },
+        { id: "2", key: "bundle.size", value: 12, start: 1, stop: 2 },
+      ],
+    });
+    const failing = await metricMinRule.validate({
+      ...basePayload,
+      expected: { key: "bundle.size", value: 11 },
+      metrics: [
+        { id: "1", key: "bundle.size", value: 8, start: 0, stop: 1 },
+        { id: "2", key: "bundle.size", value: 12, start: 1, stop: 2 },
+      ],
+    });
+
+    expect(passing).toEqual({
+      success: true,
+      actual: { key: "bundle.size", value: 10 },
+      testResults: [],
+    });
+    expect(failing).toEqual({
+      success: false,
+      actual: { key: "bundle.size", value: 10 },
+      testResults: [],
+    });
+  });
+
   it("should fail missing metrics instead of silently passing", async () => {
     await expect(
       metricMinRule.validate({

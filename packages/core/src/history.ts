@@ -35,6 +35,8 @@ const createHistoryItems = (testResults: TestResult[], remoteUrl: string) => {
         stop,
         duration,
         labels,
+        flaky,
+        transition,
       }) => {
         return {
           id,
@@ -49,6 +51,8 @@ const createHistoryItems = (testResults: TestResult[], remoteUrl: string) => {
           stop,
           duration,
           labels,
+          flaky,
+          transition,
           url: remoteUrl,
           retryHash: retryHash!,
           reportLinks: [],

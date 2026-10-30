@@ -1,5 +1,5 @@
 import type { TestLabel } from "./metadata.js";
-import type { TestError, TestStatus } from "./model.js";
+import type { TestError, TestStatus, TestStatusTransition } from "./model.js";
 
 /**
  * Stores basic history information for particular test result.
@@ -17,6 +17,12 @@ export interface HistoryTestResult {
   message?: string;
   trace?: string;
   error?: TestError;
+
+  /**
+   * Result classification used by category and transition consumers. Older history points may omit these fields.
+   */
+  flaky?: boolean;
+  transition?: TestStatusTransition;
 
   start?: number;
   stop?: number;

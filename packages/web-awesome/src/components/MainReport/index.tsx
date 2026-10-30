@@ -5,6 +5,7 @@ import { useEffect } from "preact/hooks";
 import { NavTab, NavTabs, NavTabsList, useNavTabsContext } from "@/components/NavTabs";
 import { ReportBody } from "@/components/ReportBody";
 import { ReportCategories } from "@/components/ReportCategories";
+import { ReportFailureSummary } from "@/components/ReportFailureSummary";
 import { ReportGlobalAttachments } from "@/components/ReportGlobalAttachments";
 import { ReportGlobalErrors } from "@/components/ReportGlobalErrors";
 import { ReportHeader } from "@/components/ReportHeader";
@@ -144,6 +145,7 @@ const MainReport = () => {
     >
       <div className={styles["main-report-header"]}>
         <ReportHeader />
+        <ReportFailureSummary />
       </div>
       <div className={styles["main-report-tabs"]}>
         <NavTabs initialTab={initialTab}>
