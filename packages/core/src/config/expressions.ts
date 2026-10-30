@@ -1,3 +1,4 @@
+import { ExpressionError } from "@allurereport/core-api";
 import { Environment } from "@marcbachmann/cel-js";
 
 export const isExpression = (value: string): boolean => value.trimStart().startsWith("${{");
@@ -56,7 +57,7 @@ export const compileExpression = (
   options: ExpressionOptions = {},
 ): ((context: Record<string, unknown>) => unknown) => {
   const failure = (error: unknown) =>
-    new Error(`Invalid expression at ${path}: ${error instanceof Error ? error.message : String(error)}`, {
+    new ExpressionError(`Invalid expression at ${path}: ${error instanceof Error ? error.message : String(error)}`, {
       cause: error,
     });
   try {

@@ -18,7 +18,12 @@ import type {
   MetricHierarchyNode,
   TestResult,
 } from "@allurereport/core-api";
-import { buildMetricHierarchy, normalizeCategoriesConfig, parseIntegerConfigValue } from "@allurereport/core-api";
+import {
+  ExpressionError,
+  buildMetricHierarchy,
+  normalizeCategoriesConfig,
+  parseIntegerConfigValue,
+} from "@allurereport/core-api";
 import {
   type AllureStoreDump,
   AllureStoreDumpFiles,
@@ -595,12 +600,18 @@ export class AllureReport {
               try {
                 await this.readResult(new PathResultFile(join(resultsDirPath, dirent.name), dirent.name));
               } catch (e) {
+                if (e instanceof ExpressionError) {
+                  throw e;
+                }
                 console.error(`can't read result file ${dirent.name}`, e);
               }
             }),
           ),
         );
       } catch (e) {
+        if (e instanceof ExpressionError) {
+          throw e;
+        }
         console.error("can't read directory", e);
       }
 
@@ -632,7 +643,11 @@ export class AllureReport {
         if (processed) {
           return;
         }
-      } catch {}
+      } catch (error) {
+        if (error instanceof ExpressionError) {
+          throw error;
+        }
+      }
     }
   };
 
