@@ -92,6 +92,10 @@ Expressions must return strings; syntax, type, or evaluation failures identify t
 path and fail configuration resolution. Ordinary strings remain literal. There is no interpolation
 inside larger strings: put the entire expression inside `${{ ... }}`.
 
+The `--report-name` / `--name` CLI options and programmatic report-name overrides are literal strings.
+They take precedence over the configured `name` without evaluating either the override or the
+replaced configuration value. Report-name expressions belong in the configuration file's `name` field.
+
 `env` contains defined process environment variables. Guard optional values with `has(env.NAME)`.
 `date` is a single UTC snapshot shared by all names in a configuration:
 

@@ -347,7 +347,7 @@ export const resolveConfig = async (config: Config, override: ConfigOverride = {
   const nameContext = createNameContext();
   const { environments, environment, allowedEnvironments } = resolveConfigEnvironments(config, nameContext);
 
-  const name = resolveName(override.name ?? config.name ?? "Allure Report", "name", nameContext)!;
+  const name = override.name ?? resolveName(config.name ?? "Allure Report", "name", nameContext)!;
   const open = override.open ?? config.open ?? false;
   const port = override.port ?? config.port ?? undefined;
   const host = override.host ?? config.host ?? undefined;
