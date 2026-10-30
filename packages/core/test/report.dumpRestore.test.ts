@@ -119,7 +119,7 @@ describe("AllureReport.restoreState (dump zip)", () => {
     process.chdir(previousCwd);
     vi.restoreAllMocks();
     await Promise.all(zipPaths.splice(0).map((p) => unlink(p).catch(() => {})));
-    await Promise.all(tempDirs.splice(0).map((p) => rm(p, { recursive: true, force: true })));
+    await Promise.all(tempDirs.splice(0).map((p) => rm(p, { recursive: true, force: true, maxRetries: 3 })));
   });
 
   const tempZipPath = (): string => {

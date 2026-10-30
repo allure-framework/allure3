@@ -260,7 +260,7 @@ describe("stopProcessTree", () => {
 
   // stopProcessTree on Windows calls powershell.exe so it might need more time to finish
   // TODO: investigate and fix warmUpWindowsProcessEnumeration() always failing if vite cache is enabled
-  describe("on Windows", { skip: true, timeout: 10_000 }, () => {
+  describe("on Windows", { skip: platform != "win32", timeout: 10_000 }, () => {
     beforeAll(async () => {
       await warmUpWindowsProcessEnumeration();
     }, 30_000);

@@ -1,5 +1,5 @@
 import { realpath, rm } from "node:fs/promises";
-import process, { exit } from "node:process";
+import process from "node:process";
 
 import { Logger } from "@allurereport/cli-commons";
 import { AllureReport, isFileNotFoundError, readConfig } from "@allurereport/core";
@@ -177,8 +177,7 @@ export class RunCommand extends Command {
         silent: this.silentOutput,
       });
 
-      exit(exitCode ?? -1);
-      return;
+      return exitCode ?? -1;
     }
 
     const environmentOptions = {
@@ -258,7 +257,7 @@ export class RunCommand extends Command {
         open: true,
       });
     } else {
-      exit(finalExitCode);
+      return finalExitCode;
     }
   }
 }
