@@ -53,8 +53,35 @@ describe("name and title expressions", () => {
     expect(config.name).toBe(reportName);
   });
 
+  it.each([
+    {
+      source: `
+categories:
+  - name: '\${{ date.isoDate }}'
+`,
+      path: "categories[0].id",
+    },
+    {
+      source: `
+categories:
+  rules:
+    - id: null
+      name: '\${{ date.isoDate }}'
+`,
+      path: "categories.rules[0].id",
+    },
+  ])("requires an explicit category ID at $path for an expression name", async ({ source, path }) => {
+    const cwd = await mkdtemp(join(tmpdir(), "allure-category-name-"));
+    directories.push(cwd);
+    await writeFile(join(cwd, "allurerc.yml"), source);
+
+    const resolution = readConfig(cwd, undefined, { plugins: {} });
+
+    await expect(resolution).rejects.toThrow(`Invalid ${path}: an explicit ID is required when name is an expression`);
+  });
+
   it.each([false, true])("resolves category names in the object form: %s", async (objectForm) => {
-    const rules = [{ name: datedName, matchers: { statuses: ["failed"] as const } }];
+    const rules = [{ id: "nightly", name: datedName, matchers: { statuses: ["failed"] as const } }];
 
     const config = await resolve({ categories: objectForm ? { rules } : rules });
 
