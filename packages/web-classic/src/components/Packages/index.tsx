@@ -2,13 +2,13 @@ import { Heading, Loadable, PageLoader } from "@allurereport/web-components";
 import { useEffect } from "preact/compat";
 
 import { HeaderActions } from "@/components/HeaderActions/HeaderActions";
-import { PackagesList } from "@/components/Packages/PackagesList";
 import SideBySide from "@/components/SideBySide";
 import TestResult from "@/components/TestResult";
+import { TreeList, TreeStoreContext } from "@/components/Tree";
 import { useI18n } from "@/stores";
-import { fetchPackagesData } from "@/stores/packages";
 import { route } from "@/stores/router";
 import { fetchTestResult, testResultStore } from "@/stores/testResults";
+import { packagesTree } from "@/stores/tree";
 
 import * as styles from "./styles.scss";
 
@@ -16,7 +16,7 @@ const Packages = () => {
   const { testResultId } = route.value.params;
 
   useEffect(() => {
-    fetchPackagesData();
+    packagesTree.fetchData();
   }, []);
 
   useEffect(() => {
@@ -49,8 +49,10 @@ const Packages = () => {
           {t("packages")}
         </Heading>
 
-        <HeaderActions />
-        <PackagesList />
+        <TreeStoreContext.Provider value={packagesTree}>
+          <HeaderActions />
+          <TreeList />
+        </TreeStoreContext.Provider>
       </div>
     );
   };

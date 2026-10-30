@@ -5,10 +5,12 @@ import {
   type PluginContext,
   type PluginSummary,
   createPluginSummary,
+  generateTimeline,
 } from "@allurereport/plugin-api";
-import { preciseTreeLabels } from "@allurereport/plugin-api";
 import { generateAttachmentsFiles, generateHistoryDataPoints } from "@allurereport/plugin-api/internal/report";
 
+import { resolveClassicCategories } from "./categories.js";
+import { generateTreeCsvFiles } from "./csv.js";
 import {
   generateAllCharts,
   generateEnvironmentJson,
@@ -19,7 +21,9 @@ import {
   generateTree,
   generateTreeByCategories,
 } from "./generators.js";
-import type { ClassicPluginOptions } from "./model.js";
+import type { ClassicCategory, ClassicPluginOptions } from "./model.js";
+import { collectOverviewOptions } from "./overview.js";
+import { resolveTreeLabels } from "./treeLabels.js";
 import { type ClassicDataWriter, InMemoryReportDataWriter, ReportFileDataWriter } from "./writer.js";
 
 export class ClassicPlugin implements Plugin {
@@ -28,37 +32,42 @@ export class ClassicPlugin implements Plugin {
   constructor(readonly options: ClassicPluginOptions = {}) {}
 
   #generate = async (context: PluginContext, store: AllureStore) => {
-    const { singleFile, groupBy = [] } = this.options ?? {};
+    const { singleFile, groupBy, filter } = this.options ?? {};
     const environmentItems = await store.metadataByKey<EnvironmentItem[]>("allure_environment");
-    const statistic = await store.testsStatistic();
+    const statistic = await store.testsStatistic(filter);
     const attachments = await store.allAttachments();
 
     await generateStatistic(this.#writer!, statistic);
     await generatePieChart(this.#writer!, statistic);
-    await generateAllCharts(this.#writer!, store, this.options, context);
 
-    const convertedTrs = await generateTestResults(this.#writer!, store);
+    const legacyCategories = await store.metadataByKey<ClassicCategory[]>("allure2_categories");
+    const categories = resolveClassicCategories(context.categories, legacyCategories ?? []);
 
-    const treeLabels = preciseTreeLabels(
-      !groupBy.length ? ["parentSuite", "suite", "subSuite"] : groupBy,
-      convertedTrs,
-      ({ labels }) => labels.map(({ name }) => name),
-    );
-    const behaviorLabels = preciseTreeLabels(
-      !groupBy.length ? ["epic", "feature", "story"] : groupBy,
-      convertedTrs,
-      ({ labels }) => labels.map(({ name }) => name),
-    );
-    const packagesLabels = preciseTreeLabels(!groupBy.length ? ["package"] : groupBy, convertedTrs, ({ labels }) =>
-      labels.map(({ name }) => name),
-    );
+    await generateAllCharts(this.#writer!, store, this.options, context, categories);
+
+    const convertedTrs = await generateTestResults(this.#writer!, store, {
+      filter,
+      categories,
+      pluginId: context.id,
+      ideaLinks: this.options.ideaLinks,
+      resolveHistoryUrl: context.history?.resolveTestResultUrl,
+    });
+
+    const {
+      tree: treeLabels,
+      behaviors: behaviorLabels,
+      packages: packagesLabels,
+    } = resolveTreeLabels(groupBy, convertedTrs);
 
     await generateTreeByCategories(this.#writer!, "categories", convertedTrs);
-    // await generateCategoriesData(this.#writer!, treeLabels, convertedTrs);
     await generateTree(this.#writer!, "tree", treeLabels, convertedTrs);
     await generateTree(this.#writer!, "behaviors", behaviorLabels, convertedTrs);
     await generateTree(this.#writer!, "packages", packagesLabels, convertedTrs);
+    await generateTreeCsvFiles(this.#writer!, convertedTrs);
     await generateHistoryDataPoints(this.#writer!, store);
+    await generateTimeline(this.#writer!, await store.allTestResults({ includeRetries: true, filter }), {
+      minDuration: this.options.timeline?.minDuration,
+    });
 
     await generateEnvironmentJson(this.#writer!, environmentItems ?? []);
 
@@ -66,6 +75,7 @@ export class ClassicPlugin implements Plugin {
       await generateAttachmentsFiles(this.#writer!, attachments, (id) => store.attachmentContentById(id));
     }
 
+    const overviewOptions = await collectOverviewOptions(context, store, convertedTrs);
     const reportDataFiles = singleFile ? (this.#writer! as InMemoryReportDataWriter).reportFiles() : [];
 
     await generateStaticFiles({
@@ -76,6 +86,7 @@ export class ClassicPlugin implements Plugin {
       reportUuid: context.reportUuid,
       reportName: context.reportName,
       overviewHref: context.overviewHref,
+      ...overviewOptions,
     });
   };
 

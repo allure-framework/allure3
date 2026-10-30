@@ -1,11 +1,13 @@
 import { copyToClipboard } from "@allurereport/web-commons";
-import { Code, IconButton, Loadable, TooltipWrapper, allureIcons } from "@allurereport/web-components";
+import { Code, IconButton, Loadable, Menu, TooltipWrapper, allureIcons } from "@allurereport/web-components";
 import type { FunctionalComponent } from "preact";
+import { useEffect, useState } from "preact/hooks";
 import type { ReportTestResult } from "types";
 
 import { useI18n } from "@/stores";
+import { navigateTo, route } from "@/stores/router";
 import { testResultNavStore } from "@/stores/testResults";
-import { navigateTo } from "@/utils/navigate";
+import { getAdjacentTestResultIds, getTestResultHash } from "@/utils/testResultNavigation";
 
 import * as styles from "./styles.scss";
 
@@ -13,65 +15,125 @@ export type TestResultNavigationProps = {
   testResult?: ReportTestResult;
 };
 
-export const TestResultNavigation: FunctionalComponent<TestResultNavigationProps> = ({ testResult }) => {
-  const { fullName, id: testResultId } = testResult ?? {};
-  const id = testResultId || "";
-  const { t: tooltip } = useI18n("controls");
-  const FullName = () => {
-    return (
-      <div data-testid="test-result-fullname" className={styles["test-result-fullName"]}>
-        <TooltipWrapper tooltipText={tooltip("clipboard")} tooltipTextAfterClick={tooltip("clipboardSuccess")}>
+const TestResultCopyMenu: FunctionalComponent<{
+  fullName?: string;
+  testCaseId?: string;
+  historyId?: string;
+}> = ({ fullName, testCaseId, historyId }) => {
+  const [copied, setCopied] = useState(false);
+  const { t } = useI18n("ui");
+
+  const copyValue = (value: string) => {
+    copyToClipboard(value);
+    setCopied(true);
+  };
+
+  useEffect(() => {
+    if (!copied) {
+      return;
+    }
+
+    const timer = window.setTimeout(() => setCopied(false), 750);
+
+    return () => window.clearTimeout(timer);
+  }, [copied]);
+
+  return (
+    <div data-testid="test-result-fullname" className={styles["test-result-fullName"]}>
+      <Menu
+        size="s"
+        placement="bottom-start"
+        menuTriggerWrapper="span"
+        menuTrigger={({ isOpened, onClick }) => (
           <IconButton
+            aria-label={t("copy")}
             data-testid="test-result-fullname-copy"
             style={"ghost"}
             size={"s"}
-            icon={allureIcons.lineGeneralCopy3}
-            onClick={() => copyToClipboard(fullName ?? "")}
+            icon={copied ? allureIcons.lineGeneralCheck : allureIcons.lineGeneralCopy3}
+            isActive={isOpened}
+            onClick={onClick}
           />
-        </TooltipWrapper>
+        )}
+      >
+        <div data-testid="test-result-copy-menu">
+          <Menu.Section>
+            {fullName && (
+              <Menu.Item dataTestId="test-result-copy-fullname" onClick={() => copyValue(fullName)}>
+                {t("fullname")}
+              </Menu.Item>
+            )}
+            {testCaseId && (
+              <Menu.Item dataTestId="test-result-copy-test-case-id" onClick={() => copyValue(testCaseId)}>
+                {t("test-case-id")}
+              </Menu.Item>
+            )}
+            {historyId && (
+              <Menu.Item dataTestId="test-result-copy-history-id" onClick={() => copyValue(historyId)}>
+                {t("history-id")}
+              </Menu.Item>
+            )}
+          </Menu.Section>
+        </div>
+      </Menu>
+      {fullName && (
         <Code tag={"div"} size={"s"} className={styles["test-result-fullName-text"]}>
-          {fullName && fullName}
+          {fullName}
         </Code>
-      </div>
-    );
-  };
+      )}
+    </div>
+  );
+};
+
+const NavArrow: FunctionalComponent<{ type: "prev" | "next"; trId?: string }> = ({ type, trId }) => {
+  const { t: tooltip } = useI18n("controls");
+  const isPrev = type === "prev";
+  const icon = isPrev ? allureIcons.lineArrowsChevronUp : allureIcons.lineArrowsChevronDown;
+  const testId = `test-result-nav-${type}`;
+
+  if (!trId) {
+    return <IconButton icon={icon} style={"ghost"} isDisabled data-testid={testId} />;
+  }
+
+  return (
+    <TooltipWrapper tooltipText={tooltip(isPrev ? "prevTR" : "nextTR")}>
+      <IconButton
+        icon={icon}
+        style={"ghost"}
+        data-testid={testId}
+        onClick={() => navigateTo(getTestResultHash(route.value, trId))}
+      />
+    </TooltipWrapper>
+  );
+};
+
+export const TestResultNavigation: FunctionalComponent<TestResultNavigationProps> = ({ testResult }) => {
+  const { fullName, id: testResultId, testCase, retryHash } = testResult ?? {};
+  const id = testResultId || "";
+  const hasCopyMenu = Boolean(fullName || testCase?.id || retryHash);
 
   return (
     <Loadable
       source={testResultNavStore}
       renderData={(data) => {
-        const currentIndex = data.indexOf(id) + 1;
+        const { prevId, nextId, position } = getAdjacentTestResultIds(data ?? [], id);
+
         return (
           <div className={styles["test-result-nav"]}>
-            {fullName && <FullName />}
-            {data && !testResult?.isRetry && (
+            {hasCopyMenu && (
+              <TestResultCopyMenu fullName={fullName} testCaseId={testCase?.id} historyId={retryHash ?? undefined} />
+            )}
+            {Boolean(data?.length) && testResult && !testResult.isRetry && (
               <div className={styles["test-result-navigator"]}>
-                <TooltipWrapper tooltipText={tooltip("prevTR")} isTriggerActive={currentIndex > 1}>
-                  <IconButton
-                    icon={allureIcons.lineArrowsChevronDown}
-                    style={"ghost"}
-                    isDisabled={currentIndex === data.length}
-                    data-testid="test-result-nav-prev"
-                    className={styles["test-result-nav-prev"]}
-                    onClick={() => navigateTo(data[currentIndex])}
-                  />
-                </TooltipWrapper>
+                <NavArrow type="prev" trId={prevId} />
                 <Code
                   data-testid="test-result-nav-current"
                   size={"s"}
                   className={styles["test-result-navigator-numbers"]}
                 >
-                  {currentIndex}/{data.length}
+                  {position}/{data.length}
                 </Code>
-                <TooltipWrapper tooltipText={tooltip("nextTR")}>
-                  <IconButton
-                    icon={allureIcons.lineArrowsChevronDown}
-                    style={"ghost"}
-                    isDisabled={currentIndex <= 1}
-                    data-testid="test-result-nav-next"
-                    onClick={() => navigateTo(data[currentIndex - 2])}
-                  />
-                </TooltipWrapper>
+                <NavArrow type="next" trId={nextId} />
               </div>
             )}
           </div>

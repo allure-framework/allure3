@@ -5,7 +5,7 @@ import { select as d3Select } from "d3-selection";
 import type { FunctionComponent } from "preact";
 import { useEffect, useRef } from "preact/hooks";
 
-import { d3AxisBottom, minPositive, useStateRef } from "./utils.js";
+import { d3AxisBottom, fitTimeTicks, minPositive, setTickValues, useStateRef } from "./utils.js";
 
 import styles from "./styles.scss";
 
@@ -20,6 +20,8 @@ export type TimeOverviewProps = {
   onChange?: (selectionStart: Date, selectionEnd: Date) => void;
   onReset?: () => void;
   transitionDuration?: number;
+  /** Minimal distance in pixels between axis labels; unset keeps the default d3 tick count */
+  minTickSpacing?: number;
 };
 
 const DEFAULT_MARGINS = { top: 0, right: 0, bottom: 20, left: 0 };
@@ -40,6 +42,7 @@ export const TimeOverview: FunctionComponent<TimeOverviewProps> = (props) => {
     onChange = noop,
     onReset = noop,
     transitionDuration = 300,
+    minTickSpacing,
   } = props;
 
   const [scaleRef, scale, setScale] = useStateRef(() => scaleProp.copy());
@@ -117,9 +120,11 @@ export const TimeOverview: FunctionComponent<TimeOverviewProps> = (props) => {
       return;
     }
     // Update axes
-    xAxisAxisRef.current.scale(scale).tickFormat(tickFormat);
+    const fittedTicks = fitTimeTicks(scale, 7, minTickSpacing);
 
-    xGridAxisRef.current.scale(scale).tickSize(-brushHeight);
+    setTickValues(xAxisAxisRef.current.scale(scale).tickFormat(tickFormat), fittedTicks);
+
+    setTickValues(xGridAxisRef.current.scale(scale).tickSize(-brushHeight), fittedTicks);
     xGridAxisRef.current.ticks(7);
 
     // Update margins transform
@@ -166,7 +171,17 @@ export const TimeOverview: FunctionComponent<TimeOverviewProps> = (props) => {
 
       brushBehaviorRef.current.move(brushSelection as any, selection);
     }
-  }, [brushWidth, brushHeight, margins, domainRange, currentSelection, tickFormat, scale, transitionDuration]);
+  }, [
+    brushWidth,
+    brushHeight,
+    margins,
+    domainRange,
+    currentSelection,
+    tickFormat,
+    scale,
+    transitionDuration,
+    minTickSpacing,
+  ]);
 
   return (
     <svg ref={svgRef} className={styles.brusher} width={width} height={height}>

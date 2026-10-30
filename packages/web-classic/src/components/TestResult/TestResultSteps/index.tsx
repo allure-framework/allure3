@@ -1,4 +1,4 @@
-import { allureIcons } from "@allurereport/web-components";
+import { Text, allureIcons } from "@allurereport/web-components";
 import type { FunctionalComponent } from "preact";
 import { useState } from "preact/hooks";
 import type { ReportTestResult, ReportTestStepResult } from "types";
@@ -18,6 +18,7 @@ export const TestResultSteps: FunctionalComponent<TestResultStepsProps> = ({ ste
   const [isOpened, setIsOpen] = useState(true);
 
   const { t } = useI18n("execution");
+  const { t: empty } = useI18n("empty");
   return (
     <div className={styles["test-result-steps"]}>
       <TestResultDropdown
@@ -29,14 +30,19 @@ export const TestResultSteps: FunctionalComponent<TestResultStepsProps> = ({ ste
       />
       {isOpened && (
         <div className={styles["test-result-steps-root"]}>
-          {steps?.map((item: ReportTestStepResult, index) => {
-            return item.type === "step" ? (
+          {steps?.map((item: ReportTestStepResult, index) =>
+            item.type === "step" ? (
               <TestResultStep item={item} stepIndex={index + 1} key={index} />
-            ) : (
+            ) : item.type === "attachment" ? (
               <TestResultAttachment item={item} stepIndex={index + 1} key={index} />
-            );
-          })}
+            ) : null,
+          )}
         </div>
+      )}
+      {isOpened && !steps?.length && (
+        <Text tag={"p"} size={"s"} className={styles["test-result-steps-empty"]} data-testid="test-result-steps-empty">
+          {empty("no-test-steps-results")}
+        </Text>
       )}
     </div>
   );

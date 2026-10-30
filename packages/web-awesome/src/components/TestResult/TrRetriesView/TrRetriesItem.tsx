@@ -1,10 +1,10 @@
 import { formatDuration } from "@allurereport/core-api";
+import { hasErrorDiff } from "@allurereport/web-commons";
 import { ArrowButton, IconButton, Text, TreeItemIcon, allureIcons } from "@allurereport/web-components/core";
 import type { FunctionalComponent } from "preact";
 import { useState } from "preact/hooks";
 import type { ReportTestResult } from "types";
 
-import { hasErrorDiff } from "@/components/TestResult/bodyItems";
 import { TrError } from "@/components/TestResult/TrError";
 import { useI18n } from "@/stores/locale";
 import { navigateToTestResult } from "@/stores/router";

@@ -6,7 +6,7 @@ import { chartRenderers, collectChartAssetFeatures } from "../src/charts/rendere
 it("covers every chart type and conservatively preserves unknown configurations", () => {
   expect(Object.keys(chartRenderers).sort()).toEqual(Object.values(ChartType).sort());
   expect(new Set(collectChartAssetFeatures(Object.values(ChartType).map((type) => ({ type }))))).toEqual(
-    new Set(["chart-pie", "chart-bar", "chart-treemap", "chart-heatmap", "chart-funnel"]),
+    new Set(["chart-pie", "chart-bar", "chart-treemap", "chart-heatmap", "chart-funnel", "chart-run-trend"]),
   );
   expect(collectChartAssetFeatures([])).toEqual([]);
   expect(collectChartAssetFeatures([{ type: "constructor" }])).toBeUndefined();

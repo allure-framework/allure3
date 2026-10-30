@@ -26,7 +26,7 @@ const formatStep = (step: TestStepResult, indent: number = 0): string | undefine
   return res.join("\n");
 };
 
-export const labelValue = (name: string): ((result: TestResult) => string | undefined) => {
+export const labelValue = (name: string): ((result: Pick<TestResult, "labels">) => string | undefined) => {
   return (result) =>
     result.labels
       .filter((l) => l.name === name)

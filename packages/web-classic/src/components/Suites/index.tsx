@@ -4,11 +4,11 @@ import { useEffect } from "preact/compat";
 import { HeaderActions } from "@/components/HeaderActions/HeaderActions";
 import SideBySide from "@/components/SideBySide";
 import TestResult from "@/components/TestResult";
-import { TreeList } from "@/components/Tree";
+import { TreeList, TreeStoreContext } from "@/components/Tree";
 import { useI18n } from "@/stores";
 import { route } from "@/stores/router";
 import { fetchTestResult, testResultStore } from "@/stores/testResults";
-import { fetchTreeData, treeStore } from "@/stores/tree";
+import { suitesTree } from "@/stores/tree";
 
 import * as styles from "./styles.scss";
 
@@ -17,7 +17,7 @@ const Suites = () => {
   const { testResultId } = params;
 
   useEffect(() => {
-    fetchTreeData();
+    suitesTree.fetchData();
   }, []);
   useEffect(() => {
     if (testResultId) {
@@ -40,7 +40,7 @@ const Suites = () => {
     />
   ) : (
     <div className={styles.wrapper}>
-      <Loadable source={treeStore} renderLoader={() => <PageLoader />} renderData={() => <div />} />
+      <Loadable source={suitesTree.data} renderLoader={() => <PageLoader />} renderData={() => <div />} />
     </div>
   );
 
@@ -52,8 +52,10 @@ const Suites = () => {
           {t("suites")}
         </Heading>
 
-        <HeaderActions />
-        <TreeList />
+        <TreeStoreContext.Provider value={suitesTree}>
+          <HeaderActions />
+          <TreeList />
+        </TreeStoreContext.Provider>
       </div>
     );
   };

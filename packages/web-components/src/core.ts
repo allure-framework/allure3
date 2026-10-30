@@ -1,6 +1,7 @@
 import "@/assets/scss/index.scss";
 
 export { allureIcons } from "./components/SvgIcon";
+export { getCiIconId } from "./components/SvgIcon/ciIcons";
 
 export { DropdownButton, Button, IconButton, ButtonLink } from "./components/Button";
 export { OverviewLink } from "./components/OverviewLink";
@@ -34,6 +35,7 @@ export * from "./components/ReportSummaryCard";
 export * from "./components/ThemeProvider";
 export * from "./components/EmptyView";
 export * from "./components/ImageDiff";
+export * from "./components/TestResultError";
 
 export { LazyComponent } from "./components/LazyComponent";
 

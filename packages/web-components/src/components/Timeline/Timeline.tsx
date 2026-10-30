@@ -29,9 +29,11 @@ import {
   d3AxisBottom,
   d3AxisLeft,
   d3AxisTop,
+  fitTimeTicks,
   isZoomXEqual,
   isZoomYEqual,
   minPositive,
+  setTickValues,
   toTimelineData,
   useStateRef,
 } from "./utils.js";
@@ -84,6 +86,11 @@ type TimelineProps = {
   data?: TimelineData;
   width?: number;
   enableAnimations?: boolean;
+  /**
+   * Minimal distance in pixels between time axis labels. When set, the time axes show fewer ticks
+   * on narrow charts instead of overlapping labels. Unset keeps the default tick count.
+   */
+  minTickSpacing?: number;
   onTestResultClick?: (testResultId: string) => void;
   translations: {
     empty: string;
@@ -109,7 +116,7 @@ const GAP = 2;
 const ROW_HEIGHT = SEGMENT_HEIGHT + GAP * 2;
 
 const InnerTimeline: FunctionComponent<Omit<TimelineProps, "width">> = (props) => {
-  const { data = [], translations, onTestResultClick } = props;
+  const { data = [], translations, onTestResultClick, minTickSpacing } = props;
   const innerId = useId();
 
   const { durationRange, handleDurationChange, durationDomain } = useDurationRange(data);
@@ -395,8 +402,10 @@ const InnerTimeline: FunctionComponent<Omit<TimelineProps, "width">> = (props) =
     }
 
     // X axis
+    const fittedTicks = fitTimeTicks(xScale, 7, minTickSpacing);
+
     xAxisRef_d3.current.scale(xScale);
-    xAxisRef_d3.current.ticks(7);
+    setTickValues(xAxisRef_d3.current.ticks(7), fittedTicks);
     xAxisRef_d3.current.tickFormat((value: Date) => {
       if (!timeRange[0]) {
         return "";
@@ -404,10 +413,7 @@ const InnerTimeline: FunctionComponent<Omit<TimelineProps, "width">> = (props) =
       return formatDuration(value.getTime() - timeRange[0].getTime());
     });
 
-    xGridRef_d3.current
-      .scale(xScale)
-      .ticks(7)
-      .tickFormat(() => "");
+    setTickValues(xGridRef_d3.current.scale(xScale).ticks(7), fittedTicks).tickFormat(() => "");
 
     const xAxisSelection = d3Select(xAxisRef.current);
 
@@ -490,6 +496,7 @@ const InnerTimeline: FunctionComponent<Omit<TimelineProps, "width">> = (props) =
     timelineGroups,
     handleGroupTooltipShow,
     handleGroupTooltipHide,
+    minTickSpacing,
   ]);
 
   // Render groups
@@ -820,6 +827,7 @@ const InnerTimeline: FunctionComponent<Omit<TimelineProps, "width">> = (props) =
           onChange={handleOverviewChange}
           onReset={() => handleZoomXChange(defaultZoomX)}
           tickFormat={(value) => formatDuration(value.getTime() - timeRange[0].getTime())}
+          minTickSpacing={minTickSpacing}
         />
       )}
       {createPortal(

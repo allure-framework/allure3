@@ -28,6 +28,10 @@ const namespaces = [
   "nav",
   "charts",
   "transitions",
+  "timeline",
+  "overview",
+  "attachments",
+  "tree",
 ];
 
 export const currentLocale = signal<LangLocale>("" as LangLocale);

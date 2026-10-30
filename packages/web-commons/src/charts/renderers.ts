@@ -1,6 +1,6 @@
 import { ChartType } from "@allurereport/charts-api";
 
-export type ChartRenderer = "pie" | "bar" | "treemap" | "heatmap" | "funnel";
+export type ChartRenderer = "pie" | "bar" | "treemap" | "heatmap" | "funnel" | "run-trend";
 
 export const chartRenderers: Record<ChartType, ChartRenderer> = {
   [ChartType.CurrentStatus]: "pie",
@@ -16,6 +16,9 @@ export const chartRenderers: Record<ChartType, ChartRenderer> = {
   [ChartType.SuccessRateDistribution]: "treemap",
   [ChartType.ProblemsDistribution]: "heatmap",
   [ChartType.TestingPyramid]: "funnel",
+  [ChartType.DurationTrend]: "run-trend",
+  [ChartType.RetriesTrend]: "run-trend",
+  [ChartType.CategoriesTrend]: "run-trend",
 };
 
 export const collectChartAssetFeatures = (charts: readonly { type: string }[]): string[] | undefined => {

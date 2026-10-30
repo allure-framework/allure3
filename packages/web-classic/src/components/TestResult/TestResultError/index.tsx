@@ -1,57 +1,78 @@
-import type { TestError } from "@allurereport/core-api";
-import { copyToClipboard } from "@allurereport/web-commons";
-import { Code, IconButton, Text, TooltipWrapper, allureIcons } from "@allurereport/web-components";
+import type { TestError, TestStatus } from "@allurereport/core-api";
+import {
+  LazyComponent,
+  Spinner,
+  TestResultError as TestResultErrorBlock,
+  type TestResultErrorI18nKey,
+} from "@allurereport/web-components";
 import { type FunctionalComponent } from "preact";
-import { useState } from "preact/hooks";
 
+import { openModal } from "@/components/Modal";
 import { useI18n } from "@/stores/locale";
 
-import * as styles from "./styles.scss";
+const loadComparison = () =>
+  import(/* webpackChunkName: "error-diff" */ "./TestResultDiff").then((module) => ({
+    default: module.TestResultDiff,
+  }));
 
-const TestResultErrorTrace = ({ trace }: { trace: string }) => {
+const Comparison = (props: Required<Pick<TestError, "actual" | "expected">>) => {
+  const { t } = useI18n("controls");
+
   return (
-    <div data-testid="test-result-error-trace" className={styles["test-result-error-trace"]}>
-      <Code size={"s"} type={"ui"}>
-        <pre>{trace}</pre>
-      </Code>
-    </div>
+    <LazyComponent
+      loader={loadComparison}
+      componentProps={props}
+      fallback={<Spinner />}
+      errorMessage={t("loadComparisonError")}
+      retryLabel={t("retry")}
+    />
   );
 };
 
-export const TestResultError: FunctionalComponent<TestError> = ({ message, trace }) => {
-  const [isOpen, setIsOpen] = useState(false);
+export type TestResultErrorProps = TestError & {
+  status?: TestStatus;
+  className?: string;
+};
+
+export const TestResultError: FunctionalComponent<TestResultErrorProps> = ({
+  message,
+  trace,
+  actual,
+  expected,
+  status = "failed",
+  className,
+}) => {
   const { t } = useI18n("ui");
   const { t: tooltip } = useI18n("controls");
-  const toggleTrace = () => setIsOpen((open) => !open);
+  const { t: empty } = useI18n("empty");
+  const i18n = (key: TestResultErrorI18nKey) =>
+    ({
+      error: t("error"),
+      noMessage: empty("no-message-provided"),
+      copy: tooltip("clipboard"),
+      copied: tooltip("clipboardSuccess"),
+      showDiff: tooltip("showDiff"),
+    })[key];
+  const openDiff = () => {
+    if (!actual || !expected) return;
+    openModal({
+      title: tooltip("comparison"),
+      data: { actual, expected },
+      component: <Comparison actual={actual} expected={expected} />,
+    });
+  };
 
   return (
-    <div data-testid="test-result-error" className={styles["test-result-error"]}>
-      <div data-testid="test-result-error-header" className={styles["test-result-error-header"]}>
-        <Text tag={"p"} size={"m"} bold className={styles["test-result-error-text"]}>
-          {t("error")}
-        </Text>
-        <TooltipWrapper tooltipText={tooltip("clipboard")} tooltipTextAfterClick={tooltip("clipboardSuccess")}>
-          <IconButton
-            style={"ghost"}
-            size={"s"}
-            icon={allureIcons.lineGeneralCopy3}
-            onClick={() => {
-              copyToClipboard(message ?? "");
-            }}
-          />
-        </TooltipWrapper>
-      </div>
-      <button
-        type="button"
-        className={styles["test-result-error-message"]}
-        aria-label={t("error")}
-        onClick={toggleTrace}
-      >
-        <Code data-testid="test-result-error-message" size={"s"}>
-          <pre>{message}</pre>
-        </Code>
-      </button>
-      {isOpen && trace && <TestResultErrorTrace trace={trace} />}
-    </div>
+    <TestResultErrorBlock
+      message={message}
+      trace={trace}
+      actual={actual}
+      expected={expected}
+      status={status}
+      className={className}
+      i18n={i18n}
+      onShowDiff={openDiff}
+      persistentHeader
+    />
   );
 };

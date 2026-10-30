@@ -1,8 +1,12 @@
 import { randomUUID } from "node:crypto";
 
-import { defaultChartsConfig } from "@allurereport/charts-api";
+import { type ChartOptions, ChartType, defaultChartsConfig } from "@allurereport/charts-api";
 import {
+  type CategoryDefinition,
   type EnvironmentItem,
+  appLoaderFaviconDataUri,
+  createFaviconLinkTag,
+  type HistoryTestResultUrlResolver,
   type Statistic,
   type TreeGroup,
   type TreeLeaf,
@@ -37,12 +41,14 @@ import {
   getReportStaticAsset,
   readReportStaticAssets,
 } from "@allurereport/plugin-api/static-assets";
-import { generateCharts, getPieChartValues } from "@allurereport/web-commons";
+import { generateCharts, getPassedRate, getPieChartValues } from "@allurereport/web-commons";
 import Handlebars from "handlebars";
 
-import { matchCategories } from "./categories.js";
+import { matchClassicCategories, toCategoriesTreeItems } from "./categories.js";
 import { convertTestResult } from "./converters.js";
-import type { ClassicCategory, ClassicOptions } from "./model.js";
+import { resolveClassicHistoryUrl } from "./historyUrl.js";
+import type { ClassicOptions, IdeaLinksOptions } from "./model.js";
+import type { ClassicOverviewOptions } from "./overview.js";
 import type { ClassicDataWriter, ReportFile } from "./writer.js";
 
 const reportStaticArchive = new URL("../dist/static/report.tar", import.meta.url);
@@ -51,8 +57,9 @@ const template = `<!DOCTYPE html>
 <html dir="ltr" lang="en">
 <head>
     <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title> {{ reportName }} </title>
-    <link rel="icon" href="favicon.ico">
+    ${createFaviconLinkTag(appLoaderFaviconDataUri)}
     {{{ headTags }}}
     <script>
       window.allureReportOptions = {{{ reportOptions }}}
@@ -115,10 +122,20 @@ const createBreadcrumbs = (convertedTr: ReportTestResult) => {
   }, [] as string[][]);
 };
 
-export const generateTestResults = async (writer: ClassicDataWriter, store: AllureStore) => {
-  const allTr = await store.allTestResults({ includeRetries: true });
+export const generateTestResults = async (
+  writer: ClassicDataWriter,
+  store: AllureStore,
+  options: {
+    filter?: ClassicOptions["filter"];
+    categories?: CategoryDefinition[];
+    pluginId?: string;
+    ideaLinks?: boolean | IdeaLinksOptions;
+    resolveHistoryUrl?: HistoryTestResultUrlResolver;
+  } = {},
+) => {
+  const { filter, categories = [] } = options;
+  const allTr = await store.allTestResults({ includeRetries: true, filter });
   const related = await store.relatedByTestResultIds(allTr.map(({ id }) => id));
-  const categories: ClassicCategory[] = (await store.metadataByKey("allure2_categories")) ?? [];
   let convertedTrs: ReportTestResult[] = [];
 
   for (const tr of allTr) {
@@ -126,17 +143,13 @@ export const generateTestResults = async (writer: ClassicDataWriter, store: Allu
     const convertedTrFixtures: ReportFixtureResult[] = [...trFixtures]
       .sort(nullsLast(compareBy("start", ordinal())))
       .map(convertFixtureResult);
-    const convertedTr: ReportTestResult = convertTestResult(tr);
-    const { error, status, flaky } = convertedTr;
-    const matchedCategories = matchCategories(categories, {
-      message: error?.message,
-      trace: error?.trace,
-      status,
-      flaky,
-    });
+    const convertedTr: ReportTestResult = convertTestResult(tr, { ideaLinks: options.ideaLinks });
 
-    convertedTr.categories = matchedCategories;
-    convertedTr.history = related.historyByTrId.get(tr.id) ?? [];
+    convertedTr.categories = matchClassicCategories(categories, convertedTr);
+    convertedTr.history = (related.historyByTrId.get(tr.id) ?? []).map((item) => ({
+      ...item,
+      url: resolveClassicHistoryUrl(item, options.pluginId ?? "", options.resolveHistoryUrl),
+    }));
     convertedTr.retries = related.retriesByTrId.get(tr.id) ?? [];
     convertedTr.retry = convertedTr.retries.length > 0;
     convertedTr.isRetry = tr.isRetry;
@@ -216,19 +229,43 @@ export const generateStatistic = async (writer: ClassicDataWriter, statistic: St
 };
 
 export const generatePieChart = async (writer: ClassicDataWriter, statistic: Statistic) => {
-  const chartData = getPieChartValues(statistic);
+  // Allure 2 shows passed out of all tests, the same share as the Graphs "Current status" pie
+  const chartData = getPieChartValues(statistic, getPassedRate);
 
   await writer.writeWidget("allure_pie_chart.json", chartData);
 };
+
+/**
+ * Allure 2 keeps the trends of the last 20 runs
+ */
+const CLASSIC_TREND_LIMIT = 20;
+
+/**
+ * Charts of the classic Graphs page: the default charts and the Allure 2 trends missing among them
+ */
+export const classicChartsConfig: ChartOptions[] = [
+  ...defaultChartsConfig,
+  { type: ChartType.DurationTrend, limit: CLASSIC_TREND_LIMIT },
+  { type: ChartType.RetriesTrend, limit: CLASSIC_TREND_LIMIT },
+  { type: ChartType.CategoriesTrend, limit: CLASSIC_TREND_LIMIT },
+];
 
 export const generateAllCharts = async (
   writer: ClassicDataWriter,
   store: AllureStore,
   options: ClassicOptions,
   context: PluginContext,
+  categories?: CategoryDefinition[],
 ) => {
   const { filter } = options;
-  const generatedChartsData = await generateCharts(defaultChartsConfig, store, context.reportName, randomUUID, filter);
+  const generatedChartsData = await generateCharts(
+    classicChartsConfig,
+    store,
+    context.reportName,
+    randomUUID,
+    filter,
+    categories,
+  );
 
   if (Object.keys(generatedChartsData.general).length > 0) {
     await writer.writeWidget("charts.json", generatedChartsData);
@@ -236,14 +273,15 @@ export const generateAllCharts = async (
 };
 
 export const generateStaticFiles = async (
-  payload: ClassicOptions & {
-    allureVersion: string;
-    reportFiles: ReportFiles;
-    reportDataFiles: ReportFile[];
-    reportUuid: string;
-    reportName: string;
-    overviewHref?: string;
-  },
+  payload: Omit<ClassicOptions, "ci"> &
+    Partial<ClassicOverviewOptions> & {
+      allureVersion: string;
+      reportFiles: ReportFiles;
+      reportDataFiles: ReportFile[];
+      reportUuid: string;
+      reportName: string;
+      overviewHref?: string;
+    },
 ) => {
   const {
     reportName = "Allure Report",
@@ -256,6 +294,10 @@ export const generateStaticFiles = async (
     reportUuid,
     allureVersion,
     overviewHref,
+    ci,
+    git,
+    executor,
+    runSummary,
   } = payload;
   const staticAssets = await readReportStaticAssets(reportStaticArchive);
   const { manifest } = staticAssets;
@@ -306,6 +348,10 @@ export const generateStaticFiles = async (
     allureVersion,
     cacheKey: now.toString(),
     overviewHref,
+    ci,
+    git,
+    executor,
+    runSummary,
   };
 
   try {
@@ -314,7 +360,7 @@ export const generateStaticFiles = async (
       bodyTags: bodyTags.join("\n"),
       reportFilesScript: reportDataScriptPlaceholder,
       reportOptions: stringifyForInlineScript(reportOptions),
-      analyticsEnable: true,
+      analyticsEnable: process.env.ALLURE_NO_ANALYTICS?.toLowerCase() !== "true",
       allureVersion,
       reportUuid,
       reportName,
@@ -338,10 +384,8 @@ export const generateTreeByCategories = async (
   treeName: string,
   tests: ReportTestResult[],
 ) => {
-  const visibleTests = tests.filter((test) => !test.isRetry);
-
   const tree = createTreeByCategories<ReportTestResult, ReportTreeLeaf, ReportTreeGroup>(
-    visibleTests,
+    toCategoriesTreeItems(tests),
     ({ id, name, status, duration, flaky, transition, start, retries }: ReportTestResult) => {
       const retriesCount = retries?.length ?? 0;
 

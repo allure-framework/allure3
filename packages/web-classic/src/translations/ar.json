@@ -66,7 +66,8 @@
     "clear-filters": "مسح الفلاتر",
     "no-attachments-results": "لا تتوفر معلومات عن المرفقات",
     "no-history-results": "لا تتوفر معلومات عن السجل",
-    "no-retries-results": "لا تتوفر معلومات عن محاولات الإعادة"
+    "no-retries-results": "لا تتوفر معلومات عن محاولات الإعادة",
+    "no-test-steps-results": "لا تتوفر معلومات عن خطوات الاختبار"
   },
   "severity": {
     "blocker": "مانع",
@@ -97,7 +98,17 @@
     "showMore": "عرض المزيد",
     "copy": "نسخ",
     "attempt": "المحاولة {{attempt}} من {{total}}",
-    "at": "في"
+    "at": "في",
+    "generated": "تم الإنشاء",
+    "precondition": "الشرط المسبق",
+    "expectedResult": "النتيجة المتوقعة",
+    "categories": "الفئات",
+    "tags": "الوسوم",
+    "owner": "المالك",
+    "fullname": "الاسم الكامل",
+    "test-case-id": "معرّف حالة الاختبار",
+    "history-id": "معرّف السجل",
+    "successRate": "نسبة النجاح {{rate}}% ({{passed}} من {{total}})"
   },
   "controls": {
     "backToOverview": "العودة إلى النظرة العامة",
@@ -113,7 +124,24 @@
     "expand": "توسيع",
     "fullscreen": "ملء الشاشة",
     "language": "اللغة",
-    "openInNewTab": "فتح في علامة تبويب جديدة"
+    "openInNewTab": "فتح في علامة تبويب جديدة",
+    "theme": "تغيير السمة",
+    "showDiff": "عرض الاختلاف",
+    "comparison": "المقارنة",
+    "expected": "المتوقع",
+    "actual": "الفعلي",
+    "viewMode": "وضع العرض",
+    "unified": "موحد",
+    "side-by-side": "جنباً إلى جنب",
+    "compareBy": "مقارنة حسب",
+    "chars": "أحرف",
+    "words": "كلمات",
+    "lines": "أسطر",
+    "loadComparisonError": "تعذّر تحميل المقارنة",
+    "retry": "إعادة المحاولة",
+    "loadAttachmentViewerError": "تعذّر تحميل عارض المرفقات",
+    "previewAttachment": "معاينة",
+    "viewCode": "عرض الكود"
   },
   "errors": {
     "missedAttachment": "المرفق غير موجود"
@@ -131,17 +159,192 @@
   "charts": {
     "retry": "إعادة المحاولة",
     "loadError": "تعذّر تحميل الرسم البياني",
-    "trend": {
-      "title": "مخطط الاتجاه {{type}}"
+    "currentStatus": {
+      "title": "الحالة الحالية",
+      "status": {
+        "passed": "$t(statuses:passed, capitalize)",
+        "failed": "$t(statuses:failed, capitalize)",
+        "broken": "$t(statuses:broken, capitalize)",
+        "skipped": "$t(statuses:skipped, capitalize)",
+        "unknown": "$t(statuses:unknown, capitalize)"
+      },
+      "percentage": "{{percentage}}%",
+      "of": "من {{total}}",
+      "total": "الإجمالي",
+      "tests": {
+        "new_zero": "لا توجد اختبارات جديدة",
+        "new_one": "{{count}} اختبار جديد",
+        "new_other": "{{count}} اختبارات جديدة",
+        "flaky_zero": "لا توجد اختبارات غير مستقرة",
+        "flaky_one": "{{count}} اختبار غير مستقر",
+        "flaky_other": "{{count}} اختبارات غير مستقرة",
+        "retries_zero": "لا توجد اختبارات مُعاد محاولتها",
+        "retries_one": "{{count}} اختبار مُعاد محاولته",
+        "retries_other": "{{count}} اختبارات مُعاد محاولتها"
+      }
     },
-    "pie": {
-      "title": "معدل نجاح الاختبارات"
+    "statusDynamics": {
+      "title": "تطورات الحالة",
+      "status": {
+        "passed": "$t(statuses:passed, capitalize)",
+        "failed": "$t(statuses:failed, capitalize)",
+        "broken": "$t(statuses:broken, capitalize)",
+        "skipped": "$t(statuses:skipped, capitalize)",
+        "unknown": "$t(statuses:unknown, capitalize)"
+      },
+      "no-history": "$t(empty:no-history-results)",
+      "no-results": "$t(empty:no-results)",
+      "tooltips": {
+        "current": "أحدث تقرير ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "تقرير من {{timestamp, timestamp_long_no_seconds}}"
+      },
+      "ticks": {
+        "current": "الأحدث",
+        "history": "{{timestamp, timestamp_date}}"
+      }
+    },
+    "statusTransitions": {
+      "title": "انتقالات الحالة",
+      "legend": {
+        "trend": "معدل الإصلاح"
+      },
+      "transitions": {
+        "new": "$t(transitions:new, capitalize)",
+        "fixed": "$t(transitions:fixed, capitalize)",
+        "regressed": "$t(transitions:regressed, capitalize)",
+        "malfunctioned": "$t(transitions:malfunctioned, capitalize)"
+      },
+      "no-history": "$t(empty:no-history-results)",
+      "no-results": "$t(empty:no-results)",
+      "tooltips": {
+        "current": "أحدث تقرير ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "تقرير من {{timestamp, timestamp_long_no_seconds}}"
+      },
+      "ticks": {
+        "current": "الأحدث",
+        "history": "{{timestamp, timestamp_date}}"
+      }
+    },
+    "durations": {
+      "title": "مدد حسب {{groupBy}} - مخطط بياني",
+      "title_none": "مخطط بياني للمدد",
+      "no-results": "$t(empty:no-results)",
+      "groupBy": {
+        "none": "لا شيء",
+        "layer": "الطبقة"
+      },
+      "ticks": {
+        "durationRange": "{{from, format_duration}} - {{to, format_duration}}"
+      },
+      "tooltips": {
+        "durationRange": "{{from, format_duration}} - {{to, format_duration}}"
+      },
+      "legend": {
+        "value": "{{value}}",
+        "total": "عدد الاختبارات"
+      }
+    },
+    "stabilityDistribution": {
+      "title": "توزيع الاستقرار",
+      "no-results": "$t(empty:no-results)",
+      "legend": {
+        "stabilityRate": "معدل الاستقرار"
+      }
+    },
+    "testBaseGrowthDynamics": {
+      "title": "نمو قاعدة الاختبارات",
+      "status": {
+        "newpassed": "جديد $t(statuses:passed)",
+        "newfailed": "جديد $t(statuses:failed)",
+        "newbroken": "جديد $t(statuses:broken)",
+        "newskipped": "جديد $t(statuses:skipped)",
+        "newunknown": "جديد $t(statuses:unknown)",
+        "removedpassed": "محذوف $t(statuses:passed)",
+        "removedfailed": "محذوف $t(statuses:failed)",
+        "removedbroken": "محذوف $t(statuses:broken)",
+        "removedskipped": "محذوف $t(statuses:skipped)",
+        "removedunknown": "محذوف $t(statuses:unknown)"
+      },
+      "legend": {
+        "trend": "اتجاه النمو"
+      },
+      "no-history": "$t(empty:no-history-results)",
+      "no-results": "$t(empty:no-results)",
+      "tooltips": {
+        "current": "أحدث تقرير ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "تقرير من {{timestamp, timestamp_long_no_seconds}}"
+      },
+      "ticks": {
+        "current": "الأحدث",
+        "history": "{{timestamp, timestamp_date}}"
+      }
+    },
+    "statusAgePyramid": {
+      "title": "هرم عمر الحالة",
+      "status": {
+        "passed": "$t(statuses:passed, capitalize)",
+        "failed": "$t(statuses:failed, capitalize)",
+        "broken": "$t(statuses:broken, capitalize)",
+        "skipped": "$t(statuses:skipped, capitalize)",
+        "unknown": "$t(statuses:unknown, capitalize)"
+      },
+      "no-history": "$t(empty:no-history-results)",
+      "no-results": "$t(empty:no-results)",
+      "tooltips": {
+        "current": "أحدث تقرير ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "تقرير من {{timestamp, timestamp_long_no_seconds}}"
+      },
+      "ticks": {
+        "current": "الأحدث",
+        "history": "{{timestamp, timestamp_date}}"
+      }
+    },
+    "trSeverities": {
+      "title": "نتائج الاختبارات حسب الخطورة",
+      "no-results": "$t(empty:no-results)",
+      "status": {
+        "passed": "$t(statuses:passed, capitalize)",
+        "failed": "$t(statuses:failed, capitalize)",
+        "broken": "$t(statuses:broken, capitalize)",
+        "skipped": "$t(statuses:skipped, capitalize)",
+        "unknown": "$t(statuses:unknown, capitalize)"
+      },
+      "severity": {
+        "blocker": "$t(severity:blocker, capitalize)",
+        "critical": "$t(severity:critical, capitalize)",
+        "normal": "$t(severity:normal, capitalize)",
+        "minor": "$t(severity:minor, capitalize)",
+        "trivial": "$t(severity:trivial, capitalize)",
+        "unset": "بدون خطورة"
+      }
+    },
+    "durationDynamics": {
+      "title": "تطورات المدة",
+      "durations": {
+        "sequential": "المدة التسلسلية",
+        "duration": "مدة الاختبار",
+        "speedup": "التسريع"
+      },
+      "no-results": "$t(empty:no-results)",
+      "tooltips": {
+        "current": "أحدث تقرير ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "تقرير من {{timestamp, timestamp_long_no_seconds}}"
+      },
+      "ticks": {
+        "current": "الأحدث",
+        "history": "{{timestamp, timestamp_date}}"
+      },
+      "legend": {
+        "duration": "{{duration, format_duration}}",
+        "speedup": "{{speedup}}x"
+      }
     },
     "successRate": {
       "successRate": "نسبة النجاح: {{rate}}",
       "successRateDescription": "تُحسب من الاختبارات الناجحة والفاشلة والمتعطلة. تُستبعد الاختبارات المتخطاة وذات الحالة غير المعروفة.",
-      "noResults": "لا توجد نتائج اختبارات.",
       "noEligibleResults": "لا توجد اختبارات ناجحة أو فاشلة أو متعطلة. تُستبعد الاختبارات المتخطاة وذات الحالة غير المعروفة من نسبة النجاح.",
+      "noResults": "لا توجد نتائج اختبارات.",
+      "notAvailable": "غير متاح",
       "slice_one": "{{count}} اختبار ({{percent}}% من جميع الاختبارات)",
       "slice_other": "{{count}} اختبار ({{percent}}% من جميع الاختبارات)",
       "layer": "المستوى: {{layer}}",
@@ -151,6 +354,108 @@
       "slice_two": "{{count}} اختباران ({{percent}}% من جميع الاختبارات)",
       "slice_few": "{{count}} اختبارات ({{percent}}% من جميع الاختبارات)",
       "slice_many": "{{count}} اختبارًا ({{percent}}% من جميع الاختبارات)"
+    },
+    "trend": {
+      "title": "مخطط الاتجاه {{type}}"
+    },
+    "pie": {
+      "title": "معدل نجاح الاختبارات"
+    },
+    "runTrend": {
+      "empty": "$t(empty:no-results)",
+      "ticks": {
+        "current": "الأحدث",
+        "history": "{{timestamp, timestamp_date}}"
+      },
+      "tooltips": {
+        "current": "أحدث تقرير ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "تقرير من {{timestamp, timestamp_long_no_seconds}}"
+      }
+    },
+    "durationTrend": {
+      "duration": "المدة",
+      "value": "{{duration, format_duration}}",
+      "title": "اتجاه المدة"
+    },
+    "retriesTrend": {
+      "retry": "محاولات الإعادة",
+      "run": "الاختبارات",
+      "title": "اتجاه إعادة المحاولات"
+    },
+    "categoriesTrend": {
+      "title": "اتجاه الفئات"
     }
+  },
+  "transitions": {
+    "new": "جديد",
+    "fixed": "تم الإصلاح",
+    "regressed": "تراجع",
+    "malfunctioned": "خلل وظيفي"
+  },
+  "timeline": {
+    "empty": "لا توجد بيانات",
+    "selected_one": "تم تحديد {{ count }} اختبار ({{ percentage }}%) بمدة أكثر من {{ minDuration }} وأقل من {{ maxDuration }}",
+    "selected_other": "تم تحديد {{ count }} اختبارات ({{ percentage }}%) بمدة أكثر من {{ minDuration }} وأقل من {{ maxDuration }}",
+    "host": "المضيف: {{ host }}"
+  },
+  "overview": {
+    "summary": "الملخص",
+    "successRateDescription": "نسبة الاختبارات الناجحة من بين جميع الاختبارات.",
+    "dates": "{{start, timestamp_long}} – {{stop, timestamp_long}}",
+    "duration": "المدة: {{duration, format_duration}}",
+    "testCases_one": "حالة اختبار واحدة",
+    "testCases_other": "{{count}} حالة اختبار",
+    "suites": "المجموعات",
+    "features": "الميزات حسب القصص",
+    "categories": "الفئات",
+    "environment": "البيئة",
+    "executors": "المنفذون",
+    "itemsTotal_one": "عنصر واحد في المجموع",
+    "itemsTotal_other": "{{count}} عنصر في المجموع",
+    "showAll": "عرض الكل",
+    "noItems": "لا توجد عناصر",
+    "noEnvironment": "لا توجد متغيرات بيئة",
+    "noExecutors": "لا توجد معلومات عن منفذي الاختبارات",
+    "build": "البناء",
+    "ciBuild": "بناء CI",
+    "pullRequest": "Pull request",
+    "branch": "الفرع",
+    "commit": "الإيداع",
+    "testCases_zero": "لا حالات اختبار",
+    "testCases_two": "حالتا اختبار",
+    "testCases_few": "{{count}} حالات اختبار",
+    "testCases_many": "{{count}} حالة اختبار",
+    "itemsTotal_zero": "لا عناصر",
+    "itemsTotal_two": "عنصران في المجموع",
+    "itemsTotal_few": "{{count}} عناصر في المجموع",
+    "itemsTotal_many": "{{count}} عنصرًا في المجموع"
+  },
+  "attachments": {
+    "imageDiff": {
+      "mode": {
+        "diff": "الفرق",
+        "actual": "الفعلي",
+        "expected": "المتوقع",
+        "side-by-side": "جنباً إلى جنب",
+        "overlay": "تراكب"
+      },
+      "empty": {
+        "failed-to-load": "فشل تحميل فرق الصورة"
+      },
+      "image": {
+        "diff": "الفرق",
+        "actual": "الفعلي",
+        "expected": "المتوقع"
+      }
+    }
+  },
+  "tree": {
+    "collapse-all": "طي جميع المجموعات",
+    "expand-all": "توسيع جميع المجموعات",
+    "show-groups-info": "إظهار معلومات المجموعات",
+    "hide-groups-info": "إخفاء معلومات المجموعات",
+    "download-csv": "تنزيل CSV",
+    "flaky": "غير مستقر",
+    "retries": "إعادات المحاولة: {{count}}"
   }
 }

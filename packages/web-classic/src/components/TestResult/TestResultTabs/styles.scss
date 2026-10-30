@@ -39,6 +39,8 @@
 
   &[disabled] {
     opacity: 0.5;
+    cursor: default;
+    pointer-events: none;
   }
   &[aria-current] {
     background-color: var(--color-bg-primary);
