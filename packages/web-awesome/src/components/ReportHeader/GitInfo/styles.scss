@@ -1,10 +1,12 @@
 .git-info {
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
-  gap: 4px 16px;
-  margin-top: 4px;
+  gap: 4px 12px;
   color: var(--color-text-secondary);
+}
+
+.git-info li + li {
+  margin-top: 4px;
 }
 
 .git-info-item {
@@ -20,12 +22,16 @@
 }
 
 .git-info-value {
+  color: var(--color-text-secondary);
   min-width: 0;
   overflow-wrap: anywhere;
 }
 
+.git-info-icon {
+  color: var(--color-text-secondary);
+}
+
 a.git-info-item {
-  color: var(--color-text-primary);
   text-decoration: none;
 }
 
