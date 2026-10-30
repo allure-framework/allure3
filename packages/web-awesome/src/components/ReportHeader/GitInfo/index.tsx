@@ -1,6 +1,6 @@
 import { sanitizeExternalUrl } from "@allurereport/core-api";
 import { getReportOptions } from "@allurereport/web-commons";
-import { SvgIcon, allureIcons } from "@allurereport/web-components/core";
+import { Text, SvgIcon, allureIcons } from "@allurereport/web-components/core";
 
 import { getCiIconId, getCiLabel } from "@/components/Header/CiInfo";
 import { useI18n } from "@/stores/locale";
@@ -31,14 +31,15 @@ const GitValue = ({
   testId: string;
 }) => {
   const title = `${label}: ${value}`;
-  const content = (
+  const linkContent = (
     <>
-      <SvgIcon id={icon} size="s" aria-hidden="true" />
-      <span className={styles["git-info-value"]}>{text}</span>
+      <SvgIcon className={styles["git-info-icon"]} id={icon} size="xs" aria-hidden="true" />
+      <Text className={styles["git-info-value"]} type="ui" size="m">
+        {text}
+      </Text>
     </>
   );
-
-  return href ? (
+  const content = href ? (
     <a
       className={styles["git-info-item"]}
       href={href}
@@ -48,13 +49,15 @@ const GitValue = ({
       aria-label={title}
       data-testid={testId}
     >
-      {content}
+      {linkContent}
     </a>
   ) : (
     <span className={styles["git-info-item"]} title={title} data-testid={testId}>
-      {content}
+      {linkContent}
     </span>
   );
+
+  return <li>{content}</li>;
 };
 
 export const GitInfo = () => {
@@ -75,7 +78,7 @@ export const GitInfo = () => {
   }
 
   return (
-    <div className={styles["git-info"]} data-testid="git-info">
+    <ul className={styles["git-info"]} data-testid="git-info">
       {branch && (
         <GitValue
           label={t("gitBranch")}
@@ -104,6 +107,6 @@ export const GitInfo = () => {
           testId="git-info-ci"
         />
       )}
-    </div>
+    </ul>
   );
 };
