@@ -1,5 +1,5 @@
 export function normalizeAttachmentContentType(type: string): string;
-export function normalizeAttachmentContentType(type?: null | undefined): undefined;
+export function normalizeAttachmentContentType(type?: null): undefined;
 export function normalizeAttachmentContentType(type?: string | null): string | undefined;
 export function normalizeAttachmentContentType(type?: string | null): string | undefined {
   return type?.split(";")[0].trim().toLowerCase();

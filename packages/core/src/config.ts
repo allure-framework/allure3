@@ -11,6 +11,7 @@ import type { FullConfig, PluginInstance } from "./api.js";
 import { resolveCategories } from "./config/categories.js";
 import { resolveEnvironments } from "./config/environments.js";
 import { resolveHideLabels } from "./config/hideLabels.js";
+import { resolveQualityGate } from "./config/qualityGate.js";
 import { FileSystemReportFiles } from "./plugin.js";
 import { DEFAULT_KNOWN_ISSUES_PATH, resolveExactIssuesFilePath, validateResolutionsConfig } from "./resolutions.js";
 import {
@@ -413,7 +414,7 @@ export const resolveConfig = async (config: Config, override: ConfigOverride = {
     reportFiles: new FileSystemReportFiles(output),
     plugins: pluginInstances,
     defaultLabels: config.defaultLabels ?? {},
-    qualityGate: config.qualityGate,
+    qualityGate: resolveQualityGate(config.qualityGate),
     performance: config.performance,
     allureService: config.allureService
       ? {
