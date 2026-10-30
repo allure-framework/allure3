@@ -2,8 +2,13 @@ import { readFile, stat } from "node:fs/promises";
 import { extname, resolve } from "node:path";
 import * as process from "node:process";
 
-import { parseIntegerConfigValue, validateEnvironmentName, validatePerformanceConfig } from "@allurereport/core-api";
-import type { Config, Plugin, PluginConstructorContext, PluginDescriptor } from "@allurereport/plugin-api";
+import {
+  createNameContext,
+  parseIntegerConfigValue,
+  validateEnvironmentName,
+  validatePerformanceConfig,
+} from "@allurereport/core-api";
+import type { Config, PluginConstructor, PluginConstructorContext, PluginDescriptor } from "@allurereport/plugin-api";
 import { createJiti } from "jiti";
 import { parse } from "yaml";
 
@@ -11,6 +16,7 @@ import type { FullConfig, PluginInstance } from "./api.js";
 import { resolveCategories } from "./config/categories.js";
 import { resolveEnvironments } from "./config/environments.js";
 import { resolveHideLabels } from "./config/hideLabels.js";
+import { resolvePluginOptions } from "./config/pluginOptions.js";
 import { resolveQualityGate } from "./config/qualityGate.js";
 import { FileSystemReportFiles } from "./plugin.js";
 import { DEFAULT_KNOWN_ISSUES_PATH, resolveExactIssuesFilePath, validateResolutionsConfig } from "./resolutions.js";
@@ -26,8 +32,6 @@ import { importWrapper } from "./utils/module.js";
 import { normalizeImportPath } from "./utils/path.js";
 import { normalizeResultsDir } from "./utils/resultsDir.js";
 import { assertValidPluginIdForWindows, isWindows } from "./utils/windows.js";
-
-type PluginConstructor = new (options?: Record<string, any>, context?: PluginConstructorContext) => Plugin;
 
 export interface ConfigOverride {
   cwd?: string;
@@ -550,11 +554,18 @@ export const resolvePlugin = async (path: string): Promise<PluginConstructor> =>
 
 const resolvePlugins = async (plugins: Record<string, PluginDescriptor>) => {
   const pluginInstances: PluginInstance[] = [];
+  const context = createNameContext();
 
   for (const id in plugins) {
     const pluginConfig = plugins[id];
     const pluginId = getPluginId(id);
     const Plugin = await resolvePlugin(pluginConfig.import ?? id);
+    const options = resolvePluginOptions(
+      pluginConfig.options,
+      Plugin.configExpressions,
+      `plugins[${JSON.stringify(id)}].options`,
+      context,
+    );
     const enabled = pluginConfig.enabled ?? true;
     const constructorContext: PluginConstructorContext = {};
 
@@ -565,8 +576,8 @@ const resolvePlugins = async (plugins: Record<string, PluginDescriptor>) => {
     pluginInstances.push({
       id: pluginId,
       enabled,
-      options: pluginConfig.options ?? {},
-      plugin: new Plugin(pluginConfig.options, constructorContext),
+      options: options ?? {},
+      plugin: new Plugin(options, constructorContext),
     });
   }
 

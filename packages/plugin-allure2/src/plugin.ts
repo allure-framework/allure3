@@ -2,6 +2,7 @@ import type { EnvironmentItem } from "@allurereport/core-api";
 import {
   type AllureStore,
   type Plugin,
+  type PluginExpressionFields,
   type PluginContext,
   type PluginSummary,
   createPluginSummary,
@@ -41,6 +42,10 @@ import type {
 import { InMemoryReportDataWriter, ReportFileDataWriter } from "./writer.js";
 
 export class Allure2Plugin implements Plugin {
+  static readonly configExpressions = {
+    reportName: "name",
+  } as const satisfies PluginExpressionFields;
+
   constructor(readonly options: Allure2PluginOptions = {}) {}
 
   #generate = async (context: PluginContext, store: AllureStore) => {

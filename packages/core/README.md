@@ -91,6 +91,110 @@ variables or process environment variables. Missing labels are supplied as an em
 Environment expressions must return a boolean. Invalid expressions and evaluation failures throw
 with their configuration path; they do not fall through to another environment or `default`.
 
+### Plugin options
+
+Built-in plugin callback options accept CEL expressions wrapped in `${{ ... }}`:
+
+| Plugin | Option | Context | Result |
+| --- | --- | --- | --- |
+| Awesome, Classic, Dashboard, CSV, Log, TestOps | `filter` | `test`, `env` | Boolean |
+| Log | `qualityGateFilter` | `result`, `env` | Boolean |
+| CSV | `fields[].accessor` | `test`, `env` | String or `null` |
+| CSV | `sort` | `a`, `b`, `env` | Finite number |
+
+`test`, `a`, and `b` are test-result data. `result` is a quality-gate validation result,
+including fields such as `rule`, `success`, `actual`, and `message`. `env` contains defined
+process environment variables captured during configuration resolution; later environment changes
+do not affect these expressions. Optional fields should be guarded with `has(...)`. Expressions
+read the supplied test and quality-gate data directly.
+
+```yaml
+plugins:
+  export:
+    import: '@allurereport/plugin-csv'
+    options:
+      filter: >-
+        ${{ !has(env.ALLURE_EXPORT_STATUS) || test.status == env.ALLURE_EXPORT_STATUS }}
+      fields:
+        - header: Name
+          accessor: name
+        - header: Duration
+          accessor: "${{ has(test.duration) ? dyn(string(test.duration) + ' ms') : null }}"
+        - header: Error
+          accessor: "${{ has(test.error) && has(test.error.message) ? test.error.message : null }}"
+      sort: >-
+        ${{ has(a.duration) && has(b.duration)
+            ? a.duration - b.duration
+            : (has(a.duration) ? -1.0 : (has(b.duration) ? 1.0 : 0.0)) }}
+  log:
+    options:
+      filter: "${{ test.status == 'failed' }}"
+      qualityGateFilter: '${{ !result.success }}'
+```
+
+CSV property-name accessors such as `name` stay literal. Use CEL for nested paths or computed
+values, and convert numbers explicitly with `string(...)` for cells. `null` produces an empty
+cell; CSV quoting and escaping are handled by the plugin. Comparators receive `a` and `b` and
+return a negative number, zero, or a positive number. CEL integers are converted to JavaScript
+numbers only when safely representable; non-finite results and other result types are rejected.
+The example uses CEL's `dyn(...)` cast to allow a string-or-null result, leaves missing duration cells
+empty, and sorts untimed results last. Omitting `sort` keeps the plugin's default ordering.
+
+Expressions are compiled once before plugin construction and run synchronously. Syntax, evaluation,
+and result-type errors include the option's configuration path and fail the affected operation,
+like a thrown callback, rather than silently excluding tests. These options do not accept inline
+JavaScript bodies. Native JavaScript callbacks remain available in JavaScript configuration.
+
+Normalization follows the loaded constructor's optional `configExpressions` declarations, not its
+package name or configured key. Multiple instances can declare different expressions:
+
+```yaml
+plugins:
+  failures:
+    import: '@allurereport/plugin-csv'
+    options:
+      filter: "${{ test.status == 'failed' }}"
+  successes:
+    import: '@allurereport/plugin-csv'
+    options:
+      filter: "${{ test.status == 'passed' }}"
+```
+
+Third-party plugins opt in using the [plugin metadata contract](../plugin-api/README.md#configuration-expressions).
+Shared kinds cover names and predicates; plugins own custom resolver functions, including CSV's
+accessor and comparator handling. Custom resolvers receive the configured string, its path and
+captured environment variables. Only declared fields are interpreted. Plugins without metadata,
+undeclared fields, literal names and property accessors, and native callbacks retain their values.
+Errors identify the actual configured instance and field, such as `plugins["failures"].options.filter`.
+
+Log result filtering controls displayed quality-gate outcomes, not their success or exit status;
+test filters likewise select plugin output without changing the underlying results.
+
+### Plugin names and titles
+
+Plugin name expressions receive `env` and `date` and must return strings:
+
+| Plugin | Options |
+| --- | --- |
+| Awesome, Classic, Dashboard, Allure 2 | `reportName` |
+| Awesome | `charts[].title` |
+| Dashboard | `layout[].title` |
+| CSV | `fields[].header` |
+| TestOps | `launchName` |
+
+`env` contains defined process environment variables. `date` captures one UTC instant with `iso`,
+`isoDate`, `year`, `month`, `day` and `unixMs`. All plugin names share that captured context.
+Ordinary names remain literal; missing environment variables should be guarded with `has(...)`.
+
+```yaml
+plugins:
+  awesome:
+    options:
+      reportName: "${{ 'Nightly ' + date.isoDate }}"
+```
+
+This does not enable expressions in top-level report names, environment names or category names.
+
 ### Quality gates
 
 Quality-gate configuration supports CEL filters, messages, and computed values in YAML and JSON.
@@ -120,8 +224,8 @@ When `use` is omitted, all built-in rules are available. Supplying `use` replace
 include every rule referenced by `rules`, including built-ins. An empty list registers no rules.
 Missing implementations fail configuration loading with the offending rule's path.
 
-`rules[].filter` receives a plain-data `test` snapshot of the full test result and `env`, the same
-configuration-time environment snapshot used by enablement and expected-value expressions. Filters
+`rules[].filter` receives the full test result as `test`, plus `env`, the same configuration-time
+environment snapshot used by enablement and expected-value expressions. Filters
 must return a boolean; guard missing fields and variables with `has(...)`. For example:
 
 ```yaml
@@ -237,7 +341,6 @@ Evaluation failures and dynamically incompatible result types also throw with th
 boolean `false` is a normal predicate non-match; errors do not fall through to other matchers.
 Guard optional fields explicitly, for example `has(data.message) && data.message.contains('timeout')`.
 
-Only plain-data snapshots are supplied to these matching predicates, with no environment variables,
-filesystem, network, imports, plugin instances, or custom functions. Non-finite numbers, cycles, and
-non-plain data are rejected.
+Matching predicates read the supplied context directly, using their documented variables and CEL's
+registered built-in functions.
 

@@ -1,7 +1,5 @@
-import type { LabelMatcher } from "@allurereport/core-api";
+import { type LabelMatcher, compilePredicate, isExpression } from "@allurereport/core-api";
 import type { Config } from "@allurereport/plugin-api";
-
-import { compilePredicate, isExpression } from "./expressions.js";
 
 export const resolveHideLabels = (value: Config["hideLabels"]): LabelMatcher[] | undefined => {
   if (value === undefined) {

@@ -1,4 +1,3 @@
-import { ExpressionError } from "@allurereport/core-api";
 import { Environment } from "@marcbachmann/cel-js";
 
 export const isExpression = (value: string): boolean => value.trimStart().startsWith("${{");
@@ -10,44 +9,9 @@ type Variables = Record<string, "string" | "map" | "list" | typeof CEL_DYNAMIC_T
 type Predicate = (context: Record<string, unknown>) => boolean;
 type ExpressionOptions = { resultType?: "bool" | "string" };
 
-/** Copy only plain data into the evaluator, never live objects or capabilities. */
-const snapshotContext = (context: Record<string, unknown>, variables: Variables): Record<string, unknown> => {
-  const ancestors = new Set<object>();
-
-  const copy = (value: unknown): unknown => {
-    if (
-      value === null ||
-      typeof value === "string" ||
-      typeof value === "boolean" ||
-      (typeof value === "number" && Number.isFinite(value))
-    ) {
-      return value;
-    }
-    if (
-      typeof value !== "object" ||
-      value === null ||
-      ancestors.has(value) ||
-      (!Array.isArray(value) && ![Object.prototype, null].includes(Object.getPrototypeOf(value)))
-    ) {
-      throw new Error("expression context must contain only finite numbers and plain data");
-    }
-    ancestors.add(value);
-    try {
-      if (Array.isArray(value)) {
-        return value.map(copy);
-      }
-      return Object.fromEntries(
-        Object.entries(value)
-          .filter(([, item]) => item !== undefined)
-          .map(([key, item]) => [key, copy(item)]),
-      );
-    } finally {
-      ancestors.delete(value);
-    }
-  };
-
-  return Object.fromEntries(Object.keys(variables).map((key) => [key, copy(context[key])]));
-};
+export class ExpressionError extends Error {
+  override name = "ExpressionError";
+}
 
 /** Compile once and report failures with the configuration path. */
 export const compileExpression = (
@@ -82,7 +46,7 @@ export const compileExpression = (
     }
     return (context) => {
       try {
-        const result: unknown = expression(snapshotContext(context, variables));
+        const result: unknown = expression(context);
         if (options.resultType && typeof result !== (options.resultType === "bool" ? "boolean" : "string")) {
           throw new TypeError(`expression must return a ${options.resultType === "bool" ? "boolean" : "string"}`);
         }
@@ -100,4 +64,32 @@ export const compileExpression = (
 export const compilePredicate = (input: string, path: string, variables: Variables): Predicate => {
   const expression = compileExpression(input, path, variables, { resultType: "bool" });
   return (context) => expression(context) === true;
+};
+
+export type NameContext = ReturnType<typeof createNameContext>;
+
+/** Capture one UTC instant and environment for every name in a configuration. */
+export const createNameContext = () => {
+  const now = new Date();
+  const iso = now.toISOString();
+  return {
+    env: Object.fromEntries(
+      Object.entries(process.env).filter((entry): entry is [string, string] => entry[1] !== undefined),
+    ),
+    date: {
+      iso,
+      isoDate: iso.slice(0, 10),
+      year: now.getUTCFullYear(),
+      month: now.getUTCMonth() + 1,
+      day: now.getUTCDate(),
+      unixMs: now.getTime(),
+    },
+  };
+};
+
+export const resolveName = (value: string | undefined, path: string, context: NameContext): string | undefined => {
+  if (value === undefined || !isExpression(value)) {
+    return value;
+  }
+  return compileExpression(value, path, { env: "map", date: "map" }, { resultType: "string" })(context) as string;
 };
