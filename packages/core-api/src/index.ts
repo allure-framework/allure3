@@ -1,6 +1,5 @@
 export type * from "./aggregate.js";
 export * from "./constants.js";
-export * from "./errors.js";
 export * from "./ci.js";
 export * from "./gitFlow.js";
 export type * from "./environment.js";

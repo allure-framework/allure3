@@ -1,4 +1,3 @@
-import { ExpressionError } from "@allurereport/core-api";
 import { Environment } from "@marcbachmann/cel-js";
 
 export const isExpression = (value: string): boolean => value.trimStart().startsWith("${{");
@@ -9,6 +8,10 @@ export const CEL_DYNAMIC_TYPE = "dyn";
 type Variables = Record<string, "string" | "map" | "list" | typeof CEL_DYNAMIC_TYPE>;
 type Predicate = (context: Record<string, unknown>) => boolean;
 type ExpressionOptions = { resultType?: "bool" | "string" };
+
+export class ExpressionError extends Error {
+  override name = "ExpressionError";
+}
 
 /** Compile once and report failures with the configuration path. */
 export const compileExpression = (
