@@ -4,6 +4,7 @@ import { getReportOptions } from "@allurereport/web-commons";
 import { Heading, Loadable, Text } from "@allurereport/web-components/core";
 import type { ReportOptions } from "types";
 
+import { GitInfo } from "@/components/ReportHeader/GitInfo";
 import { ReportHeaderLogo } from "@/components/ReportHeader/ReportHeaderLogo";
 import { ReportHeaderPie } from "@/components/ReportHeader/ReportHeaderPie";
 import { TrStatus } from "@/components/TestResult/TrStatus";
@@ -88,6 +89,7 @@ export const ReportHeader = () => {
                 <Text type="paragraph" size="m" className={styles["report-date"]} data-testid="report-data">
                   {reportDate}
                 </Text>
+                <GitInfo />
               </div>
             );
           }}

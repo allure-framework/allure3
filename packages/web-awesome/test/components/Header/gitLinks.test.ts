@@ -3,7 +3,7 @@ import type { CiDescriptor } from "@allurereport/core-api";
 import { epic, feature, label, story } from "allure-js-commons";
 import { beforeEach, describe, expect, it } from "vite-plus/test";
 
-import { getGitLinks } from "@/components/Header/GitInfo/links";
+import { getGitLinks } from "@/components/ReportHeader/GitInfo/links";
 
 beforeEach(async () => {
   await epic("coverage");

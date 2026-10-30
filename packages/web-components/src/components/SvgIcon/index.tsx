@@ -35,6 +35,9 @@ import lineChartsTimeline from "@/assets/svg/line-charts-timeline.svg";
 import lineDevBug2 from "@/assets/svg/line-dev-bug-2.svg";
 import lineDevCodeSquare from "@/assets/svg/line-dev-code-square.svg";
 import lineDevDataflow3 from "@/assets/svg/line-dev-dataflow-3.svg";
+import lineDevGitBranch from "@/assets/svg/line-dev-git-branch.svg";
+import lineDevGitCommit from "@/assets/svg/line-dev-git-commit.svg";
+import lineDevGitPullRequest from "@/assets/svg/line-dev-git-pull-request.svg";
 import lineFilesClipboardCheck from "@/assets/svg/line-files-clipboard-check.svg";
 import lineFilesFile2 from "@/assets/svg/line-files-file-2.svg";
 import lineFilesFileAttachment2 from "@/assets/svg/line-files-file-attachment-2.svg";
@@ -124,6 +127,9 @@ const iconComponents: Partial<Record<string, ComponentType<SVGAttributes<SVGSVGE
   "line-dev-bug-2": lineDevBug2,
   "line-dev-code-square": lineDevCodeSquare,
   "line-dev-dataflow-3": lineDevDataflow3,
+  "line-dev-git-pull-request": lineDevGitPullRequest,
+  "line-dev-git-commit": lineDevGitCommit,
+  "line-dev-git-branch": lineDevGitBranch,
   "line-files-clipboard-check": lineFilesClipboardCheck,
   "line-files-file-2": lineFilesFile2,
   "line-files-file-attachment-2": lineFilesFileAttachment2,
@@ -209,6 +215,9 @@ export const allureIcons = {
   lineDevBug2: "line-dev-bug-2",
   lineDevCodeSquare: "line-dev-code-square",
   lineDevDataflow3: "line-dev-dataflow-3",
+  lineDevGitPullRequest: "line-dev-git-pull-request",
+  lineDevGitCommit: "line-dev-git-commit",
+  lineDevGitBranch: "line-dev-git-branch",
   lineFilesClipboardCheck: "line-files-clipboard-check",
   lineFilesFile2: "line-files-file-2",
   lineFilesFileAttachment2: "line-files-file-attachment-2",

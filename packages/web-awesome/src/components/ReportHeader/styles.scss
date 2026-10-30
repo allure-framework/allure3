@@ -10,13 +10,14 @@
 
 .report-wrapper {
   display: flex;
-  flex-wrap: wrap;
+  min-width: 0;
   flex-grow: 1;
 }
 
 .report-wrapper-text {
+  min-width: 0;
   flex-grow: 1;
-  margin-bottom: 16px;
+  margin-bottom: 8px;
 }
 
 .report-date {
@@ -34,6 +35,7 @@
 
 .report-header-pie {
   width: 88px;
+  flex-shrink: 0;
 }
 
 .report-header-pie-chart {
@@ -44,4 +46,26 @@
   display: flex;
   align-items: center;
   gap: 0 4px;
+}
+
+@media (max-width: 600px) {
+  .report-header {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 88px;
+    row-gap: 12px;
+  }
+
+  .report-wrapper {
+    display: contents;
+  }
+
+  .report-wrapper-text {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+
+  .report-header-pie {
+    grid-column: 2;
+    grid-row: 1;
+  }
 }
