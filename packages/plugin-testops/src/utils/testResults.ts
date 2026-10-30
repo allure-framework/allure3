@@ -71,6 +71,12 @@ const optionalArray = <T>(v: unknown, isItem: (x: unknown) => x is T): T[] | und
 
 const isAttachmentLink = (v: unknown): v is AttachmentLink => isObject(v) && hasString(v, "id");
 
+const toUploadLabels = (labels: TestOpsPluginTestResult["labels"] | undefined): UploadTestResultDto["labels"] =>
+  labels?.map(({ name, value }) => ({
+    name,
+    ...(value === undefined ? {} : { value: String(value) }),
+  }));
+
 export const toUploadTestResultDto = (tr: TestOpsPluginTestResult): UploadTestResultDto => {
   const attachments = optionalArray((tr as unknown as Record<string, unknown>).attachments, isAttachmentLink)?.map(
     toUploadAttachmentDto,
@@ -103,7 +109,7 @@ export const toUploadTestResultDto = (tr: TestOpsPluginTestResult): UploadTestRe
     ...(attachments ? { attachments } : {}),
     parameters: tr.parameters,
     links: tr.links,
-    labels: tr.labels,
+    labels: toUploadLabels(tr.labels),
   };
 };
 

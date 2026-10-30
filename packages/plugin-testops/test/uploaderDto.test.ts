@@ -2,7 +2,23 @@ import { describe, expect, it } from "vite-plus/test";
 
 import { getAttachmentIdsFromTestStepsResults } from "../src/utils/attachments.js";
 import { toUploadFixtureResultDto } from "../src/utils/fixtures.js";
-import { normalizeTestStepsResults, toUploadTestResultDto } from "../src/utils/testResults.js";
+import { normalizeTestStepsResults, toUploadResultsDto, toUploadTestResultDto } from "../src/utils/testResults.js";
+
+describe("uploader DTO label serialization", () => {
+  it("casts every present label value to a string for every result", () => {
+    const firstLabels = [{ name: "ALLURE_ID", value: 123 }, { name: "tag", value: false }, { name: "empty" }];
+    const result = toUploadResultsDto(1, [
+      { id: "first", name: "First", labels: firstLabels } as any,
+      { id: "second", name: "Second", labels: [{ name: "ALLURE_ID", value: 456 }] } as any,
+    ]);
+
+    expect(result.results?.map(({ labels }) => labels)).toEqual([
+      [{ name: "ALLURE_ID", value: "123" }, { name: "tag", value: "false" }, { name: "empty" }],
+      [{ name: "ALLURE_ID", value: "456" }],
+    ]);
+    expect(firstLabels).toEqual([{ name: "ALLURE_ID", value: 123 }, { name: "tag", value: false }, { name: "empty" }]);
+  });
+});
 
 describe("uploader DTO step serialization", () => {
   it("serializes the same nested step tree for test results and fixtures", () => {
