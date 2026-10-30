@@ -1,14 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!-- Generator: Adobe Illustrator 23.0.1, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
-<svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
-	 viewBox="0 0 1000 1000" style="enable-background:new 0 0 1000 1000;" xml:space="preserve">
-<g>
-	<path fill-rule="evenodd" clip-rule="evenodd" fill="#E2452A" d="M500,959.9L683.8,394H316.2L500,959.9z"/>
-	<path fill-rule="evenodd" clip-rule="evenodd" fill="#F36E2C" d="M500,959.9L316.2,394H58.6L500,959.9z"/>
-	<path fill-rule="evenodd" clip-rule="evenodd" fill="#FAA327" d="M58.6,394L2.7,566.1c-5.1,15.7,0.5,32.9,13.8,42.6L500,959.9L58.6,394z"/>
-	<path fill-rule="evenodd" clip-rule="evenodd" fill="#E2452A" d="M58.6,394h257.6L205.5,53.4c-5.7-17.5-30.5-17.5-36.2,0L58.6,394z"/>
-	<path fill-rule="evenodd" clip-rule="evenodd" fill="#F36E2C" d="M500,959.9L683.8,394h257.6L500,959.9z"/>
-	<path fill-rule="evenodd" clip-rule="evenodd" fill="#FAA327" d="M941.4,394l55.8,171.9c5.1,15.7-0.5,32.9-13.8,42.6L500,959.9L941.4,394z"/>
-	<path fill-rule="evenodd" clip-rule="evenodd" fill="#E2452A" d="M941.4,394H683.8L794.5,53.3c5.7-17.5,30.5-17.5,36.2,0L941.4,394z"/>
-</g>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none"><path d="m31.46 12.78-.04-.12-4.35-11.35A1.14 1.14 0 0 0 25.94.6c-.24 0-.47.1-.66.24-.19.15-.33.36-.39.6l-2.94 9h-11.9l-2.94-9A1.14 1.14 0 0 0 6.07.58a1.15 1.15 0 0 0-1.14.72L.58 12.68l-.05.11a8.1 8.1 0 0 0 2.68 9.34l.02.01.04.03 6.63 4.97 3.28 2.48 2 1.52a1.35 1.35 0 0 0 1.62 0l2-1.52 3.28-2.48 6.67-5h.02a8.09 8.09 0 0 0 2.7-9.36Z" fill="#E24329"/>
+  <path d="m31.46 12.78-.04-.12a14.75 14.75 0 0 0-5.86 2.64l-9.55 7.24 6.09 4.6 6.67-5h.02a8.09 8.09 0 0 0 2.67-9.36Z" fill="#FC6D26"/>
+  <path d="m9.9 27.14 3.28 2.48 2 1.52a1.35 1.35 0 0 0 1.62 0l2-1.52 3.28-2.48-6.1-4.6-6.07 4.6Z" fill="#FCA326"/>
+  <path d="M6.44 15.3a14.71 14.71 0 0 0-5.86-2.63l-.05.12a8.1 8.1 0 0 0 2.68 9.34l.02.01.04.03 6.63 4.97 6.1-4.6-9.56-7.24Z" fill="#FC6D26"/></svg>

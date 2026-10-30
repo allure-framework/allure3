@@ -41,6 +41,19 @@
 
   &__circleci {
     background-image: url(./circleci.svg);
+
+    @supports (mask-image: url("")) or (-webkit-mask-image: url("")) {
+      background-color: var(--color-icon-primary);
+      background-image: none;
+      mask-image: url(./circleci.svg);
+      mask-position: center;
+      mask-repeat: no-repeat;
+      mask-size: contain;
+      -webkit-mask-image: url(./circleci.svg);
+      -webkit-mask-position: center;
+      -webkit-mask-repeat: no-repeat;
+      -webkit-mask-size: contain;
+    }
   }
 
   &__bitbucket {
