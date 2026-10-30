@@ -20,12 +20,13 @@ const load = async (source: string) => {
 const run = async (report: AllureReport) => {
   await report.start();
   const inputs = [
-    { uuid: "slow", status: "failed", stop: 30, statusDetails: { message: 'a "quoted", error' } },
-    { uuid: "unselected", status: "passed", stop: 1 },
-    { uuid: "fast", status: "failed", stop: 10 },
+    { uuid: "untimed", status: "failed" },
+    { uuid: "slow", status: "failed", start: 0, stop: 30, statusDetails: { message: 'a "quoted", error' } },
+    { uuid: "unselected", status: "passed", start: 0, stop: 1 },
+    { uuid: "fast", status: "failed", start: 0, stop: 10 },
   ];
   for (const input of inputs) {
-    const result = { name: input.uuid, fullName: input.uuid, start: 0, ...input };
+    const result = { name: input.uuid, fullName: input.uuid, ...input };
     await report.readResult(new BufferResultFile(Buffer.from(JSON.stringify(result)), `${input.uuid}-result.json`));
   }
   if (report.hasQualityGate) {
@@ -49,10 +50,15 @@ plugins:
     import: '@allurereport/plugin-csv'
     options:
       filter: "\${{ test.status == 'failed' }}"
-      sort: '\${{ a.duration - b.duration }}'
+      sort: >-
+        \${{ has(a.duration) && has(b.duration)
+            ? a.duration - b.duration
+            : (has(a.duration) ? -1.0 : (has(b.duration) ? 1.0 : 0.0)) }}
       fields:
         - header: Name
           accessor: name
+        - header: Duration
+          accessor: "\${{ has(test.duration) ? dyn(string(test.duration) + ' ms') : null }}"
         - header: Error
           accessor: '\${{ has(test.error) && has(test.error.message) ? test.error.message : null }}'
 `);
@@ -61,7 +67,7 @@ plugins:
     await run(report);
     const content = await readFile(join(output, "export", "allure-report.csv"), "utf8");
 
-    expect(content).toBe('Name,Error\n"fast",\n"slow","a ""quoted"", error"');
+    expect(content).toBe('Name,Duration,Error\n"fast","10 ms",\n"slow","30 ms","a ""quoted"", error"\n"untimed",,');
   });
 
   it("applies independent test and quality-gate filters to real Log output", async () => {

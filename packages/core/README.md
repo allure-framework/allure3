@@ -119,10 +119,13 @@ plugins:
         - header: Name
           accessor: name
         - header: Duration
-          accessor: "${{ string(test.duration) + ' ms' }}"
+          accessor: "${{ has(test.duration) ? dyn(string(test.duration) + ' ms') : null }}"
         - header: Error
           accessor: "${{ has(test.error) && has(test.error.message) ? test.error.message : null }}"
-      sort: '${{ a.duration - b.duration }}'
+      sort: >-
+        ${{ has(a.duration) && has(b.duration)
+            ? a.duration - b.duration
+            : (has(a.duration) ? -1.0 : (has(b.duration) ? 1.0 : 0.0)) }}
   log:
     options:
       filter: "${{ test.status == 'failed' }}"
@@ -134,7 +137,8 @@ values, and convert numbers explicitly with `string(...)` for cells. `null` prod
 cell; CSV quoting and escaping are handled by the plugin. Comparators receive `a` and `b` and
 return a negative number, zero, or a positive number. CEL integers are converted to JavaScript
 numbers only when safely representable; non-finite results and other result types are rejected.
-Omitting `sort` keeps the plugin's default ordering.
+The example uses CEL's `dyn(...)` cast to allow a string-or-null result, leaves missing duration cells
+empty, and sorts untimed results last. Omitting `sort` keeps the plugin's default ordering.
 
 Expressions are compiled once before plugin construction and run synchronously. Syntax, evaluation,
 and result-type errors include the option's configuration path and fail the affected operation,
