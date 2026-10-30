@@ -1,6 +1,13 @@
 import * as console from "node:console";
 
-import { readConfig, readRawConfig, type FullConfig, type PluginInstance } from "@allurereport/core";
+import {
+  readConfig,
+  readRawConfig,
+  resolvePluginOptions,
+  type FullConfig,
+  type PluginInstance,
+} from "@allurereport/core";
+import { createNameContext } from "@allurereport/core-api";
 import type {
   AgentHumanReportMode,
   AgentHumanReportStatus,
@@ -71,7 +78,12 @@ const configuredAwesomeOptions = async (cwd: string, configPath?: string): Promi
     const descriptor = plugins[id];
 
     if (isAwesomeDescriptor(id, descriptor)) {
-      return (descriptor.options ?? {}) as AwesomePluginOptions;
+      return resolvePluginOptions(
+        descriptor.options ?? {},
+        AwesomePlugin.configExpressions,
+        `plugins[${JSON.stringify(id)}].options`,
+        createNameContext(),
+      ) as AwesomePluginOptions;
     }
   }
 

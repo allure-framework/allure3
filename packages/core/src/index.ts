@@ -9,6 +9,7 @@ export * from "./utils/resultsDir.js";
 export * from "./history.js";
 export * from "./resolutions.js";
 export { resolveConfig, readConfig, readRawConfig, getPluginInstance } from "./config.js";
+export { resolvePluginOptions } from "./config/pluginOptions.js";
 export * from "./report.js";
 export * from "./plugin.js";
 export {
