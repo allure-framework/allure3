@@ -35,9 +35,17 @@ export const readXcResultBundle = async (visitor: ResultsVisitor, directory: str
   return false;
 };
 
+let xcResultToolVersionPromise: Promise<string> | undefined;
+
+// The lookup is done once per process, so a slow `xcrun` call can't make different bundles see different answers.
+const getXcResultToolVersion = () => {
+  xcResultToolVersionPromise ??= version();
+  return xcResultToolVersionPromise;
+};
+
 export const isXcResultToolAvailable = async () => {
   try {
-    await version();
+    await getXcResultToolVersion();
     return true;
   } catch {
     return false;
@@ -46,7 +54,7 @@ export const isXcResultToolAvailable = async () => {
 
 const maybeGetXcResultToolVersion = async () => {
   try {
-    return await version();
+    return await getXcResultToolVersion();
   } catch (e) {
     console.error(XCRESULTTOOL_MISSING_MESSAGE);
     console.error(e);

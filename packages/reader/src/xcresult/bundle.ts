@@ -36,15 +36,16 @@ const bundleInfoFilePaths = new Set([
 export const IS_MAC = platform() === "darwin";
 
 /**
- * On Mac OS returns `true` if and only if the path points to a directory that has the `"com.apple.xcode.resultbundle"`
+ * On Mac OS returns `true` if the path points to a directory that has the `"com.apple.xcode.resultbundle"`
  * uniform type identifier in its content type tree.
- * On other platforms return `false`.
+ * Otherwise, and on other platforms, heuristics are used instead. The UTI might be missing because the path isn't
+ * indexed by Spotlight, or because Xcode, which declares the UTI, isn't installed.
  */
 export const isXcResultBundle = async (directory: string) => {
   const hasXcResultUti = IS_MAC
     ? await checkUniformTypeIdentifier(directory, "com.apple.xcode.resultbundle")
     : undefined;
-  return hasXcResultUti ?? (await isMostProbablyXcResultBundle(directory));
+  return hasXcResultUti || (await isMostProbablyXcResultBundle(directory));
 };
 
 /**
