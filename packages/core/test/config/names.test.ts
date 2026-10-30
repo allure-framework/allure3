@@ -44,10 +44,13 @@ describe("name and title expressions", () => {
     expect(input.environments!.linux.name).toBe(environmentName);
   });
 
-  it("uses the effective report name override without evaluating the replaced value", async () => {
-    const config = await resolveConfig({ name: "${{ missing }}" }, { name: datedName, plugins: {} });
+  it("keeps report name overrides literal without evaluating the overridden configuration value", async () => {
+    vi.stubEnv("ALLURE_TOKEN", "fake-sensitive-value");
+    const reportName = "${{ env.ALLURE_TOKEN }}";
 
-    expect(config.name).toBe("nightly / 2026-10-27");
+    const config = await resolveConfig({ name: "${{ missing }}" }, { name: reportName, plugins: {} });
+
+    expect(config.name).toBe(reportName);
   });
 
   it.each([false, true])("resolves category names in the object form: %s", async (objectForm) => {
