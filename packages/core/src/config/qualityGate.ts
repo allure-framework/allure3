@@ -103,7 +103,7 @@ export const resolveQualityGate = (input: QualityGateConfigInput | undefined): Q
     return invalid("qualityGate.enabled", "expected a boolean");
   }
   if (!enabled) {
-    return undefined;
+    return { enabled: false };
   }
   if (input.use !== undefined && !Array.isArray(input.use)) {
     return invalid("qualityGate.use", "expected a list of rule definitions");

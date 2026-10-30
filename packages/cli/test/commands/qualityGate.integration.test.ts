@@ -10,15 +10,17 @@ import { afterEach, describe, expect, it } from "vite-plus/test";
 const execute = promisify(execFile);
 const cli = fileURLToPath(new URL("../../cli.js", import.meta.url));
 const directories: string[] = [];
-const runGate = async (config: string, flags: string[] = []) => {
+const runGate = async (config: string, flags: string[] = [], { withResults = true } = {}) => {
   const cwd = await mkdtemp(join(tmpdir(), "allure-inline-quality-gate-"));
   directories.push(cwd);
   const results = join(cwd, "allure-results");
-  await mkdir(results);
-  await writeFile(
-    join(results, "test-result.json"),
-    JSON.stringify({ name: "Passed test", fullName: "Passed test", status: "passed", start: 1, stop: 2 }),
-  );
+  if (withResults) {
+    await mkdir(results);
+    await writeFile(
+      join(results, "test-result.json"),
+      JSON.stringify({ name: "Passed test", fullName: "Passed test", status: "passed", start: 1, stop: 2 }),
+    );
+  }
   await writeFile(join(cwd, "allurerc.yml"), config);
   const env = { ...process.env };
   delete env.ALLURE_CLI_ACTIVE_COMMAND;
@@ -39,6 +41,37 @@ afterEach(async () => {
 });
 
 describe("serialized quality-gate command", () => {
+  it("skips a disabled gate without requiring result directories", async () => {
+    const result = await runGate(
+      `
+qualityGate:
+  enabled: false
+  use:
+    - rule: unused
+      message: 'Unused rule'
+      validate: 'invalid JavaScript {'
+`,
+      [],
+      { withResults: false },
+    );
+
+    expect(result.code).toBe(0);
+    expect(result.stdout + result.stderr).toContain("Quality gate is disabled");
+  });
+
+  it("runs explicit CLI thresholds even when the configured gate is disabled", async () => {
+    const result = await runGate(
+      `
+qualityGate:
+  enabled: false
+`,
+      ["--min-tests-count", "2"],
+    );
+
+    expect(result.code).toBe(1);
+    expect(result.stdout + result.stderr).toContain("minTestsCount");
+  });
+
   it("executes a YAML inline validator against real result files", async () => {
     const result = await runGate(`
 qualityGate:
