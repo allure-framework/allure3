@@ -108,7 +108,21 @@ replaced configuration value. Report-name expressions belong in the configuratio
 
 Environment and date values are captured once when configuration resolves, including for
 `allure watch`. Existing name validation still applies: environment display names cannot contain
-path-like segments. Use stable category IDs when generating names that change between runs.
+path-like segments.
+
+Category names written as expressions require an explicit `id`. Keep the ID literal and stable so
+changing display names do not change category identity between runs:
+
+```yaml
+categories:
+  - id: infrastructure
+    name: "${{ 'Infrastructure / ' + date.isoDate }}"
+    matchers:
+      statuses: [broken]
+```
+
+This applies to both category configuration forms: an array and `{ rules: [...] }`. Literal category
+names do not require an explicit ID.
 
 ### Allure Service token
 
