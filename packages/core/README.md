@@ -105,8 +105,8 @@ Built-in plugin callback options accept CEL expressions wrapped in `${{ ... }}`:
 `test`, `a`, and `b` are test-result data. `result` is a quality-gate validation result,
 including fields such as `rule`, `success`, `actual`, and `message`. `env` contains defined
 process environment variables captured during configuration resolution; later environment changes
-do not affect these expressions. Optional fields should be guarded with `has(...)`. Inputs are
-plain-data copies, not live plugin or store objects.
+do not affect these expressions. Optional fields should be guarded with `has(...)`. Expressions
+read the supplied test and quality-gate data directly.
 
 ```yaml
 plugins:
@@ -179,8 +179,8 @@ When `use` is omitted, all built-in rules are available. Supplying `use` replace
 include every rule referenced by `rules`, including built-ins. An empty list registers no rules.
 Missing implementations fail configuration loading with the offending rule's path.
 
-`rules[].filter` receives a plain-data `test` snapshot of the full test result and `env`, the same
-configuration-time environment snapshot used by enablement and expected-value expressions. Filters
+`rules[].filter` receives the full test result as `test`, plus `env`, the same configuration-time
+environment snapshot used by enablement and expected-value expressions. Filters
 must return a boolean; guard missing fields and variables with `has(...)`. For example:
 
 ```yaml
@@ -296,7 +296,6 @@ Evaluation failures and dynamically incompatible result types also throw with th
 boolean `false` is a normal predicate non-match; errors do not fall through to other matchers.
 Guard optional fields explicitly, for example `has(data.message) && data.message.contains('timeout')`.
 
-Only plain-data snapshots are supplied to these matching predicates, with no environment variables,
-filesystem, network, imports, plugin instances, or custom functions. Non-finite numbers, cycles, and
-non-plain data are rejected.
+Matching predicates read the supplied context directly, using their documented variables and CEL's
+registered built-in functions.
 
