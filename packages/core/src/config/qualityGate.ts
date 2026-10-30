@@ -1,3 +1,4 @@
+import { CEL_DYNAMIC_TYPE, compileExpression, isExpression } from "@allurereport/core-api";
 import type {
   QualityGateConfig,
   QualityGateConfigInput,
@@ -6,7 +7,6 @@ import type {
 } from "@allurereport/plugin-api";
 
 import { qualityGateDefaultRules } from "../qualityGate/rules.js";
-import { CEL_DYNAMIC_TYPE, compileExpression, isExpression } from "./expressions.js";
 import { evaluateGateValue, resolveExpected, validateExpected } from "./qualityGateValues.js";
 
 const invalid = (path: string, message: string): never => {

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vite-plus/test";
 
-import { CEL_DYNAMIC_TYPE, compileExpression } from "../../src/config/expressions.js";
+import { CEL_DYNAMIC_TYPE, compileExpression } from "../../src/utils/expression.js";
 
 describe("strict configuration expression values", () => {
   it("evaluates declared dynamic values without boolean coercion", () => {

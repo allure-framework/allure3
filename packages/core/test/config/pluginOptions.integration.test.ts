@@ -70,6 +70,38 @@ plugins:
     expect(content).toBe('Name,Duration,Error\n"fast","10 ms",\n"slow","30 ms","a ""quoted"", error"\n"untimed",,');
   });
 
+  it("generates independent CSV exports from two instances of the same plugin", async () => {
+    const { config, output } = await load(`
+plugins:
+  failures:
+    import: '@allurereport/plugin-csv'
+    options:
+      fileName: failures.csv
+      filter: "\${{ test.status == 'failed' }}"
+      sort: >-
+        \${{ has(a.duration) && has(b.duration) ? a.duration - b.duration : has(a.duration) ? -1.0 : has(b.duration) ? 1.0 : 0.0 }}
+      fields:
+        - header: '\${{ "Failure" }}'
+          accessor: '\${{ test.name }}'
+  successes:
+    import: '@allurereport/plugin-csv'
+    options:
+      fileName: successes.csv
+      filter: "\${{ test.status == 'passed' }}"
+      fields:
+        - header: Name
+          accessor: name
+`);
+    const report = new AllureReport(config);
+
+    await run(report);
+    const failures = await readFile(join(output, "failures", "failures.csv"), "utf8");
+    const successes = await readFile(join(output, "successes", "successes.csv"), "utf8");
+
+    expect(failures).toBe('Failure\n"fast"\n"slow"\n"untimed"');
+    expect(successes).toBe('Name\n"unselected"');
+  });
+
   it("applies independent test and quality-gate filters to real Log output", async () => {
     const info = vi.spyOn(console, "info").mockImplementation(() => {});
     const { config } = await load(`

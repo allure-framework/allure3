@@ -145,10 +145,55 @@ and result-type errors include the option's configuration path and fail the affe
 like a thrown callback, rather than silently excluding tests. These options do not accept inline
 JavaScript bodies. Native JavaScript callbacks remain available in JavaScript configuration.
 
-Normalization applies only to the listed built-in implementations, including explicit package
-imports and custom instance IDs. Third-party plugin options and unrelated strings are not
-interpreted. Log result filtering controls displayed quality-gate outcomes, not their success or
-exit status; test filters likewise select plugin output without changing the underlying results.
+Normalization follows the loaded constructor's optional `configExpressions` declarations, not its
+package name or configured key. Multiple instances can declare different expressions:
+
+```yaml
+plugins:
+  failures:
+    import: '@allurereport/plugin-csv'
+    options:
+      filter: "${{ test.status == 'failed' }}"
+  successes:
+    import: '@allurereport/plugin-csv'
+    options:
+      filter: "${{ test.status == 'passed' }}"
+```
+
+Third-party plugins opt in using the [plugin metadata contract](../plugin-api/README.md#configuration-expressions).
+Shared kinds cover names and predicates; plugins own custom resolver functions, including CSV's
+accessor and comparator handling. Custom resolvers receive the configured string, its path and
+captured environment variables. Only declared fields are interpreted. Plugins without metadata,
+undeclared fields, literal names and property accessors, and native callbacks retain their values.
+Errors identify the actual configured instance and field, such as `plugins["failures"].options.filter`.
+
+Log result filtering controls displayed quality-gate outcomes, not their success or exit status;
+test filters likewise select plugin output without changing the underlying results.
+
+### Plugin names and titles
+
+Plugin name expressions receive `env` and `date` and must return strings:
+
+| Plugin | Options |
+| --- | --- |
+| Awesome, Classic, Dashboard, Allure 2 | `reportName` |
+| Awesome | `charts[].title` |
+| Dashboard | `layout[].title` |
+| CSV | `fields[].header` |
+| TestOps | `launchName` |
+
+`env` contains defined process environment variables. `date` captures one UTC instant with `iso`,
+`isoDate`, `year`, `month`, `day` and `unixMs`. All plugin names share that captured context.
+Ordinary names remain literal; missing environment variables should be guarded with `has(...)`.
+
+```yaml
+plugins:
+  awesome:
+    options:
+      reportName: "${{ 'Nightly ' + date.isoDate }}"
+```
+
+This does not enable expressions in top-level report names, environment names or category names.
 
 ### Quality gates
 

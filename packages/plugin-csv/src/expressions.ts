@@ -1,9 +1,11 @@
-import type { TestResult } from "@allurereport/core-api";
+import { type TestResult, compileExpression, isExpression } from "@allurereport/core-api";
+import type { PluginExpressionContext } from "@allurereport/plugin-api";
 import { UnsignedInt } from "@marcbachmann/cel-js/evaluator";
 
-import { compileExpression } from "./expressions.js";
-
-export const compileCsvAccessor = (source: string, path: string, env: Record<string, string>) => {
+export const resolveCsvAccessor = (source: string, { path, env }: PluginExpressionContext) => {
+  if (!isExpression(source)) {
+    return source;
+  }
   const evaluate = compileExpression(source, path, { test: "map", env: "map" });
   return (test: TestResult): string | undefined => {
     const result = evaluate({ test, env });
@@ -17,7 +19,7 @@ export const compileCsvAccessor = (source: string, path: string, env: Record<str
   };
 };
 
-export const compileCsvComparator = (source: string, path: string, env: Record<string, string>) => {
+export const resolveCsvComparator = (source: string, { path, env }: PluginExpressionContext) => {
   const evaluate = compileExpression(source, path, { a: "map", b: "map", env: "map" });
   return (a: TestResult, b: TestResult): number => {
     const result = evaluate({ a, b, env });

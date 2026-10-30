@@ -2,6 +2,7 @@ import type { EnvironmentItem } from "@allurereport/core-api";
 import {
   type AllureStore,
   type Plugin,
+  type PluginExpressionFields,
   type PluginContext,
   type PluginSummary,
   createPluginSummary,
@@ -23,6 +24,11 @@ import type { ClassicPluginOptions } from "./model.js";
 import { type ClassicDataWriter, InMemoryReportDataWriter, ReportFileDataWriter } from "./writer.js";
 
 export class ClassicPlugin implements Plugin {
+  static readonly configExpressions = {
+    filter: "testFilter",
+    reportName: "name",
+  } as const satisfies PluginExpressionFields;
+
   #writer: ClassicDataWriter | undefined;
 
   constructor(readonly options: ClassicPluginOptions = {}) {}

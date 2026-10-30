@@ -2,8 +2,13 @@ import { readFile, stat } from "node:fs/promises";
 import { extname, resolve } from "node:path";
 import * as process from "node:process";
 
-import { parseIntegerConfigValue, validateEnvironmentName, validatePerformanceConfig } from "@allurereport/core-api";
-import type { Config, Plugin, PluginConstructorContext, PluginDescriptor } from "@allurereport/plugin-api";
+import {
+  createNameContext,
+  parseIntegerConfigValue,
+  validateEnvironmentName,
+  validatePerformanceConfig,
+} from "@allurereport/core-api";
+import type { Config, PluginConstructor, PluginConstructorContext, PluginDescriptor } from "@allurereport/plugin-api";
 import { createJiti } from "jiti";
 import { parse } from "yaml";
 
@@ -27,8 +32,6 @@ import { importWrapper } from "./utils/module.js";
 import { normalizeImportPath } from "./utils/path.js";
 import { normalizeResultsDir } from "./utils/resultsDir.js";
 import { assertValidPluginIdForWindows, isWindows } from "./utils/windows.js";
-
-type PluginConstructor = new (options?: Record<string, any>, context?: PluginConstructorContext) => Plugin;
 
 export interface ConfigOverride {
   cwd?: string;
@@ -551,19 +554,17 @@ export const resolvePlugin = async (path: string): Promise<PluginConstructor> =>
 
 const resolvePlugins = async (plugins: Record<string, PluginDescriptor>) => {
   const pluginInstances: PluginInstance[] = [];
-  const env = Object.fromEntries(
-    Object.entries(process.env).filter((entry): entry is [string, string] => entry[1] !== undefined),
-  );
+  const context = createNameContext();
 
   for (const id in plugins) {
     const pluginConfig = plugins[id];
     const pluginId = getPluginId(id);
     const Plugin = await resolvePlugin(pluginConfig.import ?? id);
-    const options = await resolvePluginOptions(
-      Plugin,
+    const options = resolvePluginOptions(
       pluginConfig.options,
+      Plugin.configExpressions,
       `plugins[${JSON.stringify(id)}].options`,
-      env,
+      context,
     );
     const enabled = pluginConfig.enabled ?? true;
     const constructorContext: PluginConstructorContext = {};
