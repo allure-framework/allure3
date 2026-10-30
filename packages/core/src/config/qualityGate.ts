@@ -7,7 +7,6 @@ import type {
 
 import { qualityGateDefaultRules } from "../qualityGate/rules.js";
 import { CEL_DYNAMIC_TYPE, compileExpression, isExpression } from "./expressions.js";
-import { compileQualityGateScript } from "./qualityGateScript.js";
 import { evaluateGateValue, resolveExpected, validateExpected } from "./qualityGateValues.js";
 
 const invalid = (path: string, message: string): never => {
@@ -61,23 +60,27 @@ const resolveRule = (input: QualityGateRuleInput, path: string): QualityGateRule
   if (typeof input === "string") {
     return builtin ?? invalid(path, `unknown built-in rule ${name}`);
   }
-  const validate =
-    typeof input.validate === "string"
-      ? compileQualityGateScript(input.validate, `${path}.validate`)
-      : (input.validate ?? builtin?.validate);
+  if (input.validate !== undefined && typeof input.validate !== "function") {
+    return invalid(
+      `${path}.validate`,
+      "expected a validator function; use a JavaScript configuration file for custom validation",
+    );
+  }
+  const inherited = input.validate === undefined ? builtin : undefined;
+  const validate = input.validate ?? inherited?.validate;
   const resolvedMessage = message(
     input.message,
     `${path}.message`,
-    builtin?.message,
+    inherited?.message,
     `Quality gate rule ${name} failed`,
   );
-  if (!validate || typeof validate !== "function" || !resolvedMessage) {
+  if (!validate || !resolvedMessage) {
     return invalid(path, "a custom rule requires validate and message");
   }
   const successMessage = message(
     input.successMessage,
     `${path}.successMessage`,
-    builtin?.successMessage,
+    inherited?.successMessage,
     `Quality gate rule ${name} passed`,
   );
   if (input.validate === validate && input.message === resolvedMessage && input.successMessage === successMessage) {

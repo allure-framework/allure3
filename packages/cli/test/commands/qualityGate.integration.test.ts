@@ -11,7 +11,7 @@ const execute = promisify(execFile);
 const cli = fileURLToPath(new URL("../../cli.js", import.meta.url));
 const directories: string[] = [];
 const runGate = async (config: string, flags: string[] = [], { withResults = true } = {}) => {
-  const cwd = await mkdtemp(join(tmpdir(), "allure-inline-quality-gate-"));
+  const cwd = await mkdtemp(join(tmpdir(), "allure-quality-gate-"));
   directories.push(cwd);
   const results = join(cwd, "allure-results");
   if (withResults) {
@@ -46,10 +46,8 @@ describe("serialized quality-gate command", () => {
       `
 qualityGate:
   enabled: false
-  use:
-    - rule: unused
-      message: 'Unused rule'
-      validate: 'invalid JavaScript {'
+  rules:
+    - minTestsCount: 2
 `,
       [],
       { withResults: false },
@@ -72,38 +70,30 @@ qualityGate:
     expect(result.stdout + result.stderr).toContain("minTestsCount");
   });
 
-  it("executes a YAML inline validator against real result files", async () => {
+  it("runs a YAML builtin rule with an expression filter against real result files", async () => {
     const result = await runGate(`
 qualityGate:
   rules:
-    - count: 1
+    - minTestsCount: 1
+      filter: "\${{ test.status == 'passed' }}"
   use:
-    - rule: count
-      message: 'Unexpected count'
-      validate: |
-        return { success: trs.length === expected, actual: trs.length, testResults: [] };
+    - minTestsCount
 `);
 
     expect(result.code).toBe(0);
   });
 
-  it("replaces configured custom validators with explicit CLI thresholds", async () => {
+  it("replaces configured rules with explicit CLI thresholds", async () => {
     const result = await runGate(
       `
 qualityGate:
   rules:
-    - custom: 0
-  use:
-    - rule: custom
-      message: 'Should not execute'
-      validate: |
-        throw new Error('configured custom validator executed');
+    - minTestsCount: 2
 `,
       ["--max-failures", "0"],
     );
 
     expect(result.code).toBe(0);
-    expect(result.stdout + result.stderr).not.toContain("configured custom validator executed");
   });
 
   it.each([
@@ -111,11 +101,6 @@ qualityGate:
     {
       input: 'rules:\n    - maxFailures: 0\n      filter: "${{ test.missing == true }}"',
       path: "qualityGate.rules[0].filter",
-    },
-    {
-      input:
-        "rules:\n    - custom: 0\n  use:\n    - rule: custom\n      message: 'Invalid script'\n      validate: |\n        throw new Error('validation failed');",
-      path: "qualityGate.use[0].validate",
     },
   ])("returns a non-success exit for invalid configuration or execution: $path", async ({ input, path }) => {
     const result = await runGate(`qualityGate:\n  ${input}\n`);

@@ -9,8 +9,7 @@ export type QualityGateRuleInput =
       rule: string;
       message?: string | RegisteredQualityGateRule["message"];
       successMessage?: string | RegisteredQualityGateRule["successMessage"];
-      /** Trusted async JavaScript function body, or a native JavaScript validator. */
-      validate?: string | RegisteredQualityGateRule["validate"];
+      validate?: RegisteredQualityGateRule["validate"];
     };
 
 export type QualityGateRulesInput = Omit<QualityGateRules, "filter"> & {
