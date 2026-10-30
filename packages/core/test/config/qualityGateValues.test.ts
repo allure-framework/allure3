@@ -43,12 +43,12 @@ describe("quality-gate load-time expressions", () => {
         {
           rule: "custom",
           message: "Custom threshold exceeded",
-          validate: "return { success: true, actual: expected, testResults: [] }",
+          validate: async ({ expected }) => ({ success: true, actual: expected, testResults: [] }),
         },
         {
           rule: "limits",
           message: "Limits exceeded",
-          validate: "return { success: true, actual: expected, testResults: [] }",
+          validate: async ({ expected }) => ({ success: true, actual: expected, testResults: [] }),
         },
       ],
     });
@@ -61,13 +61,14 @@ describe("quality-gate load-time expressions", () => {
   });
 
   it.each([false, "${{ has(env.ALLURE_TEST_GATE) && env.ALLURE_TEST_GATE == 'true' }}"])(
-    "preserves disabled gates without compiling scripts: %s",
+    "preserves disabled gates without evaluating thresholds: %s",
     async (enabled) => {
       vi.stubEnv("ALLURE_TEST_GATE", "false");
+      vi.stubEnv("ALLURE_DISABLED_MIN_TESTS", undefined);
 
       const config = await resolve({
         enabled,
-        use: [{ rule: "unused", message: "unused", validate: "invalid JavaScript {" }],
+        rules: [{ minTestsCount: "${{ int(env.ALLURE_DISABLED_MIN_TESTS) }}" }],
       });
 
       expect(config).toEqual({ enabled: false });
@@ -112,7 +113,7 @@ describe("quality-gate load-time expressions", () => {
         {
           rule: "maxFailures",
           message: "custom",
-          validate: "return { success: true, actual: expected, testResults: [] }",
+          validate: async ({ expected }) => ({ success: true, actual: expected, testResults: [] }),
         },
       ],
     });

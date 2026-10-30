@@ -15,6 +15,12 @@ const load = async (source: string) => {
   await writeFile(join(cwd, "allurerc.yml"), source);
   return readConfig(cwd, undefined, { plugins: {} });
 };
+const loadJavaScript = async (source: string) => {
+  const cwd = await mkdtemp(join(tmpdir(), "allure-quality-gate-config-"));
+  directories.push(cwd);
+  await writeFile(join(cwd, "allurerc.mjs"), source);
+  return readConfig(cwd, undefined, { plugins: {} });
+};
 const testResult = (id: string, status: TestStatus = "passed", extra: Partial<TestResult> = {}): TestResult => ({
   id,
   name: id,
@@ -39,7 +45,7 @@ afterEach(async () => {
   await Promise.all(directories.splice(0).map((directory) => rm(directory, { recursive: true, force: true })));
 });
 
-describe("YAML quality-gate lifecycle", () => {
+describe("quality-gate configuration lifecycle", () => {
   it.each([
     {
       field: "id",
@@ -65,6 +71,18 @@ qualityGate:
     const config = load(source);
 
     await expect(config).rejects.toThrow(`Invalid configuration at qualityGate.rules[0].${field}: expected a ${type}`);
+  });
+
+  it("requires validator functions in rule definitions", async () => {
+    const config = load(`
+qualityGate:
+  use:
+    - rule: custom
+      message: 'Custom rule failed'
+      validate: validator
+`);
+
+    await expect(config).rejects.toThrow("qualityGate.use[0].validate: expected a validator function");
   });
 
   it.each([
@@ -110,24 +128,13 @@ qualityGate:
     const config = await load(`
 qualityGate:
   rules:
-    - failures: 1
-      count: 3
+    - maxFailures: 1
+      minTestsCount: 3
   use:
-    - rule: failures
+    - rule: maxFailures
       message: "\${{ 'Failures: ' + string(actual) }}"
       successMessage: 'No unexpected failures'
-      validate: |
-        const failed = trs.filter(tr => ['failed', 'broken'].includes(tr.status));
-        const actual = Number(state.getResult() ?? 0) + failed.length;
-        const testResults = failed.map(tr => tr.id);
-        state.setResult(actual, testResults);
-        return { success: actual <= expected, actual, testResults };
-    - rule: count
-      message: 'Wrong total count'
-      validate: |
-        const actual = Number(state.getResult() ?? 0) + trs.length;
-        state.setResult(actual, []);
-        return { success: actual === expected, actual, testResults: [] };
+    - minTestsCount
 `);
     const gate = new QualityGate(config.qualityGate!);
     const state = new QualityGateState();
@@ -185,18 +192,22 @@ qualityGate:
     expect(result.results).toHaveLength(1);
   });
 
-  it("passes metrics, history, environment and expected data to async scripts", async () => {
-    const config = await load(`
-qualityGate:
-  rules:
-    - comparison: 3
-  use:
-    - rule: comparison
-      message: 'Metric mismatch'
-      successMessage: "\${{ actual.environment + ': ' + string(actual.delta) }}"
-      validate: |
+  it("loads async native validators with metrics, history and environment from JavaScript configuration", async () => {
+    const config = await loadJavaScript(`
+export default {
+  qualityGate: {
+    rules: [{ comparison: 3 }],
+    use: [{
+      rule: 'comparison',
+      message: 'Metric mismatch',
+      successMessage: "\${{ actual.environment + ': ' + string(actual.delta) }}",
+      validate: async ({ metrics, previousHistory, environment, expected }) => {
         const delta = await Promise.resolve(metrics[0].value - previousHistory[0].metrics.duration);
         return { success: delta === expected, actual: { delta, environment }, testResults: [] };
+      },
+    }],
+  },
+};
 `);
 
     const result = await new QualityGate(config.qualityGate!).validate({
@@ -211,22 +222,5 @@ qualityGate:
       actual: { delta: 3, environment: "qa" },
       message: "qa: 3",
     });
-  });
-
-  it("keeps expression-like content inside JavaScript source literal", async () => {
-    const config = await load(`
-qualityGate:
-  rules:
-    - literal: true
-  use:
-    - rule: literal
-      message: 'Unexpected literal'
-      validate: |
-        return { success: true, actual: '\${{ not_an_expression }}', testResults: [] };
-`);
-
-    const result = await new QualityGate(config.qualityGate!).validate({ trs: [] });
-
-    expect(result.results[0].actual).toBe("${{ not_an_expression }}");
   });
 });

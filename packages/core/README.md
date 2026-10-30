@@ -93,10 +93,9 @@ with their configuration path; they do not fall through to another environment o
 
 ### Quality gates
 
-Quality-gate configuration supports CEL filters and computed values, plus inline JavaScript custom
-validators. The same syntax works in JSON; YAML's block scalars are easier to read for scripts.
-Configuration stays self-contained: `use` accepts built-in rule names or inline definitions, not
-module/export references or external rule files.
+Quality-gate configuration supports CEL filters, messages, and computed values in YAML and JSON.
+Static `use` entries select built-in rules and override their messages; they do not reference modules,
+exports, or external rule files. Custom validators use native functions in JavaScript configuration files.
 
 ```yaml
 qualityGate:
@@ -109,17 +108,12 @@ qualityGate:
       filter: >-
         ${{ test.labels.exists(l,
           l.name == 'severity' && l.value == 'critical') }}
-    - count: 100
+    - minTestsCount: 100
   use:
     - rule: maxFailures
       message: "${{ 'Critical failures: ' + string(actual) }}"
       successMessage: 'No unexpected critical failures'
-    - rule: count
-      message: "${{ 'Expected ' + string(expected) + ', got ' + string(actual) }}"
-      validate: |
-        const actual = Number(state.getResult() ?? 0) + trs.length;
-        state.setResult(actual, []);
-        return { success: actual === expected, actual, testResults: [] };
+    - minTestsCount
 ```
 
 When `use` is omitted, all built-in rules are available. Supplying `use` replaces that registry, so
@@ -140,7 +134,7 @@ Retries, ignored failures, ruleset order, `fastFail`, live-test deduplication, a
 retain their existing behavior.
 
 `enabled` accepts a literal boolean or a boolean CEL expression; it defaults to `true`. `false`
-omits the gate before compiling its rules. Expected rule values, including leaves inside arrays or
+skips the gate's rule resolution. Expected rule values, including leaves inside arrays or
 objects, may use CEL expressions. Enablement and expected-value expressions run once during config
 resolution against `env`, a snapshot of defined process environment variables. Missing variables are
 absent, not empty strings; guard access with `has(env.NAME)` and convert strings explicitly with
@@ -177,48 +171,50 @@ rules require a name, validator, and failure message. Plain message strings are 
 messages must return strings. Message expressions receive only `expected` and `actual`, not mutable
 state, test batches, or `env`.
 
-#### Inline validators
+#### Custom validators in JavaScript configuration
 
-`validate` is a JavaScript **async function body**, without a surrounding function declaration and
-without `${{ ... }}` delimiters. It is compiled once and may use `await`. The injected arguments are
-`trs`, `expected`, `state`, `metrics`, `previousHistory`, and `environment`, matching the native
-validator payload. For example, a failure counter can persist its accumulated value and related IDs:
+Use a `.mjs`, `.cjs`, or `.js` configuration file for custom validation. `validate` must be a function;
+async callbacks and the existing state API remain available. For example, `allurerc.mjs` can define
+an exact test-count rule:
 
-```yaml
-validate: |
-  const failed = trs.filter(tr => ['failed', 'broken'].includes(tr.status));
-  const actual = Number(state.getResult() ?? 0) + failed.length;
-  const testResults = failed.map(tr => tr.id);
-  state.setResult(actual, testResults);
-  return { success: actual <= expected, actual, testResults };
+```js
+export default {
+  qualityGate: {
+    rules: [{ count: 100 }],
+    use: [{
+      rule: 'count',
+      message: ({ expected, actual }) => `Expected ${expected}, got ${actual}`,
+      validate: async ({ trs, expected, state }) => {
+        const actual = Number(state.getResult() ?? 0) + trs.length;
+        state.setResult(actual, []);
+        return { success: actual === expected, actual, testResults: [] };
+      },
+    }],
+  },
+};
 ```
 
-Return `{ success, actual, testResults }`: `success` must be boolean, `actual` must be JSON-compatible,
-and `testResults` must be a list of string IDs. `state.getResult()` returns this rule's previous value
-or `undefined`; `state.setResult(value, ids)` stores the rule's value and related IDs through the existing state API. Allure
-owns rule isolation, persistence and ID accumulation. Scripts retain the existing imperative state
-lifecycle; state writes are not transactional. A final full-snapshot evaluation starts with fresh
-state, as does a separately created live state. Metrics, previous history, and environment are
-available directly; no parallel CEL state-transition format is needed.
+Callbacks retain their existing payload and lifecycle, including `metrics`, `previousHistory`, and
+`environment`. Allure owns rule isolation, processed-test deduplication, and related ID accumulation.
+A final full-snapshot evaluation starts with fresh state.
 
-**Inline scripts are trusted Node.js code, not a sandbox.** Like `actions/github-script`, they can
-access globals, process environment variables, the filesystem/network, and dynamic imports. Do not
-run configuration from untrusted authors.
-No separate module reference, custom loader, or `require` helper is supplied.
+Built-in messages are inherited only when the built-in validator is inherited. A custom validator
+requires its own failure message. If its success message is omitted, the engine uses its generic
+success message.
 
 #### Quality-gate errors and data
 
-Quality-gate conditions and validators fail closed: syntax/type errors,
-evaluation errors, malformed script results, and script exceptions stop gate evaluation with a
-configuration-path diagnostic. They never silently drop a filter, disable a gate, or turn a broken
-rule into success. Message syntax/type errors fail configuration loading. A runtime message error
+Quality-gate expression syntax/type errors fail configuration loading. Evaluation errors in filters
+and computed values throw with a configuration-path diagnostic; they never silently drop a filter,
+disable a gate, or turn a broken rule into success. Native validator callbacks retain their existing
+exception behavior. Message syntax/type errors fail configuration loading. A runtime message error
 warns once per configured message and falls back to the inherited message or a generic message with
 the rule identity and outcome; it never changes the gate result. CLI threshold flags still replace
 configured gate rules and custom definitions; configuration is resolved before that replacement,
 so invalid enabled configuration is still an error.
 
-Computed expected values and script result values must be JSON-compatible: non-finite numbers,
-cycles, and non-plain data are rejected.
+Computed expected values must be JSON-compatible: non-finite numbers, cycles, and non-plain data
+are rejected.
 
 ### Regular expressions and escaping
 

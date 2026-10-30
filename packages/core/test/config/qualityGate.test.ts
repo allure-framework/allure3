@@ -87,22 +87,30 @@ describe("quality-gate configuration", () => {
     expect(result.results[0].success).toBe(false);
   });
 
-  it("uses an explicitly supplied validator even when its name is a builtin", async () => {
+  it("uses native validators and generic success messages even when the rule name is a builtin", async () => {
     const config = await resolve({
       rules: [{ maxFailures: 1 }],
       use: [
         {
           rule: "maxFailures",
-          message: "custom failure",
-          successMessage: "custom success",
-          validate: "return { success: true, actual: 99, testResults: [] };",
+          message: () => "custom failure",
+          validate: async () => ({ success: true, actual: 99, testResults: [] }),
         },
       ],
     });
 
     const result = await new QualityGate(config!).validate({ trs: [] });
 
-    expect(result.results[0]).toMatchObject({ success: true, actual: 99, message: "custom success" });
+    expect(result.results[0]).toMatchObject({ success: true, actual: 99 });
+    expect(result.results[0].message).toContain("The rule has been passed");
+  });
+
+  it("requires a custom failure message when overriding a builtin validator", async () => {
+    const config = resolve({
+      use: [{ rule: "maxFailures", validate: async () => ({ success: false, actual: 1, testResults: [] }) }],
+    });
+
+    await expect(config).rejects.toThrow("qualityGate.use[0]: a custom rule requires validate and message");
   });
 
   it("executes custom validators with existing state and generic success messages", async () => {
@@ -112,11 +120,14 @@ describe("quality-gate configuration", () => {
         {
           rule: "count",
           message: "wrong count",
-          validate: `
-      const actual = Number(state.getResult() ?? 0) + trs.length;
-      state.setResult(actual, trs.map(tr => tr.id));
-      return { success: actual === expected, actual, testResults: [] };
-    `,
+          validate: async ({ trs, state, expected }) => {
+            const actual = Number(state.getResult() ?? 0) + trs.length;
+            state.setResult(
+              actual,
+              trs.map((result) => result.id),
+            );
+            return { success: actual === expected, actual, testResults: [] };
+          },
         },
       ],
     });
@@ -163,7 +174,7 @@ describe("quality-gate configuration", () => {
         {
           rule: "custom",
           message: "${{ actual.missing }}",
-          validate: "return { success: false, actual: {}, testResults: [] }",
+          validate: async () => ({ success: false, actual: {}, testResults: [] }),
         },
       ],
     });
@@ -182,7 +193,6 @@ describe("quality-gate configuration", () => {
     { rules: [{ maxFailures: 0, filter: "true" }] },
     { use: ["unknownRule"] },
     { use: [{ rule: "custom", message: "missing validator" }] },
-    { use: [{ rule: "custom", validate: "return {", message: "bad script" }] },
   ])("rejects invalid gate configuration with its path: %j", async (input) => {
     const result = resolve(input);
 
@@ -192,8 +202,8 @@ describe("quality-gate configuration", () => {
   it.each([
     { use: [null] },
     { use: [{ rule: "maxFailures", message: 123 }] },
-    { use: [{ message: "missing name", validate: "return {}" }] },
-    { use: [{ rule: "", message: "empty name", validate: "return {}" }] },
+    { use: [{ message: "missing name" }] },
+    { use: [{ rule: "", message: "empty name" }] },
     { use: {} },
     { rules: {} },
     { rules: [null] },
