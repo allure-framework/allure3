@@ -2,11 +2,14 @@ import {
   type CategoriesConfig,
   type CategoryMatchingData,
   type Matcher,
+  type NameContext,
   compilePredicate,
+  isExpression,
+  resolveName,
 } from "@allurereport/core-api";
 import type { Config } from "@allurereport/plugin-api";
 
-export const resolveCategories = (value: Config["categories"]): CategoriesConfig | undefined => {
+export const resolveCategories = (value: Config["categories"], context: NameContext): CategoriesConfig | undefined => {
   if (value === undefined || value === false) {
     return value;
   }
@@ -34,9 +37,14 @@ export const resolveCategories = (value: Config["categories"]): CategoriesConfig
   const rules = Array.isArray(value) ? value : value.rules;
   const resolved = rules.map((rule, index) => {
     const path = `categories[${index}].matchers`;
+    const rulePath = `${Array.isArray(value) ? "categories" : "categories.rules"}[${index}]`;
+    if (typeof rule.name === "string" && isExpression(rule.name) && (rule.id === undefined || rule.id === null)) {
+      throw new Error(`Invalid ${rulePath}.id: an explicit ID is required when name is an expression`);
+    }
     const { matchers } = rule;
     return {
       ...rule,
+      name: resolveName(rule.name, `${rulePath}.name`, context)!,
       matchers: Array.isArray(matchers)
         ? matchers.map((matcher, matcherIndex) => resolveMatcher(matcher, `${path}[${matcherIndex}]`))
         : matchers === undefined

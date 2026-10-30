@@ -63,6 +63,95 @@ matchers, their string regex patterns, and compatibility fields `messageRegex` a
 retain their existing behavior. Expression strings are not interpreted inside object matcher values
 or unsupported configuration fields.
 
+### Names and titles
+
+Display names and titles accept full `${{ ... }}` expressions with `env` and `date`:
+
+```yaml
+name: "${{ (has(env.REPORT_NAME) ? env.REPORT_NAME : 'Allure Report') + ' - ' + date.isoDate }}"
+plugins:
+  csv:
+    options:
+      fields:
+        - header: "${{ 'Test name - ' + date.isoDate }}"
+          accessor: name
+```
+
+Supported fields:
+
+- Top-level `name`, `environments.<id>.name`, and category `name` in either the array or `{ rules: [...] }` form.
+- Awesome, Classic, Dashboard, and Allure 2: `options.reportName`.
+- TestOps: `options.launchName`.
+- Awesome: `options.charts[].title`; Dashboard: `options.layout[].title`.
+- CSV: `options.fields[].header`.
+
+Plugin options are evaluated only where the plugin declares expression support, including explicit
+imports, custom instance IDs and participating third-party plugins. Undeclared options, filenames,
+keys and IDs are not evaluated.
+Expressions must return strings; syntax, type, or evaluation failures identify the configuration
+path and fail configuration resolution. Ordinary strings remain literal. There is no interpolation
+inside larger strings: put the entire expression inside `${{ ... }}`.
+
+The `--report-name` / `--name` CLI options and programmatic report-name overrides are literal strings.
+They take precedence over the configured `name` without evaluating either the override or the
+replaced configuration value. Report-name expressions belong in the configuration file's `name` field.
+
+`env` contains defined process environment variables. Guard optional values with `has(env.NAME)`.
+`date` is a single UTC snapshot shared by all names in a configuration:
+
+| Field | Value |
+| --- | --- |
+| `date.iso` | ISO 8601 instant, for example `2026-10-27T23:59:58.123Z` |
+| `date.isoDate` | Calendar date, for example `2026-10-27` |
+| `date.year`, `date.month`, `date.day` | UTC calendar numbers; month is 1–12 |
+| `date.unixMs` | Milliseconds since the Unix epoch |
+
+Environment and date values are captured once when configuration resolves, including for
+`allure watch`. Existing name validation still applies: environment display names cannot contain
+path-like segments.
+
+Category names written as expressions require an explicit `id`. Keep the ID literal and stable so
+changing display names do not change category identity between runs:
+
+```yaml
+categories:
+  - id: infrastructure
+    name: "${{ 'Infrastructure / ' + date.isoDate }}"
+    matchers:
+      statuses: [broken]
+```
+
+This applies to both category configuration forms: an array and `{ rules: [...] }`. Literal category
+names do not require an explicit ID.
+
+### Allure Service token
+
+Allure Service is opt-in: without an `allureService` block, no service client is created and no
+remote history is fetched, regardless of environment variables.
+
+`allureService.accessToken` accepts a literal string or a full `${{ ... }}` expression returning
+a string. The expression receives `env`, captured when configuration resolves:
+
+```yaml
+allureService:
+  accessToken: "${{ has(env.REPORT_TOKEN) ? env.REPORT_TOKEN : '' }}"
+  private: true
+```
+
+Use any environment variable name. The example treats `REPORT_TOKEN` as optional: when it is
+missing, the expression returns an empty string and the service client remains inactive. For a
+required token, use `${{ env.REPORT_TOKEN }}` directly. An unguarded missing variable, invalid
+expression, or non-string result fails configuration resolution with the `allureService.accessToken`
+path for every command that reads the configuration, even when it does not use the service.
+
+Credential expression support is limited to `allureService.accessToken`; other token fields retain
+their existing behavior. The TestOps plugin's `ALLURE_TOKEN` fallback is separate and is not
+implicitly used by Allure Service.
+
+A recognized token in an explicitly configured service block enables remote history retrieval even
+when no plugin publishes. Uploading reports still requires a plugin's `options.publish: true`.
+Service settings and upload defaults apply as usual.
+
 ### Environment matching
 
 Environment predicates receive `labels`, a list of `{ name, value }` maps. Match each name and value
@@ -110,8 +199,7 @@ read the supplied test and quality-gate data directly.
 
 ```yaml
 plugins:
-  export:
-    import: '@allurereport/plugin-csv'
+  csv:
     options:
       filter: >-
         ${{ !has(env.ALLURE_EXPORT_STATUS) || test.status == env.ALLURE_EXPORT_STATUS }}
@@ -192,8 +280,6 @@ plugins:
     options:
       reportName: "${{ 'Nightly ' + date.isoDate }}"
 ```
-
-This does not enable expressions in top-level report names, environment names or category names.
 
 ### Quality gates
 
