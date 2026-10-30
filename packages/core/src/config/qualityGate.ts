@@ -112,6 +112,7 @@ export const resolveQualityGate = (input: QualityGateConfigInput | undefined): Q
     return invalid("qualityGate.rules", "expected a list of rulesets");
   }
   const use = input.use?.map((rule, index) => resolveRule(rule, `qualityGate.use[${index}]`));
+  const ruleNames = new Set((use ?? qualityGateDefaultRules).map((rule) => rule.rule));
   return {
     rules: input.rules?.map((ruleset, index) => {
       const path = `qualityGate.rules[${index}]`;
@@ -131,6 +132,12 @@ export const resolveQualityGate = (input: QualityGateConfigInput | undefined): Q
         Object.entries(ruleset).map(([name, value]) => {
           if (["id", "filter", "fastFail"].includes(name)) {
             return [name, value];
+          }
+          if (!ruleNames.has(name)) {
+            return invalid(
+              `${path}.${name}`,
+              `no implementation registered for rule "${name}"; include it in qualityGate.use, which replaces the built-in defaults`,
+            );
           }
           try {
             const expected = resolveExpected(value, `${path}.${name}`, env);

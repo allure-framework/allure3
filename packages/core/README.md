@@ -122,6 +122,10 @@ qualityGate:
         return { success: actual === expected, actual, testResults: [] };
 ```
 
+When `use` is omitted, all built-in rules are available. Supplying `use` replaces that registry, so
+include every rule referenced by `rules`, including built-ins. An empty list registers no rules.
+Missing implementations fail configuration loading with the offending rule's path.
+
 `rules[].filter` receives a plain-data `test` snapshot of the full test result and `env`, the same
 configuration-time environment snapshot used by enablement and expected-value expressions. Filters
 must return a boolean; guard missing fields and variables with `has(...)`. For example:

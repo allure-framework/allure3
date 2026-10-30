@@ -38,6 +38,19 @@ describe("quality-gate load-time expressions", () => {
           limits: "${{ {'lower': 2, 'upper': 3} }}",
         },
       ],
+      use: [
+        "metricMax",
+        {
+          rule: "custom",
+          message: "Custom threshold exceeded",
+          validate: "return { success: true, actual: expected, testResults: [] }",
+        },
+        {
+          rule: "limits",
+          message: "Limits exceeded",
+          validate: "return { success: true, actual: expected, testResults: [] }",
+        },
+      ],
     });
 
     expect(config!.rules?.[0]).toMatchObject({

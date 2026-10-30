@@ -67,6 +67,45 @@ qualityGate:
     await expect(config).rejects.toThrow(`Invalid configuration at qualityGate.rules[0].${field}: expected a ${type}`);
   });
 
+  it.each([
+    {
+      registry: "default",
+      rule: "maxFailurez",
+      source: `
+qualityGate:
+  rules:
+    - maxFailurez: 0
+`,
+    },
+    {
+      registry: "restricted",
+      rule: "maxFailures",
+      source: `
+qualityGate:
+  use:
+    - minTestsCount
+  rules:
+    - maxFailures: 0
+`,
+    },
+    {
+      registry: "empty",
+      rule: "maxFailures",
+      source: `
+qualityGate:
+  use: []
+  rules:
+    - maxFailures: 0
+`,
+    },
+  ])("rejects rules absent from the $registry registry during config loading", async ({ source, rule }) => {
+    const config = load(source);
+
+    await expect(config).rejects.toThrow(
+      `Invalid configuration at qualityGate.rules[0].${rule}: no implementation registered for rule "${rule}"`,
+    );
+  });
+
   it("accumulates failure and total counts across overlapping batches and recomputes a final snapshot", async () => {
     const config = await load(`
 qualityGate:
