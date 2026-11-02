@@ -15,6 +15,7 @@ import {
   type ReportExecutorInfo,
   type ReportRunSummary,
   type Plugin,
+  type PluginExpressionFields,
   type PluginContext,
   type PluginSummary,
   createPluginSummary,
@@ -112,6 +113,12 @@ type PerfAwarePluginContext = PluginContext & {
 };
 
 export class AwesomePlugin implements Plugin {
+  static readonly configExpressions = {
+    filter: "testFilter",
+    reportName: "name",
+    charts: { items: { title: "name" } },
+  } as const satisfies PluginExpressionFields;
+
   // Updating runs retain all assets through done; only start resets this policy.
   #retainAllAssets = false;
 

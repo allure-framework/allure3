@@ -15,8 +15,16 @@
   "main": "./dist/index.js",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "typesVersions": {
+    "*": {
+      "expression": [
+        "dist/utils/expression.d.ts"
+      ]
+    }
+  },
   "exports": {
-    ".": "./dist/index.js"
+    ".": "./dist/index.js",
+    "./expression": "./dist/utils/expression.js"
   },
   "scripts": {
     "build": "run clean && tsc --project ./tsconfig.json",
@@ -27,6 +35,7 @@
     "lint:fix": "vp lint --import-plugin --fix src test features stories"
   },
   "dependencies": {
+    "@marcbachmann/cel-js": "^8.0.0",
     "d3-shape": "^3.2.0"
   },
   "devDependencies": {

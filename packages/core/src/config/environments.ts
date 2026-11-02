@@ -1,7 +1,6 @@
 import type { EnvironmentMatcherPayload, EnvironmentsConfig } from "@allurereport/core-api";
+import { compilePredicate } from "@allurereport/core-api/expression";
 import type { Config } from "@allurereport/plugin-api";
-
-import { compilePredicate } from "./expressions.js";
 
 const isConfigObject = (value: unknown) => typeof value === "object" && value !== null && !Array.isArray(value);
 

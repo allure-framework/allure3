@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vite-plus/test";
 
-import { compileExpression, compilePredicate, isExpression } from "../../src/config/expressions.js";
+import { compileExpression, compilePredicate, isExpression } from "../../src/utils/expression.js";
 
 describe("configuration expressions", () => {
   it("recognizes explicit expression prefixes only", () => {
@@ -61,44 +61,13 @@ describe("configuration expressions", () => {
     expect(result).toBe(true);
   });
 
-  it("copies plain context data while omitting undefined fields", () => {
-    const predicate = compilePredicate(
-      "${{ !has(data.message) && data.labels.exists(l, l.name == 'owner' && l.value == 'alice') }}",
-      "categories[0].matchers",
-      { data: "map" },
-    );
-    const owner = { name: "owner", value: "alice" };
+  it("evaluates supplied data by reference", () => {
+    const expression = compileExpression("${{ data }}", "expression", { data: "map" });
+    const data = { message: "timeout", labels: [{ name: "owner", value: "alice" }] };
 
-    const result = predicate({
-      data: { message: undefined, labels: [owner, owner], nullable: null, flaky: false },
-    });
+    const result = expression({ data });
 
-    expect(result).toBe(true);
-  });
-
-  it.each([{ name: () => true }, { name: new Date() }, { name: Infinity }])(
-    "rejects unsupported context data",
-    (context) => {
-      const predicate = compilePredicate("${{ true }}", "hideLabels[0]", { name: "string" });
-
-      const evaluate = () => predicate(context);
-
-      expect(evaluate).toThrow(
-        "Invalid expression at hideLabels[0]: expression context must contain only finite numbers and plain data",
-      );
-    },
-  );
-
-  it("rejects cyclic context with a plain-data diagnostic", () => {
-    const data: Record<string, unknown> = {};
-    data.self = data;
-    const predicate = compilePredicate("${{ true }}", "categories[0].matchers", { data: "map" });
-
-    const evaluate = () => predicate({ data });
-
-    expect(evaluate).toThrow(
-      "Invalid expression at categories[0].matchers: expression context must contain only finite numbers and plain data",
-    );
+    expect(result).toBe(data);
   });
 
   it.each([undefined, "string"] as const)("evaluates string expressions with result type %s", (resultType) => {

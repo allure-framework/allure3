@@ -2,6 +2,7 @@ import { defaultChartsConfig } from "@allurereport/charts-api";
 import {
   type AllureStore,
   type Plugin,
+  type PluginExpressionFields,
   type PluginContext,
   type PluginSummary,
   createPluginSummary,
@@ -13,6 +14,12 @@ import type { DashboardPluginOptions } from "./model.js";
 import { type DashboardDataWriter, InMemoryDashboardDataWriter, ReportFileDashboardDataWriter } from "./writer.js";
 
 export class DashboardPlugin implements Plugin {
+  static readonly configExpressions = {
+    filter: "testFilter",
+    reportName: "name",
+    layout: { items: { title: "name" } },
+  } as const satisfies PluginExpressionFields;
+
   // Updating runs retain all assets through done; only start resets this policy.
   #retainAllAssets = false;
 

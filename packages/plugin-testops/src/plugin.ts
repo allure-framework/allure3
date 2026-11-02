@@ -13,6 +13,7 @@ import { DEFAULT_ENVIRONMENT, getWorstStatus } from "@allurereport/core-api";
 import {
   type AllureStore,
   type Plugin,
+  type PluginExpressionFields,
   type PluginConstructorContext,
   type PluginContext,
   createPluginSummary,
@@ -40,6 +41,11 @@ const LAUNCH_PROGRESS_ATTEMPTS_LIMIT = 10;
 const resolveJobRunIdFromEnv = (): number | undefined => toPositiveInteger(env.ALLURE_JOB_RUN_ID);
 
 export class TestOpsPlugin implements Plugin {
+  static readonly configExpressions = {
+    filter: "testFilter",
+    launchName: "name",
+  } as const satisfies PluginExpressionFields;
+
   #logger = new Logger("TestOpsPlugin");
   #ci: CiDescriptor;
   #client!: TestOpsClient;
