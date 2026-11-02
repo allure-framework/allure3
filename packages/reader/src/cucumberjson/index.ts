@@ -1,6 +1,7 @@
 import * as console from "node:console";
 import { randomUUID } from "node:crypto";
 
+import { ExpressionError } from "@allurereport/core-api";
 import type {
   RawTestAttachment,
   RawTestLabel,
@@ -107,6 +108,9 @@ export const cucumberjson: ResultsReader = {
         return oneOrMoreFeaturesParsed;
       }
     } catch (e) {
+      if (e instanceof ExpressionError) {
+        throw e;
+      }
       console.error("error parsing", originalFileName, e);
       return false;
     }

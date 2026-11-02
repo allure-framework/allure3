@@ -2,12 +2,13 @@ import * as console from "node:console";
 import { resolve } from "node:path";
 
 import { readConfig } from "@allurereport/core";
+import { ExpressionError } from "@allurereport/core-api";
 import AwesomePlugin from "@allurereport/plugin-awesome";
 import { epic, feature, label, story } from "allure-js-commons";
 import { run, UsageError } from "clipanion";
 import { type Mock, afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
-import { executeAllureRun } from "../../src/commands/commons/run.js";
+import { executeAllureRun, runTests } from "../../src/commands/commons/run.js";
 import { RunCommand } from "../../src/commands/run.js";
 import { ALLURE_CLI_ACTIVE_COMMAND_ENV } from "../../src/utils/execution-context.js";
 import { applyVerbosity } from "../../src/utils/verbosity.js";
@@ -155,6 +156,50 @@ beforeEach(async () => {
 });
 
 describe("run command", () => {
+  it.each(["live ingestion", "final flush"])(
+    "fails and cleans up after an environment error during %s",
+    async (phase) => {
+      const { AllureReportMock } = await import("../utils.js");
+      const { delayedFileProcessingWatcher } = await import("@allurereport/directory-watcher");
+      const { terminationOf } = await import("../../src/utils/index.js");
+      const { stopProcessTree } = await import("../../src/utils/process.js");
+      const error = new ExpressionError('Invalid expression at environments["firefox"].matcher');
+      AllureReportMock.prototype.readResult.mockRejectedValueOnce(error);
+      let processFile!: (path: string) => Promise<void>;
+      const abort = vi.fn(async () => {
+        if (phase === "final flush") await processFile("test-result.json");
+      });
+      vi.mocked(delayedFileProcessingWatcher).mockImplementationOnce((callback) => {
+        processFile = callback;
+        return {
+          addFile: vi.fn().mockResolvedValue(undefined),
+          initialScan: vi.fn().mockResolvedValue(undefined),
+          watchEnd: vi.fn().mockResolvedValue(undefined),
+          abort,
+        };
+      });
+      if (phase === "live ingestion") {
+        vi.mocked(terminationOf).mockImplementationOnce(async () => {
+          await processFile("test-result.json");
+          return 0;
+        });
+      }
+      const report = new AllureReportMock() as unknown as import("@allurereport/core").AllureReport;
+
+      const result = await runTests({
+        allureReport: report,
+        cwd: "/cwd",
+        command: "test",
+        commandArgs: [],
+        environmentVariables: {},
+        withQualityGate: false,
+      }).catch((cause) => cause);
+
+      expect(result).toBe(error);
+      expect(abort).toHaveBeenCalledOnce();
+      expect(stopProcessTree).toHaveBeenCalledTimes(phase === "live ingestion" ? 1 : 0);
+    },
+  );
   it("should fail with usage error when command to run is missing", async () => {
     const command = new RunCommand();
 

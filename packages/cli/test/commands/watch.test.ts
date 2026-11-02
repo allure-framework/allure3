@@ -1,4 +1,5 @@
 import { readConfig } from "@allurereport/core";
+import { ExpressionError } from "@allurereport/core-api";
 import { serve } from "@allurereport/static-server";
 import { epic, feature, label, story } from "allure-js-commons";
 import { run } from "clipanion";
@@ -121,6 +122,44 @@ beforeEach(async () => {
 });
 
 describe("watch command --new-only with dynamic directory discovery", () => {
+  it.each(["initial backlog", "shutdown"])("cleans up and rejects environment failures during %s", async (phase) => {
+    const { AllureReportMock } = await import("../utils.js");
+    const { notifySignals, waitForAbort } = await import("../../src/utils/signals.js");
+    vi.mocked(waitForAbort)
+      .mockReset()
+      .mockResolvedValue(undefined)
+      .mockResolvedValueOnce(undefined)
+      .mockImplementationOnce(() => new Promise(() => {}));
+    const error = new ExpressionError('Invalid expression at environments["firefox"].matcher');
+    AllureReportMock.prototype.readResult.mockRejectedValueOnce(error);
+    let processFile!: (path: string) => Promise<void>;
+    const directoryAbort = vi.fn(async () => {
+      if (phase === "shutdown") await processFile("test-result.json");
+    });
+    const discoveryAbort = vi.fn().mockResolvedValue(undefined);
+    nameWatcherMock.mockImplementationOnce((_cwd, update) => ({
+      initialScan: vi.fn(async () => update(new Set(["/cwd/allure-results"]), new Set())),
+      abort: discoveryAbort,
+    }));
+    newFilesInDirectoryWatcherMock.mockImplementationOnce((...args: unknown[]) => ({
+      initialScan: vi.fn(async () => {
+        processFile = args[1] as (path: string) => Promise<void>;
+        if (phase === "initial backlog") await processFile("test-result.json");
+      }),
+      abort: directoryAbort,
+    }));
+    const command = new WatchCommand();
+    command.resultsDir = [];
+
+    const result = await command.execute().catch((cause) => cause);
+
+    expect(result).toBe(error);
+    expect(directoryAbort).toHaveBeenCalledOnce();
+    expect(discoveryAbort).toHaveBeenCalledOnce();
+    const server = await vi.mocked(serve).mock.results.at(-1)?.value;
+    expect(server?.stop).toHaveBeenCalled();
+    expect(vi.mocked(notifySignals).mock.results.at(-1)?.value.dispose).toHaveBeenCalled();
+  });
   it("only skips the backlog for directories present at the initial scan, not ones discovered later", async () => {
     await run(WatchCommand, ["watch", "--new-only"]);
 
