@@ -2,13 +2,14 @@ import { readFile, stat } from "node:fs/promises";
 import { extname, resolve } from "node:path";
 import * as process from "node:process";
 
-import { parseIntegerConfigValue, validateEnvironmentName, validatePerformanceConfig } from "@allurereport/core-api";
-import { createNameContext } from "@allurereport/core-api/expression";
+import { validateEnvironmentName, validatePerformanceConfig } from "@allurereport/core-api";
+import { type NameContext, createNameContext, resolveName } from "@allurereport/core-api/expression";
 import type { Config, PluginConstructor, PluginConstructorContext, PluginDescriptor } from "@allurereport/plugin-api";
 import { createJiti } from "jiti";
 import { parse } from "yaml";
 
 import type { FullConfig, PluginInstance } from "./api.js";
+import { resolveAllureService } from "./config/allureService.js";
 import { resolveCategories } from "./config/categories.js";
 import { resolveEnvironments } from "./config/environments.js";
 import { resolveHideLabels } from "./config/hideLabels.js";
@@ -56,8 +57,6 @@ const CONFIG_FILENAMES = [
   "allurerc.yml",
 ] as const;
 const DEFAULT_CONFIG: Config = {} as const;
-const DEFAULT_ALLURE_SERVICE_UPLAOD_MAX_ATTEMPTS = 5;
-const DEFAULT_ALLURE_SERVICE_UPLOAD_MAX_SIMULTANEOUS_FAILURES = 5;
 
 export const isAgentDescriptor = (value: string | undefined) => {
   return value === "agent" || value === "@allurereport/plugin-agent";
@@ -250,7 +249,7 @@ export const loadTsConfig = async (configPath: string): Promise<Config> => {
   return await jiti.import<Config>(resolve(configPath), { default: true });
 };
 
-const resolveConfigEnvironments = (config: Config) => {
+const resolveConfigEnvironments = (config: Config, context: NameContext) => {
   const errors: string[] = [];
   const {
     ids: allowedEnvironments,
@@ -258,7 +257,7 @@ const resolveConfigEnvironments = (config: Config) => {
     errors: allowedEnvironmentErrors,
   } = validateAllowedEnvironmentIds(config.allowedEnvironments, "config.allowedEnvironments");
   const { normalized: environments, errors: environmentErrors } = normalizeEnvironmentDescriptorMap(
-    resolveEnvironments(config.environments) ?? {},
+    resolveEnvironments(config.environments, context) ?? {},
     "config.environments",
   );
   let environment: string | undefined;
@@ -340,9 +339,10 @@ export const resolveConfig = async (config: Config, override: ConfigOverride = {
   validateFlakyDetectionConfig(config.flakyDetection);
   validatePerformanceConfig(config.performance);
 
-  const { environments, environment, allowedEnvironments } = resolveConfigEnvironments(config);
+  const nameContext = createNameContext();
+  const { environments, environment, allowedEnvironments } = resolveConfigEnvironments(config, nameContext);
 
-  const name = override.name ?? config.name ?? "Allure Report";
+  const name = override.name ?? resolveName(config.name ?? "Allure Report", "name", nameContext)!;
   const open = override.open ?? config.open ?? false;
   const port = override.port ?? config.port ?? undefined;
   const host = override.host ?? config.host ?? undefined;
@@ -386,10 +386,8 @@ export const resolveConfig = async (config: Config, override: ConfigOverride = {
           },
         };
 
-    pluginInstances = await resolvePlugins(pluginsWithAgent);
+    pluginInstances = await resolvePlugins(pluginsWithAgent, nameContext);
   }
-
-  const uploadConcurrency = parseIntegerConfigValue(config.allureService?.uploadConcurrency, 1);
 
   return {
     name,
@@ -416,20 +414,8 @@ export const resolveConfig = async (config: Config, override: ConfigOverride = {
     defaultLabels: config.defaultLabels ?? {},
     qualityGate: resolveQualityGate(config.qualityGate),
     performance: config.performance,
-    allureService: config.allureService
-      ? {
-          accessToken: config.allureService.accessToken,
-          private: config.allureService.private,
-          ...(uploadConcurrency === undefined ? {} : { uploadConcurrency }),
-          uploadMaxAttempts:
-            parseIntegerConfigValue(config.allureService.uploadMaxAttempts, 1) ??
-            DEFAULT_ALLURE_SERVICE_UPLAOD_MAX_ATTEMPTS,
-          uploadMaxSimultaneousFailures:
-            parseIntegerConfigValue(config.allureService.uploadMaxSimultaneousFailures, 0) ??
-            DEFAULT_ALLURE_SERVICE_UPLOAD_MAX_SIMULTANEOUS_FAILURES,
-        }
-      : undefined,
-    categories: resolveCategories(config.categories),
+    allureService: resolveAllureService(config.allureService, nameContext.env),
+    categories: resolveCategories(config.categories, nameContext),
     globalAttachments: config.globalAttachments,
     ...(resultsDir.length ? { resultsDir } : {}),
   };
@@ -548,9 +534,8 @@ export const resolvePlugin = async (path: string): Promise<PluginConstructor> =>
   }
 };
 
-const resolvePlugins = async (plugins: Record<string, PluginDescriptor>) => {
+const resolvePlugins = async (plugins: Record<string, PluginDescriptor>, context: NameContext) => {
   const pluginInstances: PluginInstance[] = [];
-  const context = createNameContext();
 
   for (const id in plugins) {
     const pluginConfig = plugins[id];

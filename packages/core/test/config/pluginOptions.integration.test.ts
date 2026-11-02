@@ -46,8 +46,7 @@ describe("plugin expressions through report generation", () => {
   it("generates filtered, sorted, escaped CSV from YAML configuration", async () => {
     const { config, output } = await load(`
 plugins:
-  export:
-    import: '@allurereport/plugin-csv'
+  csv:
     options:
       filter: "\${{ test.status == 'failed' }}"
       sort: >-
@@ -65,7 +64,7 @@ plugins:
     const report = new AllureReport(config);
 
     await run(report);
-    const content = await readFile(join(output, "export", "allure-report.csv"), "utf8");
+    const content = await readFile(join(output, "allure-report.csv"), "utf8");
 
     expect(content).toBe('Name,Duration,Error\n"fast","10 ms",\n"slow","30 ms","a ""quoted"", error"\n"untimed",,');
   });

@@ -120,6 +120,7 @@ beforeEach(async () => {
 
 afterEach(() => {
   process.chdir(previousCwd);
+  vi.unstubAllEnvs();
 });
 
 describe("report", () => {
@@ -1614,6 +1615,25 @@ describe("report", () => {
 
   it("should use default uploadConcurrency in service client config", async () => {
     await verifyUploadOptionsForwarding();
+  });
+
+  it("keeps the service inactive for a guarded missing token without using ALLURE_TOKEN", async () => {
+    vi.stubEnv("ALLURE_MISSING_SERVICE_TOKEN", undefined);
+    vi.stubEnv("ALLURE_TOKEN", validAccessToken);
+    const config = await resolveConfig(
+      {
+        allureService: {
+          accessToken: "${{ has(env.ALLURE_MISSING_SERVICE_TOKEN) ? env.ALLURE_MISSING_SERVICE_TOKEN : '' }}",
+        },
+      },
+      { plugins: {} },
+    );
+
+    new AllureReport(config);
+
+    expect(config.allureService).toEqual({ accessToken: "", private: undefined, ...defaultUploadConfig });
+    expect(AllureServiceClientMock).not.toHaveBeenCalled();
+    expect(AllureTestOpsClientMock).not.toHaveBeenCalled();
   });
 
   it("should use TestOps default uploadConcurrency in client config", async () => {
