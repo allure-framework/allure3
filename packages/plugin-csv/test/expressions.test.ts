@@ -1,10 +1,11 @@
 import type { TestResult } from "@allurereport/core-api";
+import { createNameContext } from "@allurereport/core-api/expression";
 import { describe, expect, it } from "vite-plus/test";
 
 import { resolveCsvAccessor, resolveCsvComparator } from "../src/expressions.js";
 
 const row = (value: Partial<TestResult> = {}) => value as TestResult;
-const context = (path: string) => ({ path, env: { SUFFIX: "-selected" } });
+const context = (path: string) => ({ ...createNameContext(), path, env: { SUFFIX: "-selected" } });
 
 describe("CSV expressions", () => {
   it("preserves property-name accessors", () => {

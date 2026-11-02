@@ -12,6 +12,7 @@ import type {
   TestResult,
   TestStatus,
 } from "@allurereport/core-api";
+import type { NameContext } from "@allurereport/core-api/expression";
 
 import type { QualityGateValidationResult } from "./qualityGate.js";
 import type { ResultFile } from "./resultFile.js";
@@ -29,9 +30,8 @@ export interface PluginConstructorContext {
 
 export type PluginExpressionKind = "name" | "testFilter" | "qualityGateFilter";
 
-export interface PluginExpressionContext {
+export interface PluginExpressionContext extends NameContext {
   path: string;
-  env: Record<string, string>;
 }
 
 export type PluginExpressionResolver = (source: string, context: PluginExpressionContext) => unknown;

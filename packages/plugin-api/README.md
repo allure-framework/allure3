@@ -73,8 +73,9 @@ metadata; existing plugins do not need to implement a new instance interface.
 ### Custom resolvers
 
 A function declaration owns the field's string interpretation and output contract. Core calls it
-with the configured string and a `PluginExpressionContext` containing `path` (the actual instance
-and nested field) and `env` (captured during config resolution). Non-string values, including native
+with the configured string and a `PluginExpressionContext`, which extends `NameContext` with `path`
+(the actual instance and nested field). Its `env` and UTC `date` objects are captured once during
+config resolution and shared with built-in name expressions. Non-string values, including native
 callbacks, pass through without invoking the resolver.
 
 ```ts
@@ -94,10 +95,11 @@ and result adaptation. It can reuse `compileExpression`, `compilePredicate`, `is
 `CEL_DYNAMIC_TYPE` from `@allurereport/core-api/expression` for wrapper handling, declared-variable checks,
 compilation and path-specific errors. See the [expression utilities](../core-api/README.md#expression-utilities).
 
-Compile in the resolver, not inside the returned callback. Capture the supplied `env` rather than
-reading `process.env` during callback execution. A plugin can instead depend on CEL directly and
-construct its own `Environment`; in that case it owns wrapper validation and both compilation and
-evaluation diagnostics, including the supplied `path`.
+Compile in the resolver, not inside the returned callback. Capture the supplied `env` and `date`
+rather than reading `process.env` or creating a new clock snapshot during callback execution.
+Resolvers choose which context fields to expose to their expressions. A plugin can instead depend
+on CEL directly and construct its own `Environment`; in that case it owns wrapper validation and
+both compilation and evaluation diagnostics, including the supplied `path`.
 
 For example, the CSV plugin declares its own accessor and comparator functions. It preserves
 property-name accessors, maps a `null` cell result to `undefined`, and converts comparator integers

@@ -13,7 +13,7 @@ export const resolvePluginExpression = (
   }
   const { env } = context;
   if (typeof kind === "function") {
-    return kind(value, { path, env });
+    return kind(value, { ...context, path });
   }
   switch (kind) {
     case "name":

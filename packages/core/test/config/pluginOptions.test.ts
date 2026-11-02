@@ -14,6 +14,7 @@ const test = (name: string, status = "passed") => ({ name, status, labels: [] })
 afterEach(() => {
   vi.restoreAllMocks();
   vi.unstubAllEnvs();
+  vi.useRealTimers();
 });
 
 describe("plugin option expressions", () => {
@@ -151,25 +152,30 @@ describe("plugin option expressions", () => {
     expect(Reflect.get(plugin.plugin, "options")).toBe(plugin.options);
   });
 
-  it("normalizes plugin-owned resolvers with captured env and preserves literal and native accessors", async () => {
+  it("normalizes plugin-owned resolvers with captured env and date and preserves literal and native accessors", async () => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date("2026-10-30T23:59:00.000Z"));
     vi.stubEnv("ALLURE_CUSTOM_SUFFIX", "-captured");
     const path = fileURLToPath(new URL("../fixtures/custom-expression-plugin.mjs", import.meta.url));
     const native = { accessor: (item: TestResult) => item.name };
     const literal = { accessor: "name" };
     const options = {
-      fields: [native, literal, { accessor: "${{ item.name + env.ALLURE_CUSTOM_SUFFIX }}" }],
+      reportName: "${{ date.isoDate }}",
+      fields: [native, literal, { accessor: "${{ item.name + env.ALLURE_CUSTOM_SUFFIX + '/' + date.isoDate }}" }],
       opaque: "${{ remains literal }}",
     };
 
     const plugin = await resolvePlugin("custom", options, path);
     vi.stubEnv("ALLURE_CUSTOM_SUFFIX", "-changed");
+    vi.setSystemTime(new Date("2026-10-31T00:01:00.000Z"));
     const value = plugin.options.fields[2].accessor(test("selected"));
 
-    expect(value).toBe("selected-captured");
+    expect(value).toBe("selected-captured/2026-10-30");
+    expect(plugin.options.reportName).toBe("2026-10-30");
     expect(plugin.options.fields[0]).toBe(native);
     expect(plugin.options.fields[1]).toBe(literal);
     expect(plugin.options.opaque).toBe(options.opaque);
-    expect(options.fields[2].accessor).toBe("${{ item.name + env.ALLURE_CUSTOM_SUFFIX }}");
+    expect(options.fields[2].accessor).toBe("${{ item.name + env.ALLURE_CUSTOM_SUFFIX + '/' + date.isoDate }}");
   });
 
   it("reports the nested custom resolver path on compilation errors", async () => {
