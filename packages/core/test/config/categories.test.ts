@@ -53,9 +53,10 @@ describe("category configuration expressions", () => {
     ["", true],
   ])("treats missing label values as empty strings when comparing against %j", (value, expected) => {
     const categories = normalizeCategoriesConfig(
-      resolveCategories([
-        { name: "Browser", matchers: `\${{ data.labels.exists(l, l.name == 'browser' && l.value == '${value}') }}` },
-      ]),
+      resolveCategories(
+        [{ name: "Browser", matchers: `\${{ data.labels.exists(l, l.name == 'browser' && l.value == '${value}') }}` }],
+        nameContext,
+      ),
     );
     const candidate = { ...data, labels: [{ name: "browser" }] };
 
@@ -72,7 +73,7 @@ describe("category configuration expressions", () => {
     [{ rules: [null] }, "Invalid categories.rules[0]: expected an object"],
     [[[]], "Invalid categories[0]: expected an object"],
   ])("rejects invalid category structures with their configuration path: %j", (input, message) => {
-    const resolve = () => resolveCategories(input as unknown as Config["categories"]);
+    const resolve = () => resolveCategories(input as unknown as Config["categories"], nameContext);
 
     expect(resolve).toThrow(message);
   });
