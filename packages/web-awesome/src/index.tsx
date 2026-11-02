@@ -1,3 +1,4 @@
+import "preact/debug";
 import { ensureReportDataReady, testPlatform } from "@allurereport/web-commons";
 import { Spinner, SvgIcon, allureIcons } from "@allurereport/web-components/core";
 

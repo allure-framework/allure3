@@ -9,7 +9,6 @@ import { rootTabRoute, testResultRoute } from "@/stores/router";
 import { currentTrId } from "@/stores/testResult";
 import { testResultStore } from "@/stores/testResults";
 
-import { GitInfo } from "./GitInfo";
 import { OverviewLink } from "./OverviewLink";
 
 import * as styles from "./styles.scss";
@@ -26,7 +25,6 @@ export const Header = ({ className }: HeaderProps) => {
     <div className={clsx(styles.above, className)}>
       <OverviewLink />
       <SectionPicker />
-      {!isTestResultRoute.value && <GitInfo />}
       {isTestResultRoute.value && <TrBreadcrumbs testResult={testResult.value} />}
       <HeaderControls className={styles.right} />
     </div>
