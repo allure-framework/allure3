@@ -48,6 +48,16 @@ environments:
   });
 
   it.each([
+    [
+      "a plain matcher string",
+      "environments:\n  firefox:\n    matcher: firefox",
+      'Invalid expression at environments["firefox"].matcher',
+    ],
+    [
+      "a missing matcher",
+      "environments:\n  firefox:\n    name: Firefox",
+      'Invalid environments["firefox"].matcher: expected a function or expression string',
+    ],
     ["a scalar environment map", "environments: true", "Invalid environments: expected an object"],
     ["an array environment map", "environments: []", "Invalid environments: expected an object"],
     ["an empty environment entry", "environments:\n  firefox:", 'Invalid environments["firefox"]: expected an object'],

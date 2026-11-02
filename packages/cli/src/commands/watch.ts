@@ -17,6 +17,7 @@ import { Command, Option } from "clipanion";
 import { resolveResultsPatterns } from "../utils/resultsPatterns.js";
 import { serverOptionsFromConfig } from "../utils/serverOptions.js";
 import { boundedTerminationSignal, notifySignals, waitForAbort } from "../utils/signals.js";
+import { createLiveIngestionFailureHandler } from "./commons/liveIngestionFailure.js";
 import { allureResultsDirectoriesGlobWatcher } from "./commons/resultsDiscovery.js";
 
 export class WatchCommand extends Command {
@@ -164,6 +165,7 @@ export class WatchCommand extends Command {
 
     await allureReport.start();
 
+    const failureHandler = createLiveIngestionFailureHandler();
     const abortFunctions: ((immediately?: boolean) => Promise<void>)[] = [];
     const perDirectoryWatchers = new Map<string, Watcher>();
     // only the very first discovery scan reflects pre-existing directories; anything found
@@ -189,7 +191,7 @@ export class WatchCommand extends Command {
         const watcher = newFilesInDirectoryWatcher(
           newDir,
           async (path) => {
-            await allureReport.readResult(new PathResultFile(path));
+            await failureHandler.read(() => allureReport.readResult(new PathResultFile(path)));
           },
           { ignoreInitial: this.newOnly && isInitialDiscovery },
         );
@@ -230,11 +232,14 @@ export class WatchCommand extends Command {
       process.exit(130);
     });
 
-    await waitForAbort(notifier.signal);
+    await Promise.race([waitForAbort(notifier.signal), failureHandler.failed]);
 
-    const signalInfo = notifier.info();
+    const error = failureHandler.getError();
+    const signalInfo = error ? undefined : notifier.info();
 
-    console.log(`\nreceived ${signalInfo?.signal}, stopping (press again to force exit)...`);
+    if (signalInfo) {
+      console.log(`\nreceived ${signalInfo.signal}, stopping (press again to force exit)...`);
+    }
 
     const terminationSignal = boundedTerminationSignal(signalInfo, 5_000);
     const cleanup = (async () => {
@@ -247,6 +252,15 @@ export class WatchCommand extends Command {
       await allureReport.done();
     })();
 
+    if (error) {
+      try {
+        await cleanup;
+      } finally {
+        notifier.dispose();
+      }
+      throw error;
+    }
+
     const timedOut = await Promise.race([cleanup.then(() => false), waitForAbort(terminationSignal).then(() => true)]);
 
     if (timedOut) {
@@ -255,6 +269,10 @@ export class WatchCommand extends Command {
     }
 
     notifier.dispose();
+    const finalError = failureHandler.getError();
+    if (finalError) {
+      throw finalError;
+    }
     process.exit(signalInfo?.code ?? 0);
   }
 }

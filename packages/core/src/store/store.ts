@@ -9,6 +9,7 @@ import {
   type AttachmentLinkLinked,
   type DefaultLabelsConfig,
   DEFAULT_ENVIRONMENT,
+  ExpressionError,
   DEFAULT_ENVIRONMENT_IDENTITY,
   UNRESOLVED_ENVIRONMENT,
   type DynamicEnvironmentResolver,
@@ -471,7 +472,12 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
         }
 
         dynamic = resolveDynamicEnvironmentIdentity(this.#dynamicEnvironments, { labels }, this.#environmentsConfig);
-      } catch {
+      } catch (error) {
+        if (error instanceof ExpressionError) {
+          throw new ExpressionError(`${error.message} (restored test result ${JSON.stringify(testResult.id)})`, {
+            cause: error,
+          });
+        }
         // the resolver can not handle this result anymore, there is nothing to rebuild from it
         continue;
       }

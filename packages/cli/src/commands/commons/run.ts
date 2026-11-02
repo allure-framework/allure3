@@ -11,7 +11,7 @@ import {
   filterFailedQualityGateResults,
   stringifyQualityGateResults,
 } from "@allurereport/core";
-import { createTestPlan, formatDuration, type TestResult } from "@allurereport/core-api";
+import { ExpressionError, createTestPlan, formatDuration, type TestResult } from "@allurereport/core-api";
 import type { Watcher } from "@allurereport/directory-watcher";
 import {
   allureResultsDirectoriesWatcher,
@@ -26,6 +26,7 @@ import { KnownError } from "@allurereport/service";
 import { runProcess, terminationOf } from "../../utils/index.js";
 import { logError } from "../../utils/logs.js";
 import { stopProcessTree } from "../../utils/process.js";
+import { createLiveIngestionFailureHandler } from "./liveIngestionFailure.js";
 import { allureResultsDirectoriesGlobWatcher } from "./resultsDiscovery.js";
 
 export type TestProcessResult = {
@@ -107,11 +108,12 @@ export const runTests = async (params: {
     attempt = { current: 1, total: 1 },
     resultsPatterns = [],
   } = params;
+  const failureHandler = createLiveIngestionFailureHandler();
   let testProcessStarted = false;
   const allureResultsWatchers: Map<string, Watcher> = new Map();
   const processWatcher = delayedFileProcessingWatcher(
     async (path) => {
-      await allureReport.readResult(new PathResultFile(path));
+      await failureHandler.read(() => allureReport.readResult(new PathResultFile(path)));
     },
     {
       indexDelay: 200,
@@ -258,7 +260,13 @@ export const runTests = async (params: {
     });
   }
 
-  const code = await terminationOf(testProcess);
+  const outcome = await Promise.race([terminationOf(testProcess), failureHandler.failed]);
+  if (outcome instanceof ExpressionError) {
+    await stopProcessTree(testProcess.pid!).catch((error) =>
+      logError("Failed to stop the test process after an expression failure", error),
+    );
+  }
+  const code = outcome instanceof ExpressionError ? null : outcome;
   const afterProcess = Date.now();
 
   if (logProcessExit && rerunsEnabled) {
@@ -284,6 +292,11 @@ export const runTests = async (params: {
   await processWatcher.abort();
 
   qualityGateUnsub?.();
+
+  const error = failureHandler.getError();
+  if (error) {
+    throw error;
+  }
 
   return {
     code,

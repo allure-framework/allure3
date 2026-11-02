@@ -645,7 +645,9 @@ export class AllureReport {
         }
       } catch (error) {
         if (error instanceof ExpressionError) {
-          throw error;
+          throw new ExpressionError(`${error.message} (result file ${JSON.stringify(data.getOriginalFileName())})`, {
+            cause: error,
+          });
         }
       }
     }
@@ -1139,6 +1141,9 @@ export class AllureReport {
               }
             }
           } catch (err) {
+            if (err instanceof ExpressionError) {
+              throw new ExpressionError(`${err.message} (state dump ${JSON.stringify(dump)})`, { cause: err });
+            }
             console.error(`Failed to restore state from "${dump}", continuing without it`);
             console.error(errorDetails(err));
           }

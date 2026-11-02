@@ -3,6 +3,7 @@ import {
   type AllureHistory,
   type TestResult,
   type AttachmentLinkLinked,
+  ExpressionError,
   calculateEnvironmentHash,
   calculateParametersHash,
   calculateRetryHash,
@@ -3548,6 +3549,26 @@ describe("environments", () => {
         /environment id "gamma" is not listed in allowedEnvironments/,
       );
       expect(await store.allTestResults()).toHaveLength(1);
+    });
+
+    it("rejects expression failures while rebuilding restored dynamic environments", async () => {
+      const source = new DefaultAllureStore({ dynamicEnvironments: hostResolver });
+      const failure = new ExpressionError('Invalid expression at environments["firefox"].matcher');
+      const target = new DefaultAllureStore({
+        dynamicEnvironments: hostResolver,
+        environmentsConfig: {
+          firefox: {
+            matcher: () => {
+              throw failure;
+            },
+          },
+        },
+      });
+      await source.visitTestResult(raw("restored test", "alpha"), { readerId });
+
+      const restoration = target.restoreState(source.dumpState());
+
+      await expect(restoration).rejects.toThrow(failure.message);
     });
 
     it("should keep dynamic environments and their names after dump and restore", async () => {
