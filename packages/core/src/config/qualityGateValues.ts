@@ -4,15 +4,20 @@ import { qualityGateDefaultRules } from "../qualityGate/rules.js";
 import { compileExpression, isExpression } from "./expressions.js";
 import { qualityGateValue } from "./qualityGateValue.js";
 
-export const evaluateGateValue = (source: string, path: string, env: Record<string, string>): unknown => {
+const reportableValue = (value: unknown, path: string, convertIntegers = false): unknown => {
   try {
-    const evaluate = compileExpression(source, path, { env: "map" });
-    return qualityGateValue(evaluate({ env }), true);
+    return qualityGateValue(value, convertIntegers);
   } catch (cause) {
     throw new Error(`Invalid configuration at ${path}: ${cause instanceof Error ? cause.message : String(cause)}`, {
       cause,
     });
   }
+};
+
+export const evaluateGateValue = (source: string, path: string, env: Record<string, string>): unknown => {
+  const evaluate = compileExpression(source, path, { env: "map" });
+  const value = evaluate({ env });
+  return reportableValue(value, path, true);
 };
 
 export const resolveExpected = (
@@ -43,7 +48,7 @@ export const resolveExpected = (
     const value = Array.isArray(input)
       ? entries.map(([, result]) => result.value)
       : Object.fromEntries(entries.map(([key, result]) => [key, result.value]));
-    return { value: qualityGateValue(value), computed: true };
+    return { value: reportableValue(value, path), computed: true };
   } finally {
     ancestors.delete(input);
   }
@@ -85,7 +90,7 @@ export const validateExpected = (name: string, value: unknown, path: string, use
       break;
     default:
       valid =
-        typeof value === "number" && Number.isFinite(value) && value >= 0 && (name !== "successRate" || value <= 100);
+        typeof value === "number" && Number.isFinite(value) && value >= 0 && (name !== "successRate" || value <= 1);
   }
   if (!valid) {
     throw new TypeError(

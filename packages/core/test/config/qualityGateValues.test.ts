@@ -131,14 +131,71 @@ describe("quality-gate load-time expressions", () => {
     expect(config!.rules?.[0].maxFailures).toEqual({ limit: 2 });
   });
 
+  it("rejects a computed success rate above one at the threshold path", async () => {
+    const config = resolve({ rules: [{ successRate: "${{ 1.5 }}" }] });
+
+    await expect(config).rejects.toThrow(
+      "Invalid configuration at qualityGate.rules[0].successRate: computed value does not match the successRate rule's expected type or range",
+    );
+  });
+
+  it.each([0, 1])("accepts the success-rate boundary %s", async (rate) => {
+    const config = await resolve({ rules: [{ successRate: `\${{ ${rate} }}` }] });
+
+    expect(config!.rules?.[0].successRate).toBe(rate);
+  });
+
+  it.each([
+    {
+      input: { enabled: "${{ unknown }}" },
+      path: "qualityGate.enabled",
+      detail: "Invalid expression",
+    },
+    {
+      input: { rules: [{ maxFailures: "${{ env. }}" }] },
+      path: "qualityGate.rules[0].maxFailures",
+      detail: "Invalid expression",
+    },
+    {
+      input: { rules: [{ maxFailures: "${{ int(env.ALLURE_TEST_MISSING_THRESHOLD) }}" }] },
+      path: "qualityGate.rules[0].maxFailures",
+      detail: "Invalid expression",
+    },
+    {
+      input: { rules: [{ maxFailures: "${{ 9007199254740993 }}" }] },
+      path: "qualityGate.rules[0].maxFailures",
+      detail: "CEL integer exceeds JavaScript's safe integer range",
+    },
+    {
+      input: { rules: [{ metricMax: { key: "duration", value: "${{ int(env.ALLURE_TEST_MISSING_THRESHOLD) }}" } }] },
+      path: 'qualityGate.rules[0].metricMax["value"]',
+      detail: "Invalid expression",
+    },
+    {
+      input: { rules: [{ metricMax: { key: "duration", value: "${{ 10 }}", unit: undefined } }] },
+      path: "qualityGate.rules[0].metricMax",
+      detail: "expected JSON-compatible data without cycles",
+    },
+    {
+      input: { rules: [{ maxFailures: "${{ -1 }}" }] },
+      path: "qualityGate.rules[0].maxFailures",
+      detail: "computed value does not match",
+    },
+  ])("reports $path once for $input", async ({ input, path, detail }) => {
+    vi.stubEnv("ALLURE_TEST_MISSING_THRESHOLD", undefined);
+
+    const error = await resolve(input).catch((cause: unknown) => cause);
+
+    expect(error).toBeInstanceOf(Error);
+    expect((error as Error).message).toContain(detail);
+    expect((error as Error).message.split(path)).toHaveLength(2);
+  });
+
   it.each([
     { enabled: "${{ 'false' }}" },
     { enabled: "false" },
     { rules: [{ maxFailures: "${{ '3' }}" }] },
-    { rules: [{ maxFailures: "${{ -1 }}" }] },
-    { rules: [{ maxFailures: "${{ 9007199254740993 }}" }] },
     { rules: [{ newTests: "${{ 1 }}" }] },
-    { rules: [{ successRate: "${{ 101 }}" }] },
     { rules: [{ metricMax: { key: "duration", value: "${{ 'ten' }}" } }] },
   ])("rejects invalid enablement or computed thresholds: %j", async (input) => {
     const result = resolve(input);

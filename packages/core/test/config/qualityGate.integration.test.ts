@@ -73,6 +73,19 @@ qualityGate:
     await expect(config).rejects.toThrow(`Invalid configuration at qualityGate.rules[0].${field}: expected a ${type}`);
   });
 
+  it("explains how to define an unknown custom rule from a static configuration", async () => {
+    const config = load(`
+qualityGate:
+  use:
+    - rule: count
+      message: Custom rule failed
+`);
+
+    await expect(config).rejects.toThrow(
+      'Invalid configuration at qualityGate.use[0]: unknown built-in rule "count"; custom validators require a JavaScript configuration file',
+    );
+  });
+
   it("requires validator functions in rule definitions", async () => {
     const config = load(`
 qualityGate:

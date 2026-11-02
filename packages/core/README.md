@@ -160,8 +160,9 @@ qualityGate:
 
 Computed expected values must be JSON-compatible, with finite numbers and lossless conversion of CEL integers to JavaScript numbers. Built-in
 values must also match the rule's expected domain: counts/duration are nonnegative numbers, success
-rate is between 0 and 100, `newTests` is boolean, environment rules use strings/lists of strings, and
-metric rules use a metric descriptor with a numeric `value`. Custom rules accept JSON-compatible
+rate is a ratio between 0 and 1 (for example, `0.9` means 90%), `newTests` is boolean, environment
+rules use strings/lists of strings, and metric rules use a metric descriptor with a numeric `value`.
+Custom rules accept JSON-compatible
 expected structures. Existing literal values and native JavaScript callbacks retain their contracts.
 
 Omitting `use` retains the default built-ins. Supplying `use` selects exactly those rules; include

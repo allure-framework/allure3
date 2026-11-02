@@ -54,6 +54,12 @@ const resolveRule = (input: QualityGateRuleInput, path: string): QualityGateRule
       "expected a validator function; use a JavaScript configuration file for custom validation",
     );
   }
+  if (!builtin && input.validate === undefined) {
+    return invalid(
+      path,
+      `unknown built-in rule ${JSON.stringify(name)}; custom validators require a JavaScript configuration file`,
+    );
+  }
   const inherited = input.validate === undefined ? builtin : undefined;
   const validate = input.validate ?? inherited?.validate;
   const resolvedMessage = message(input.message, `${path}.message`, inherited?.message);
@@ -120,18 +126,11 @@ export const resolveQualityGate = (input: QualityGateConfigInput | undefined): Q
               `no implementation registered for rule "${name}"; include it in qualityGate.use, which replaces the built-in defaults`,
             );
           }
-          try {
-            const expected = resolveExpected(value, `${path}.${name}`, env);
-            if (expected.computed) {
-              validateExpected(name, expected.value, `${path}.${name}`, use);
-            }
-            return [name, expected.value];
-          } catch (cause) {
-            throw new Error(
-              `Invalid configuration at ${path}.${name}: ${cause instanceof Error ? cause.message : String(cause)}`,
-              { cause },
-            );
+          const expected = resolveExpected(value, `${path}.${name}`, env);
+          if (expected.computed) {
+            validateExpected(name, expected.value, `${path}.${name}`, use);
           }
+          return [name, expected.value];
         }),
       );
       const { filter } = ruleset;
