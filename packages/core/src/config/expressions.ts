@@ -80,7 +80,6 @@ export const compileExpression = (
     if (options.resultType && checked.type !== options.resultType && checked.type !== CEL_DYNAMIC_TYPE) {
       throw new TypeError(`expression must return a ${options.resultType === "bool" ? "boolean" : "string"}`);
     }
-
     return (context) => {
       try {
         const result: unknown = expression(snapshotContext(context, variables));

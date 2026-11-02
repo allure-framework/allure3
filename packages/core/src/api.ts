@@ -6,7 +6,7 @@ import type {
   PerformanceConfig,
   ResolvedAllureServiceConfig,
 } from "@allurereport/core-api";
-import type { Plugin, ReportFiles, Config } from "@allurereport/plugin-api";
+import type { Plugin, ReportFiles, Config, QualityGateConfig } from "@allurereport/plugin-api";
 import type { ResultsReader } from "@allurereport/reader-api";
 
 export interface PluginInstance {
@@ -33,6 +33,7 @@ export interface FullConfig
       | "hideLabels"
       | "categories"
       | "environments"
+      | "qualityGate"
     >,
     FullConfigRequiredFromConfig {
   port: Config["port"] | undefined;
@@ -42,7 +43,7 @@ export interface FullConfig
   readers?: ResultsReader[];
   plugins?: PluginInstance[];
   realTime?: any;
-  qualityGate?: Config["qualityGate"];
+  qualityGate?: QualityGateConfig;
   performance?: PerformanceConfig;
   allureService?: ResolvedAllureServiceConfig;
   hideLabels?: LabelMatcher[];

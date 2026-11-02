@@ -64,6 +64,7 @@ interface RegisteredQualityGateRule {
 }
 
 export type QualityGateConfig = {
+  enabled?: boolean;
   rules?: QualityGateRules[];
   use?: RegisteredQualityGateRule[];
 };

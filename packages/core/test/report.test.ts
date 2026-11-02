@@ -457,6 +457,14 @@ describe("report", () => {
     });
   });
 
+  it("leaves disabled quality gates inactive during report generation", async () => {
+    const config = await resolveConfig({ qualityGate: { enabled: false } }, { plugins: {} });
+
+    const report = new AllureReport(config);
+
+    expect(report.hasQualityGate).toBe(false);
+  });
+
   it("should write quality gate results with related test ids", async () => {
     const output = await mkdtemp(join(tmpdir(), "allure3-quality-gate-resolved-"));
     const config = await resolveConfig({
