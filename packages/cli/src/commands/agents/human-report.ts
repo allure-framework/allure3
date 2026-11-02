@@ -6,7 +6,14 @@ import type {
   AgentHumanReportStatus,
   AgentHumanReportStatusProvider,
 } from "@allurereport/plugin-agent";
-import type { AllureStore, Plugin, PluginContext, PluginSummary, RealtimeSubscriber } from "@allurereport/plugin-api";
+import type {
+  AllureStore,
+  Config,
+  Plugin,
+  PluginContext,
+  PluginSummary,
+  RealtimeSubscriber,
+} from "@allurereport/plugin-api";
 import AwesomePlugin, { type AwesomePluginOptions } from "@allurereport/plugin-awesome";
 
 export const AGENT_HUMAN_REPORT_THRESHOLD = 1000;
@@ -15,7 +22,7 @@ type AgentHumanReportConfigOverride = {
   name?: FullConfig["name"];
   open?: FullConfig["open"];
   port?: FullConfig["port"];
-  hideLabels?: FullConfig["hideLabels"];
+  hideLabels?: Config["hideLabels"];
   historyLimit?: FullConfig["historyLimit"];
 };
 

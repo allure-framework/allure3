@@ -1,6 +1,7 @@
 import type {
   AllureServiceConfig,
-  CategoriesConfig,
+  CategoryRule,
+  Matcher,
   DefaultLabelsConfig,
   DynamicEnvironmentsConfig,
   EnvironmentsConfig,
@@ -12,6 +13,12 @@ import type {
 
 import type { PluginDescriptor } from "./plugin.js";
 import type { QualityGateConfig } from "./qualityGate.js";
+
+export type CategoryRuleConfig = Omit<CategoryRule, "matchers"> & {
+  matchers?: Matcher | string | readonly (Matcher | string)[];
+};
+
+export type CategoriesConfigInput = false | CategoryRuleConfig[] | { rules: CategoryRuleConfig[] };
 
 export interface Config {
   name?: string;
@@ -81,7 +88,7 @@ export interface Config {
   qualityGate?: QualityGateConfig;
   performance?: PerformanceConfig;
   allureService?: AllureServiceConfig;
-  categories?: CategoriesConfig;
+  categories?: CategoriesConfigInput;
   /**
    * Array of glob patterns or full paths to match files in the working directory which should be attached to allure report as global attachments
    */

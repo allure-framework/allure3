@@ -6,6 +6,7 @@ import {
   type EnvironmentIdentity,
   type EnvironmentItem,
   type HistoryTestResultUrlResolver,
+  type LabelMatcher,
   type MetricSample,
   type MetricHierarchyNode,
   type ResolutionCategory,
@@ -161,7 +162,7 @@ export const generateTestResults = async (
   trs: TestResult[],
   options: {
     pluginId: string;
-    hideLabels?: readonly (string | RegExp)[];
+    hideLabels?: readonly LabelMatcher[];
     ideaLinks?: boolean | IdeaLinksOptions;
     related?: TestResultRelatedData;
     resolveHistoryUrl?: HistoryTestResultUrlResolver;
