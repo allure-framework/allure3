@@ -7,7 +7,7 @@ import {
   type FullConfig,
   type PluginInstance,
 } from "@allurereport/core";
-import { createNameContext } from "@allurereport/core-api";
+import { createNameContext } from "@allurereport/core-api/expression";
 import type {
   AgentHumanReportMode,
   AgentHumanReportStatus,

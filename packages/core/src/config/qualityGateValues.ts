@@ -1,4 +1,4 @@
-import { compileExpression, isExpression } from "@allurereport/core-api";
+import { compileExpression, isExpression } from "@allurereport/core-api/expression";
 import type { QualityGateRule } from "@allurereport/plugin-api";
 
 import { qualityGateDefaultRules } from "../qualityGate/rules.js";

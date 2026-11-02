@@ -1,4 +1,4 @@
-import { type NameContext, compileExpression, resolveName } from "@allurereport/core-api";
+import { type NameContext, compileExpression, resolveName } from "@allurereport/core-api/expression";
 
 import type { PluginExpressionKind, PluginExpressionResolver } from "../plugin.js";
 

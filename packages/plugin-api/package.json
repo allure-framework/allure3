@@ -19,6 +19,9 @@
   "types": "./dist/index.d.ts",
   "typesVersions": {
     "*": {
+      "expression": [
+        "dist/utils/expression.d.ts"
+      ],
       "internal/report": [
         "dist/utils/report.d.ts"
       ]
@@ -26,6 +29,7 @@
   },
   "exports": {
     ".": "./dist/index.js",
+    "./expression": "./dist/utils/expression.js",
     "./static-assets": "./dist/staticAssets.js",
     "./internal/report": "./dist/utils/report.js"
   },

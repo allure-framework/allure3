@@ -21,7 +21,7 @@ The interfaces in the package describe the entities used for building Allure Plu
 A plugin can opt in to configuration expressions with optional static `configExpressions`
 metadata. Declare supported fields beside the plugin class; Allure core handles evaluation
 before constructing the plugin. Shared kinds need only a type import. Custom resolvers can reuse
-the expression utilities in `@allurereport/core-api` or use CEL directly without importing core.
+the expression utilities in `@allurereport/core-api/expression` or use CEL directly without importing core.
 
 ```ts
 import type { Plugin, PluginExpressionFields } from "@allurereport/plugin-api";
@@ -52,9 +52,11 @@ fields whose values follow the corresponding callback or string contract:
 | `testFilter` | `test`, `env` | Deferred boolean test-result callback |
 | `qualityGateFilter` | `result`, `env` | Deferred boolean quality-gate-result callback |
 
-`resolvePluginExpression`, exported from this package and implemented in `src/utils/expression.ts`,
-dispatches shared kinds and custom resolvers using the supplied configuration path and `NameContext`.
-The name context helpers are exported from `@allurereport/core-api`.
+`resolvePluginExpression`, exported from the server-only `@allurereport/plugin-api/expression`
+entry point and implemented in `src/utils/expression.ts`, dispatches shared kinds and custom resolvers
+using the supplied configuration path and `NameContext`. The name context helpers are exported from
+`@allurereport/core-api/expression`. Expression utilities are not re-exported from the package roots,
+so browser consumers do not load the expression engine.
 
 Marked strings use the full `${{ ... }}` syntax. Ordinary names stay literal; native callbacks
 pass through. Filter strings must be full expressions.
@@ -89,7 +91,7 @@ export const configExpressions = {
 
 The plugin's `expressions.ts` owns field interpretation, context selection, callback construction
 and result adaptation. It can reuse `compileExpression`, `compilePredicate`, `isExpression` and
-`CEL_DYNAMIC_TYPE` from `@allurereport/core-api` for wrapper handling, declared-variable checks,
+`CEL_DYNAMIC_TYPE` from `@allurereport/core-api/expression` for wrapper handling, declared-variable checks,
 compilation and path-specific errors. See the [expression utilities](../core-api/README.md#expression-utilities).
 
 Compile in the resolver, not inside the returned callback. Capture the supplied `env` rather than

@@ -2,12 +2,8 @@ import { readFile, stat } from "node:fs/promises";
 import { extname, resolve } from "node:path";
 import * as process from "node:process";
 
-import {
-  createNameContext,
-  parseIntegerConfigValue,
-  validateEnvironmentName,
-  validatePerformanceConfig,
-} from "@allurereport/core-api";
+import { parseIntegerConfigValue, validateEnvironmentName, validatePerformanceConfig } from "@allurereport/core-api";
+import { createNameContext } from "@allurereport/core-api/expression";
 import type { Config, PluginConstructor, PluginConstructorContext, PluginDescriptor } from "@allurereport/plugin-api";
 import { createJiti } from "jiti";
 import { parse } from "yaml";

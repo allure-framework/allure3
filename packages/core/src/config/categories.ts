@@ -1,9 +1,5 @@
-import {
-  type CategoriesConfig,
-  type CategoryMatchingData,
-  type Matcher,
-  compilePredicate,
-} from "@allurereport/core-api";
+import type { CategoriesConfig, CategoryMatchingData, Matcher } from "@allurereport/core-api";
+import { compilePredicate } from "@allurereport/core-api/expression";
 import type { Config } from "@allurereport/plugin-api";
 
 export const resolveCategories = (value: Config["categories"]): CategoriesConfig | undefined => {

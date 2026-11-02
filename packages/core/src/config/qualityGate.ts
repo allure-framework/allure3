@@ -1,4 +1,4 @@
-import { CEL_DYNAMIC_TYPE, compileExpression, isExpression } from "@allurereport/core-api";
+import { CEL_DYNAMIC_TYPE, compileExpression, isExpression } from "@allurereport/core-api/expression";
 import type {
   QualityGateConfig,
   QualityGateConfigInput,

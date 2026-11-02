@@ -1,4 +1,4 @@
-import { compileExpression, isExpression } from "@allurereport/core-api";
+import { compileExpression, isExpression } from "@allurereport/core-api/expression";
 
 const resolveAccessor = (source, { path, env }) => {
   if (!isExpression(source)) {

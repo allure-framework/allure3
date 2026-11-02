@@ -1,5 +1,7 @@
 import { Environment } from "@marcbachmann/cel-js";
 
+import { ExpressionError } from "../errors.js";
+
 export const isExpression = (value: string): boolean => value.trimStart().startsWith("${{");
 
 /** CEL's dynamic type: rule-specific values are type-checked when the expression runs. */
@@ -8,10 +10,6 @@ export const CEL_DYNAMIC_TYPE = "dyn";
 type Variables = Record<string, "string" | "map" | "list" | typeof CEL_DYNAMIC_TYPE>;
 type Predicate = (context: Record<string, unknown>) => boolean;
 type ExpressionOptions = { resultType?: "bool" | "string" };
-
-export class ExpressionError extends Error {
-  override name = "ExpressionError";
-}
 
 /** Compile once and report failures with the configuration path. */
 export const compileExpression = (

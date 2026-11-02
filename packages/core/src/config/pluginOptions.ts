@@ -1,5 +1,6 @@
-import type { NameContext } from "@allurereport/core-api";
-import { type PluginExpressionFields, resolvePluginExpression } from "@allurereport/plugin-api";
+import type { NameContext } from "@allurereport/core-api/expression";
+import type { PluginExpressionFields } from "@allurereport/plugin-api";
+import { resolvePluginExpression } from "@allurereport/plugin-api/expression";
 
 /** Normalize only fields declared by the plugin constructor. */
 export const resolvePluginOptions = (

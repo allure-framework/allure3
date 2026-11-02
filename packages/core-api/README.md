@@ -16,10 +16,12 @@ The collection of interfaces and shared runtime utilities for core Allure Report
 
 ## Expression utilities
 
-Shared CEL utilities are implemented in `src/utils/expression.ts` and exported from this package:
+Shared CEL utilities are implemented in `src/utils/expression.ts` and exported from the server-only
+`@allurereport/core-api/expression` entry point. The package root stays free of the expression engine
+for browser consumers. `ExpressionError` remains available from the package root.
 
 ```ts
-import { compileExpression, compilePredicate, isExpression, CEL_DYNAMIC_TYPE } from "@allurereport/core-api";
+import { compileExpression, compilePredicate, isExpression, CEL_DYNAMIC_TYPE } from "@allurereport/core-api/expression";
 
 const evaluate = compileExpression(
   "${{ test.name }}",
@@ -49,7 +51,7 @@ Reuse the resulting `NameContext` for all names in a configuration to keep their
 
 `resolveName(value, path, context)` evaluates a marked expression with `env` and `date`, requiring
 a string result. Literal strings and `undefined` pass through unchanged. Both helpers and the
-context type are exported from `@allurereport/core-api` and implemented in `src/utils/expression.ts`.
+context type are exported from `@allurereport/core-api/expression` and implemented in `src/utils/expression.ts`.
 
 ## Install
 

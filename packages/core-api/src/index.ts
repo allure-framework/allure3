@@ -19,7 +19,7 @@ export type * from "./utils/tree.js";
 export * from "./utils/time.js";
 export * from "./utils/comparator.js";
 export * from "./utils/predicate.js";
-export * from "./utils/expression.js";
+export * from "./errors.js";
 export * from "./utils/label.js";
 export * from "./utils/parameter.js";
 export * from "./utils/testplan.js";

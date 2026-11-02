@@ -1,4 +1,5 @@
-import { type TestResult, compileExpression, isExpression } from "@allurereport/core-api";
+import type { TestResult } from "@allurereport/core-api";
+import { compileExpression, isExpression } from "@allurereport/core-api/expression";
 import type { PluginExpressionContext } from "@allurereport/plugin-api";
 import { UnsignedInt } from "@marcbachmann/cel-js/evaluator";
 
