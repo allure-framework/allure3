@@ -52,13 +52,9 @@ export const defaultTasksConfig = (
       buildCommands = buildCommands.slice(1);
     }
 
-    tasks["vp:clean"] = {
-      command: "run clean",
-      cache: false,
-    };
     tasks["vp:build"] = {
       command: buildCommands,
-      dependsOn: ["vp:clean", { task: "vp:build", from: ["dependencies", "devDependencies"] }],
+      dependsOn: [{ task: "vp:build", from: ["dependencies", "devDependencies"] }],
       cache:
         env.VITE_NO_CACHE === "true"
           ? false
