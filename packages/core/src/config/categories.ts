@@ -8,6 +8,10 @@ export const resolveCategories = (value: Config["categories"]): CategoriesConfig
     return value;
   }
 
+  if (typeof value !== "object" || value === null) {
+    throw new TypeError("Invalid categories: expected an object or array");
+  }
+
   const resolveMatcher = (matcher: Matcher | string, path: string): Matcher => {
     if (typeof matcher !== "string") {
       return matcher;
@@ -23,14 +27,21 @@ export const resolveCategories = (value: Config["categories"]): CategoriesConfig
           duration: data.duration,
           transition: data.transition,
           environment: data.environment,
-          labels: data.labels.map(({ name, value: labelValue }) => ({ name, value: labelValue })),
+          labels: data.labels.map(({ name, value: labelValue }) => ({ name, value: labelValue ?? "" })),
         },
       });
   };
 
   const rules = Array.isArray(value) ? value : value.rules;
+  if (!Array.isArray(rules)) {
+    throw new TypeError("Invalid categories.rules: expected an array");
+  }
   const resolved = rules.map((rule, index) => {
-    const path = `categories[${index}].matchers`;
+    const rulePath = Array.isArray(value) ? `categories[${index}]` : `categories.rules[${index}]`;
+    if (typeof rule !== "object" || rule === null || Array.isArray(rule)) {
+      throw new TypeError(`Invalid ${rulePath}: expected an object`);
+    }
+    const path = `${rulePath}.matchers`;
     const { matchers } = rule;
     return {
       ...rule,

@@ -46,6 +46,35 @@ describe("category configuration expressions", () => {
     expect(typeof rules[0].matchers[2]).toBe("string");
   });
 
+  it.each([
+    ["firefox", false],
+    ["", true],
+  ])("treats missing label values as empty strings when comparing against %j", (value, expected) => {
+    const categories = normalizeCategoriesConfig(
+      resolveCategories([
+        { name: "Browser", matchers: `\${{ data.labels.exists(l, l.name == 'browser' && l.value == '${value}') }}` },
+      ]),
+    );
+    const candidate = { ...data, labels: [{ name: "browser" }] };
+
+    const matched = matchCategory(categories, candidate);
+
+    expect(matched?.name === "Browser").toBe(expected);
+  });
+
+  it.each([
+    [null, "Invalid categories: expected an object or array"],
+    [true, "Invalid categories: expected an object or array"],
+    [{ rules: "invalid" }, "Invalid categories.rules: expected an array"],
+    [[null], "Invalid categories[0]: expected an object"],
+    [{ rules: [null] }, "Invalid categories.rules[0]: expected an object"],
+    [[[]], "Invalid categories[0]: expected an object"],
+  ])("rejects invalid category structures with their configuration path: %j", (input, message) => {
+    const resolve = () => resolveCategories(input as unknown as Config["categories"]);
+
+    expect(resolve).toThrow(message);
+  });
+
   it("compiles a single predicate and omits absent optional values", () => {
     const input = [
       { name: "No message", matchers: "${{ !has(data.message) && data.duration > 42 && !has(data.secret) }}" },
