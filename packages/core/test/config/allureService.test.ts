@@ -29,6 +29,14 @@ describe("Allure Service configuration", () => {
     });
   });
 
+  it("reports a missing environment key during token evaluation at the service path", async () => {
+    vi.stubEnv("ALLURE_MISSING_SERVICE_TOKEN", undefined);
+
+    const resolution = resolve({ accessToken: "${{ env.ALLURE_MISSING_SERVICE_TOKEN }}" });
+
+    await expect(resolution).rejects.toThrow(/allureService\.accessToken.*No such key.*ALLURE_MISSING_SERVICE_TOKEN/);
+  });
+
   it.each(["literal-token", "", undefined])("preserves literal access token %j", async (accessToken) => {
     const config = await resolve({ accessToken });
 
