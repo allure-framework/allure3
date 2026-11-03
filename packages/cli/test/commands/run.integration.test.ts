@@ -1800,11 +1800,18 @@ console.log(\`selected selectors: \${Array.from(selectors).join(",")}\`);
       expected: "console-input",
     },
     {
-      scenario: "split UTF-8",
+      scenario: "console input bytes",
+      input: "caf\u00e9",
+      source:
+        'const chunks = []; await new Promise(resolve => process.stdin.on("data", chunk => { chunks.push(chunk); if (Buffer.concat(chunks).includes(10)) { process.stdin.destroy(); resolve(); } })); console.log("stdin-bytes:" + Buffer.concat(chunks).toString("hex"));',
+      expected: "stdin-bytes:636166e90d0a",
+    },
+    {
+      scenario: "console output bytes",
       input: "",
       source:
-        'const bytes = Buffer.from("héllo 世界"); process.stdout.write(bytes.subarray(0, 2)); await new Promise(resolve => setTimeout(resolve, 30)); process.stdout.write(bytes.subarray(2)); console.log();',
-      expected: "héllo 世界",
+        "await Promise.all([process.stdout, process.stderr].map(stream => new Promise(resolve => stream.write(Buffer.from([0x63, 0x61, 0x66, 0xe9, 0x0a]), resolve))));",
+      expected: "caf\u00e9",
     },
     {
       scenario: "large output",
@@ -1959,7 +1966,11 @@ console.log(\`selected selectors: \${Array.from(selectors).join(",")}\`);
         expect(output.stderr).not.toContain("target-stdout-marker");
 
         if (expected) {
-          expect(output.stdout).toContain(expected);
+          expect.soft(output.stdout).toContain(expected);
+        }
+        if (scenario === "console output bytes") {
+          // The console must interpret 0xe9 using CP1252 on both output streams.
+          expect.soft(output.stderr).toContain(expected);
         }
         if (scenario === "large output") {
           expect(output.stdout.match(/X/g)?.length).toBeGreaterThanOrEqual(131072);

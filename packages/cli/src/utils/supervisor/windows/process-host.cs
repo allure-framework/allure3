@@ -438,15 +438,6 @@ namespace Allure.Run.Supervisor.Windows
         );
 
         [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
-        internal static extern bool ReadConsoleW(
-            IntPtr handle,
-            [Out] char[] buffer,
-            uint size,
-            out uint read,
-            IntPtr control
-        );
-
-        [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
         internal static extern bool WriteConsoleW(
             IntPtr handle,
             string buffer,
@@ -803,22 +794,20 @@ namespace Allure.Run.Supervisor.Windows
 
             protected override void Forward()
             {
-                char[] characters = new char[2048];
-                byte[] bytes = new byte[Encoding.UTF8.GetMaxByteCount(characters.Length)];
-                Encoder encoder = Encoding.UTF8.GetEncoder();
+                byte[] bytes = new byte[8192];
                 while (!this.Cancelled)
                 {
                     uint count;
-                    bool success = Native.ReadConsoleW(
+                    bool success = Native.ReadFile(
                         handle: this.Console,
-                        buffer: characters,
-                        size: (uint)characters.Length,
+                        buffer: bytes,
+                        size: (uint)bytes.Length,
                         read: out count,
-                        control: IntPtr.Zero
+                        overlapped: IntPtr.Zero
                     );
                     if (!success)
                     {
-                        throw Win32(this.FormatOperation("ReadConsoleW()"));
+                        throw Win32(this.FormatOperation("ReadFile()"));
                     }
 
                     if (count == 0 || this.Cancelled)
@@ -826,21 +815,12 @@ namespace Allure.Run.Supervisor.Windows
                         return;
                     }
 
-                    int length = encoder.GetBytes(
-                        chars: characters,
-                        charIndex: 0,
-                        charCount: (int)count,
-                        bytes: bytes,
-                        byteIndex: 0,
-                        flush: false
-                    );
-
                     GCHandle pinned = GCHandle.Alloc(bytes, GCHandleType.Pinned);
 
                     try
                     {
                         int offset = 0;
-                        while (offset < length && !this.Cancelled)
+                        while (offset < (int)count && !this.Cancelled)
                         {
                             uint written;
                             success = Native.WriteFile(
@@ -849,7 +829,7 @@ namespace Allure.Run.Supervisor.Windows
                                     pinned.AddrOfPinnedObject(),
                                     offset
                                 ),
-                                size: (uint)(length - offset),
+                                size: count - (uint)offset,
                                 written: out written,
                                 overlapped: IntPtr.Zero
                             );
@@ -898,8 +878,6 @@ namespace Allure.Run.Supervisor.Windows
             protected override void Forward()
             {
                 byte[] bytes = new byte[8192];
-                char[] characters = new char[Encoding.UTF8.GetMaxCharCount(bytes.Length)];
-                Decoder decoder = Encoding.UTF8.GetDecoder();
 
                 while (!this.Cancelled)
                 {
@@ -920,50 +898,46 @@ namespace Allure.Run.Supervisor.Windows
                         }
 
                         // The pipe reached EOF.
-                        // Setting count to zero will flush any text buffered by the UTF-8 decoder.
-                        count = 0;
-                    }
-
-                    int length = decoder.GetChars(
-                        bytes: bytes,
-                        byteIndex: 0,
-                        byteCount: (int)count,
-                        chars: characters,
-                        charIndex: 0,
-                        flush: count == 0
-                    );
-
-                    string text = new string(characters, 0, length);
-                    int offset = 0;
-                    while (offset < text.Length && !this.Cancelled)
-                    {
-                        uint written;
-                        string remaining = text.Substring(offset);
-                        success = Native.WriteConsoleW(
-                            handle: this.Console,
-                            buffer: remaining,
-                            size: (uint)remaining.Length,
-                            written: out written,
-                            reserved: IntPtr.Zero
-                        );
-                        if (!success)
-                        {
-                            throw Win32(this.FormatOperation("WriteConsoleW()"));
-                        }
-                        if (written == 0)
-                        {
-                            throw new Failure(
-                                this.FormatOperation("WriteConsoleW()"),
-                                "No progress writing output."
-                            );
-                        }
-
-                        offset += (int)written;
+                        return;
                     }
 
                     if (count == 0)
                     {
                         return;
+                    }
+
+                    GCHandle pinned = GCHandle.Alloc(bytes, GCHandleType.Pinned);
+                    try
+                    {
+                        int offset = 0;
+                        while (offset < (int)count && !this.Cancelled)
+                        {
+                            uint written;
+                            success = Native.WriteFile(
+                                handle: this.Console,
+                                buffer: IntPtr.Add(pinned.AddrOfPinnedObject(), offset),
+                                size: count - (uint)offset,
+                                written: out written,
+                                overlapped: IntPtr.Zero
+                            );
+                            if (!success)
+                            {
+                                throw Win32(this.FormatOperation("WriteFile()"));
+                            }
+                            if (written == 0)
+                            {
+                                throw new Failure(
+                                    this.FormatOperation("WriteFile()"),
+                                    "No progress writing output."
+                                );
+                            }
+
+                            offset += (int)written;
+                        }
+                    }
+                    finally
+                    {
+                        pinned.Free();
                     }
                 }
             }

@@ -27,6 +27,12 @@ using System.Threading;
 
 public static class ConsoleOutputFixture
 {
+    [DllImport("kernel32.dll", SetLastError = true)]
+    static extern bool SetConsoleCP(uint codePage);
+
+    [DllImport("kernel32.dll", SetLastError = true)]
+    static extern bool SetConsoleOutputCP(uint codePage);
+
     static void Trace(string path, string stage)
     {
         try
@@ -382,6 +388,10 @@ public static class ConsoleOutputFixture
         FreeConsole();
         Trace(tracePath, "FreeConsole finished; AllocConsole starting");
         Check(AllocConsole());
+        // Use a non-UTF-8 code page to expose unwanted transcoding in either relay.
+        // This console is private to the fixture and is freed during cleanup.
+        Check(SetConsoleCP(1252));
+        Check(SetConsoleOutputCP(1252));
         Trace(tracePath, "AllocConsole finished");
 
         IntPtr stdin = IntPtr.Zero;
