@@ -300,7 +300,7 @@ test("treemap edge cells keep focused and hovered tooltip content visible", asyn
   try {
     for (const frontend of ["awesome", "classic", "dashboard"]) {
       await page.goto(
-        `${report.url}/${frontend}/index.html${frontend === "awesome" ? "#/charts" : frontend === "classic" ? "#overview" : ""}`,
+        `${report.url}/${frontend}/index.html${frontend === "awesome" ? "#/charts" : frontend === "classic" ? "#graphs" : ""}`,
       );
 
       const cells = page.getByRole("img", { name: /^Feature \d+: Success rate:/ });
