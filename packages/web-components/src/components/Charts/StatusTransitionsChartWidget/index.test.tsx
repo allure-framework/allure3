@@ -45,8 +45,8 @@ describe("StatusTransitionsChartWidget", () => {
     const props = lastBarChartProps();
 
     expect(props.data).toEqual([
-      expect.objectContaining({ id: "history", fixed: 2, regressed: -1, malfunctioned: -1 }),
-      expect.objectContaining({ id: "current", fixed: 3, regressed: -2, malfunctioned: 0 }),
+      expect.objectContaining({ id: "history", fixed: 2, regressed: -1, malfunctioned: -1, trend: 50 }),
+      expect.objectContaining({ id: "current", fixed: 3, regressed: -2, malfunctioned: 0, trend: 58.33 }),
     ]);
     expect(props.legend.map(({ id, label }: { id: string; label: string }) => ({ id, label }))).toEqual([
       { id: "fixed", label: "transitions.fixed" },

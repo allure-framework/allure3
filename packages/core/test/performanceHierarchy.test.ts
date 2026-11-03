@@ -116,15 +116,27 @@ describe("configured performance hierarchy", () => {
       throw new Error("Expected the report configuration to define performance metrics");
     }
     const tree = buildMetricHierarchy(performance);
-    const metricKeys = Object.keys(performance.metrics ?? {});
-    expect(metricKeys.filter((key) => key.startsWith("aql.parse."))).toHaveLength(5);
-    expect(metricKeys.filter((key) => key.startsWith("aql.filter."))).toHaveLength(8);
-    expect(metricKeys.filter((key) => key.startsWith("aql.workflow."))).toHaveLength(2);
     const run = tree.find(({ key }) => key === "allure.total")!;
     expect(run.children.map(({ key }) => key)).toEqual(["generate.total", "restoreState.total", "summary.generate"]);
     const generate = run.children.find(({ key }) => key === "generate.total")!;
     expect(generate.children.map(({ key }) => key)).toEqual(["generate.plugins.done", "generate.readResults"]);
     expect(tree.find(({ key }) => key === "aql.parse.simple")).toEqual({ key: "aql.parse.simple", children: [] });
+    expect(tree.find(({ key }) => key === "publish.upload.total")!.children.map(({ key }) => key)).toEqual([
+      "publish.upload.plugin.allure2",
+      "publish.upload.plugin.awesome",
+      "publish.upload.plugin.classic",
+      "publish.upload.plugin.dashboard",
+    ]);
+  });
+
+  it("keeps the shipped performance metric inventory stable", async () => {
+    const root = fileURLToPath(new URL("../../../", import.meta.url));
+    const config = await readConfig(root, "allurerc.mjs");
+    const metricKeys = Object.keys(config.performance?.metrics ?? {});
+
+    expect(metricKeys.filter((key) => key.startsWith("aql.parse."))).toHaveLength(5);
+    expect(metricKeys.filter((key) => key.startsWith("aql.filter."))).toHaveLength(8);
+    expect(metricKeys.filter((key) => key.startsWith("aql.workflow."))).toHaveLength(2);
     expect(metricKeys.filter((key) => key.startsWith("generate.plugin.done.")).sort()).toEqual([
       "generate.plugin.done.allure2",
       "generate.plugin.done.awesome",
@@ -132,12 +144,6 @@ describe("configured performance hierarchy", () => {
       "generate.plugin.done.dashboard",
       "generate.plugin.done.log",
       "generate.plugin.done.testops",
-    ]);
-    expect(tree.find(({ key }) => key === "publish.upload.total")!.children.map(({ key }) => key)).toEqual([
-      "publish.upload.plugin.allure2",
-      "publish.upload.plugin.awesome",
-      "publish.upload.plugin.classic",
-      "publish.upload.plugin.dashboard",
     ]);
   });
 });

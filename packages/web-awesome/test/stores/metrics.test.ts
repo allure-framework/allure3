@@ -242,6 +242,7 @@ describe("metrics store helpers", () => {
         resolveFetch = resolve;
       }),
     );
+    metricsStore.value = { loading: false, error: "stale metrics error", data: undefined };
 
     const pending = fetchMetricsData();
 

@@ -1,5 +1,19 @@
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/preact";
+import type { ComponentProps } from "preact";
 import { afterEach, describe, expect, it, vi } from "vite-plus/test";
+
+vi.mock("@/components/SvgIcon", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/components/SvgIcon")>();
+
+  return {
+    ...actual,
+    SvgIcon: (props: ComponentProps<typeof actual.SvgIcon>) => (
+      <span data-testid={props["data-testid"]} data-icon-id={props.id} />
+    ),
+  };
+});
+
+import { allureIcons } from "@/components/SvgIcon";
 
 import { TreeItemInfo } from "./index";
 
@@ -9,22 +23,19 @@ afterEach(() => {
 });
 
 describe("TreeItemInfo", () => {
-  it("renders the resolution category marker", () => {
-    render(<TreeItemInfo resolution="issue" />);
-
-    expect(screen.queryByTestId("tree-leaf-resolution-issue")).not.toBeNull();
-  });
-
   it("renders distinct resolution markers with their corresponding tooltips", async () => {
     vi.useFakeTimers();
     const { rerender } = render(<TreeItemInfo />);
-    const iconSignatures: string[] = [];
-    const expectResolution = async (resolution: "issue" | "muted" | "accepted", tooltip: string) => {
+    const expectResolution = async (
+      resolution: "issue" | "muted" | "accepted",
+      tooltip: string,
+      expectedIconId: string,
+    ) => {
       rerender(<TreeItemInfo resolution={resolution} tooltips={{ resolution: tooltip }} />);
       const marker = screen.getByTestId(`tree-leaf-resolution-${resolution}`);
       const wrapper = marker.parentElement!.parentElement!;
 
-      iconSignatures.push(marker.tagName === "IMG" ? marker.getAttribute("src")! : marker.innerHTML);
+      expect(marker.getAttribute("data-icon-id")).toBe(expectedIconId);
 
       fireEvent.mouseEnter(wrapper);
       await act(async () => {
@@ -34,10 +45,9 @@ describe("TreeItemInfo", () => {
       fireEvent.mouseLeave(wrapper);
     };
 
-    await expectResolution("issue", "Issue");
-    await expectResolution("muted", "Muted");
-    await expectResolution("accepted", "Accepted");
-    expect(new Set(iconSignatures)).toHaveLength(3);
+    await expectResolution("issue", "Issue", allureIcons.lineDevBug2);
+    await expectResolution("muted", "Muted", allureIcons.lineGeneralEye);
+    await expectResolution("accepted", "Accepted", allureIcons.lineGeneralCheckCircle);
 
     rerender(<TreeItemInfo />);
     expect(screen.queryByTestId("tree-leaf-resolution-issue")).toBeNull();

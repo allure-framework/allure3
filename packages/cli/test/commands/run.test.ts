@@ -634,7 +634,16 @@ describe("run command", () => {
     expect(rm).toHaveBeenCalledWith("/tmp/run", { recursive: true, force: true });
   });
 
-  it("should record known and unexpected internal run failures as global errors", async () => {
+  it.each([
+    {
+      name: "known internal run failures",
+      error: new KnownError("Configured results directory is invalid"),
+    },
+    {
+      name: "unexpected internal run failures",
+      error: new Error("orchestration crashed"),
+    },
+  ])("should record $name as global errors", async ({ error }) => {
     await allureId("304052");
     await story("global-errors");
     await label("coverage", "global-errors");
@@ -643,30 +652,9 @@ describe("run command", () => {
     const { terminationOf } = await import("../../src/utils/index.js");
     const dispatcher = AllureReportMock.prototype.realtimeDispatcher;
 
-    vi.mocked(terminationOf).mockRejectedValueOnce(new KnownError("Configured results directory is invalid"));
-
-    const knownFailureResult = await executeAllureRun({
-      allureReport: new AllureReportMock() as never,
-      cwd: "/cwd",
-      command: "npm",
-      commandArgs: ["test"],
-      withQualityGate: false,
-    });
-
-    expect(knownFailureResult.globalExitCode.actual).toBe(1);
-    expect(dispatcher.sendGlobalError).toHaveBeenCalledTimes(1);
-    expect(dispatcher.sendGlobalError).toHaveBeenCalledWith({
-      message: "Configured results directory is invalid",
-    });
-    expect(dispatcher.sendGlobalExitCode).toHaveBeenCalledWith(expect.objectContaining({ actual: 1 }));
-
-    const error = new Error("orchestration crashed");
-
-    vi.mocked(dispatcher.sendGlobalError).mockClear();
-    vi.mocked(dispatcher.sendGlobalExitCode).mockClear();
     vi.mocked(terminationOf).mockRejectedValueOnce(error);
 
-    const unexpectedFailureResult = await executeAllureRun({
+    const failureResult = await executeAllureRun({
       allureReport: new AllureReportMock() as never,
       cwd: "/cwd",
       command: "npm",
@@ -674,12 +662,11 @@ describe("run command", () => {
       withQualityGate: false,
     });
 
-    expect(unexpectedFailureResult.globalExitCode.actual).toBe(1);
+    expect(failureResult.globalExitCode.actual).toBe(1);
     expect(dispatcher.sendGlobalError).toHaveBeenCalledTimes(1);
-    expect(dispatcher.sendGlobalError).toHaveBeenCalledWith({
-      message: "orchestration crashed",
-      trace: error.stack,
-    });
+    expect(dispatcher.sendGlobalError).toHaveBeenCalledWith(
+      error instanceof KnownError ? { message: error.message } : { message: error.message, trace: error.stack },
+    );
     expect(dispatcher.sendGlobalExitCode).toHaveBeenCalledWith(expect.objectContaining({ actual: 1 }));
   });
 

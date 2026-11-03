@@ -2,7 +2,7 @@ import { ReportFetchError } from "@allurereport/web-commons";
 import { cleanup, render, screen } from "@testing-library/preact";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
-import { ResolutionCategoriesList } from "@/components/ResolutionCategoriesList";
+import { ReportResolutionCategories } from "@/components/ReportResolutionCategories";
 import { fetchResolutionCategoriesData, resolutionCategoriesStore } from "@/stores/resolutionCategories";
 
 const fetchReportJsonDataMock = vi.hoisted(() => vi.fn());
@@ -10,6 +10,12 @@ const fetchReportJsonDataMock = vi.hoisted(() => vi.fn());
 vi.mock("@allurereport/web-commons", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@allurereport/web-commons")>()),
   fetchReportJsonData: fetchReportJsonDataMock,
+}));
+
+vi.mock("@/stores", () => ({
+  useI18n: () => ({
+    t: (key: string) => `translated:${key}`,
+  }),
 }));
 
 beforeEach(() => {
@@ -42,14 +48,9 @@ describe("stores > resolutionCategories", () => {
       loading: false,
     });
 
-    render(
-      <ResolutionCategoriesList
-        emptyText="no-resolution-categories-results"
-        groups={resolutionCategoriesStore.value.data?.groups ?? []}
-      />,
-    );
+    render(<ReportResolutionCategories />);
 
-    expect(screen.getByText("no-resolution-categories-results")).toBeInTheDocument();
+    expect(screen.getByText("translated:no-resolution-categories-results")).toBeInTheDocument();
     expect(screen.queryByRole("list")).not.toBeInTheDocument();
   });
 });

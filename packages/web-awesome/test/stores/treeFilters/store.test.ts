@@ -255,23 +255,15 @@ describe("stores > treeFilters > store", () => {
     expect(matchesActiveFilters(leaf({ status: "broken", resolutionStatus: "none" }))).toBe(false);
   });
 
-  it("should combine resolution category with status, retry, and flaky filters", () => {
-    setParams({ key: "resolution", value: ["issue"] }, { key: "status", value: "failed" });
-
-    expect(matchesActiveFilters(leaf({ status: "failed", resolution: "issue", resolutionStatus: "issue" }))).toBe(true);
-    expect(matchesActiveFilters(leaf({ status: "passed", resolution: "issue", resolutionStatus: "issue" }))).toBe(
-      false,
-    );
-    expect(matchesActiveFilters(leaf({ status: "failed", resolutionStatus: "none" }))).toBe(false);
-
-    setSearch("");
+  it("should combine resolution category with retry filters as OR", () => {
     setParams({ key: "resolution", value: ["issue"] }, { key: "retry", value: "true" });
 
     expect(matchesActiveFilters(leaf({ resolution: "issue", resolutionStatus: "issue" }))).toBe(true);
     expect(matchesActiveFilters(leaf({ retry: true, resolutionStatus: "none" }))).toBe(true);
     expect(matchesActiveFilters(leaf({ retry: false, resolutionStatus: "none" }))).toBe(false);
+  });
 
-    setSearch("");
+  it("should combine resolution category with flaky filters as OR", () => {
     setParams({ key: "resolution", value: ["issue"] }, { key: "flaky", value: "true" });
 
     expect(matchesActiveFilters(leaf({ resolution: "issue", resolutionStatus: "issue" }))).toBe(true);

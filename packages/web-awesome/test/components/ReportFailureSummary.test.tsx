@@ -44,6 +44,63 @@ afterEach(() => {
 });
 
 describe("components > ReportFailureSummary", () => {
+  it("does not render when the report has no failures", () => {
+    render(<ReportFailureSummary />);
+
+    expect(screen.queryByTestId("report-failure-summary")).not.toBeInTheDocument();
+  });
+
+  it("renders when only a quality gate fails", () => {
+    qualityGateStore.value = {
+      loading: false,
+      error: undefined,
+      data: {
+        default: [
+          {
+            rule: "maxFailures",
+            message: "Too many failures",
+            success: false,
+            expected: 0,
+            actual: 1,
+            testResults: ["failed-1"],
+          },
+        ],
+      },
+    };
+
+    render(<ReportFailureSummary />);
+
+    expect(screen.getByTestId("report-failure-summary")).toBeInTheDocument();
+    expect(within(screen.getByTestId("failure-summary-failed-quality-gates")).getByTestId("counter")).toHaveTextContent(
+      "1",
+    );
+  });
+
+  it("renders when only a global error exists", () => {
+    globalsStore.value = {
+      loading: false,
+      error: undefined,
+      data: {
+        errors: [{ message: "Runner crashed" }],
+        attachments: [],
+      },
+    };
+
+    render(<ReportFailureSummary />);
+
+    expect(screen.getByTestId("report-failure-summary")).toBeInTheDocument();
+    expect(within(screen.getByTestId("failure-summary-global-errors")).getByTestId("counter")).toHaveTextContent("1");
+  });
+
+  it("does not render or throw when store data is undefined", () => {
+    reportStatsStore.value = { loading: false, error: undefined, data: undefined as never };
+    qualityGateStore.value = { loading: false, error: undefined, data: undefined };
+    globalsStore.value = { loading: false, error: undefined, data: undefined };
+
+    expect(() => render(<ReportFailureSummary />)).not.toThrow();
+    expect(screen.queryByTestId("report-failure-summary")).not.toBeInTheDocument();
+  });
+
   it("summarizes unsuccessful tests, failed quality gates, and global errors", () => {
     reportStatsStore.value = {
       loading: false,
