@@ -1789,7 +1789,7 @@ console.log(\`selected selectors: \${Array.from(selectors).join(",")}\`);
     60_000,
   );
 
-  it.skipIf(platform !== "win32").each([
+  it.skipIf(process.platform !== "win32").each([
     { scenario: "idle stdin", input: "", source: "", expected: "" },
     { scenario: "write-only output", input: "", source: "", expected: "" },
     {

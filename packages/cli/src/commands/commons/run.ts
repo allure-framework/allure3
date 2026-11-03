@@ -24,9 +24,9 @@ import { KnownError } from "@allurereport/service";
 
 import { runProcess, terminationOf } from "../../utils/index.js";
 import { logError } from "../../utils/logs.js";
-import { createLiveIngestionFailureHandler } from "./liveIngestionFailure.js";
 import { supervisorDiagnosticsEnabled } from "../../utils/supervisor/diagnostics.js";
 import { ProcessSupervisor } from "../../utils/supervisor/index.js";
+import { createLiveIngestionFailureHandler } from "./liveIngestionFailure.js";
 import { allureResultsDirectoriesGlobWatcher } from "./resultsDiscovery.js";
 
 export type TestProcessResult = {
@@ -248,12 +248,12 @@ export const runTests = async (params: {
 
     const outcome = await Promise.race([supervisor.exitCode, failureHandler.failed]);
     if (outcome instanceof ExpressionError) {
-      await supervisor.stop().catch((error) =>
-        logError("Failed to stop the test process after an expression failure", error),
-      );
+      await supervisor
+        .stop()
+        .catch((error) => logError("Failed to stop the test process after an expression failure", error));
     }
 
-    const code = outcome instanceof ExpressionError ? null : outcome;
+    code = outcome instanceof ExpressionError ? null : outcome;
     logRunDiagnostic(`supervisor exitCode resolved: code=${code}`);
     const afterProcess = Date.now();
 

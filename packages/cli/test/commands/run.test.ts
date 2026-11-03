@@ -214,8 +214,6 @@ describe("run command", () => {
     async (phase) => {
       const { AllureReportMock } = await import("../utils.js");
       const { delayedFileProcessingWatcher } = await import("@allurereport/directory-watcher");
-      const { terminationOf } = await import("../../src/utils/index.js");
-      const { stopProcessTree } = await import("../../src/utils/process.js");
       const error = new ExpressionError('Invalid expression at environments["firefox"].matcher');
       AllureReportMock.prototype.readResult.mockRejectedValueOnce(error);
       let processFile!: (path: string) => Promise<void>;
@@ -232,9 +230,9 @@ describe("run command", () => {
         };
       });
       if (phase === "live ingestion") {
-        vi.mocked(terminationOf).mockImplementationOnce(async () => {
+        supervisorExitCodeMock.mockReturnValueOnce(new Promise<number>(() => {}));
+        supervisorStartMock.mockImplementationOnce(async () => {
           await processFile("test-result.json");
-          return 0;
         });
       }
       const report = new AllureReportMock() as unknown as import("@allurereport/core").AllureReport;
@@ -250,7 +248,8 @@ describe("run command", () => {
 
       expect(result).toBe(error);
       expect(abort).toHaveBeenCalledOnce();
-      expect(stopProcessTree).toHaveBeenCalledTimes(phase === "live ingestion" ? 1 : 0);
+      expect(AllureReportMock.prototype.readResult).toHaveBeenCalledOnce();
+      expect(supervisorStopMock).toHaveBeenCalledTimes(phase === "live ingestion" ? 1 : 0);
     },
   );
   it("should fail with usage error when command to run is missing", async () => {
