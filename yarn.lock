@@ -816,7 +816,7 @@ __metadata:
     allure-js-commons: "npm:^3.14.0"
     allure-playwright: "npm:^3.14.0"
     autoprefixer: "npm:^10.6.1"
-    axe-core: "npm:^4.11.4"
+    axe-core: "npm:^4.14.0"
     d3-array: "npm:^3.2.4"
     d3-axis: "npm:^3.0.0"
     d3-brush: "npm:^3.0.0"
@@ -8344,10 +8344,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"axe-core@npm:^4.11.4":
-  version: 4.13.0
-  resolution: "axe-core@npm:4.13.0"
-  checksum: 10/b9319bedc705fde00e4abd981d8724202cc20102e4ae6d8edfde33cb5265e0fb8f67f32adcb4ad33fbd4a2c8d7ad7ef5af1d933d9ad859bed90e3eae0ee8c52f
+"axe-core@npm:^4.14.0":
+  version: 4.14.0
+  resolution: "axe-core@npm:4.14.0"
+  checksum: 10/b41f9c5fb670b3e1812ba203b17570efa026071e6c722cd8384bacbe5f2be1578fc5d7544acf06df7758eb755c7d23629df922e86cc0655d656784157c0d8df5
   languageName: node
   linkType: hard
 
