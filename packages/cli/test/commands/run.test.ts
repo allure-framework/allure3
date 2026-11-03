@@ -184,6 +184,7 @@ beforeEach(async () => {
   const { AllureReportMock } = await import("../utils.js");
   const { terminationOf } = await import("../../src/utils/index.js");
 
+  AllureReportMock.prototype.readResult.mockReset().mockResolvedValue(undefined);
   AllureReportMock.prototype.store = {
     blockingFailedTestResults: vi.fn().mockResolvedValue([]),
     failedTestResults: vi.fn().mockResolvedValue([]),
