@@ -33,6 +33,6 @@
     "allure-playwright": "^3.14.0",
     "lodash.times": "^4.3.2",
     "rimraf": "^6.1.3",
-    "typescript": "^5.9.3"
+    "typescript": "^7.0.2"
   }
 }
