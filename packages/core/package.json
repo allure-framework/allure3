@@ -50,7 +50,7 @@
     "@allurereport/summary": "workspace:*",
     "glob": "^13.0.6",
     "handlebars": "^4.7.10",
-    "node-stream-zip": "^1.15.0",
+    "node-stream-zip": "^1.16.0",
     "p-limit": "^7.3.3",
     "yaml": "^2.9.1",
     "yoctocolors": "^2.2.0",
