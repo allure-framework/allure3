@@ -223,6 +223,17 @@ describe("allure2 reader", () => {
         {
           value: "only value",
         },
+        {
+          name: "AS_ID",
+          value: "123",
+        },
+        {
+          name: "boolean",
+          value: "false",
+        },
+        {
+          name: "null",
+        },
       ]),
     );
   });

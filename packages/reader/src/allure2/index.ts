@@ -659,7 +659,7 @@ const convertGlobalError = ({ environment, ...error }: GlobalStatusDetails): Raw
 const convertLabel = ({ name, value }: Label): RawTestLabel => {
   return {
     name: ensureString(name),
-    value: ensureString(value),
+    ...(value === undefined || value === null ? {} : { value: String(value) }),
   };
 };
 
