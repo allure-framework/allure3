@@ -251,6 +251,9 @@ describe("run command", () => {
       expect(abort).toHaveBeenCalledOnce();
       expect(AllureReportMock.prototype.readResult).toHaveBeenCalledOnce();
       expect(supervisorStopMock).toHaveBeenCalledTimes(phase === "live ingestion" ? 1 : 0);
+      if (phase === "live ingestion") {
+        expect(supervisorStopMock).toHaveBeenCalledWith({ escalate: true });
+      }
     },
   );
   it("should fail with usage error when command to run is missing", async () => {

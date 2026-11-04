@@ -249,7 +249,7 @@ export const runTests = async (params: {
     const outcome = await Promise.race([supervisor.exitCode, failureHandler.failed]);
     if (outcome instanceof ExpressionError) {
       await supervisor
-        .stop()
+        .stop({ escalate: true })
         .catch((error) => logError("Failed to stop the test process after an expression failure", error));
     }
 
