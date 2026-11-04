@@ -882,7 +882,7 @@ __metadata:
     diff: "npm:^8.0.3"
     filesize: "npm:^10.1.6"
     fork-ts-checker-webpack-plugin: "npm:^9.1.0"
-    globals: "npm:^15.9.0"
+    globals: "npm:^17.13.0"
     html-webpack-plugin: "npm:^5.6.8"
     i18next: "npm:^26.5.10"
     jsdom: "npm:^26.1.0"
@@ -941,7 +941,7 @@ __metadata:
     d3-shape: "npm:^3.2.0"
     filesize: "npm:^10.1.6"
     fork-ts-checker-webpack-plugin: "npm:^9.1.0"
-    globals: "npm:^15.9.0"
+    globals: "npm:^17.13.0"
     html-webpack-plugin: "npm:^5.6.8"
     i18next: "npm:^26.5.10"
     jsdom: "npm:^26.1.0"
@@ -1082,7 +1082,7 @@ __metadata:
     d3-shape: "npm:^3.2.0"
     d3-tip: "npm:^0.9.1"
     d3-transition: "npm:^3.0.1"
-    globals: "npm:^15.9.0"
+    globals: "npm:^17.13.0"
     jsdom: "npm:^26.1.0"
     lodash: "npm:^4.18.1"
     markdown-it: "npm:^15.0.3"
@@ -1146,7 +1146,7 @@ __metadata:
     clsx: "npm:^2.1.1"
     css-loader: "npm:^7.1.5"
     fork-ts-checker-webpack-plugin: "npm:^9.1.0"
-    globals: "npm:^15.9.0"
+    globals: "npm:^17.13.0"
     html-webpack-plugin: "npm:^5.6.8"
     i18next: "npm:^26.5.10"
     jsdom: "npm:^26.1.0"
@@ -1192,7 +1192,7 @@ __metadata:
     clsx: "npm:^2.1.1"
     css-loader: "npm:^7.1.5"
     fork-ts-checker-webpack-plugin: "npm:^9.1.0"
-    globals: "npm:^15.9.0"
+    globals: "npm:^17.13.0"
     html-webpack-plugin: "npm:^5.6.8"
     i18next: "npm:^26.5.10"
     npm-run-all2: "npm:^9.0.4"
@@ -11252,10 +11252,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"globals@npm:^15.9.0":
-  version: 15.9.0
-  resolution: "globals@npm:15.9.0"
-  checksum: 10/19bca70131c5d3e0d4171deed0f8ae16adda19f18d39b67421056f1eaa160b4433c3ffc8eb69b8b19adebbbdad4834d8a0494c5fe1ae295f0f769a5c0331d794
+"globals@npm:^17.13.0":
+  version: 17.13.0
+  resolution: "globals@npm:17.13.0"
+  checksum: 10/f723714cfb07bcf3163d44661d63b2a6076d93fd2f3724622b22084c62bcbbdb3ea3c601ec39635f1430d5cdf60bbf6fd7e458f12b5381ed422ed355c699537b
   languageName: node
   linkType: hard
 

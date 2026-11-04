@@ -274,7 +274,7 @@
     "autoprefixer": "^10.6.1",
     "babel-plugin-prismjs": "^2.1.0",
     "clsx": "^2.1.1",
-    "globals": "^15.9.0",
+    "globals": "^17.13.0",
     "jsdom": "^26.1.0",
     "npm-run-all2": "^9.0.4",
     "postcss": "^8.5.25",
