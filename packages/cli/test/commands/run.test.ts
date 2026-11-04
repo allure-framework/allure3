@@ -872,6 +872,7 @@ describe("run command", () => {
           { selector: blockingFailure.fullName, id: undefined },
           { selector: relatedPassedTest.fullName, id: undefined },
         ],
+        mutedTests: [],
       }),
     );
     expect(AllureReportMock.prototype.store.testResultById).toHaveBeenCalledTimes(2);

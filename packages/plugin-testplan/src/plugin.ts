@@ -16,13 +16,14 @@ export class TestPlanPlugin implements Plugin {
     const testResults = await store.allTestResults();
     const { filter = filterUnsuccessful, fileName = "testplan.json" } = this.options;
     const included = testResults.filter(filter);
+    const muted = testResults.filter((result) => result.muted === true);
 
-    if (included.length === 0) {
+    if (included.length === 0 && muted.length === 0) {
       console.log("no tests included to test plan, skipping the generation");
       return;
     }
 
-    const testPlan = createTestPlan(included);
+    const testPlan = createTestPlan(included, muted);
 
     const result = Buffer.from(JSON.stringify(testPlan), "utf-8");
 
