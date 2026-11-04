@@ -24,6 +24,35 @@ const generate = async (results: TestResult[], options: ConstructorParameters<ty
 };
 
 describe("TestPlanPlugin", () => {
+  it("writes only muted tests without applying the selection filter", async () => {
+    const results = [
+      result({ fullName: "regularFailure", status: "failed" }),
+      result({ fullName: "mutedPassed", muted: true }),
+      result({ fullName: "resolvedMuted", resolution: "muted" }),
+    ];
+
+    const files = await generate(results, {
+      mutedOnly: true,
+      fileName: "muted.json",
+      filter: () => {
+        throw new Error("selection filter must not run in muted-only mode");
+      },
+    });
+
+    expect(files).toEqual([
+      { name: "muted.json", plan: { version: "1.0", mutedTests: [{ selector: "mutedPassed" }] } },
+    ]);
+  });
+
+  it.each([
+    { name: "no results", results: [] },
+    { name: "no muted results", results: [result({ fullName: "regularFailure", status: "failed" })] },
+  ])("writes an empty muted-only plan with $name", async ({ results }) => {
+    const files = await generate(results, { mutedOnly: true });
+
+    expect(files).toEqual([{ name: "testplan.json", plan: { version: "1.0", mutedTests: [] } }]);
+  });
+
   it("collects muted results independently of default selection", async () => {
     const results = [
       result({ fullName: "regularFailure", status: "failed" }),

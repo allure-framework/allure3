@@ -22,6 +22,48 @@ describe("built testplan command", () => {
     await rm(tempDir, { recursive: true, force: true });
   });
 
+  it.each([
+    { name: "muted results", muted: true, expected: [{ selector: "suite#candidate" }] },
+    { name: "no muted results", muted: false, expected: [] },
+  ])("writes only the muted array with --muted-only and $name", async ({ muted, expected }) => {
+    const resultsDir = join(tempDir, "allure-results");
+    const outputPath = join(tempDir, "output", "muted.json");
+    await mkdir(resultsDir);
+    await writeFile(
+      join(resultsDir, "candidate-result.json"),
+      JSON.stringify({
+        uuid: "candidate",
+        name: "candidate",
+        fullName: "suite#candidate",
+        status: "passed",
+        statusDetails: { muted },
+        start: 1000,
+        stop: 1001,
+      }),
+    );
+    await writeFile(
+      join(resultsDir, "regular-result.json"),
+      JSON.stringify({
+        uuid: "regular",
+        name: "regular",
+        fullName: "suite#regular",
+        status: "failed",
+        start: 1000,
+        stop: 1001,
+      }),
+    );
+    const env = { ...process.env };
+    delete env.ALLURE_CLI_ACTIVE_COMMAND;
+
+    await execFileAsync(process.execPath, [cliPath, "testplan", resultsDir, "--muted-only", "--output", outputPath], {
+      cwd: tempDir,
+      env,
+    });
+    const plan = JSON.parse(await readFile(outputPath, "utf-8"));
+
+    expect(plan).toEqual({ version: "1.0", mutedTests: expected });
+  });
+
   it("writes selected and muted tests from allure results", async () => {
     const resultsDir = join(tempDir, "allure-results");
     const outputPath = join(tempDir, "output", "custom-testplan.json");

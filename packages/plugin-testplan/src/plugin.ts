@@ -5,6 +5,7 @@ import type { AllureStore, Plugin, PluginContext } from "@allurereport/plugin-ap
 
 interface TestPlanPluginOptions {
   fileName?: string;
+  mutedOnly?: boolean;
   filter?: (a: TestResult) => boolean;
 }
 
@@ -14,18 +15,19 @@ export class TestPlanPlugin implements Plugin {
   done = async (context: PluginContext, store: AllureStore): Promise<void> => {
     const { reportFiles } = context;
     const testResults = await store.allTestResults();
-    const { filter = filterUnsuccessful, fileName = "testplan.json" } = this.options;
-    const included = testResults.filter(filter);
+    const { filter = filterUnsuccessful, fileName = "testplan.json", mutedOnly = false } = this.options;
+    const included = mutedOnly ? [] : testResults.filter(filter);
     const muted = testResults.filter((result) => result.muted === true);
 
-    if (included.length === 0 && muted.length === 0) {
+    if (!mutedOnly && included.length === 0 && muted.length === 0) {
       console.log("no tests included to test plan, skipping the generation");
       return;
     }
 
     const testPlan = createTestPlan(included, muted);
 
-    const result = Buffer.from(JSON.stringify(testPlan), "utf-8");
+    const output = mutedOnly ? { version: testPlan.version, mutedTests: testPlan.mutedTests } : testPlan;
+    const result = Buffer.from(JSON.stringify(output), "utf-8");
 
     await reportFiles.addFile(fileName, result);
   };
