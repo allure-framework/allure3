@@ -75,7 +75,7 @@
     "d3-shape": "^3.2.0",
     "filesize": "^10.1.6",
     "highlight.js": "^11.11.1",
-    "i18next": "^26.5.10",
+    "i18next": "^26.6.0",
     "normalize-css": "^2.3.1",
     "npm-run-all2": "^9.0.4",
     "postcss": "^8.5.25",
