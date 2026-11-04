@@ -2,7 +2,7 @@ import { existsSync } from "node:fs";
 import { mkdir, mkdtemp, realpath, rm, symlink, writeFile } from "node:fs/promises";
 import { homedir, tmpdir } from "node:os";
 import { join, parse } from "node:path";
-import { cwd as processCwd } from "node:process";
+import { cwd as processCwd, platform } from "node:process";
 
 import { epic, feature, label, story } from "allure-js-commons";
 import { afterEach, beforeEach, describe, expect, it } from "vite-plus/test";
@@ -106,7 +106,7 @@ describe("getUnsafeCleanReason", () => {
     const link = join(tmp, "link");
 
     await mkdir(results);
-    await symlink(results, link);
+    await symlink(results, link, platform === "win32" ? "junction" : undefined);
 
     expect(await getUnsafeCleanReason({ output: link, cwd: join(tmp, "work"), resultsDirs: [results] })).toMatch(
       /results directory/,
@@ -148,7 +148,7 @@ describe("cleanOutputDirectory", () => {
 
     await mkdir(target);
     await writeFile(join(target, "keep.txt"), "x");
-    await symlink(target, link);
+    await symlink(target, link, platform === "win32" ? "junction" : undefined);
     await cleanOutputDirectory({ output: link, cwd: join(tmp, "work") });
 
     expect(existsSync(link)).toBe(false);

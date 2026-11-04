@@ -1,0 +1,185 @@
+import { execFile } from "node:child_process";
+import process from "node:process";
+import { setTimeout as delay } from "node:timers/promises";
+import { promisify } from "node:util";
+
+import { isDefined } from "@allurereport/reader-api";
+
+import type { JobMonitor, SupervisedCommandOptions } from "../model.js";
+import { ProcessSupervisorBase } from "../ProcessSupervisorBase.js";
+import { createProcessGroupCompletionPoller, scanProcessGroup } from "./processGroup.js";
+
+const MONITOR_INTERVAL_MS = 100;
+const TERMINATION_TIMEOUT_MS = 1_000;
+const inspectProcesses = promisify(execFile);
+
+export class PosixProcessSupervisor extends ProcessSupervisorBase {
+  protected readonly shell: boolean = false;
+  protected readonly detached: boolean = true;
+
+  protected readonly monitor: JobMonitor;
+
+  #terminationSignal: NodeJS.Signals | undefined;
+
+  constructor(command: string, options: SupervisedCommandOptions = {}) {
+    super(command, options);
+    this.monitor = {
+      wait: async () => {
+        const pid = this.process.pid;
+        if (pid === undefined) {
+          throw new Error("The process has not been spawned.");
+        }
+
+        // Creates a stateful poller that infers completion after repeated
+        // scans observe no live members and no newly observed exited PIDs.
+        // This prevents unreaped zombies from keeping the supervisor
+        // waiting indefinitely even though all group members have exited.
+        const pollForCompletion = createProcessGroupCompletionPoller({
+          processGroupId: pid,
+          scanProcessGroup,
+          reportError: (error) => this.error("Error occurred during process group probe", error),
+        });
+
+        while (this.processGroupExists(pid) && (await pollForCompletion()) === "pending") {
+          await delay(MONITOR_INTERVAL_MS);
+        }
+
+        // Returning `undefined` makes the base class use the root process's exit code and signal.
+        return this.#terminationSignal ? { code: null, signal: this.#terminationSignal } : undefined;
+      },
+
+      dispose: () => {
+        // Use the default Node.js SIGINT and SIGTERM handlers from now on.
+        this.stopListeningForSigint();
+        process.off("SIGTERM", this.#onSigterm);
+      },
+    };
+  }
+
+  override async start() {
+    await super.start();
+
+    // Override the default Node.js SIGINT handler to gracefully stop the test process
+    // on CTRL+C.
+    this.listenForSigint();
+
+    // Override the default Node.js SIGTERM handler to ensure the test process termination.
+    process.once("SIGTERM", this.#onSigterm);
+  }
+
+  protected override getStartupInfo() {
+    const pid = this.process.pid;
+    if (pid === undefined) {
+      return undefined;
+    }
+
+    return { pid };
+  }
+
+  protected override async diagnoseRemainingProcesses() {
+    const pgid = this.process.pid;
+
+    const { stdout } = await inspectProcesses("ps", ["-A", "-ww", "-o", "pid=,ppid=,pgid=,stat=,args="], {
+      timeout: 2_000,
+      maxBuffer: 4 * 1024 * 1024,
+      env: { ...process.env, LC_ALL: "C" },
+    });
+
+    const processes = stdout
+      .split("\n")
+      .map((line) => {
+        const match = /^\s*(\d+)\s+(\d+)\s+(\d+)\s+(\S+)\s+(.*)$/.exec(line);
+        if (!match || Number(match[3]) !== pgid) {
+          return undefined;
+        }
+        return { pid: Number(match[1]), ppid: Number(match[2]), pgid, state: match[4], commandLine: match[5] };
+      })
+      .filter(isDefined);
+
+    this.diagnostic("process group snapshot after root exit", { pgid, listed: processes.length });
+    for (const details of processes) {
+      this.diagnostic("remaining process group member", details);
+    }
+  }
+
+  protected override requestGracefulStop(_: AbortSignal) {
+    const pid = this.process.pid;
+    if (pid === undefined) {
+      return;
+    }
+
+    try {
+      process.kill(-pid, "SIGINT");
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== "ESRCH") {
+        throw error;
+      }
+    }
+  }
+
+  protected override async requestForcedTermination() {
+    const pid = this.process.pid;
+
+    if (pid === undefined) {
+      // Node.js was unable to spawn the process, which means there is nothing to stop.
+      // The completion promise will report the original error.
+      return;
+    }
+
+    const controller = new AbortController();
+    try {
+      // Give the runner a short opportunity to tear down its detached workers.
+      process.kill(-pid, "SIGTERM");
+      this.#terminationSignal = "SIGTERM";
+
+      const result = await Promise.race([
+        this.completion.then(() => "completed" as const),
+        delay(TERMINATION_TIMEOUT_MS, "timeout" as const, { signal: controller.signal }),
+      ]);
+
+      if (result === "timeout") {
+        process.kill(-pid, "SIGKILL");
+        this.#terminationSignal = "SIGKILL";
+      }
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== "ESRCH") {
+        throw error;
+      }
+
+      // The process group completed concurrently.
+      // This is fine, we can continue normally.
+    } finally {
+      controller.abort();
+    }
+  }
+
+  readonly #onSigterm = () => {
+    void this.terminate()
+      .catch((error) => this.error("Unable to terminate the test process group.", error))
+      .finally(() => process.kill(process.pid, "SIGTERM"));
+  };
+
+  private processGroupExists(pgid: number) {
+    try {
+      // Check if the process group exists.
+      process.kill(-pgid, 0);
+    } catch (error) {
+      const { code } = error as NodeJS.ErrnoException;
+
+      if (code === "ESRCH") {
+        // The group does not exist: all processes of the group have finished.
+        // This is a reliable completeness indicator.
+        return false;
+      }
+
+      if (code !== "EPERM") {
+        throw error;
+      }
+
+      // EPERM: the group exists but cannot be signalled.
+    }
+
+    // The group is running or kept alive by zombie processes.
+    return true;
+  }
+}
