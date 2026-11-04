@@ -145,7 +145,7 @@ export const generateTestResults = async (
       .map(convertFixtureResult);
     const convertedTr: ReportTestResult = convertTestResult(tr, { ideaLinks: options.ideaLinks });
 
-    convertedTr.categories = matchClassicCategories(categories, convertedTr);
+    convertedTr.categories = matchClassicCategories(categories, tr);
     convertedTr.history = (related.historyByTrId.get(tr.id) ?? []).map((item) => ({
       ...item,
       url: resolveClassicHistoryUrl(item, options.pluginId ?? "", options.resolveHistoryUrl),
@@ -265,6 +265,7 @@ export const generateAllCharts = async (
     randomUUID,
     filter,
     categories,
+    matchClassicCategories,
   );
 
   if (Object.keys(generatedChartsData.general).length > 0) {

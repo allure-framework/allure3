@@ -1,5 +1,6 @@
 import type {
   AllureChartsStoreData,
+  CategoriesMatcher,
   CategoriesTrendChartData,
   DurationTrendChartData,
   RetriesTrendChartData,
@@ -8,7 +9,6 @@ import type {
 } from "@allurereport/charts-api";
 import { ChartType, DEFAULT_CHART_HISTORY_LIMIT } from "@allurereport/charts-api";
 import {
-  type CategoryDefinition,
   type HistoryTestResult,
   type TestResult,
   extractErrorMatchingData,
@@ -120,25 +120,23 @@ export const generateRetriesTrendChart = (props: {
 };
 
 /**
- * Returns the category of a current or historical test result, the first matching one.
+ * Prepares a current or historical test result for category matching.
  * History written by older versions has no flaky flag and transition, such results are matched as not flaky
  */
-const matchTestCategory = (categories: CategoryDefinition[], tr: RunTestResult) => {
-  const error = tr.error ?? ("message" in tr || "trace" in tr ? { message: tr.message, trace: tr.trace } : undefined);
-  const matched = matchCategory(
-    categories,
-    extractErrorMatchingData({
-      status: tr.status,
-      labels: tr.labels ?? [],
-      error,
-      flaky: tr.flaky ?? false,
-      duration: tr.duration,
-      transition: tr.transition,
-      environment: tr.environment,
-    }),
-  );
+const toMatchingSource = (tr: RunTestResult) => ({
+  status: tr.status,
+  labels: tr.labels ?? [],
+  error: tr.error ?? ("message" in tr || "trace" in tr ? { message: tr.message, trace: tr.trace } : undefined),
+  flaky: tr.flaky ?? false,
+  duration: tr.duration,
+  transition: tr.transition,
+  environment: tr.environment,
+});
 
-  return matched && !matched.hide ? matched : undefined;
+const matchFirstCategory: CategoriesMatcher = (categories, tr) => {
+  const matched = matchCategory(categories, extractErrorMatchingData(tr));
+
+  return matched && !matched.hide ? [matched] : [];
 };
 
 export const generateCategoriesTrendChart = (props: {
@@ -149,16 +147,15 @@ export const generateCategoriesTrendChart = (props: {
   const { options, storeData, reportName } = props;
   const { title, limit = DEFAULT_CHART_HISTORY_LIMIT } = options;
   const categories = storeData.categories ?? normalizeCategoriesConfig(undefined);
+  const matchCategories = storeData.matchCategories ?? matchFirstCategory;
   const presentCategories = new Set<string>();
   const data = collectRuns(storeData, limit, reportName).map((run) => {
     const counts: Record<string, number> = {};
 
     for (const tr of run.testResults) {
-      const category = matchTestCategory(categories, tr);
-
-      if (category) {
-        counts[category.name] = (counts[category.name] ?? 0) + 1;
-        presentCategories.add(category.name);
+      for (const { name } of matchCategories(categories, toMatchingSource(tr))) {
+        counts[name] = (counts[name] ?? 0) + 1;
+        presentCategories.add(name);
       }
     }
 

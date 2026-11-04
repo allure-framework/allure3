@@ -610,6 +610,14 @@ export type ChartOptions =
   | DurationDynamicsChartOptions
   | RunTrendChartOptions;
 
+/**
+ * Returns the categories of a test result, in the order they are counted
+ */
+export type CategoriesMatcher = (
+  categories: CategoryDefinition[],
+  tr: Pick<TestResult, "status" | "labels" | "error" | "flaky" | "duration" | "transition" | "environment">,
+) => { name: string }[];
+
 export interface AllureChartsStoreData {
   historyDataPoints: HistoryDataPoint[];
   testResults: TestResult[];
@@ -620,6 +628,10 @@ export interface AllureChartsStoreData {
    * Categories the test results are matched to, in matching order; the default categories when not set
    */
   categories?: CategoryDefinition[];
+  /**
+   * How a test result gets its categories in the categories trend, the first matching one when not set
+   */
+  matchCategories?: CategoriesMatcher;
 }
 
 export interface TrendDataAccessor<T extends TrendDataType> {

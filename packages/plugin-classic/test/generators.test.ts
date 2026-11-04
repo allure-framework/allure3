@@ -1,13 +1,20 @@
 import { ChartType, defaultChartsConfig } from "@allurereport/charts-api";
 import type { TestFixtureResult, TestResult } from "@allurereport/core-api";
 import { normalizeCategoriesConfig } from "@allurereport/core-api";
-import type { AllureStore, ReportFiles, ReportTestResult, ReportTreeGroup } from "@allurereport/plugin-api";
+import type {
+  AllureStore,
+  PluginContext,
+  ReportFiles,
+  ReportTestResult,
+  ReportTreeGroup,
+} from "@allurereport/plugin-api";
 import { epic, feature, label, story } from "allure-js-commons";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 import { resolveClassicCategories } from "../src/categories.js";
 import {
   classicChartsConfig,
+  generateAllCharts,
   generateStaticFiles,
   generateTestResults,
   generateTreeByCategories,
@@ -124,6 +131,32 @@ const withError = (tr: TestResult, message?: string, trace?: string): TestResult
   error: { message, trace },
 });
 
+describe("generateAllCharts", () => {
+  it("should count every matching category of a test result in the categories trend", async () => {
+    const categories = resolveClassicCategories(undefined, [
+      { name: "First", messageRegex: ".*failure.*" },
+      { name: "Second", messageRegex: ".*failure.*" },
+    ]);
+    const failed = withError(mockTestResult("tr-1", "failed", "failed"), "failure");
+    const store = {
+      allEnvironmentIdentities: vi.fn().mockResolvedValue([{ id: "default", name: "default" }]),
+      allTestResults: vi.fn().mockResolvedValue([failed]),
+      allHistoryDataPoints: vi.fn().mockResolvedValue([]),
+    } as unknown as AllureStore;
+    const writer = createWriter();
+
+    await generateAllCharts(writer, store, {}, { reportName: "Report" } as PluginContext, categories);
+
+    const [, chartsData] = vi.mocked(writer.writeWidget).mock.calls.find(([name]) => name === "charts.json")!;
+    const charts = Object.values((chartsData as { general: Record<string, { type: string; data: unknown }> }).general);
+    const trend = charts.find(({ type }) => type === ChartType.CategoriesTrend) as unknown as {
+      data: { categories: Record<string, number> }[];
+    };
+
+    expect(trend.data.at(-1)?.categories).toEqual({ First: 1, Second: 1 });
+  });
+});
+
 describe("generateTestResults categories and filter", () => {
   it("should apply the filter option to the test results", async () => {
     const store = createStore([mockTestResult("tr-1", "kept", "passed"), mockTestResult("tr-2", "dropped", "failed")]);
@@ -134,6 +167,19 @@ describe("generateTestResults categories and filter", () => {
     expect(store.allTestResults).toHaveBeenCalledWith(expect.objectContaining({ filter: expect.any(Function) }));
     expect(converted.map(({ name }) => name)).toEqual(["kept"]);
     expect(writer.writeWidget).toHaveBeenCalledWith("nav.json", ["tr-1"]);
+  });
+
+  it("should match categories by the environment of the test result", async () => {
+    const categories = resolveClassicCategories(
+      normalizeCategoriesConfig([{ name: "Review", matchers: { environments: ["review-env"] } }]),
+    );
+    const store = createStore([
+      { ...withError(mockTestResult("tr-1", "review", "failed"), "failure"), environment: "review-env" },
+    ]);
+
+    const [converted] = await generateTestResults(createWriter(), store, { categories });
+
+    expect(converted.categories?.map(({ name }) => name)).toEqual(["Review"]);
   });
 
   it("should store the matched category in the test result data using the real error fields", async () => {

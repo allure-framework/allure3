@@ -1,5 +1,6 @@
 import {
   type AllureChartsStoreData,
+  type CategoriesMatcher,
   type ChartOptions,
   ChartType,
   type GeneratedChartsData,
@@ -42,8 +43,9 @@ const generateChartData = async (props: {
   generateUuid: () => string;
   filter?: (testResult: TestResult) => boolean;
   categories?: CategoryDefinition[];
+  matchCategories?: CategoriesMatcher;
 }) => {
-  const { envId, chartsOptions, store, reportName, generateUuid, filter, categories } = props;
+  const { envId, chartsOptions, store, reportName, generateUuid, filter, categories, matchCategories } = props;
   const result: GeneratedChartsData = {};
 
   const getTrs = async (): Promise<TestResult[]> => {
@@ -131,6 +133,7 @@ const generateChartData = async (props: {
     statistic,
     allTestResults,
     categories,
+    matchCategories,
   }));
 
   for (const chartOption of chartsOptions) {
@@ -220,11 +223,23 @@ export const generateCharts = async (
    * Categories for the categories trend, in matching order
    */
   categories?: CategoryDefinition[],
+  /**
+   * How a test result gets its categories in the categories trend, the first matching one when not set
+   */
+  matchCategories?: CategoriesMatcher,
 ): Promise<ChartsWidgetData> => {
   const environments = await store.allEnvironmentIdentities();
 
   const chartsData: ChartsWidgetData = {
-    general: await generateChartData({ chartsOptions, store, reportName, generateUuid, filter, categories }),
+    general: await generateChartData({
+      chartsOptions,
+      store,
+      reportName,
+      generateUuid,
+      filter,
+      categories,
+      matchCategories,
+    }),
     byEnv: {},
   };
 
@@ -242,6 +257,7 @@ export const generateCharts = async (
       generateUuid,
       filter,
       categories,
+      matchCategories,
     });
   }
 

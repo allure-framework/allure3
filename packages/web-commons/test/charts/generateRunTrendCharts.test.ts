@@ -186,6 +186,31 @@ describe("generateCategoriesTrendChart", () => {
     ]);
   });
 
+  it("should count every category returned by the given matcher in the history and in the current run", () => {
+    const categories = normalizeCategoriesConfig([
+      { name: "First", matchedStatuses: ["failed"] },
+      { name: "Second", matchedStatuses: ["failed"] },
+    ]);
+    const storeData = createStoreData({
+      categories,
+      matchCategories: () => [{ name: "First" }, { name: "Second" }],
+      historyDataPoints: [createHistoryDataPoint("h1", 1000, [createHistoryTestResult({ id: "a", status: "failed" })])],
+      testResults: [createTestResult({ id: "a", status: "failed", stop: 10 })],
+    });
+
+    const chart = generateCategoriesTrendChart({
+      options: { type: ChartType.CategoriesTrend },
+      storeData,
+      reportName: "R",
+    });
+
+    expect(chart.categories).toEqual(["First", "Second"]);
+    expect(chart.data.map(({ categories: counts }) => counts)).toEqual([
+      { First: 1, Second: 1 },
+      { First: 1, Second: 1 },
+    ]);
+  });
+
   it("should match historical results by the error and flaky flag stored in the history", () => {
     const categories = normalizeCategoriesConfig([
       { name: "Hidden", matchers: { message: /ignored/ }, hide: true },

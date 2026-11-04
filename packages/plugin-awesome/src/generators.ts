@@ -903,7 +903,14 @@ export const generateAllCharts = async (
 ): Promise<void> => {
   const { charts = defaultChartsConfig, filter } = options;
 
-  const generatedChartsData = await generateCharts(charts, store, context.reportName, randomUUID, filter);
+  const generatedChartsData = await generateCharts(
+    charts,
+    store,
+    context.reportName,
+    randomUUID,
+    filter,
+    context.categories,
+  );
 
   if (Object.keys(generatedChartsData.general).length > 0) {
     await writer.writeWidget("charts.json", generatedChartsData);

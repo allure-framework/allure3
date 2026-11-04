@@ -90,17 +90,19 @@ const NavArrow: FunctionalComponent<{ type: "prev" | "next"; trId?: string }> = 
   const isPrev = type === "prev";
   const icon = isPrev ? allureIcons.lineArrowsChevronUp : allureIcons.lineArrowsChevronDown;
   const testId = `test-result-nav-${type}`;
+  const label = tooltip(isPrev ? "prevTR" : "nextTR");
 
   if (!trId) {
-    return <IconButton icon={icon} style={"ghost"} isDisabled data-testid={testId} />;
+    return <IconButton icon={icon} style={"ghost"} isDisabled data-testid={testId} aria-label={label} />;
   }
 
   return (
-    <TooltipWrapper tooltipText={tooltip(isPrev ? "prevTR" : "nextTR")}>
+    <TooltipWrapper tooltipText={label}>
       <IconButton
         icon={icon}
         style={"ghost"}
         data-testid={testId}
+        aria-label={label}
         onClick={() => navigateTo(getTestResultHash(route.value, trId))}
       />
     </TooltipWrapper>
