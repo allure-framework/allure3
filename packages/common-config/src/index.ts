@@ -47,13 +47,8 @@ export const defaultTasksConfig = (
 
   const buildScript = loadScript(packageJson, "build");
   if (buildScript) {
-    let buildCommands = buildScript.split("&&");
-    if (buildCommands.length > 1 && ["rimraf", "run clean"].some((str) => buildCommands[0].includes(str))) {
-      buildCommands = buildCommands.slice(1);
-    }
-
     tasks["vp:build"] = {
-      command: buildCommands,
+      command: buildScript,
       dependsOn: [{ task: "vp:build", from: ["dependencies", "devDependencies"] }],
       cache:
         env.VITE_NO_CACHE === "true"
