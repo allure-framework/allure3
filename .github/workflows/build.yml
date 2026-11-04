@@ -49,6 +49,7 @@ jobs:
         id: build
         with:
           yarn-hardened-mode: "0"
+          save-cache: "${{ matrix.os != 'ubuntu-latest' }}"
       - parallel:
           - name: Install Playwright browsers
             timeout-minutes: 5
