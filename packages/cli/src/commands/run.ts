@@ -15,6 +15,7 @@ import {
   resolveCommandEnvironment,
 } from "../utils/environment.js";
 import { createChildAllureCliEnvironment, getActiveAllureCliCommand } from "../utils/execution-context.js";
+import { outputEncodingOption, stderrEncodingOption } from "../utils/outputEncoding.js";
 import { parseRunCommand, resolveResultsPatterns } from "../utils/resultsPatterns.js";
 import { serverOptionsFromConfig } from "../utils/serverOptions.js";
 import { isQuiet } from "../utils/verbosity.js";
@@ -88,6 +89,10 @@ export class RunCommand extends Command {
   rerun = Option.String("--rerun", {
     description: "The maximum number of reruns for failed tests and Quality Gate fast-fails (default: 0)",
   });
+
+  outputEncoding = outputEncodingOption();
+
+  stderrEncoding = stderrEncodingOption();
 
   silent = Option.Boolean("--silent", {
     description: "Don't pipe the process output logs to console (default: 0)",
@@ -240,6 +245,8 @@ export class RunCommand extends Command {
       environmentVariables: createChildAllureCliEnvironment("run"),
       environment: resolvedEnvironment?.id,
       withQualityGate,
+      outputEncoding: this.outputEncoding,
+      stderrEncoding: this.stderrEncoding,
       logs: this.logs,
       silent: this.silentOutput,
       ignoreLogs: this.ignoreLogs,

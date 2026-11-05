@@ -96,6 +96,8 @@ export const runTests = async (params: {
   environment?: string;
   withQualityGate: boolean;
   silent?: boolean;
+  outputEncoding?: BufferEncoding;
+  stderrEncoding?: BufferEncoding;
   logs?: RunLogsMode;
   logProcessExit?: boolean;
   attempt?: RunAttempt;
@@ -106,6 +108,8 @@ export const runTests = async (params: {
     cwd,
     command,
     commandArgs,
+    outputEncoding,
+    stderrEncoding,
     logs,
     environmentVariables,
     environment,
@@ -185,7 +189,8 @@ export const runTests = async (params: {
       environmentVariables,
       outputMode: logs,
       silent,
-      outputEncoding: "utf-8",
+      outputEncoding,
+      stderrEncoding,
     });
 
     testProcessStarted = true;
@@ -391,6 +396,8 @@ export const executeAllureRun = async (params: {
   environment?: string;
   withQualityGate: boolean;
   silent?: boolean;
+  outputEncoding?: BufferEncoding;
+  stderrEncoding?: BufferEncoding;
   logs?: RunLogsMode;
   ignoreLogs?: boolean;
   maxRerun?: number;
@@ -409,6 +416,8 @@ export const executeAllureRun = async (params: {
     environment,
     withQualityGate,
     silent,
+    outputEncoding,
+    stderrEncoding,
     logs,
     ignoreLogs,
     maxRerun = 0,
@@ -428,6 +437,8 @@ export const executeAllureRun = async (params: {
 
   try {
     testProcessResult = await runTests({
+      outputEncoding,
+      stderrEncoding,
       logs,
       silent,
       allureReport,
@@ -476,7 +487,9 @@ export const executeAllureRun = async (params: {
         let relatedTestResults: TestResult[] = [];
 
         if (withQualityGate) {
-          const currentTestResults = await allureReport.store.allTestResults({ includeRetries: false });
+          const currentTestResults = await allureReport.store.allTestResults({
+            includeRetries: false,
+          });
           const { results } = await allureReport.validate({
             trs: currentTestResults,
             environment,
@@ -530,6 +543,8 @@ export const executeAllureRun = async (params: {
 
         testProcessResult = await runTests({
           silent,
+          outputEncoding,
+          stderrEncoding,
           logs,
           allureReport,
           cwd,

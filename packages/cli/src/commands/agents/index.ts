@@ -33,6 +33,7 @@ import {
 } from "@allurereport/plugin-agent";
 import { Command, Option, UsageError } from "clipanion";
 
+import { outputEncodingOption, stderrEncodingOption } from "../../utils/outputEncoding.js";
 import { parseRunCommand } from "../../utils/resultsPatterns.js";
 import {
   formatAgentCommand,
@@ -233,6 +234,10 @@ export class AgentCommand extends Command {
 
   environmentName = agentEnvironmentNameOption();
 
+  outputEncoding = outputEncodingOption();
+
+  stderrEncoding = stderrEncodingOption();
+
   silent = Option.Boolean("--silent", {
     description: "Don't pipe the process output logs to console (default: false)",
   });
@@ -326,6 +331,8 @@ export class AgentCommand extends Command {
         inlineExpectations: inlineExpectations as AgentExpectationsInput | undefined,
         environment: readOptionalString(this.environment),
         environmentName: readOptionalString(this.environmentName),
+        outputEncoding: this.outputEncoding,
+        stderrEncoding: this.stderrEncoding,
         silent: readOptionalBoolean(this.silent),
         rerunFrom: readOptionalString(this.rerunFrom),
         rerunLatest: readOptionalBoolean(this.rerunLatest),

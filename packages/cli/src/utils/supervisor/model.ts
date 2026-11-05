@@ -7,6 +7,7 @@ export type SupervisedCommandOptions = {
   environmentVariables?: Record<string, string>;
   outputMode?: "ignore" | "inherit" | "pipe";
   outputEncoding?: BufferEncoding;
+  stderrEncoding?: BufferEncoding;
   silent?: boolean;
 };
 

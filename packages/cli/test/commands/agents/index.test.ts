@@ -191,7 +191,13 @@ beforeEach(async () => {
     skipped: [],
   });
   (createAgentTestPlanContext as Mock).mockResolvedValue(undefined);
-  (loadAgentOutput as Mock).mockResolvedValue({ outputDir: "", run: {}, tests: [], findings: [], humanReport: null });
+  (loadAgentOutput as Mock).mockResolvedValue({
+    outputDir: "",
+    run: {},
+    tests: [],
+    findings: [],
+    humanReport: null,
+  });
   (formatAgentRunSummary as Mock).mockImplementation((params: { outputDir: string }) => [
     `agent summary: ${params.outputDir}`,
   ]);
@@ -358,6 +364,32 @@ describe("agent command", () => {
     expected.forEach((line) => {
       expect(output).toContain(line);
     });
+  });
+
+  it("forwards output encoding and stderr encoding to supervisor", async () => {
+    (readConfig as Mock).mockResolvedValueOnce({
+      output: "./allure-report",
+      open: false,
+      plugins: [],
+    });
+    const args = ["agent", "--output-encoding", "ascii", "--stderr-encoding", "utf8"];
+    args.push("--", "npm", "test");
+    await run(AgentCommand, args);
+    expect(executeAllureRun).toHaveBeenCalledWith(
+      expect.objectContaining({ outputEncoding: "ascii", stderrEncoding: "utf8" }),
+    );
+  });
+
+  it("rejects unsupported --output-encoding", async () => {
+    const exitCode = await run(AgentCommand, ["agent", "--output-encoding", "unsupported", "--", "npm", "test"]);
+    expect(exitCode).not.toBe(0);
+    expect(executeAllureRun).not.toHaveBeenCalled();
+  });
+
+  it("rejects unsupported --stderr-encoding", async () => {
+    const exitCode = await run(AgentCommand, ["agent", "--stderr-encoding", "unsupported", "--", "npm", "test"]);
+    expect(exitCode).not.toBe(0);
+    expect(executeAllureRun).not.toHaveBeenCalled();
   });
 
   it("should expose agent run output cleanup guidance in detailed help", async () => {
@@ -647,7 +679,11 @@ describe("agent command", () => {
     // After the run, a compact summary is printed (built from the agent output) instead of test logs,
     // with the wall-clock duration and a rerun-failed command derived from the test command.
     expect(formatAgentRunSummary).toHaveBeenCalledWith(
-      expect.objectContaining({ outputDir: agentOutputDir, rerunCommand: "npm test", durationMs: expect.any(Number) }),
+      expect.objectContaining({
+        outputDir: agentOutputDir,
+        rerunCommand: "npm test",
+        durationMs: expect.any(Number),
+      }),
     );
     expect(logMock).toHaveBeenCalledWith(`agent summary: ${agentOutputDir}`);
     expect(writeAgentRunState).toHaveBeenNthCalledWith(
@@ -1079,7 +1115,9 @@ describe("agent command", () => {
 
     (writeAgentRunState as Mock)
       .mockRejectedValueOnce(
-        Object.assign(new Error(`EACCES: permission denied, mkdir '${stateDir}'`), { code: "EACCES" }),
+        Object.assign(new Error(`EACCES: permission denied, mkdir '${stateDir}'`), {
+          code: "EACCES",
+        }),
       )
       .mockResolvedValueOnce(undefined);
 

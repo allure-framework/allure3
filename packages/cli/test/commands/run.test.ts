@@ -256,6 +256,34 @@ describe("run command", () => {
       }
     },
   );
+
+  it("forwards output and stderr encoding to supervisor", async () => {
+    (readConfig as Mock).mockResolvedValueOnce({
+      output: "./allure-report",
+      open: false,
+      plugins: [],
+    });
+    const args = ["run", "--output-encoding", "ascii", "--stderr-encoding", "utf8"];
+    args.push("--", "npm", "test");
+    await run(RunCommand, args);
+    expect(supervisorConstructorMock).toHaveBeenCalledWith(
+      "npm",
+      expect.objectContaining({ outputEncoding: "ascii", stderrEncoding: "utf8" }),
+    );
+  });
+
+  it("rejects unsupported output encoding", async () => {
+    const exitCode = await run(RunCommand, ["run", "--output-encoding", "unsupported", "--", "npm", "test"]);
+    expect(exitCode).not.toBe(0);
+    expect(supervisorConstructorMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects unsupported stderr encoding", async () => {
+    const exitCode = await run(RunCommand, ["run", "--stderr-encoding", "unsupported", "--", "npm", "test"]);
+    expect(exitCode).not.toBe(0);
+    expect(supervisorConstructorMock).not.toHaveBeenCalled();
+  });
+
   it("should fail with usage error when command to run is missing", async () => {
     const command = new RunCommand();
 
@@ -635,9 +663,14 @@ describe("run command", () => {
       silent: true,
       withQualityGate: false,
       maxRerun: 1,
+      outputEncoding: "utf16le",
+      stderrEncoding: "latin1",
     });
 
     expect(supervisorConstructorMock).toHaveBeenCalledTimes(2);
+    for (const [, options] of supervisorConstructorMock.mock.calls) {
+      expect(options).toMatchObject({ outputEncoding: "utf16le", stderrEncoding: "latin1" });
+    }
     expect(AllureReportMock.prototype.realtimeDispatcher.sendProcessGlobalAttachment).toHaveBeenCalledTimes(3);
     expect(AllureReportMock.prototype.realtimeDispatcher.sendProcessGlobalError).toHaveBeenCalledTimes(1);
     expect(AllureReportMock.prototype.realtimeDispatcher.sendProcessGlobalsReset).toHaveBeenCalledTimes(1);

@@ -82,6 +82,8 @@ export type ExecuteAgentModeParams = {
   inlineExpectations?: AgentExpectationsInput;
   environment?: string;
   environmentName?: string;
+  outputEncoding?: BufferEncoding;
+  stderrEncoding?: BufferEncoding;
   silent?: boolean;
   rerunFrom?: string;
   rerunLatest?: boolean;
@@ -102,6 +104,8 @@ export const executeAgentMode = async (params: ExecuteAgentModeParams) => {
     inlineExpectations,
     environment,
     environmentName,
+    outputEncoding,
+    stderrEncoding,
     silent,
     rerunFrom,
     rerunLatest,
@@ -244,6 +248,8 @@ export const executeAgentMode = async (params: ExecuteAgentModeParams) => {
       environmentVariables: childEnvironmentVariables,
       environment: resolvedEnvironment?.id,
       withQualityGate: false,
+      outputEncoding,
+      stderrEncoding,
       logs: "pipe",
       // Capture the test command's output into the agent artifacts instead of echoing it to the
       // terminal; the post-run summary points at the captured logs.
@@ -267,7 +273,10 @@ export const executeAgentMode = async (params: ExecuteAgentModeParams) => {
       pid: process.pid,
     });
     await cleanupManagedAgentOutputs({ cwd, runId, managedOutput });
-    await printAgentRunSummary(outputDir, { durationMs: Date.now() - startedAt, rerunCommand: commandString });
+    await printAgentRunSummary(outputDir, {
+      durationMs: Date.now() - startedAt,
+      rerunCommand: commandString,
+    });
 
     resolvedExitCode = globalExitCode.actual ?? globalExitCode.original;
     runCompleted = true;
@@ -344,7 +353,10 @@ export const executeAgentInspectMode = async (params: ExecuteAgentInspectModePar
   const managedOutput = !output;
   const outputDir = await resolveAgentOutputDir(cwd, output);
   const expectationsPath = expectations ? resolve(cwd, expectations) : undefined;
-  const commandString = formatAgentInspectCommand({ dumps: dumpFiles, resultsDir: resultDirectories });
+  const commandString = formatAgentInspectCommand({
+    dumps: dumpFiles,
+    resultsDir: resultDirectories,
+  });
   const hiddenLabels = hideLabels?.length ? hideLabels : undefined;
   const environmentOptions = {
     environment,
