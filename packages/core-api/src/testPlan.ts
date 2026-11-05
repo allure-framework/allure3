@@ -1,6 +1,8 @@
 export interface TestPlanTest {
   id?: string;
   selector?: string;
+  testCaseId?: string;
+  environment?: string;
 }
 
 export interface TestPlan {

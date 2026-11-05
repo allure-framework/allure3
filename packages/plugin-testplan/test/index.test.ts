@@ -27,7 +27,12 @@ describe("TestPlanPlugin", () => {
   it("writes only muted tests without applying the selection filter", async () => {
     const results = [
       result({ fullName: "regularFailure", status: "failed" }),
-      result({ fullName: "mutedPassed", muted: true }),
+      result({
+        fullName: "mutedPassed",
+        muted: true,
+        testCase: { id: "canonical-muted", externalId: "adapter-muted", name: "muted" },
+        environment: "linux",
+      }),
       result({ fullName: "resolvedMuted", resolution: "muted" }),
     ];
 
@@ -40,7 +45,13 @@ describe("TestPlanPlugin", () => {
     });
 
     expect(files).toEqual([
-      { name: "muted.json", plan: { version: "1.0", mutedTests: [{ selector: "mutedPassed" }] } },
+      {
+        name: "muted.json",
+        plan: {
+          version: "1.0",
+          mutedTests: [{ selector: "mutedPassed", testCaseId: "adapter-muted", environment: "linux" }],
+        },
+      },
     ]);
   });
 
@@ -55,8 +66,19 @@ describe("TestPlanPlugin", () => {
 
   it("collects muted results independently of default selection", async () => {
     const results = [
-      result({ fullName: "regularFailure", status: "failed" }),
-      result({ fullName: "mutedFailure", status: "failed", muted: true }),
+      result({
+        fullName: "regularFailure",
+        status: "failed",
+        testCase: { id: "canonical-regular", externalId: "adapter-regular", name: "regular" },
+        environment: "windows",
+      }),
+      result({
+        fullName: "mutedFailure",
+        status: "failed",
+        muted: true,
+        testCase: { id: "canonical-muted", externalId: "adapter-muted", name: "muted" },
+        environment: "linux",
+      }),
       result({ fullName: "mutedPassed", muted: true }),
     ];
 
@@ -67,8 +89,14 @@ describe("TestPlanPlugin", () => {
         name: "testplan.json",
         plan: {
           version: "1.0",
-          tests: [{ selector: "regularFailure" }, { selector: "mutedFailure" }],
-          mutedTests: [{ selector: "mutedFailure" }, { selector: "mutedPassed" }],
+          tests: [
+            { selector: "regularFailure", testCaseId: "adapter-regular", environment: "windows" },
+            { selector: "mutedFailure", testCaseId: "adapter-muted", environment: "linux" },
+          ],
+          mutedTests: [
+            { selector: "mutedFailure", testCaseId: "adapter-muted", environment: "linux" },
+            { selector: "mutedPassed" },
+          ],
         },
       },
     ]);

@@ -6,7 +6,12 @@ const createTestPlanTests = (testResults: TestResult[]): TestPlanTest[] => {
   const seenSelectors = new Set<string>();
 
   return testResults
-    .map((tr) => ({ selector: tr.runSelector ?? tr.fullName, id: findByLabelName(tr.labels, "ALLURE_ID") }))
+    .map((tr) => ({
+      selector: tr.runSelector ?? tr.fullName,
+      id: findByLabelName(tr.labels, "ALLURE_ID"),
+      testCaseId: tr.testCase?.externalId,
+      environment: tr.environment,
+    }))
     .filter(
       (value) =>
         (value.selector && (seenSelectors.has(value.selector) ? false : !!seenSelectors.add(value.selector))) ||

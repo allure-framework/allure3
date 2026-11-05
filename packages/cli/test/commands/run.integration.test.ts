@@ -812,7 +812,7 @@ await new Promise((resolve) => setTimeout(resolve, 2500));
       expect(invocations[1]?.testPlan).toEqual({
         version: "1.0",
         mutedTests: [],
-        tests: [{ selector: "Quality Gate Suite > becomes fast enough after rerun" }],
+        tests: [{ selector: "Quality Gate Suite > becomes fast enough after rerun", environment: "default" }],
       });
     });
   }, 240_000);
