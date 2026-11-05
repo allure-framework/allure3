@@ -503,7 +503,7 @@ __metadata:
     "@allurereport/common-config": "workspace:*"
     "@allurereport/core-api": "workspace:*"
     "@allurereport/plugin-api": "workspace:*"
-    "@types/mjml": "npm:^4"
+    "@types/mjml": "npm:^5"
     "@types/node": "npm:^20.19.43"
     "@vitest/coverage-istanbul": "npm:^5.0.5"
     "@vitest/runner": "npm:^4.1.12"
@@ -7090,19 +7090,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/mjml-core@npm:*":
-  version: 5.1.0
-  resolution: "@types/mjml-core@npm:5.1.0"
-  checksum: 10/dd3e42384c38c89730e03c4cb24680b03698fdcde2c5b3f6707cfa41cdba1cf43b0123a75dc986922ac991ba0a78106adeefa4070136262ff4adac9b2fa5a64d
+"@types/mjml-core@npm:~5.1":
+  version: 5.1.1
+  resolution: "@types/mjml-core@npm:5.1.1"
+  checksum: 10/572d4ab7db9e4a646e1879979a4c6b65ff68d971008e471225ab74f42fdcb72e0576ca0b94badf9d1d073a5502d7f8cca9d83dbcbed2e3cb278d6fa3afac29ca
   languageName: node
   linkType: hard
 
-"@types/mjml@npm:^4":
-  version: 4.7.4
-  resolution: "@types/mjml@npm:4.7.4"
+"@types/mjml@npm:^5":
+  version: 5.4.2
+  resolution: "@types/mjml@npm:5.4.2"
   dependencies:
-    "@types/mjml-core": "npm:*"
-  checksum: 10/097b46f6d79c02c6d17681d5722bd476f7df7418666673d187824c30994847cd2909bdb0351a878b0690ff5e7bf096a9216e12910c82cba9b88a4ce1b45d803b
+    "@types/mjml-core": "npm:~5.1"
+  checksum: 10/081d6a860df6c2febaf99588bedd73dc0ce3ccb0a855b69cea122b55698fac3b4f6b1887355c2c3a679023ada2926e3a79a40f1f03a694ecf6db266990263731
   languageName: node
   linkType: hard
 
