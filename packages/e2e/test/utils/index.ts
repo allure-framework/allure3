@@ -1,8 +1,8 @@
 import { randomUUID } from "node:crypto";
 import { existsSync } from "node:fs";
-import { mkdtemp, rm, writeFile } from "node:fs/promises";
+import { mkdtemp, readdir, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { resolve } from "node:path";
+import { resolve, sep } from "node:path";
 
 import { AllureReport, FileSystemReportFiles, type FullConfig } from "@allurereport/core";
 import type { HistoryDataPoint } from "@allurereport/core-api";
@@ -54,6 +54,10 @@ export interface ReportBootstrap {
   regenerate: () => Promise<void>;
   shutdown: () => Promise<void>;
 }
+
+// Archive paths use POSIX separators even when the report is generated on Windows.
+export const reportEntries = async (directory: string): Promise<string[]> =>
+  (await readdir(directory, { recursive: true })).map((entry) => entry.split(sep).join("/"));
 
 export const randomNumber = (min: number, max: number): number => {
   if (min > max) {

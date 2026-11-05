@@ -1,4 +1,4 @@
-import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, readdir, rm, stat, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
@@ -13,12 +13,13 @@ import { expect, test, type Page } from "@playwright/test";
 import { attachment, feature, label, Status, Stage } from "allure-js-commons";
 
 import { TestResultPage } from "../pageObjects/index.js";
-import { bootstrapReport, serveReport, type ReportBootstrap } from "../utils/index.js";
+import { bootstrapReport, reportEntries, serveReport, type ReportBootstrap } from "../utils/index.js";
 
 let report: ReportBootstrap | undefined;
-test.beforeEach(async ({ browserName }) => {
+test.beforeEach(async ({ browserName, page }) => {
   await feature("selective-single-file-assets");
   await label("env", browserName);
+  await page.route("https://**/*", (route) => route.abort());
 });
 test.afterEach(async () => {
   await report?.shutdown();
@@ -27,6 +28,13 @@ test.afterEach(async () => {
 
 const embeddedScripts = (html: string): Record<string, string> =>
   JSON.parse(html.match(/<script id="allure-single-file-assets" type="application\/json">([^<]+)<\/script>/)![1]);
+
+const reportScripts = async (directory: string, singleFile: boolean): Promise<Record<string, string>> =>
+  singleFile
+    ? embeddedScripts(await readFile(join(directory, "index.html"), "utf8"))
+    : Object.fromEntries(
+        (await reportEntries(directory)).filter((file) => file.endsWith(".js")).map((file) => [file, file]),
+      );
 
 for (const frontend of ["awesome", "dashboard"] as const) {
   test(`${frontend} embeds only pie dependencies and renders offline in an Azure-style iframe`, async ({ page }) => {
@@ -120,7 +128,7 @@ for (const frontend of ["awesome", "dashboard"] as const) {
         const doc = frame.contentDocument!;
         // Optional analytics is unrelated to chunk loading and Webpack publicPath.
         const parsed = new DOMParser().parseFromString(html, "text/html");
-        for (const script of parsed.querySelectorAll('script[src^="https:"]')) script.remove();
+        for (const script of Array.from(parsed.querySelectorAll('script[src^="https:"]'))) script.remove();
         doc.open();
         doc.write("<!doctype html>" + parsed.documentElement.outerHTML);
         doc.close();
@@ -185,174 +193,218 @@ for (const frontend of ["awesome", "dashboard"] as const) {
   });
 }
 
-test("a Mermaid attachment present only in a failed retry remains available after selection", async ({ page }) => {
-  const base = { name: "Retry Mermaid", fullName: "retry-mermaid", historyId: "retry-mermaid", stage: Stage.FINISHED };
-  report = await bootstrapReport({
-    reportConfig: {
-      appendHistory: false,
-      plugins: [
-        { id: "awesome", enabled: true, options: {}, plugin: new AwesomePlugin({ singleFile: true, charts: [] }) },
-      ],
-    },
-    rawTestResults: [
-      {
-        ...base,
-        uuid: "failed",
-        status: Status.FAILED,
-        start: 1000,
-        stop: 1100,
-        steps: [
-          {
-            name: "failed attempt",
-            status: Status.FAILED,
-            stage: Stage.FINISHED,
-            statusDetails: {},
-            steps: [],
-            parameters: [],
-            attachments: [
-              { name: "Retry diagram", source: "retry.mmd", type: "application/vnd.allure.diagrams.mermaid" },
-            ],
-          },
-        ],
-      },
-      { ...base, uuid: "passed", status: Status.PASSED, start: 2000, stop: 2100 },
-    ],
-    attachments: [{ source: "retry.mmd", content: Buffer.from("sequenceDiagram\nClient->>Server: retry attachment") }],
-  });
-  const html = await readFile(join(report.reportDir, "index.html"), "utf8");
-  const scripts = embeddedScripts(html);
-  expect(Object.keys(scripts).some((file) => file.startsWith("attachment-mermaid-"))).toBe(true);
-  expect(Object.keys(scripts).some((file) => file.startsWith("attachment-code-"))).toBe(true);
-  expect(Object.keys(scripts).some((file) => file.startsWith("chart-bar-"))).toBe(false);
-  await page.goto(report.url);
-  await page.getByText("Retry Mermaid", { exact: true }).click();
-  await page.getByRole("button", { name: "Retries" }).click();
-  await page.getByTestId("test-result-retries-item-open-button").click();
-  const result = new TestResultPage(page);
-  await result.ensureBodyStepsOpened();
-  await result.expandStepByTitle("failed attempt");
-  await result.toggleAttachmentByTitle("Retry diagram");
-  await expect(page.getByText("retry attachment", { exact: true }).first()).toBeVisible();
-});
-
-test("a comparison present only in history remains available offline", async ({ page, context }) => {
-  report = await bootstrapReport({
-    reportConfig: {
-      appendHistory: false,
-      plugins: [
-        { id: "awesome", enabled: true, options: {}, plugin: new AwesomePlugin({ singleFile: true, charts: [] }) },
-      ],
-    },
-    rawTestResults: [
-      {
-        uuid: "current",
-        name: "Historical comparison",
-        fullName: "history-only-diff",
-        historyId: "history-only-diff",
-        status: Status.PASSED,
-      },
-    ],
-    history: [
-      {
-        uuid: "previous-run",
-        name: "previous",
-        timestamp: 1000,
-        knownTestCaseIds: [],
-        metrics: {},
-        url: "",
-        testResults: {
-          "history-only-diff": {
-            id: "previous",
-            name: "Historical comparison",
-            status: "failed",
-            url: "",
-            error: { expected: "old history value", actual: "new history value" },
-          },
-        },
-      },
-    ],
-  });
-  const scripts = embeddedScripts(await readFile(join(report.reportDir, "index.html"), "utf8"));
-  expect(Object.keys(scripts).some((file) => file.startsWith("error-diff-"))).toBe(true);
-  expect(Object.keys(scripts).some((file) => file.startsWith("attachment-mermaid-"))).toBe(false);
-  await page.goto(report.url);
-  await context.setOffline(true);
-  await page.getByText("Historical comparison", { exact: true }).click();
-  await new TestResultPage(page).tabById("history").click();
-  await page.getByRole("button", { name: "toggle history error" }).click();
-  await page.getByTestId("test-result-diff-button").click();
-  await expect(page.getByTestId("test-result-diff")).toContainText("old history value");
-  await expect(page.getByTestId("test-result-diff")).toContainText("new history value");
-});
-
-test("dump-only restoration retains fixture viewers in a regenerated single-file report", async ({ page }) => {
-  const root = await mkdtemp(join(tmpdir(), "selective-dump-"));
-  try {
-    const plugins = () => [
-      { id: "awesome", enabled: true, options: {}, plugin: new AwesomePlugin({ singleFile: true, charts: [] }) },
-    ];
+for (const singleFile of [true, false]) {
+  test(`a Mermaid attachment present only in a failed retry remains available after selection (singleFile=${singleFile})`, async ({
+    page,
+  }) => {
+    const base = {
+      name: "Retry Mermaid",
+      fullName: "retry-mermaid",
+      historyId: "retry-mermaid",
+      stage: Stage.FINISHED,
+    };
     report = await bootstrapReport({
-      reportConfig: { appendHistory: false, dump: join(root, "snapshot"), plugins: plugins() },
-      rawTestResults: [{ uuid: "fixture-test", name: "Dump fixture", fullName: "dump-fixture", status: Status.PASSED }],
-      rawTestResultContainers: [
+      reportConfig: {
+        appendHistory: false,
+        plugins: [{ id: "awesome", enabled: true, options: {}, plugin: new AwesomePlugin({ singleFile, charts: [] }) }],
+      },
+      rawTestResults: [
         {
-          uuid: "fixture-container",
-          children: ["fixture-test"],
-          befores: [
+          ...base,
+          uuid: "failed",
+          status: Status.FAILED,
+          start: 1000,
+          stop: 1100,
+          steps: [
             {
-              name: "fixture setup",
-              status: "passed",
+              name: "failed attempt",
+              statusDetails: {},
+              steps: [],
+              parameters: [],
+              status: Status.FAILED,
+              stage: Stage.FINISHED,
               attachments: [
-                { name: "Fixture diagram", source: "fixture.mmd", type: "application/vnd.allure.diagrams.mermaid" },
+                { name: "Retry diagram", source: "retry.mmd", type: "application/vnd.allure.diagrams.mermaid" },
               ],
             },
           ],
         },
+        { ...base, uuid: "passed", status: Status.PASSED, start: 2000, stop: 2100 },
       ],
       attachments: [
-        { source: "fixture.mmd", content: Buffer.from("sequenceDiagram\nClient->>Server: restored fixture") },
+        { source: "retry.mmd", content: Buffer.from("sequenceDiagram\nClient->>Server: retry attachment") },
       ],
     });
-    const newReport = () =>
-      new AllureReport({
-        name: "Allure Report",
-        open: false,
-        port: undefined,
-        output: report!.reportDir,
-        reportFiles: new FileSystemReportFiles(report!.reportDir),
-        appendHistory: false,
-        plugins: plugins(),
-      });
-    const baseline = newReport();
-    await baseline.start();
-    await baseline.done();
-    const original = embeddedScripts(await readFile(join(report.reportDir, "index.html"), "utf8"));
-    expect(Object.keys(original).some((file) => file.startsWith("attachment-mermaid-"))).toBe(false);
-    const restored = newReport();
-    await restored.start();
-    await restored.restoreState([join(root, "snapshot.zip")]);
-    await restored.done();
-    const scripts = embeddedScripts(await readFile(join(report.reportDir, "index.html"), "utf8"));
+    const scripts = await reportScripts(report.reportDir, singleFile);
     expect(Object.keys(scripts).some((file) => file.startsWith("attachment-mermaid-"))).toBe(true);
     expect(Object.keys(scripts).some((file) => file.startsWith("attachment-code-"))).toBe(true);
     expect(Object.keys(scripts).some((file) => file.startsWith("chart-bar-"))).toBe(false);
+    const archive = await readReportStaticAssets(
+      new URL("../../../plugin-awesome/dist/static/report.tar", import.meta.url),
+    );
+    const scriptNames = Object.keys(scripts);
+    const bytesUnder = async (directory: string): Promise<number> => {
+      let total = 0;
+      for (const entry of await readdir(directory, { withFileTypes: true })) {
+        const path = join(directory, entry.name);
+        total += entry.isDirectory() ? await bytesUnder(path) : (await stat(path)).size;
+      }
+      return total;
+    };
+    await attachment(
+      "Retry Mermaid asset sizes (same build, bytes)",
+      JSON.stringify({
+        scenario: "retry-mermaid",
+        singleFile,
+        fullJavaScriptBytes: [...archive.files]
+          .filter(([file]) => file.endsWith(".js"))
+          .reduce((sum, [, data]) => sum + data.length, 0),
+        selectedJavaScriptBytes: scriptNames.reduce((sum, file) => sum + archive.files.get(file)!.length, 0),
+        fullScripts: [...archive.files.keys()].filter((file) => file.endsWith(".js")).length,
+        selectedScripts: scriptNames.length,
+        reportBytes: await bytesUnder(report.reportDir),
+        singleFileHtmlBytes: singleFile ? (await stat(join(report.reportDir, "index.html"))).size : undefined,
+      }),
+      "application/json",
+    );
     await page.goto(report.url);
-    await page.context().setOffline(true);
-    await page.getByText("Dump fixture", { exact: true }).click();
+    await page.getByText("Retry Mermaid", { exact: true }).click();
+    await page.getByRole("button", { name: "Retries" }).click();
+    await page.getByTestId("test-result-retries-item-open-button").click();
     const result = new TestResultPage(page);
-    await result.expandStepByTitle("fixture setup");
-    await result.toggleAttachmentByTitle("Fixture diagram");
-    await expect(page.getByTestId("mermaid-attachment-preview")).toContainText("restored fixture");
-    const reduced = newReport();
-    await reduced.start();
-    await reduced.done();
-    expect(embeddedScripts(await readFile(join(report.reportDir, "index.html"), "utf8"))).toEqual(original);
-    // An already opened immutable snapshot keeps its own embedded viewers.
-    await expect(page.getByTestId("mermaid-attachment-preview")).toContainText("restored fixture");
-  } finally {
-    await rm(root, { recursive: true, force: true });
-  }
-});
+    await result.ensureBodyStepsOpened();
+    await result.expandStepByTitle("failed attempt");
+    await result.toggleAttachmentByTitle("Retry diagram");
+    await expect(page.getByText("retry attachment", { exact: true }).first()).toBeVisible();
+  });
+
+  test(`a comparison present only in history remains available (singleFile=${singleFile})`, async ({
+    page,
+    context,
+  }) => {
+    report = await bootstrapReport({
+      reportConfig: {
+        appendHistory: false,
+        plugins: [{ id: "awesome", enabled: true, options: {}, plugin: new AwesomePlugin({ singleFile, charts: [] }) }],
+      },
+      rawTestResults: [
+        {
+          uuid: "current",
+          name: "Historical comparison",
+          fullName: "history-only-diff",
+          historyId: "history-only-diff",
+          status: Status.PASSED,
+        },
+      ],
+      history: [
+        {
+          uuid: "previous-run",
+          name: "previous",
+          timestamp: 1000,
+          knownTestCaseIds: [],
+          metrics: {},
+          url: "",
+          testResults: {
+            "history-only-diff": {
+              id: "previous",
+              name: "Historical comparison",
+              status: "failed",
+              url: "",
+              error: { expected: "old history value", actual: "new history value" },
+            },
+          },
+        },
+      ],
+    });
+    const scripts = await reportScripts(report.reportDir, singleFile);
+    expect(Object.keys(scripts).some((file) => file.startsWith("error-diff-"))).toBe(true);
+    expect(Object.keys(scripts).some((file) => file.startsWith("attachment-mermaid-"))).toBe(false);
+    await page.goto(report.url);
+    if (singleFile) await context.setOffline(true);
+    await page.getByText("Historical comparison", { exact: true }).click();
+    await new TestResultPage(page).tabById("history").click();
+    await page.getByRole("button", { name: "toggle history error" }).click();
+    await page.getByTestId("test-result-diff-button").click();
+    await expect(page.getByTestId("test-result-diff")).toContainText("old history value");
+    await expect(page.getByTestId("test-result-diff")).toContainText("new history value");
+  });
+
+  test(`dump-only restoration retains fixture viewers in a regenerated report (singleFile=${singleFile})`, async ({
+    page,
+  }) => {
+    const root = await mkdtemp(join(tmpdir(), "selective-dump-"));
+    try {
+      const plugins = () => [
+        { id: "awesome", enabled: true, options: {}, plugin: new AwesomePlugin({ singleFile, charts: [] }) },
+      ];
+      report = await bootstrapReport({
+        reportConfig: { appendHistory: false, dump: join(root, "snapshot"), plugins: plugins() },
+        rawTestResults: [
+          { uuid: "fixture-test", name: "Dump fixture", fullName: "dump-fixture", status: Status.PASSED },
+        ],
+        rawTestResultContainers: [
+          {
+            uuid: "fixture-container",
+            children: ["fixture-test"],
+            befores: [
+              {
+                name: "fixture setup",
+                status: "passed",
+                attachments: [
+                  { name: "Fixture diagram", source: "fixture.mmd", type: "application/vnd.allure.diagrams.mermaid" },
+                ],
+              },
+            ],
+          },
+        ],
+        attachments: [
+          { source: "fixture.mmd", content: Buffer.from("sequenceDiagram\nClient->>Server: restored fixture") },
+        ],
+      });
+      const newReport = () =>
+        new AllureReport({
+          name: "Allure Report",
+          open: false,
+          port: undefined,
+          output: report!.reportDir,
+          reportFiles: new FileSystemReportFiles(report!.reportDir),
+          appendHistory: false,
+          plugins: plugins(),
+        });
+      await rm(report.reportDir, { recursive: true, force: true });
+      const baseline = newReport();
+      await baseline.start();
+      await baseline.done();
+      const original = await reportScripts(report.reportDir, singleFile);
+      expect(Object.keys(original).some((file) => file.startsWith("attachment-mermaid-"))).toBe(false);
+      await rm(report.reportDir, { recursive: true, force: true });
+      const restored = newReport();
+      await restored.start();
+      await restored.restoreState([join(root, "snapshot.zip")]);
+      await restored.done();
+      const scripts = await reportScripts(report.reportDir, singleFile);
+      expect(Object.keys(scripts).some((file) => file.startsWith("attachment-mermaid-"))).toBe(true);
+      expect(Object.keys(scripts).some((file) => file.startsWith("attachment-code-"))).toBe(true);
+      expect(Object.keys(scripts).some((file) => file.startsWith("chart-bar-"))).toBe(false);
+      await page.goto(report.url);
+      if (singleFile) await page.context().setOffline(true);
+      await page.getByText("Dump fixture", { exact: true }).click();
+      const result = new TestResultPage(page);
+      await result.expandStepByTitle("fixture setup");
+      await result.toggleAttachmentByTitle("Fixture diagram");
+      await expect(page.getByTestId("mermaid-attachment-preview")).toContainText("restored fixture");
+      await rm(report.reportDir, { recursive: true, force: true });
+      const reduced = newReport();
+      await reduced.start();
+      await reduced.done();
+      expect(await reportScripts(report.reportDir, singleFile)).toEqual(original);
+      // An already opened immutable snapshot keeps its own embedded viewers.
+      if (singleFile) await expect(page.getByTestId("mermaid-attachment-preview")).toContainText("restored fixture");
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
+  });
+}
 
 test("live generation keeps viewers for attachments arriving after the page opens", async ({ page }) => {
   const root = await mkdtemp(join(tmpdir(), "selective-live-"));
