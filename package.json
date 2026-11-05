@@ -16,7 +16,7 @@
   "scripts": {
     "archive": "yarn allure archive",
     "audit": "yarn npm audit --all --recursive",
-    "build": "vp run -v --log labeled -F '{packages/*}' -F '!sandbox' vp:build",
+    "build": "rimraf -g 'packages/*/dist' && vp run -v --log labeled -F '{packages/*}' -F '!sandbox' vp:build",
     "check": "vp check",
     "check:dependencies": "sherif",
     "clean": "vp run -rv --log labeled --parallel clean",
