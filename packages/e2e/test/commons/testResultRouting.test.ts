@@ -8,7 +8,7 @@ import { feature, label, step, Status, Stage } from "allure-js-commons";
 
 import { bootstrapReport, type ReportBootstrap } from "../utils/index.js";
 
-const resultId = (uuid: string) => createHash("md5").update(uuid).digest("hex");
+const resultId = (uuid: string) => createHash("sha256").update(uuid).digest("hex");
 const earlierId = resultId("routing-earlier");
 const currentId = resultId("routing-current");
 
