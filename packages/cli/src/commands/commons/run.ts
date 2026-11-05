@@ -325,8 +325,8 @@ export const runTests = async (params: {
 
   return {
     code,
-    stdout: await supervisor.stdout,
-    stderr: await supervisor.stderr,
+    stdout: supervisor.stdout,
+    stderr: supervisor.stderr,
     qualityGateResults,
     fastFailed: fastFailTriggered,
     interrupted: supervisor.interrupted !== undefined,

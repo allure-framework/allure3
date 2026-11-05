@@ -144,11 +144,11 @@ vi.mock("../../src/utils/supervisor/index.js", async (importOriginal) => ({
       return supervisorInterruptedMock();
     }
 
-    get stdout(): Promise<string> {
+    get stdout(): string {
       return supervisorStdoutMock();
     }
 
-    get stderr(): Promise<string> {
+    get stderr(): string {
       return supervisorStderrMock();
     }
 
@@ -177,8 +177,8 @@ beforeEach(async () => {
   supervisorStopMock.mockReset().mockResolvedValue(undefined);
   supervisorExitCodeMock.mockReset().mockResolvedValue(0);
   supervisorInterruptedMock.mockReset().mockReturnValue(undefined);
-  supervisorStdoutMock.mockReset().mockResolvedValue("");
-  supervisorStderrMock.mockReset().mockResolvedValue("");
+  supervisorStdoutMock.mockReset().mockReturnValue("");
+  supervisorStderrMock.mockReset().mockReturnValue("");
   delete process.env[ALLURE_CLI_ACTIVE_COMMAND_ENV];
 
   const { AllureReportMock } = await import("../utils.js");
@@ -732,8 +732,8 @@ describe("run command", () => {
         return processStream;
       });
     supervisorExitCodeMock.mockResolvedValueOnce(1);
-    supervisorStdoutMock.mockResolvedValue("stdout");
-    supervisorStderrMock.mockResolvedValue("stderr");
+    supervisorStdoutMock.mockReturnValue("stdout");
+    supervisorStderrMock.mockReturnValue("stderr");
 
     await executeAllureRun({
       allureReport: new AllureReportMock() as never,

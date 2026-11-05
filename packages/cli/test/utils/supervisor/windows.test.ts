@@ -44,8 +44,8 @@ const wait = async (supervisor: WindowsProcessSupervisor) => {
     const completion = await supervisor.completion;
     expect(supervisor.completed).toBe(true);
     await ctx.parameter("Result", String(completion.code ?? completion.signal));
-    const stdout = await supervisor.stdout;
-    const stderr = await supervisor.stderr;
+    const stdout = supervisor.stdout;
+    const stderr = supervisor.stderr;
     if (stdout) await attachment("Standard output", stdout, "text/plain");
     if (stderr) await attachment("Standard error", stderr, "text/plain");
     return { ...completion, stdout, stderr };

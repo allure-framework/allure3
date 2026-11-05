@@ -17,6 +17,7 @@ import type {
   StopOptions,
   SupervisedCommandOptions,
 } from "./model.js";
+import { relayOutputStream, type RelayResult, type OutputStreamRelay } from "./relays.js";
 
 const DEFAULT_STOP_ESCALATION_TIMEOUT = 30_000;
 
@@ -28,11 +29,14 @@ export abstract class ProcessSupervisorBase {
   #environmentVariables: Record<string, string>;
   #outputMode: "ignore" | "inherit" | "pipe";
   #silent: boolean;
-  #outputEncoding: BufferEncoding;
+  #outputEncoding: BufferEncoding | undefined;
+  #stderrEncoding: BufferEncoding | undefined;
 
   #process?: ChildProcess = undefined;
-  #stdout: string = "";
-  #stderr: string = "";
+  #stdoutRelay?: OutputStreamRelay = undefined;
+  #stderrRelay?: OutputStreamRelay = undefined;
+  #stdoutRelayResultPromise: Promise<RelayResult> = Promise.resolve({ status: "completed", captured: "" });
+  #stderrRelayResultPromise: Promise<RelayResult> = Promise.resolve({ status: "completed", captured: "" });
 
   #completionPromise: Promise<ProcessGroupCompletion> | undefined;
   #stopPromise: Promise<void> | undefined;
@@ -40,6 +44,7 @@ export abstract class ProcessSupervisorBase {
 
   #gracefulStopAbortController?: AbortController;
   readonly #rootCloseAbortController = new AbortController();
+  readonly #outputRelayAbortController = new AbortController();
 
   #started: boolean = false;
   #completed: boolean = false;
@@ -57,7 +62,8 @@ export abstract class ProcessSupervisorBase {
       workingDirectory = process.cwd(),
       environmentVariables = {},
       outputMode = "pipe",
-      outputEncoding = "utf-8",
+      outputEncoding,
+      stderrEncoding,
       silent = false,
     }: SupervisedCommandOptions = {},
   ) {
@@ -68,8 +74,17 @@ export abstract class ProcessSupervisorBase {
     this.#environmentVariables = environmentVariables;
     this.#outputMode = outputMode;
     this.#outputEncoding = outputEncoding;
+    this.#stderrEncoding = stderrEncoding ?? outputEncoding;
     this.#silent = silent;
     this.diagnosticsEnabled = Boolean(logger?.debugEnabled) && supervisorDiagnosticsEnabled();
+  }
+
+  get outputEncoding(): BufferEncoding | undefined {
+    return this.#outputEncoding;
+  }
+
+  get stderrEncoding(): BufferEncoding | undefined {
+    return this.#stderrEncoding;
   }
 
   get process(): ChildProcess {
@@ -105,12 +120,12 @@ export abstract class ProcessSupervisorBase {
     return this.#interrupted;
   }
 
-  get stdout(): Promise<string> {
-    return this.completion.catch(() => {}).then(() => this.#stdout);
+  get stdout(): string {
+    return this.#stdoutRelay?.captured ?? "";
   }
 
-  get stderr(): Promise<string> {
-    return this.completion.catch(() => {}).then(() => this.#stderr);
+  get stderr(): string {
+    return this.#stderrRelay?.captured ?? "";
   }
 
   get completion() {
@@ -145,25 +160,23 @@ export abstract class ProcessSupervisorBase {
     });
 
     if (this.#outputMode === "pipe") {
-      target.stdout?.setEncoding(this.#outputEncoding).on("data", (data: string) => {
-        this.#stdout += data;
+      const { signal } = this.#outputRelayAbortController;
 
-        if (this.#silent) {
-          return;
-        }
+      const { relay: stdoutRelay, resultPromise: stdoutRelayResultPromise } = relayOutputStream(
+        target.stdout,
+        process.stdout,
+        { encoding: this.#outputEncoding, forward: !this.#silent, signal },
+      );
+      this.#stdoutRelay = stdoutRelay;
+      this.#stdoutRelayResultPromise = stdoutRelayResultPromise;
 
-        process.stdout.write(data);
-      });
-
-      target.stderr?.setEncoding(this.#outputEncoding).on("data", (data: string) => {
-        this.#stderr += data;
-
-        if (this.#silent) {
-          return;
-        }
-
-        process.stderr.write(data);
-      });
+      const { relay: stderrRelay, resultPromise: stderrRelayResultPromise } = relayOutputStream(
+        target.stderr,
+        process.stderr,
+        { encoding: this.#stderrEncoding, forward: !this.#silent, signal },
+      );
+      this.#stderrRelay = stderrRelay;
+      this.#stderrRelayResultPromise = stderrRelayResultPromise;
     }
 
     this.#process = target;
@@ -202,9 +215,25 @@ export abstract class ProcessSupervisorBase {
 
       if (this.#rootCloseAbortController.signal.aborted) {
         // The group/job has finished while 'close' might've not been received.
+        // We are in an emergency cleanup scenario and can't wait any longer.
         // Inherited pipes must not keep Allure alive.
+
+        // Destroying the streams will interrupt the relays' pipelines.
+        // But it will result in an extra error being reported.
+        // Cancelling the relays through the abort controller tells them
+        // that this is a cancellation rather than an unexpected error.
+        this.#outputRelayAbortController.abort();
+
         target.stdout?.destroy();
         target.stderr?.destroy();
+      }
+
+      const relayResults = await Promise.all([this.#stdoutRelayResultPromise, this.#stderrRelayResultPromise]);
+
+      for (const result of relayResults) {
+        if (result.status === "failed") {
+          errors.push(result.error);
+        }
       }
 
       if (errors.length === 1) {

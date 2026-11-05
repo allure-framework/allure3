@@ -3,6 +3,7 @@ import { mkdtemp, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import process from "node:process";
+import { PassThrough, Writable } from "node:stream";
 import { setTimeout as delay } from "node:timers/promises";
 
 import { epic, feature, story } from "allure-js-commons";
@@ -10,6 +11,7 @@ import { afterEach, beforeEach, describe, expect, it, onTestFinished, vi } from 
 
 import type { JobMonitor, ProcessCompletion, SupervisedCommandOptions } from "../../../src/utils/supervisor/model.js";
 import { ProcessSupervisorBase } from "../../../src/utils/supervisor/ProcessSupervisorBase.js";
+import { relayOutputStream } from "../../../src/utils/supervisor/relays.js";
 import { SupervisorFixture, expectProcesses } from "./supervisor.helpers.js";
 import { nodeScripts } from "./supervisor.scripts.js";
 
@@ -204,6 +206,140 @@ describe("Process supervisor completion", () => {
   });
 });
 
+describe("Process supervisor output", () => {
+  it("cancels a pending relay and retains its captured output", async () => {
+    const upstream = new PassThrough();
+    const downstream = new Writable({ write: (_chunk, _encoding, done) => done() });
+    const controller = new AbortController();
+    const { relay, resultPromise } = relayOutputStream(upstream, downstream, {
+      forward: true,
+      signal: controller.signal,
+    });
+
+    upstream.write("partial output");
+    expect(relay?.captured).toBe("partial output");
+    expect(upstream.readableEnded).toBe(false);
+    controller.abort();
+
+    await expect(resultPromise).resolves.toEqual({ status: "cancelled", captured: "partial output" });
+  });
+
+  it("captures a UTF-8 character split across chunks and forwards its original bytes", async () => {
+    const upstream = new PassThrough();
+    const forwarded: Buffer[] = [];
+    const downstream = new Writable({
+      write(chunk: Buffer, _encoding, done) {
+        forwarded.push(chunk);
+        done();
+      },
+    });
+    const { relay, resultPromise } = relayOutputStream(upstream, downstream, { forward: true });
+
+    upstream.write(Buffer.from([0xe2]));
+    expect(relay?.captured).toBe("");
+    expect(forwarded).toEqual([Buffer.from([0xe2])]);
+    upstream.end(Buffer.from([0x82, 0xac]));
+
+    await expect(resultPromise).resolves.toEqual({ status: "completed", captured: "€" });
+    expect(Buffer.concat(forwarded)).toEqual(Buffer.from("€"));
+  });
+
+  it("rejects completion on an unexpected output stream error and retains captured output", async () => {
+    const supervisor = new TestProcessSupervisor({
+      arguments: ["-e", "process.stdout.write('partial output'); setInterval(() => {}, 1000);"],
+      outputMode: "pipe",
+      silent: true,
+    });
+    await supervisor.start();
+    onTestFinished(() => {
+      supervisor.process.kill();
+    });
+    await vi.waitFor(() => expect(supervisor.stdout).toBe("partial output"));
+
+    const failure = new Error("stdout failed");
+    const completion = expect(supervisor.completion).rejects.toBe(failure);
+    supervisor.process.stdout!.destroy(failure);
+    supervisor.process.kill();
+
+    await completion;
+    expect(supervisor.stdout).toBe("partial output");
+  });
+
+  it.each([
+    {
+      outputEncoding: undefined,
+      stderrEncoding: undefined,
+      stdout: "\uFFFD",
+      stderr: "\uFFFD",
+      bytes: [0xe9],
+      stderrBytes: [0xe9],
+    },
+    {
+      outputEncoding: "latin1",
+      stderrEncoding: undefined,
+      stdout: "é",
+      stderr: "é",
+      bytes: [0xc3, 0xa9],
+      stderrBytes: [0xc3, 0xa9],
+    },
+    {
+      outputEncoding: "latin1",
+      stderrEncoding: "ascii",
+      stdout: "é",
+      stderr: "i",
+      bytes: [0xc3, 0xa9],
+      stderrBytes: [0x69],
+    },
+  ] as const)("captures and forwards output with $outputEncoding / $stderrEncoding", async (scenario) => {
+    const stdoutWrite = vi.spyOn(process.stdout, "write").mockReturnValue(true);
+    const stderrWrite = vi.spyOn(process.stderr, "write").mockReturnValue(true);
+    onTestFinished(() => {
+      stdoutWrite.mockRestore();
+      stderrWrite.mockRestore();
+    });
+    const supervisor = new TestProcessSupervisor({
+      arguments: ["-e", "process.stdout.write(Buffer.from([233])); process.stderr.write(Buffer.from([233]));"],
+      outputMode: "pipe",
+      outputEncoding: scenario.outputEncoding,
+      stderrEncoding: scenario.stderrEncoding,
+    });
+
+    await supervisor.start();
+    await expect(supervisor.exitCode).resolves.toBe(0);
+    expect(supervisor.stdout).toBe(scenario.stdout);
+    expect(supervisor.stderr).toBe(scenario.stderr);
+    expect(stdoutWrite).toHaveBeenCalledWith(Buffer.from(scenario.bytes));
+    expect(stderrWrite).toHaveBeenCalledWith(Buffer.from(scenario.stderrBytes));
+    expect(process.stdout.writableEnded).toBe(false);
+    expect(process.stderr.writableEnded).toBe(false);
+  });
+
+  it("exposes captured output while the child is still running and retains it after termination", async () => {
+    const supervisor = new TestProcessSupervisor({
+      arguments: [
+        "-e",
+        "process.stdout.write('live stdout'); process.stderr.write('live stderr'); setInterval(() => {}, 1000);",
+      ],
+      outputMode: "pipe",
+      silent: true,
+    });
+    supervisor.requestForcedTermination.mockImplementation(() => supervisor.process.kill());
+    await supervisor.start();
+    onTestFinished(() => supervisor.terminate());
+
+    await vi.waitFor(() => {
+      expect(supervisor.stdout).toBe("live stdout");
+      expect(supervisor.stderr).toBe("live stderr");
+    });
+    expect(supervisor.completed).toBe(false);
+
+    await supervisor.terminate();
+    expect(supervisor.completed).toBe(true);
+    expect(supervisor.stdout).toBe("live stdout");
+    expect(supervisor.stderr).toBe("live stderr");
+  });
+});
+
 describe("Process supervisor color environment", () => {
   beforeEach(async () => {
     await epic("coverage");
@@ -240,7 +376,7 @@ describe("Process supervisor color environment", () => {
     });
     await supervisor.start();
     await expect(supervisor.completion).resolves.toMatchObject({ code: 0, signal: null });
-    return JSON.parse(await supervisor.stdout) as Record<string, string>;
+    return JSON.parse(supervisor.stdout) as Record<string, string>;
   };
 
   it("adds color defaults for piped output when NO_COLOR is absent", async () => {
