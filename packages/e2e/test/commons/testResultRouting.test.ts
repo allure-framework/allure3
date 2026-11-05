@@ -1,5 +1,7 @@
-import { createHash } from "node:crypto";
+import { readFile } from "node:fs/promises";
+import { join } from "node:path";
 
+import type { ReportTestResult, TestResultRegistry } from "@allurereport/plugin-api";
 import AwesomePlugin from "@allurereport/plugin-awesome";
 import ClassicPlugin from "@allurereport/plugin-classic";
 import DashboardPlugin from "@allurereport/plugin-dashboard";
@@ -8,13 +10,11 @@ import { feature, label, step, Status, Stage } from "allure-js-commons";
 
 import { bootstrapReport, type ReportBootstrap } from "../utils/index.js";
 
-const resultId = (uuid: string) => createHash("sha256").update(uuid).digest("hex");
-const earlierId = resultId("routing-earlier");
-const currentId = resultId("routing-current");
-
 for (const singleFile of [false, true]) {
   test.describe(singleFile ? "single-file result links" : "directory result links", () => {
     let report: ReportBootstrap;
+    let earlierId: string;
+    let currentId: string;
 
     test.beforeAll(async () => {
       report = await bootstrapReport({
@@ -52,6 +52,30 @@ for (const singleFile of [false, true]) {
           },
         ],
       });
+
+      const registry: TestResultRegistry = JSON.parse(
+        await readFile(join(report.reportDir, "test-results.json"), "utf8"),
+      );
+      const current = Object.values(registry.byId).find(({ name }) => name === "Current attempt");
+      expect(current).toBeDefined();
+      currentId = current!.id;
+
+      const resultPath = `data/test-results/${currentId}.json`;
+      let resultJson: string;
+      if (singleFile) {
+        const html = await readFile(join(report.reportDir, "awesome/index.html"), "utf8");
+        const encoded = [...html.matchAll(/d\("([^"]+)","([A-Za-z0-9+/=]+)"\)/g)].find(
+          ([, name]) => name === resultPath,
+        )?.[2];
+        expect(encoded).toBeDefined();
+        resultJson = Buffer.from(encoded!, "base64").toString("utf8");
+      } else {
+        resultJson = await readFile(join(report.reportDir, "awesome", resultPath), "utf8");
+      }
+      const currentResult: ReportTestResult = JSON.parse(resultJson);
+      const earlier = currentResult.retries?.find(({ name }) => name === "Earlier attempt");
+      expect(earlier).toBeDefined();
+      earlierId = earlier!.id;
     });
 
     test.afterAll(async () => report?.shutdown());
