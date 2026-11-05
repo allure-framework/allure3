@@ -4,7 +4,8 @@ import { resolve } from "node:path";
 import { readConfig } from "@allurereport/core";
 import { ExpressionError } from "@allurereport/core-api";
 import AwesomePlugin from "@allurereport/plugin-awesome";
-import { epic, feature, label, story } from "allure-js-commons";
+import { KnownError } from "@allurereport/service";
+import { allureId, epic, feature, label, story } from "allure-js-commons";
 import { run, UsageError } from "clipanion";
 import { type Mock, afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
@@ -684,6 +685,42 @@ describe("run command", () => {
     });
 
     expect(rm).toHaveBeenCalledWith("/tmp/run", { recursive: true, force: true });
+  });
+
+  it.each([
+    {
+      name: "known internal run failures",
+      error: new KnownError("Configured results directory is invalid"),
+    },
+    {
+      name: "unexpected internal run failures",
+      error: new Error("orchestration crashed"),
+    },
+  ])("should record $name as global errors", async ({ error }) => {
+    await allureId("304052");
+    await story("global-errors");
+    await label("coverage", "global-errors");
+
+    const { AllureReportMock } = await import("../utils.js");
+    const { terminationOf } = await import("../../src/utils/index.js");
+    const dispatcher = AllureReportMock.prototype.realtimeDispatcher;
+
+    vi.mocked(terminationOf).mockRejectedValueOnce(error);
+
+    const failureResult = await executeAllureRun({
+      allureReport: new AllureReportMock() as never,
+      cwd: "/cwd",
+      command: "npm",
+      commandArgs: ["test"],
+      withQualityGate: false,
+    });
+
+    expect(failureResult.globalExitCode.actual).toBe(1);
+    expect(dispatcher.sendGlobalError).toHaveBeenCalledTimes(1);
+    expect(dispatcher.sendGlobalError).toHaveBeenCalledWith(
+      error instanceof KnownError ? { message: error.message } : { message: error.message, trace: error.stack },
+    );
+    expect(dispatcher.sendGlobalExitCode).toHaveBeenCalledWith(expect.objectContaining({ actual: 1 }));
   });
 
   it("should publish captured process logs as process globals", async () => {

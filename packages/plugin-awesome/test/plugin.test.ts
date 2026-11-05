@@ -667,6 +667,27 @@ describe("plugin", () => {
         }),
       ]);
       expect(JSON.parse(addedFiles.get("widgets/default/search-index.json")!.toString("utf-8"))).toEqual([]);
+      expect(JSON.parse(addedFiles.get("widgets/resolution-categories.json")!.toString("utf-8"))).toMatchObject({
+        groups: [
+          expect.objectContaining({
+            resolution: "accepted",
+            testResults: [expect.objectContaining({ nodeId: "tr-staging" })],
+          }),
+        ],
+      });
+      expect(JSON.parse(addedFiles.get("widgets/staging/resolution-categories.json")!.toString("utf-8"))).toMatchObject(
+        {
+          groups: [
+            expect.objectContaining({
+              resolution: "accepted",
+              testResults: [expect.objectContaining({ nodeId: "tr-staging" })],
+            }),
+          ],
+        },
+      );
+      expect(JSON.parse(addedFiles.get("widgets/default/resolution-categories.json")!.toString("utf-8"))).toEqual({
+        groups: [],
+      });
     });
 
     it("should keep env-specific widgets separated by environment id when allEnvironments exposes one shared display name", async () => {
@@ -789,6 +810,34 @@ describe("plugin", () => {
         resolutions: {
           issues: 1,
         },
+      });
+      expect(JSON.parse(addedFiles.get("widgets/resolution-categories.json")!.toString("utf-8"))).toMatchObject({
+        groups: expect.arrayContaining([
+          expect.objectContaining({
+            resolution: "muted",
+            testResults: [expect.objectContaining({ nodeId: "tr-qa-a" })],
+          }),
+          expect.objectContaining({
+            resolution: "issue",
+            testResults: [expect.objectContaining({ nodeId: "tr-qa-b" })],
+          }),
+        ]),
+      });
+      expect(JSON.parse(addedFiles.get("widgets/qa_a/resolution-categories.json")!.toString("utf-8"))).toMatchObject({
+        groups: [
+          expect.objectContaining({
+            resolution: "muted",
+            testResults: [expect.objectContaining({ nodeId: "tr-qa-a" })],
+          }),
+        ],
+      });
+      expect(JSON.parse(addedFiles.get("widgets/qa_b/resolution-categories.json")!.toString("utf-8"))).toMatchObject({
+        groups: [
+          expect.objectContaining({
+            resolution: "issue",
+            testResults: [expect.objectContaining({ nodeId: "tr-qa-b" })],
+          }),
+        ],
       });
       expect(store.environmentIdByTrId).toHaveBeenCalledWith("tr-qa-a");
       expect(store.environmentIdByTrId).toHaveBeenCalledWith("tr-qa-b");
