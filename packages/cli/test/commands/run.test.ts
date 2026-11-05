@@ -702,10 +702,9 @@ describe("run command", () => {
     await label("coverage", "global-errors");
 
     const { AllureReportMock } = await import("../utils.js");
-    const { terminationOf } = await import("../../src/utils/index.js");
     const dispatcher = AllureReportMock.prototype.realtimeDispatcher;
 
-    vi.mocked(terminationOf).mockRejectedValueOnce(error);
+    supervisorStartMock.mockRejectedValueOnce(error);
 
     const failureResult = await executeAllureRun({
       allureReport: new AllureReportMock() as never,
