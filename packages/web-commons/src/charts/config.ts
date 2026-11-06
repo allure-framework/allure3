@@ -1,4 +1,5 @@
 import { ChartType, type ChartOptions } from "@allurereport/charts-api";
+import { validateFlakinessScoringOptions } from "@allurereport/core-api";
 
 /** Validate external chart settings once when configuring a report plugin. */
 export const validateChartsOptions = (charts: ChartOptions[]): void => {
@@ -13,5 +14,6 @@ export const validateChartsOptions = (charts: ChartOptions[]): void => {
     if (stabilizationPeriod !== undefined && (!Number.isInteger(stabilizationPeriod) || stabilizationPeriod < 1)) {
       throw new RangeError("stabilityDistribution.stabilizationPeriod must be a positive integer");
     }
+    validateFlakinessScoringOptions({ ...options, historyDepth: limit }, "stabilityDistribution");
   }
 };
