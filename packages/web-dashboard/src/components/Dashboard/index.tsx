@@ -44,7 +44,7 @@ export const Dashboard = () => {
 
           return (
             <div className={styles.overview}>
-              <Grid kind="swap" className={styles["overview-grid"]}>
+              <Grid data-testid="dashboard-charts" kind="swap" className={styles["overview-grid"]}>
                 {charts}
               </Grid>
             </div>
