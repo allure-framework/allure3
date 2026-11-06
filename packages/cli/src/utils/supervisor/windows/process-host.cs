@@ -474,6 +474,13 @@ namespace Allure.Run.Supervisor.Windows
         internal const int MaxMessageBytes = 1048576;
         internal const string CMD_UNQUOTED = @"#$*+-./:?@\_";
 
+        private const string OutputEncodingVariable = "ALLURE_RUN_WINDOWS_OUTPUT_ENCODING";
+        private const string StderrEncodingVariable = "ALLURE_RUN_WINDOWS_STDERR_ENCODING";
+
+        private Lazy<Encoding> stdoutEncoding;
+
+        private Lazy<Encoding> stderrEncoding;
+
         private static readonly string[] CommandExtensions = { ".exe", ".ps1", ".bat", ".cmd" };
 
         private static string PowerShellPath = Path.Combine(
@@ -865,19 +872,30 @@ namespace Allure.Run.Supervisor.Windows
 
         private sealed class OutputConsoleRelay : ConsoleRelay
         {
+            private readonly Encoding encoding;
+
             internal OutputConsoleRelay(
                 string name,
                 IntPtr console,
                 IntPtr pipe,
+                Encoding encoding,
                 Action<Exception> onFatalError,
                 Action<Exception> onError
             ) : base(name, console, pipe, onFatalError, onError)
             {
+                this.encoding = encoding;
             }
 
             protected override void Forward()
             {
                 byte[] bytes = new byte[8192];
+                Decoder decoder = this.encoding == null
+                    ? null
+                    : this.encoding.GetDecoder();
+
+                char[] characters = decoder == null
+                    ? null
+                    : new char[this.encoding.GetMaxCharCount(bytes.Length)];
 
                 while (!this.Cancelled)
                 {
@@ -889,6 +907,7 @@ namespace Allure.Run.Supervisor.Windows
                         read: out count,
                         overlapped: IntPtr.Zero
                     );
+
                     if (!success)
                     {
                         int code = Marshal.GetLastWin32Error();
@@ -897,13 +916,25 @@ namespace Allure.Run.Supervisor.Windows
                             throw new Failure(this.FormatOperation("ReadFile()"), code);
                         }
 
-                        // The pipe reached EOF.
-                        return;
+                        // ERROR_BROKEN_PIPE means the pipe has been closed by the other end.
+                        // Setting count to 0 exits the read loop.
+                        count = 0;
                     }
 
                     if (count == 0)
                     {
+                        if (decoder != null && !this.Cancelled)
+                        {
+                            // Writing the any remaining decoded characters and flush.
+                            this.WriteDecodedOutput(decoder, bytes, 0, characters, true);
+                        }
                         return;
+                    }
+
+                    if (decoder != null)
+                    {
+                        this.WriteDecodedOutput(decoder, bytes, (int)count, characters, false);
+                        continue;
                     }
 
                     GCHandle pinned = GCHandle.Alloc(bytes, GCHandleType.Pinned);
@@ -939,6 +970,46 @@ namespace Allure.Run.Supervisor.Windows
                     {
                         pinned.Free();
                     }
+                }
+            }
+
+            private void WriteDecodedOutput(
+                Decoder decoder,
+                byte[] bytes,
+                int count,
+                char[] chars,
+                bool flush
+            )
+            {
+                int length = decoder.GetChars(
+                    bytes: bytes,
+                    byteIndex: 0,
+                    byteCount: count,
+                    chars: chars,
+                    charIndex: 0,
+                    flush: flush
+                );
+                string text = new string(chars, 0, length);
+                while (text.Length > 0 && !this.Cancelled)
+                {
+                    uint written;
+                    bool success = Native.WriteConsoleW(
+                        handle: this.Console,
+                        buffer: text,
+                        size: (uint)text.Length,
+                        written: out written,
+                        reserved: IntPtr.Zero
+                    );
+                    if (!success)
+                    {
+                        throw Win32(this.FormatOperation("WriteConsoleW()"));
+                    }
+                    if (written == 0)
+                    {
+                        throw new Failure(this.FormatOperation("WriteConsoleW()"), "No progress writing output.");
+                    }
+
+                    text = text.Substring((int)written);
                 }
             }
 
@@ -1118,8 +1189,11 @@ namespace Allure.Run.Supervisor.Windows
 
         private sealed class OutputRelayFactory : ConsoleRelayFactory
         {
-            internal OutputRelayFactory(string name) : base(name)
+            private readonly Lazy<Encoding> encoding;
+
+            internal OutputRelayFactory(string name, Lazy<Encoding> encoding) : base(name)
             {
+                this.encoding = encoding;
             }
 
             protected override bool ProbeConsoleHandle(IntPtr handle)
@@ -1165,7 +1239,14 @@ namespace Allure.Run.Supervisor.Windows
                 Action<Exception> onError
             )
             {
-                return new OutputConsoleRelay(this.Name, console, pipe, onFatalError, onError);
+                return new OutputConsoleRelay(
+                    this.Name,
+                    console,
+                    pipe,
+                    this.encoding.Value,
+                    onFatalError,
+                    onError
+                );
             }
 
             private static bool ProbeConsoleWrite(IntPtr handle)
@@ -1191,6 +1272,70 @@ namespace Allure.Run.Supervisor.Windows
                 }
 
                 throw new Failure("WriteConsoleW", code);
+            }
+        }
+
+        internal WindowsProcessHost()
+        {
+            this.stdoutEncoding = new Lazy<Encoding>(ResolveStdoutEncoding);
+            this.stderrEncoding = new Lazy<Encoding>(
+                () => ResolveStderrEncoding(this.stdoutEncoding)
+            );
+        }
+
+        private static Encoding ResolveStdoutEncoding()
+        {
+            return ResolveEncoding(
+                Environment.GetEnvironmentVariable(OutputEncodingVariable)
+            );
+        }
+
+        private static Encoding ResolveStderrEncoding(Lazy<Encoding> outputEncoding)
+        {
+            string encodingName = Environment.GetEnvironmentVariable(StderrEncodingVariable);
+            return string.IsNullOrEmpty(encodingName)
+                ? outputEncoding.Value
+                : ResolveEncoding(encodingName);
+        }
+
+        private static Encoding ResolveEncoding(string encodingName)
+        {
+            if (string.IsNullOrEmpty(encodingName))
+            {
+                return null;
+            }
+
+            try
+            {
+                int codePage;
+                return int.TryParse(
+                    encodingName,
+                    style: NumberStyles.None,
+                    provider: CultureInfo.InvariantCulture,
+                    result: out codePage
+                )
+                    ? Encoding.GetEncoding(codePage)
+                    : Encoding.GetEncoding(encodingName);
+            }
+            catch (ArgumentException)
+            {
+                throw new Failure(
+                    "ResolveEncoding",
+                    string.Format(
+                        "Unsupported console output encoding: {0}",
+                        encodingName
+                    )
+                );
+            }
+            catch (NotSupportedException)
+            {
+                throw new Failure(
+                    "ResolveEncoding",
+                    string.Format(
+                        "Unsupported console output encoding: {0}",
+                        encodingName
+                    )
+                );
             }
         }
 
@@ -2096,14 +2241,40 @@ namespace Allure.Run.Supervisor.Windows
             }
         }
 
-        private IntPtr PrepareTargetStandardInputHandle(string name, int id)
+        private IntPtr PrepareTargetStandardInputHandle()
         {
-            return PrepareTargetStandardHandle(id, Native.GENERIC_READ, new InputRelayFactory(name));
+            return PrepareTargetStandardHandle(
+                Native.STD_INPUT_HANDLE,
+                Native.GENERIC_READ,
+                new InputRelayFactory("stdin")
+            );
         }
 
-        private IntPtr PrepareTargetStandardOutputHandle(string name, int id)
+        private IntPtr PrepareTargetStandardOutputHandle()
         {
-            return PrepareTargetStandardHandle(id, Native.GENERIC_WRITE, new OutputRelayFactory(name));
+            return PrepareTargetOutputHandle(
+                "stdout",
+                Native.STD_OUTPUT_HANDLE,
+                this.stdoutEncoding
+            );
+        }
+
+        private IntPtr PrepareTargetStandardErrorHandle()
+        {
+            return PrepareTargetOutputHandle(
+                "stderr",
+                Native.STD_ERROR_HANDLE,
+                this.stderrEncoding
+            );
+        }
+
+        private IntPtr PrepareTargetOutputHandle(string name, int id, Lazy<Encoding> encoding)
+        {
+            return PrepareTargetStandardHandle(
+                id,
+                Native.GENERIC_WRITE,
+                new OutputRelayFactory(name, encoding)
+            );
         }
 
         private uint Launch(string command, IEnumerable<string> arguments, string cwd)
@@ -2186,9 +2357,9 @@ namespace Allure.Run.Supervisor.Windows
             Native.PROCESS_INFORMATION process = new Native.PROCESS_INFORMATION();
             try
             {
-                handles[0] = PrepareTargetStandardInputHandle("stdin", Native.STD_INPUT_HANDLE);
-                handles[1] = PrepareTargetStandardOutputHandle("stdout", Native.STD_OUTPUT_HANDLE);
-                handles[2] = PrepareTargetStandardOutputHandle("stderr", Native.STD_ERROR_HANDLE);
+                handles[0] = PrepareTargetStandardInputHandle();
+                handles[1] = PrepareTargetStandardOutputHandle();
+                handles[2] = PrepareTargetStandardErrorHandle();
 
                 UIntPtr bytes = UIntPtr.Zero;
                 bool probe = Native.InitializeProcThreadAttributeList(IntPtr.Zero, 2, 0, ref bytes);

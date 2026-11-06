@@ -1814,6 +1814,24 @@ console.log(\`selected selectors: \${Array.from(selectors).join(",")}\`);
       expected: "caf\u00e9",
     },
     {
+      scenario: "shared console output encoding",
+      input: "",
+      source:
+        "process.stdout.write(Buffer.from([0xd0, 0x96, 0x0a])); process.stderr.write(Buffer.from([0xd0, 0x96, 0x0a]));",
+      expected: "\u0416",
+      expectedStderr: "\u0416",
+      outputEncoding: "utf-8",
+    },
+    {
+      scenario: "stderr console encoding override",
+      input: "",
+      source: "process.stdout.write(Buffer.from([0xd0, 0x96, 0x0a])); process.stderr.write(Buffer.from([0xdf, 0x0a]));",
+      expected: "\u0416",
+      expectedStderr: "\u042f",
+      outputEncoding: "utf-8",
+      stderrEncoding: "1251",
+    },
+    {
       scenario: "large output",
       input: "",
       source:
@@ -1822,7 +1840,7 @@ console.log(\`selected selectors: \${Array.from(selectors).join(",")}\`);
     },
   ])(
     "preserves console stdout and stderr with --ignore-logs ($scenario)",
-    async ({ scenario, input, source, expected }) => {
+    async ({ scenario, input, source, expected, expectedStderr, outputEncoding, stderrEncoding }) => {
       const fixtureDir = join(tempDir, `ignore-logs-console-${scenario.replaceAll(" ", "-")}`);
       await mkdir(fixtureDir, { recursive: true });
 
@@ -1873,6 +1891,10 @@ console.log(\`selected selectors: \${Array.from(selectors).join(",")}\`);
         scriptPath,
         `
           delete process.env.ALLURE_CLI_ACTIVE_COMMAND;
+          delete process.env.ALLURE_RUN_WINDOWS_OUTPUT_ENCODING;
+          delete process.env.ALLURE_RUN_WINDOWS_STDERR_ENCODING;
+          ${outputEncoding ? `process.env.ALLURE_RUN_WINDOWS_OUTPUT_ENCODING = ${JSON.stringify(outputEncoding)};` : ""}
+          ${stderrEncoding ? `process.env.ALLURE_RUN_WINDOWS_STDERR_ENCODING = ${JSON.stringify(stderrEncoding)};` : ""}
           process.stdout.write("fixture-stdout-ready\\n");
           process.stderr.write("fixture-stderr-ready\\n");
           process.argv = [process.execPath, ...${JSON.stringify(args)}];
@@ -1971,6 +1993,9 @@ console.log(\`selected selectors: \${Array.from(selectors).join(",")}\`);
         if (scenario === "console output bytes") {
           // The console must interpret 0xe9 using CP1252 on both output streams.
           expect.soft(output.stderr).toContain(expected);
+        }
+        if (expectedStderr) {
+          expect(output.stderr).toContain(expectedStderr);
         }
         if (scenario === "large output") {
           expect(output.stdout.match(/X/g)?.length).toBeGreaterThanOrEqual(131072);
