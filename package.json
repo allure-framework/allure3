@@ -40,7 +40,7 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.62.1",
-    "@types/node": "^20.19.43",
+    "@types/node": "^26.6.6",
     "allure": "workspace:*",
     "babel-plugin-prismjs": "^2.1.0",
     "lefthook": "^2.1.4",

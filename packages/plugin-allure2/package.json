@@ -38,7 +38,7 @@
   "devDependencies": {
     "@allurereport/common-config": "workspace:*",
     "@allurereport/web-allure2": "workspace:*",
-    "@types/node": "^20.19.43",
+    "@types/node": "^26.6.6",
     "@vitest/coverage-istanbul": "^5.0.5",
     "@vitest/runner": "^4.1.12",
     "allure-js-commons": "^3.14.0",
