@@ -7,6 +7,7 @@ import {
   calculateRunDuration,
   createPluginSummary,
   createTestResultRegistry,
+  getRunSummary,
   resolveReportStatus,
 } from "../src/utils/summary.js";
 
@@ -425,5 +426,41 @@ describe("summary utils", () => {
         }),
       ).toBe("passed");
     });
+  });
+});
+
+describe("getRunSummary", () => {
+  it("should keep the whole span as start and stop but leave the time between distant runs out of the duration", () => {
+    const day = 24 * 60 * 60 * 1000;
+
+    expect(
+      getRunSummary([
+        { start: day, stop: day + 500 },
+        { start: 1000, stop: 2000 },
+      ]),
+    ).toEqual({ start: 1000, stop: day + 500, duration: 1500 });
+  });
+
+  it("spans from the earliest start to the latest stop", () => {
+    expect(
+      getRunSummary([
+        { start: 2000, stop: 3000 },
+        { start: 1000, stop: 1500 },
+        { start: 2500, stop: 5000 },
+      ]),
+    ).toEqual({ start: 1000, stop: 5000, duration: 4000 });
+  });
+
+  it("ignores results without timings", () => {
+    expect(getRunSummary([{ start: undefined, stop: 10 }, { start: 5 }, { start: 1, stop: 2 }])).toEqual({
+      start: 1,
+      stop: 2,
+      duration: 1,
+    });
+  });
+
+  it("returns undefined when nothing has timings", () => {
+    expect(getRunSummary([])).toBeUndefined();
+    expect(getRunSummary([{ start: 1 }, { start: undefined, stop: 2000 }])).toBeUndefined();
   });
 });

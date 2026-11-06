@@ -8,6 +8,7 @@ import {
 } from "@allurereport/core-api";
 
 import type { ExitCode, PluginSummary, SummaryCheckResult, TestResultRegistry, TestResultSummary } from "../plugin.js";
+import type { ReportRunSummary } from "../report.js";
 import type { AllureStore } from "../store.js";
 
 /**
@@ -58,31 +59,36 @@ export const convertToSummaryCheckResult = (check: AllureCheckResult): SummaryCh
 export const RUN_IDLE_GAP_LIMIT = 60 * 60 * 1000;
 
 /**
- * Wall clock duration of the run: from the first test start to the last test stop,
- * without the pauses longer than {@link RUN_IDLE_GAP_LIMIT} during which no test was running.
- * Falls back to the sum of durations when no test result has valid time bounds.
+ * Returns the time span of the run, from the earliest start to the latest stop of the given test results,
+ * the results without timings are skipped.
+ * The duration is the wall clock time of that span without the pauses longer than {@link RUN_IDLE_GAP_LIMIT}
+ * during which no test was running.
  */
-export const calculateRunDuration = (testResults: Pick<TestResult, "start" | "stop" | "duration">[]): number => {
+export const getRunSummary = (testResults: Pick<TestResult, "start" | "stop">[]): ReportRunSummary | undefined => {
   const intervals: [start: number, stop: number][] = [];
 
   for (const { start, stop } of testResults) {
     if (typeof start === "number" && Number.isFinite(start) && typeof stop === "number" && Number.isFinite(stop)) {
-      intervals.push([start, Math.max(start, stop)]);
+      intervals.push([start, stop]);
     }
   }
 
   if (intervals.length === 0) {
-    return testResults.reduce((acc, { duration = 0 }) => acc + duration, 0);
+    return undefined;
   }
 
   intervals.sort((a, b) => a[0] - b[0]);
 
-  let total = 0;
+  const runStart = intervals[0][0];
+  let runStop = -Infinity;
+  let duration = 0;
   let [activeStart, activeStop] = intervals[0];
 
   for (const [start, stop] of intervals) {
+    runStop = Math.max(runStop, stop);
+
     if (start - activeStop > RUN_IDLE_GAP_LIMIT) {
-      total += activeStop - activeStart;
+      duration += Math.max(0, activeStop - activeStart);
       activeStart = start;
       activeStop = stop;
       continue;
@@ -91,8 +97,11 @@ export const calculateRunDuration = (testResults: Pick<TestResult, "start" | "st
     activeStop = Math.max(activeStop, stop);
   }
 
-  return total + (activeStop - activeStart);
+  return { start: runStart, stop: runStop, duration: duration + Math.max(0, activeStop - activeStart) };
 };
+
+export const calculateRunDuration = (testResults: Pick<TestResult, "start" | "stop" | "duration">[]): number =>
+  getRunSummary(testResults)?.duration ?? testResults.reduce((acc, { duration = 0 }) => acc + duration, 0);
 
 export const createPluginSummary = async (params: {
   filter?: (testResult: TestResult) => boolean;

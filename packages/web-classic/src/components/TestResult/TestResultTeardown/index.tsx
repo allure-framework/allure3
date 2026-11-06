@@ -4,25 +4,18 @@ import { useState } from "preact/hooks";
 import type { ReportTestResult } from "types";
 
 import { TestResultDropdown } from "@/components/TestResult/TestResultDropdown";
-import { TestResultAttachment } from "@/components/TestResult/TestResultSteps/testResultAttachment";
+import { hasFailedFixture } from "@/components/TestResult/TestResultError/errorDetails";
 import { TestResultStep } from "@/components/TestResult/TestResultSteps/testResultStep";
 import { useI18n } from "@/stores/locale";
 
 import * as styles from "@/components/TestResult/TestResultSteps/styles.scss";
-
-const typeMap = {
-  before: TestResultStep,
-  after: TestResultStep,
-  step: TestResultStep,
-  attachment: TestResultAttachment,
-};
 
 export type TestResultTeardownProps = {
   teardown: ReportTestResult["teardown"];
 };
 
 export const TestResultTeardown: FunctionalComponent<TestResultTeardownProps> = ({ teardown }) => {
-  const [isOpened, setIsOpen] = useState(false);
+  const [isOpened, setIsOpen] = useState(() => hasFailedFixture(teardown));
   const { t } = useI18n("execution");
 
   return (
@@ -36,14 +29,9 @@ export const TestResultTeardown: FunctionalComponent<TestResultTeardownProps> = 
       />
       {isOpened && (
         <div className={styles["test-result-steps-root"]}>
-          {teardown?.map((item, key) => {
-            const StepComponent = typeMap[item.type];
-            return StepComponent ? (
-              // FIXME: use proper type in the StepComponent component
-              // @ts-ignore
-              <StepComponent item={item} stepIndex={key + 1} key={key} className={styles["test-result-step-root"]} />
-            ) : null;
-          })}
+          {teardown?.map((item, key) => (
+            <TestResultStep item={item} stepIndex={key + 1} key={item.id ?? key} />
+          ))}
         </div>
       )}
     </div>

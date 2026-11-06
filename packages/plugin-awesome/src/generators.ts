@@ -62,7 +62,6 @@ import type {
   TestResultRelatedData,
 } from "@allurereport/plugin-api";
 import {
-  calculateRunDuration,
   collapseTreeGroups,
   createTreeByLabels,
   createTreeByLabelsAndTitlePath,
@@ -307,22 +306,6 @@ export const generateSearchIndex = async (
   const searchDocuments = trs.filter(({ isRetry }) => !isRetry).map(searchDocumentFactory);
 
   await writer.writeWidget(filename, searchDocuments);
-};
-
-export const getRunSummary = (testResults: Pick<TestResult, "start" | "stop">[]): ReportRunSummary | undefined => {
-  let start = Infinity;
-  let stop = -Infinity;
-
-  for (const { start: s, stop: e } of testResults) {
-    if (typeof s === "number" && Number.isFinite(s) && typeof e === "number" && Number.isFinite(e)) {
-      start = Math.min(start, s);
-      stop = Math.max(stop, e);
-    }
-  }
-
-  return Number.isFinite(start) && Number.isFinite(stop)
-    ? { start, stop, duration: calculateRunDuration(testResults) }
-    : undefined;
 };
 
 export const generateTree = async (
@@ -920,7 +903,14 @@ export const generateAllCharts = async (
 ): Promise<void> => {
   const { charts = defaultChartsConfig, filter } = options;
 
-  const generatedChartsData = await generateCharts(charts, store, context.reportName, randomUUID, filter);
+  const generatedChartsData = await generateCharts(
+    charts,
+    store,
+    context.reportName,
+    randomUUID,
+    filter,
+    context.categories,
+  );
 
   if (Object.keys(generatedChartsData.general).length > 0) {
     await writer.writeWidget("charts.json", generatedChartsData);

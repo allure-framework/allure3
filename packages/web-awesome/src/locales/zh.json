@@ -492,7 +492,31 @@
       "slice": "{{count}} 个测试（占全部测试的 {{percent}}%）"
     },
     "retry": "重试",
-    "loadError": "无法加载图表"
+    "loadError": "无法加载图表",
+    "durationTrend": {
+      "title": "时长趋势",
+      "duration": "持续时间",
+      "value": "{{duration, format_duration}}"
+    },
+    "retriesTrend": {
+      "title": "重试趋势",
+      "retry": "重试",
+      "run": "测试"
+    },
+    "categoriesTrend": {
+      "title": "类别趋势"
+    },
+    "runTrend": {
+      "empty": "没有信息",
+      "ticks": {
+        "current": "最新",
+        "history": "{{timestamp, timestamp_date}}"
+      },
+      "tooltips": {
+        "current": "最新报告 ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "{{timestamp, timestamp_long_no_seconds}} 的报告"
+      }
+    }
   },
   "transitions": {
     "description": {
