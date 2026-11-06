@@ -157,6 +157,8 @@
     "all": "Tutti"
   },
   "ui": {
+    "start": "Inizio",
+    "stop": "Fine",
     "labels": "Etichette",
     "metadata": "Metadati",
     "parameters": "Parametri",

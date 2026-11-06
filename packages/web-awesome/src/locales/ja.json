@@ -157,6 +157,8 @@
     "all": "すべて"
   },
   "ui": {
+    "start": "開始",
+    "stop": "終了",
     "labels": "ラベル",
     "metadata": "メタデータ",
     "parameters": "パラメータ",
