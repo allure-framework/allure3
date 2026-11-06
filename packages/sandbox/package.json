@@ -21,7 +21,7 @@
     "@allurereport/plugin-csv": "workspace:*",
     "@allurereport/plugin-mail": "workspace:*",
     "@allurereport/plugin-testops": "workspace:*",
-    "@types/node": "^20.19.43",
+    "@types/node": "^26.6.6",
     "@vitest/runner": "^4.1.12",
     "allure": "workspace:*",
     "allure-js-commons": "^3.14.0",
