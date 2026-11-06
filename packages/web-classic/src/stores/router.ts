@@ -1,3 +1,4 @@
+import { parseTestResultRoute } from "@allurereport/web-commons";
 import { computed, signal } from "@preact/signals";
 
 type NavigateToString = string;
@@ -10,7 +11,14 @@ type NavigateToObject = {
 };
 
 const parseHash = () => {
-  const hash = globalThis.location.hash.slice(1);
+  let hash = globalThis.location.hash.slice(1);
+  const testResultId = parseTestResultRoute(hash);
+  if (testResultId && !hash.startsWith("testresult/")) {
+    hash = `testresult/${testResultId}`;
+    const url = new URL(globalThis.location.href);
+    url.hash = hash;
+    history.replaceState(history.state, "", url);
+  }
   const [tabName, ...params] = hash.split("/");
   return {
     tabName: tabName,

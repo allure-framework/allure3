@@ -25,3 +25,4 @@ export * from "./httpAttachments.js";
 export * from "./errors.js";
 
 export { loadFromLocalStorage } from "./storage.js";
+export * from "./testResultRoute.js";

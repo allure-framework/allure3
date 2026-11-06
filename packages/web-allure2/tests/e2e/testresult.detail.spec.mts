@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 import { fixtures, REPORT_MODES } from "./support/fixtures.mts";
-import { openCaseFromTree } from "./support/report.mts";
+import { currentRoute, openCaseFromTree, openReport } from "./support/report.mts";
 import { stepLocator } from "./support/ui.mts";
 
 const uiDemo = fixtures.uiDemo;
@@ -10,6 +10,53 @@ const reportModes = [REPORT_MODES.SINGLE_FILE, REPORT_MODES.DIRECTORY] as const;
 
 for (const mode of reportModes) {
   test.describe(`Test Result Detail (${mode})`, () => {
+    test("opens public and short result links and preserves browser history", async ({ page }) => {
+      await openCaseFromTree(page, {
+        fixture: uiDemo.name,
+        mode,
+        tab: "suites",
+        caseName: uiDemo.cases.failedPullRequest,
+      });
+      await expect(page.locator(".test-result__name")).toHaveText(uiDemo.cases.failedPullRequest);
+      const firstId = currentRoute(page).split("/")[2];
+      await openCaseFromTree(page, {
+        fixture: uiDemo.name,
+        mode,
+        tab: "suites",
+        caseName: uiDemo.cases.passedPullRequest,
+      });
+      await expect(page.locator(".test-result__name")).toHaveText(uiDemo.cases.passedPullRequest);
+      const secondId = currentRoute(page).split("/")[2];
+      const title = page.locator(".test-result__name");
+
+      await test.step("Open a direct result link and reload", async () => {
+        await openReport(page, { fixture: uiDemo.name, mode, route: `testresult/${firstId}/` });
+        await expect(title).toHaveText(uiDemo.cases.failedPullRequest);
+        await page.reload();
+        await expect(title).toHaveText(uiDemo.cases.failedPullRequest);
+      });
+
+      await test.step("Switch results through a short link without an extra redirect entry", async () => {
+        const length = await page.evaluate(() => history.length);
+        await page.evaluate((id) => {
+          location.hash = id;
+        }, secondId);
+        await expect(title).toHaveText(uiDemo.cases.passedPullRequest);
+        expect(currentRoute(page)).toBe(`testresult/${secondId}`);
+        expect(await page.evaluate(() => history.length)).toBe(length + 1);
+        await page.goBack();
+        await expect(title).toHaveText(uiDemo.cases.failedPullRequest);
+        await page.goForward();
+        await expect(title).toHaveText(uiDemo.cases.passedPullRequest);
+      });
+
+      await test.step("Accept the short link on initial load", async () => {
+        await openReport(page, { fixture: uiDemo.name, mode, route: firstId });
+        await expect(title).toHaveText(uiDemo.cases.failedPullRequest);
+        expect(currentRoute(page)).toBe(`testresult/${firstId}`);
+      });
+    });
+
     test("renders metadata, overview blocks, and execution content", async ({ page }) => {
       await openCaseFromTree(page, {
         fixture: uiDemo.name,
