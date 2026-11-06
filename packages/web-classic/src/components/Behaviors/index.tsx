@@ -1,14 +1,14 @@
 import { Heading, Loadable, PageLoader } from "@allurereport/web-components";
 import { useEffect } from "preact/compat";
 
-import { BehaviorsList } from "@/components/Behaviors/BehaviorsList";
 import { HeaderActions } from "@/components/HeaderActions/HeaderActions";
 import SideBySide from "@/components/SideBySide";
 import TestResult from "@/components/TestResult";
+import { TreeList, TreeStoreContext } from "@/components/Tree";
 import { useI18n } from "@/stores";
-import { fetchBehaviorsData } from "@/stores/behaviors";
 import { route } from "@/stores/router";
 import { fetchTestResult, testResultStore } from "@/stores/testResults";
+import { behaviorsTree } from "@/stores/tree";
 
 import * as styles from "./styles.scss";
 
@@ -17,7 +17,7 @@ const Behaviors = () => {
   const { testResultId } = params;
 
   useEffect(() => {
-    fetchBehaviorsData();
+    behaviorsTree.fetchData();
   }, []);
 
   useEffect(() => {
@@ -50,8 +50,10 @@ const Behaviors = () => {
           {t("behaviors")}
         </Heading>
 
-        <HeaderActions />
-        <BehaviorsList />
+        <TreeStoreContext.Provider value={behaviorsTree}>
+          <HeaderActions />
+          <TreeList />
+        </TreeStoreContext.Provider>
       </div>
     );
   };

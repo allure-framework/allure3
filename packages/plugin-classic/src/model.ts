@@ -1,4 +1,7 @@
 import type { TestResult, TestStatus } from "@allurereport/core-api";
+import type { IdeaLinksOptions } from "@allurereport/plugin-api";
+
+export type { IdeaLinksOptions };
 
 export type ClassicOptions = {
   reportName?: string;
@@ -13,6 +16,14 @@ export type ClassicOptions = {
     name: string;
   };
   filter?: (tr: TestResult) => boolean;
+  timeline?: {
+    minDuration?: number;
+  };
+  /**
+   * Adds an "Open in IDEA" link to every test that has a `testClass` label.
+   * Uses the IntelliJ IDEA built-in server (`http://localhost:<port>/api/file`). Disabled by default.
+   */
+  ideaLinks?: boolean | IdeaLinksOptions;
 };
 
 export type ClassicPluginOptions = ClassicOptions;

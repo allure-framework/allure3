@@ -4,3 +4,4 @@ export { TreeSection } from "./TreeSection";
 export { TreeItem } from "./TreeItem";
 export { TreeItemIcon } from "./TreeItemIcon";
 export { TreeStatusBar } from "./TreeStatusBar";
+export { TreeItemInfo, type TreeItemInfoProps } from "./TreeItemInfo";

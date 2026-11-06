@@ -226,7 +226,31 @@
       "slice": "{{count}} Tests ({{percent}}% aller Tests)"
     },
     "retry": "Erneut versuchen",
-    "loadError": "Diagramm konnte nicht geladen werden"
+    "loadError": "Diagramm konnte nicht geladen werden",
+    "durationTrend": {
+      "title": "Dauer Trend",
+      "duration": "Dauer",
+      "value": "{{duration, format_duration}}"
+    },
+    "retriesTrend": {
+      "title": "Wiederholungen Trend",
+      "retry": "Wiederholungen",
+      "run": "Tests"
+    },
+    "categoriesTrend": {
+      "title": "Kategorien Trend"
+    },
+    "runTrend": {
+      "empty": "Hier gibt es nichts zu zeigen",
+      "ticks": {
+        "current": "Neueste",
+        "history": "{{timestamp, timestamp_date}}"
+      },
+      "tooltips": {
+        "current": "Neuester Bericht ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "Bericht vom {{timestamp, timestamp_long_no_seconds}}"
+      }
+    }
   },
   "transitions": {
     "description": {

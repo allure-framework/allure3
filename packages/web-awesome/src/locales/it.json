@@ -493,7 +493,31 @@
       "slice_many": "{{count}} test ({{percent}}% di tutti i test)"
     },
     "retry": "Riprova",
-    "loadError": "Impossibile caricare il grafico"
+    "loadError": "Impossibile caricare il grafico",
+    "durationTrend": {
+      "title": "Tendenza delle durate",
+      "duration": "Durata",
+      "value": "{{duration, format_duration}}"
+    },
+    "retriesTrend": {
+      "title": "Tendenza dei tentativi",
+      "retry": "Ritentativi",
+      "run": "Test"
+    },
+    "categoriesTrend": {
+      "title": "Tendenza delle categorie"
+    },
+    "runTrend": {
+      "empty": "Non c'è nulla da mostrare",
+      "ticks": {
+        "current": "Ultimi",
+        "history": "{{timestamp, timestamp_date}}"
+      },
+      "tooltips": {
+        "current": "Ultimo report ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "Report del {{timestamp, timestamp_long_no_seconds}}"
+      }
+    }
   },
   "transitions": {
     "description": {
