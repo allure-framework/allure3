@@ -19,6 +19,42 @@ export interface AllureCheckResult {
   };
 }
 
+export type AllureQualityGateResult = {
+  status: "passed" | "failed";
+  /**
+   * Stable identifier of the rule or check.
+   * Previously represented by `rule` for Quality Gate results.
+   */
+  key: string;
+  environment?: string;
+  source: {
+    /**
+     * Describes the result's origin:
+     * `rule` - result of a Quality Gate rule
+     * `command` - result of an external command
+     * `manual` - externally supplied status without a command
+     */
+    type: "rule" | "command" | "manual";
+
+    /**
+     * Exact executed command.
+     * Present when `type` is `command`.
+     */
+    command?: string;
+  };
+  details?: {
+    message?: string;
+    expected?: any;
+    actual?: any;
+    /**
+     * Related test result UUIDs providing evidence for the result.
+     */
+    testResults?: string[];
+    stdout?: string;
+    stderr?: string;
+  };
+};
+
 /**
  * Stores source-specific metadata.
  */
