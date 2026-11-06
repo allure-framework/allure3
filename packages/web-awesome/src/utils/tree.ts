@@ -5,12 +5,18 @@ type Localizer = (data: string, params?: Record<string, string | number>) => str
 
 type Localizers = {
   tooltip: Localizer;
+  /**
+   * Formats the start/stop pair a duration was calculated from. Formatted outside this util so a
+   * localizer stays free of the locale store; omitted, the report shows durations without tooltips.
+   */
+  timeRange?: (start?: number, stop?: number) => string | undefined;
 };
 
 export const createLeafLocalizer =
   (t: Localizers) =>
   (leaf: ReportTreeLeaf): ReportTreeLeaf => {
     const tooltips = {
+      duration: t.timeRange?.(leaf.start, leaf.stop),
       transition: leaf.transition ? t.tooltip(leaf.transition) : undefined,
       flaky: leaf.flaky ? t.tooltip("flaky") : undefined,
       retries: leaf.retriesCount ? t.tooltip("retries", { count: leaf.retriesCount }) : undefined,

@@ -157,6 +157,8 @@
     "all": "所有"
   },
   "ui": {
+    "start": "开始",
+    "stop": "结束",
     "labels": "标签",
     "metadata": "元数据",
     "parameters": "参数",
