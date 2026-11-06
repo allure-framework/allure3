@@ -24,6 +24,20 @@ describe("TooltipWrapper", () => {
     expect(trigger?.className).toBe("trigger");
     expect(trigger?.parentElement?.className).toBe("outer");
   });
+
+  it("keeps the tooltip host out of the layout and hidden until it is placed", () => {
+    render(
+      <TooltipWrapper tooltipText="Tooltip">
+        <span>Trigger</span>
+      </TooltipWrapper>,
+    );
+
+    const host = screen.getByText("Trigger").parentElement?.parentElement?.lastElementChild as HTMLElement | null;
+
+    expect(host).not.toBeNull();
+    expect(host?.style.position).toBe("absolute");
+    expect(host?.style.visibility).toBe("hidden");
+  });
 });
 
 describe("TooltipWrapper activation", () => {

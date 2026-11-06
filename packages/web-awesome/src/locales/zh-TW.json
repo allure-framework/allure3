@@ -157,6 +157,8 @@
     "all": "全部"
   },
   "ui": {
+    "start": "開始",
+    "stop": "結束",
     "labels": "標籤",
     "metadata": "中繼資料",
     "parameters": "參數",

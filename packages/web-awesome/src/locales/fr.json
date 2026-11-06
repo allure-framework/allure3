@@ -157,6 +157,8 @@
     "all": "Tous"
   },
   "ui": {
+    "start": "Début",
+    "stop": "Fin",
     "labels": "Étiquettes",
     "metadata": "Métadonnées",
     "parameters": "Paramètres",
