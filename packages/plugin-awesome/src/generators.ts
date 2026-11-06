@@ -62,6 +62,7 @@ import type {
   TestResultRelatedData,
 } from "@allurereport/plugin-api";
 import {
+  calculateRunDuration,
   collapseTreeGroups,
   createTreeByLabels,
   createTreeByLabelsAndTitlePath,
@@ -320,7 +321,7 @@ export const getRunSummary = (testResults: Pick<TestResult, "start" | "stop">[])
   }
 
   return Number.isFinite(start) && Number.isFinite(stop)
-    ? { start, stop, duration: Math.max(0, stop - start) }
+    ? { start, stop, duration: calculateRunDuration(testResults) }
     : undefined;
 };
 

@@ -167,6 +167,34 @@ describe("summary utils", () => {
     ).toEqual(100);
   });
 
+  it("calculateRunDuration keeps pauses up to an hour as part of the run", () => {
+    const hour = 60 * 60 * 1000;
+
+    expect(
+      calculateRunDuration([
+        testResult({ duration: 100, start: 1000, stop: 1100 }),
+        testResult({ duration: 100, start: 1100 + hour, stop: 1200 + hour }),
+      ]),
+    ).toEqual(hour + 200);
+  });
+
+  it("calculateRunDuration does not count the time between runs made more than an hour apart", () => {
+    const day = 24 * 60 * 60 * 1000;
+
+    expect(
+      calculateRunDuration([
+        testResult({ duration: 200, start: day + 50, stop: day + 250 }),
+        testResult({ duration: 100, start: 1000, stop: 1100 }),
+        testResult({ duration: 90, start: 1010, stop: 1150 }),
+        testResult({ duration: 100, start: day, stop: day + 100 }),
+      ]),
+    ).toEqual(150 + 250);
+  });
+
+  it("calculateRunDuration treats a stop before the start as an empty interval", () => {
+    expect(calculateRunDuration([testResult({ duration: 100, start: 1000, stop: 900 })])).toEqual(0);
+  });
+
   it("calculateRunDuration ignores test results with invalid time bounds", () => {
     expect(
       calculateRunDuration([

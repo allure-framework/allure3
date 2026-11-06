@@ -50,27 +50,48 @@ export const convertToSummaryCheckResult = (check: AllureCheckResult): SummaryCh
   status: check.status,
 });
 
-export const calculateRunDuration = (testResults: Pick<TestResult, "start" | "stop" | "duration">[]): number => {
-  let start = Infinity;
-  let stop = -Infinity;
+/**
+ * The longest pause between test activity that still counts as part of one run.
+ * Results merged from runs made hours or days apart would otherwise turn the time
+ * between those runs into "duration".
+ */
+export const RUN_IDLE_GAP_LIMIT = 60 * 60 * 1000;
 
-  for (const { start: trStart, stop: trStop } of testResults) {
-    if (
-      typeof trStart === "number" &&
-      Number.isFinite(trStart) &&
-      typeof trStop === "number" &&
-      Number.isFinite(trStop)
-    ) {
-      start = Math.min(start, trStart);
-      stop = Math.max(stop, trStop);
+/**
+ * Wall clock duration of the run: from the first test start to the last test stop,
+ * without the pauses longer than {@link RUN_IDLE_GAP_LIMIT} during which no test was running.
+ * Falls back to the sum of durations when no test result has valid time bounds.
+ */
+export const calculateRunDuration = (testResults: Pick<TestResult, "start" | "stop" | "duration">[]): number => {
+  const intervals: [start: number, stop: number][] = [];
+
+  for (const { start, stop } of testResults) {
+    if (typeof start === "number" && Number.isFinite(start) && typeof stop === "number" && Number.isFinite(stop)) {
+      intervals.push([start, Math.max(start, stop)]);
     }
   }
 
-  if (Number.isFinite(start) && Number.isFinite(stop)) {
-    return Math.max(0, stop - start);
+  if (intervals.length === 0) {
+    return testResults.reduce((acc, { duration = 0 }) => acc + duration, 0);
   }
 
-  return testResults.reduce((acc, { duration = 0 }) => acc + duration, 0);
+  intervals.sort((a, b) => a[0] - b[0]);
+
+  let total = 0;
+  let [activeStart, activeStop] = intervals[0];
+
+  for (const [start, stop] of intervals) {
+    if (start - activeStop > RUN_IDLE_GAP_LIMIT) {
+      total += activeStop - activeStart;
+      activeStart = start;
+      activeStop = stop;
+      continue;
+    }
+
+    activeStop = Math.max(activeStop, stop);
+  }
+
+  return total + (activeStop - activeStart);
 };
 
 export const createPluginSummary = async (params: {

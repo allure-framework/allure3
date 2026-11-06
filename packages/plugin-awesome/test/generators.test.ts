@@ -82,6 +82,21 @@ describe("getRunSummary", () => {
     });
   });
 
+  it("should not count the time between runs made more than an hour apart as duration", () => {
+    const day = 24 * 60 * 60 * 1000;
+
+    expect(
+      getRunSummary([
+        { start: 1000, stop: 2000 },
+        { start: day, stop: day + 500 },
+      ]),
+    ).toEqual({
+      start: 1000,
+      stop: day + 500,
+      duration: 1500,
+    });
+  });
+
   it("should ignore results without valid timing data", () => {
     expect(
       getRunSummary([
