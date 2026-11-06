@@ -315,6 +315,16 @@ You can also use `allurerc.json`, `allurerc.yaml`, or `allurerc.yml` files as a 
 
 ## Troubleshooting
 
+### Captured logs contain garbled text
+
+Pass `--output-encoding` to `allure run` or `allure agent` with the encoding the target uses for its output. This sets the default for both stdout and stderr. If stderr uses a different encoding, pass `--stderr-encoding` to override it.
+
+### Windows console output contains garbled text
+
+If the target emits UTF-8, try running `chcp 65001` in the same console before starting Allure. For other encodings, use the code page that matches the target's output.
+
+With `allure run --ignore-logs`, you can instead set `ALLURE_RUN_WINDOWS_OUTPUT_ENCODING` to the target's encoding name or code page number, such as `utf-8` or `1251`. This sets the default for both streams. Set `ALLURE_RUN_WINDOWS_STDERR_ENCODING` if stderr uses a different encoding.
+
 ### `allure run` or `allure agent` hangs
 
 Allure waits for all processes started by the command to finish before completing the run:
