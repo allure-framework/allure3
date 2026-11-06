@@ -1,6 +1,6 @@
 {
   "name": "@allurereport/plugin-mail",
-  "version": "3.22.1",
+  "version": "3.33.0",
   "description": "Allure Plugin to generate an email with the report summary",
   "keywords": [
     "allure",
@@ -38,7 +38,7 @@
   },
   "devDependencies": {
     "@allurereport/common-config": "workspace:*",
-    "@types/mjml": "^4",
+    "@types/mjml": "^5",
     "@types/node": "^20.19.43",
     "@vitest/coverage-istanbul": "^5.0.5",
     "@vitest/runner": "^4.1.12",

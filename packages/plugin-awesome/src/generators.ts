@@ -824,6 +824,7 @@ export const generateStaticFiles = async (
   } = payload;
   const staticAssets = await readReportStaticAssets(reportStaticArchive);
   const { manifest } = staticAssets;
+  const selectedFiles = selectReportStaticFiles(staticAssets, payload.requiredAssetFeatures);
   const headTags: string[] = [];
   const bodyTags: string[] = [];
   const sections: string[] = payload.sections?.length ? payload.sections : ["charts", "timeline"];
@@ -831,6 +832,7 @@ export const generateStaticFiles = async (
   if (!payload.singleFile) {
     for (const key in manifest) {
       const fileName = manifest[key];
+      if (!selectedFiles.has(fileName)) continue;
 
       if (key.includes(".woff")) {
         headTags.push(createFontLinkTag(fileName));
@@ -845,7 +847,7 @@ export const generateStaticFiles = async (
       }
     }
 
-    await copyReportStaticAssets(staticAssets, reportFiles);
+    await copyReportStaticAssets({ ...staticAssets, files: selectedFiles }, reportFiles);
   } else {
     const mainJs = manifest["main.js"];
     const mainCss = manifest["main.css"];
@@ -856,9 +858,7 @@ export const generateStaticFiles = async (
       headTags.push(createStylesLinkTag(`data:text/css;base64,${mainCssContent.toString("base64")}`));
     }
 
-    bodyTags.push(
-      createSingleFileScripts(selectReportStaticFiles(staticAssets, payload.requiredAssetFeatures), mainJs),
-    );
+    bodyTags.push(createSingleFileScripts(selectedFiles, mainJs));
   }
 
   const now = Date.now();

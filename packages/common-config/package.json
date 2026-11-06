@@ -1,6 +1,6 @@
 {
   "name": "@allurereport/common-config",
-  "version": "3.22.1",
+  "version": "3.33.0",
   "private": true,
   "type": "module",
   "exports": {

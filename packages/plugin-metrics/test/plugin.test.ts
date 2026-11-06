@@ -19,6 +19,7 @@ beforeEach(async () => {
 
 afterEach(async () => {
   vi.unstubAllGlobals();
+  vi.unstubAllEnvs();
   vi.restoreAllMocks();
   delete process.env.ALLURE_PROMETHEUS_LABELS;
   await rm(output, { recursive: true, force: true });
@@ -162,13 +163,15 @@ describe("MetricsPlugin", () => {
       off.context,
       createStore([tr({})], [], samples),
     );
-    await new MetricsPlugin({ prometheus: { fileName: "on.txt" }, performanceMetrics: true }).done(
-      off.context,
-      createStore([tr({})], [], samples),
-    );
+    await new MetricsPlugin({
+      prometheus: { fileName: "on.txt" },
+      influxdb: { fileName: "on.influx" },
+      performanceMetrics: true,
+    }).done(off.context, createStore([tr({})], [], samples));
 
     expect(await written("off.txt")).not.toContain("launch_metric_ttfb");
     expect(await written("on.txt")).toContain("launch_metric_ttfb 10\n");
+    expect(await written("on.influx")).toMatch(/^launch_metric ttfb=10 \d+$/m);
   });
 
   describe("push", () => {
@@ -205,17 +208,23 @@ describe("MetricsPlugin", () => {
     it("reports every failed push and passes a timeout signal to fetch", async () => {
       const fetchMock = vi.fn().mockRejectedValue(new Error("down"));
       vi.stubGlobal("fetch", fetchMock);
+      vi.stubEnv("PG_AUTH", "Bearer pg-secret");
+      vi.stubEnv("INFLUX_TOKEN", "influx-secret");
       const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
       const { context } = createContext();
 
       await new MetricsPlugin({
-        prometheus: { pushgateway: { url: "http://pg:9091" } },
-        influxdb: { push: { url: "http://influx:8086", db: "allure" } },
+        prometheus: { pushgateway: { url: "http://pg:9091", authorizationEnv: "PG_AUTH" } },
+        influxdb: { push: { url: "http://influx:8086", bucket: "allure", org: "qa", tokenEnv: "INFLUX_TOKEN" } },
         pushTimeout: 500,
       }).done(context, createStore([tr({})]));
 
       expect(warn).toHaveBeenCalledTimes(2);
       expect(fetchMock.mock.calls.every(([, init]) => init.signal instanceof AbortSignal)).toBe(true);
+      expect(fetchMock.mock.calls.map(([, init]) => init.headers.Authorization)).toEqual([
+        "Bearer pg-secret",
+        "Token influx-secret",
+      ]);
     });
 
     it("rethrows a push failure with failOnPushError", async () => {
