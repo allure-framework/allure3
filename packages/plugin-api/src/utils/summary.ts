@@ -52,28 +52,52 @@ export const convertToSummaryCheckResult = (check: AllureCheckResult): SummaryCh
 });
 
 /**
+ * The longest pause between test activity that still counts as part of one run.
+ * Results merged from runs made hours or days apart would otherwise turn the time
+ * between those runs into "duration".
+ */
+export const RUN_IDLE_GAP_LIMIT = 60 * 60 * 1000;
+
+/**
  * Returns the time span of the run, from the earliest start to the latest stop of the given test results,
- * the results without timings are skipped
+ * the results without timings are skipped.
+ * The duration is the wall clock time of that span without the pauses longer than {@link RUN_IDLE_GAP_LIMIT}
+ * during which no test was running.
  */
 export const getRunSummary = (testResults: Pick<TestResult, "start" | "stop">[]): ReportRunSummary | undefined => {
-  let start = Infinity;
-  let stop = -Infinity;
+  const intervals: [start: number, stop: number][] = [];
 
-  for (const { start: trStart, stop: trStop } of testResults) {
-    if (
-      typeof trStart === "number" &&
-      Number.isFinite(trStart) &&
-      typeof trStop === "number" &&
-      Number.isFinite(trStop)
-    ) {
-      start = Math.min(start, trStart);
-      stop = Math.max(stop, trStop);
+  for (const { start, stop } of testResults) {
+    if (typeof start === "number" && Number.isFinite(start) && typeof stop === "number" && Number.isFinite(stop)) {
+      intervals.push([start, stop]);
     }
   }
 
-  return Number.isFinite(start) && Number.isFinite(stop)
-    ? { start, stop, duration: Math.max(0, stop - start) }
-    : undefined;
+  if (intervals.length === 0) {
+    return undefined;
+  }
+
+  intervals.sort((a, b) => a[0] - b[0]);
+
+  const runStart = intervals[0][0];
+  let runStop = -Infinity;
+  let duration = 0;
+  let [activeStart, activeStop] = intervals[0];
+
+  for (const [start, stop] of intervals) {
+    runStop = Math.max(runStop, stop);
+
+    if (start - activeStop > RUN_IDLE_GAP_LIMIT) {
+      duration += Math.max(0, activeStop - activeStart);
+      activeStart = start;
+      activeStop = stop;
+      continue;
+    }
+
+    activeStop = Math.max(activeStop, stop);
+  }
+
+  return { start: runStart, stop: runStop, duration: duration + Math.max(0, activeStop - activeStart) };
 };
 
 export const calculateRunDuration = (testResults: Pick<TestResult, "start" | "stop" | "duration">[]): number =>
