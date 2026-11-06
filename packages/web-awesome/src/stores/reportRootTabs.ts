@@ -1,7 +1,7 @@
 import { categoriesStore } from "@/stores/categories";
 import { resolutionCategoriesStore } from "@/stores/resolutionCategories";
 import {
-  navigateToPlainTestResult,
+  navigateToInsights,
   navigateToRoot,
   navigateToRootTabRoot,
   navigateToRootTabTestResult,
@@ -9,6 +9,7 @@ import {
 import { currentTrId, trCurrentTab } from "@/stores/testResult";
 
 export const REPORT_ROOT_TAB = {
+  Insights: "insights",
   Results: "results",
   Categories: "categories",
   QualityGate: "qualityGate",
@@ -20,7 +21,7 @@ export const REPORT_ROOT_TAB = {
 export type ReportRootTabId = (typeof REPORT_ROOT_TAB)[keyof typeof REPORT_ROOT_TAB];
 
 export const getAvailableReportRootTabs = (): ReportRootTabId[] => {
-  const tabs: ReportRootTabId[] = [REPORT_ROOT_TAB.Results];
+  const tabs: ReportRootTabId[] = [REPORT_ROOT_TAB.Insights, REPORT_ROOT_TAB.Results];
   const categories = categoriesStore.value.data;
   const resolutionCategories = resolutionCategoriesStore.value.data;
 
@@ -45,9 +46,18 @@ export const navigateToReportRootTab = (tab: ReportRootTabId) => {
   const testResultId = currentTrId.value;
   const trTab = trCurrentTab.value;
 
+  if (tab === REPORT_ROOT_TAB.Insights) {
+    if (testResultId) {
+      navigateToRootTabTestResult({ rootTab: tab, testResultId, tab: trTab });
+    } else {
+      navigateToInsights();
+    }
+    return;
+  }
+
   if (tab === REPORT_ROOT_TAB.Results) {
     if (testResultId) {
-      navigateToPlainTestResult({ testResultId, tab: trTab });
+      navigateToRootTabTestResult({ rootTab: tab, testResultId, tab: trTab });
     } else {
       navigateToRoot();
     }

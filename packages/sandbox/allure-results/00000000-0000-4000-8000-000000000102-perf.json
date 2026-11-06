@@ -1,0 +1,23 @@
+[
+  {
+    "id": "sandbox-results-load-2",
+    "key": "sandbox.results.load",
+    "value": 181.2,
+    "start": 1793865610000,
+    "stop": 1793865610181
+  },
+  {
+    "id": "sandbox-report-awesome-2",
+    "key": "sandbox.report.awesome",
+    "value": 1312.4,
+    "start": 1793865611000,
+    "stop": 1793865612312
+  },
+  {
+    "id": "sandbox-http-attachment-2",
+    "key": "sandbox.attachments.httpExchange",
+    "value": 31.1,
+    "start": 1793865613000,
+    "stop": 1793865613031
+  }
+]

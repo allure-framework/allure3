@@ -1,0 +1,12 @@
+{
+  "id": "00000000-0000-4000-8000-000000000114",
+  "name": "Orca Security",
+  "status": "failed",
+  "tags": ["security", "cloud"],
+  "details": {
+    "command": "orca scan --project allure3",
+    "message": "1 critical cloud misconfiguration was detected",
+    "error": "Public access is enabled for a production storage resource",
+    "url": "https://example.com/checks/orca-security"
+  }
+}

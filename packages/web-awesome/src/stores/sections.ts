@@ -2,7 +2,15 @@ import { getReportOptions } from "@allurereport/web-commons";
 import { computed, effect } from "@preact/signals";
 
 import type { ReportOptions } from "../../types.js";
-import { navigateToRoot, navigateToSection, SECTION_ROUTE_NAMES, sectionRoute, type SectionRouteName } from "./router";
+import {
+  navigateToInsights,
+  navigateToSection,
+  rootTabRoute,
+  SECTION_ROUTE_NAMES,
+  sectionRoute,
+  type SectionRouteName,
+  testResultRoute,
+} from "./router";
 
 const DEFAULT_SECTION = "default";
 
@@ -23,19 +31,23 @@ const normalizeSection = (value: unknown): Section =>
 const defaultSectionFromReportOptions = normalizeSection(reportOptions?.defaultSection);
 
 const onInit = () => {
-  const isSectionRoute = sectionRoute.peek().matches;
+  const isKnownRoute = sectionRoute.peek().matches || rootTabRoute.peek().matches || testResultRoute.peek().matches;
   const section = normalizeSection(defaultSectionFromReportOptions);
 
-  if (!isSectionRoute && section !== DEFAULT_SECTION) {
+  if (!isKnownRoute && section !== DEFAULT_SECTION) {
     navigateToSection({ section });
   }
 };
 
 onInit();
 
-export const currentSection = computed(() =>
-  sectionRoute.value.matches ? normalizeSection(sectionRoute.value.params.section) : DEFAULT_SECTION,
-);
+export const currentSection = computed(() => {
+  if (sectionRoute.value.matches) {
+    return normalizeSection(sectionRoute.value.params.section);
+  }
+
+  return DEFAULT_SECTION;
+});
 
 effect(() => {
   const section = currentSection.value;
@@ -45,12 +57,12 @@ effect(() => {
   }
 });
 
-export const setSection = (chosenSection: Section | string): void => {
+export const setSection = (chosenSection: string): void => {
   const section = normalizeSection(chosenSection);
   const isSectionChanged = currentSection.peek() !== section;
 
   if (section === DEFAULT_SECTION) {
-    navigateToRoot();
+    navigateToInsights();
     return;
   }
 

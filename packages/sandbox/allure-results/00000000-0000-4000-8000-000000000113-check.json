@@ -1,0 +1,11 @@
+{
+  "id": "00000000-0000-4000-8000-000000000113",
+  "name": "Vanta compliance",
+  "status": "passed",
+  "tags": ["security", "compliance"],
+  "details": {
+    "command": "vanta checks --project allure3",
+    "message": "All required compliance controls are passing",
+    "url": "https://example.com/checks/vanta"
+  }
+}

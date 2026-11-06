@@ -27,6 +27,10 @@ export const navigateToTestResultTab = (params: { testResultId: string; tab: str
 };
 
 export const navigateToRoot = () => {
+  routerNavigateTo({ path: "/results", keepSearchParams: true });
+};
+
+export const navigateToInsights = () => {
   routerNavigateTo({ path: "/", keepSearchParams: true });
 };
 
@@ -51,7 +55,15 @@ export const navigateToSection = (params: { section: SectionRouteName }) => {
   routerNavigateTo({ path: "/:section", params, keepSearchParams: true, replace: false });
 };
 
-const rootTabs = ["categories", "resolutionCategories", "qualityGate", "globalAttachments", "globalErrors"];
+const rootTabs = [
+  "insights",
+  "results",
+  "categories",
+  "resolutionCategories",
+  "qualityGate",
+  "globalAttachments",
+  "globalErrors",
+];
 
 export const rootTabRoute = computed(() =>
   createRoute<{ rootTab: string; testResultId?: string; tab?: string }>(
@@ -74,6 +86,23 @@ export const testResultRoute = computed(() =>
     );
   }),
 );
+
+export const redirectLegacyTestResultRoute = () => {
+  const legacyRoute = testResultRoute.value;
+
+  if (!legacyRoute.matches) {
+    return false;
+  }
+
+  routerNavigateTo({
+    path: "/results/:testResultId/:tab?",
+    params: legacyRoute.params,
+    keepSearchParams: true,
+    replace: true,
+  });
+
+  return true;
+};
 
 export const sectionRoute = computed(() =>
   createRoute<{ section: SectionRouteName }>("/:section", ({ params }) => {

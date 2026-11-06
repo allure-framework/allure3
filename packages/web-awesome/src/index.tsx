@@ -20,6 +20,7 @@ import { fetchCategoriesData } from "@/stores/categories";
 import { fetchPieChartData } from "@/stores/chart";
 import { currentEnvironment, environmentsStore, fetchEnvironments } from "@/stores/env";
 import { fetchEnvInfo } from "@/stores/envInfo";
+import { fetchExternalChecks } from "@/stores/externalChecks";
 import { fetchGlobals } from "@/stores/globals";
 import { isLayoutLoading, layoutStore } from "@/stores/layout";
 import { fetchMetricsData } from "@/stores/metrics";
@@ -28,7 +29,7 @@ import { fetchEnvTreesData } from "@/stores/tree";
 
 import { fetchQualityGateResults } from "./stores/qualityGate";
 import { fetchResolutionCategoriesData } from "./stores/resolutionCategories";
-import { rootTabRoute, testResultRoute } from "./stores/router";
+import { redirectLegacyTestResultRoute, rootTabRoute, testResultRoute } from "./stores/router";
 import { currentSection } from "./stores/sections";
 import { currentTrId } from "./stores/testResult";
 import { fetchTreeFiltersData } from "./stores/treeFilters/actions";
@@ -72,6 +73,10 @@ const App = () => {
   const className = styles[`layout-${currentSection.value !== "default" ? currentSection.value : layoutStore.value}`];
   const [prefetched, setPrefetched] = useState(false);
 
+  useSignalEffect(() => {
+    redirectLegacyTestResultRoute();
+  });
+
   const prefetchData = async () => {
     try {
       const fns = [
@@ -80,6 +85,7 @@ const App = () => {
         fetchPieChartData,
         fetchEnvironments,
         fetchEnvInfo,
+        fetchExternalChecks,
         fetchGlobals,
         fetchQualityGateResults,
         fetchCategoriesData,

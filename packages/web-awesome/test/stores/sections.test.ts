@@ -13,6 +13,7 @@ const originalHash = vi.hoisted(() => {
   return hash;
 });
 
+import { navigateToInsights, navigateToRoot, navigateToRootTabRoot, navigateToSection } from "@/stores/router";
 import { availableSections, currentSection } from "@/stores/sections";
 
 describe("sections store", () => {
@@ -23,6 +24,20 @@ describe("sections store", () => {
 
   it("normalizes direct links to disabled sections", () => {
     expect(availableSections).toEqual(["charts", "timeline"]);
+    expect(currentSection.value).toBe("default");
+  });
+
+  it("keeps Insights, Results, and other report tabs in the default report section", () => {
+    navigateToSection({ section: "charts" });
+    expect(currentSection.value).toBe("charts");
+
+    navigateToInsights();
+    expect(currentSection.value).toBe("default");
+
+    navigateToRoot();
+    expect(currentSection.value).toBe("default");
+
+    navigateToRootTabRoot({ rootTab: "globalErrors" });
     expect(currentSection.value).toBe("default");
   });
 });

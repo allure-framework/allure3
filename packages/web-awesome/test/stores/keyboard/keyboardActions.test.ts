@@ -423,25 +423,25 @@ describe("openTestResultFromTree", () => {
   it("[split] resets resolution categories tab when the focused tree result has no resolution", () => {
     layoutStore.value = "split";
     activePane.value = "tree";
-    setHash("tr-1/resolutionCategories");
+    setHash("results/tr-1/resolutionCategories");
     setupTree(["tr-2"]);
     treeFocusId.value = "tr-2";
 
     openTestResultFromTree();
 
-    expect(window.location.hash).toBe("#tr-2");
+    expect(window.location.hash).toBe("#results/tr-2");
   });
 
   it("[split] preserves resolution categories tab when the focused tree result has resolution", () => {
     layoutStore.value = "split";
     activePane.value = "tree";
-    setHash("tr-1/resolutionCategories");
+    setHash("results/tr-1/resolutionCategories");
     setupTree(["tr-2"], { "tr-2": { resolution: "issue" } });
     treeFocusId.value = "tr-2";
 
     openTestResultFromTree();
 
-    expect(window.location.hash).toBe("#tr-2/resolutionCategories");
+    expect(window.location.hash).toBe("#results/tr-2/resolutionCategories");
   });
 });
 
@@ -486,13 +486,19 @@ describe("getHotkeyScope", () => {
   beforeEach(resetAll);
   afterEach(resetAll);
 
-  it("returns 'tree' at root URL with tree pane active", () => {
+  it("returns 'tree' on the Insights route with tree pane active", () => {
     activePane.value = "tree";
     expect(getHotkeyScope()).toBe("tree");
   });
 
-  it("returns 'tree' at root URL with testResult pane active (no open test result)", () => {
+  it("returns 'tree' on the Insights route with testResult pane active", () => {
     activePane.value = "testResult";
+    expect(getHotkeyScope()).toBe("tree");
+  });
+
+  it("returns 'tree' on the Results route with tree pane active", () => {
+    setHash("results");
+    activePane.value = "tree";
     expect(getHotkeyScope()).toBe("tree");
   });
 
@@ -533,8 +539,19 @@ describe("getHotkeyScope", () => {
 // ---------------------------------------------------------------------------
 
 describe("applyTreeNavigation", () => {
-  beforeEach(resetAll);
+  beforeEach(() => {
+    resetAll();
+    setHash("results");
+  });
   afterEach(resetAll);
+
+  it("does nothing on the Insights route", () => {
+    setupTree(["tr-1", "tr-2", "tr-3"]);
+    treeFocusId.value = "tr-1";
+    setHash("");
+    applyTreeNavigation("down");
+    expect(treeFocusId.value).toBe("tr-1");
+  });
 
   it("does nothing outside tree context (on test result route, non-split)", () => {
     setupTree(["tr-1", "tr-2", "tr-3"]);

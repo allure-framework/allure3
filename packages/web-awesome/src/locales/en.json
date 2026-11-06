@@ -19,6 +19,7 @@
   },
   "tabs": {
     "total": "All",
+    "insights": "Insights",
     "results": "Results",
     "globalAttachments": "Global Attachments",
     "globalErrors": "Global Errors",
@@ -205,6 +206,37 @@
       "unsuccessfulTests": "Unsuccessful tests",
       "failedQualityGates": "Failed quality gates",
       "globalErrors": "Global errors"
+    },
+    "insights": {
+      "healthy": "Looks good",
+      "needsAttention": "Needs attention",
+      "noData": "No data",
+      "tests": {
+        "title": "Tests",
+        "summary": "{{unsuccessful}} of {{total}} tests are unsuccessful.",
+        "healthySummary": "All {{total}} tests are successful."
+      },
+      "performance": {
+        "title": "Performance metrics",
+        "summary": "{{regressed}} of {{total}} metrics regressed against the previous report.",
+        "healthySummary": "No performance regressions across {{total}} metrics.",
+        "empty": "No performance metrics were recorded."
+      },
+      "globalErrors": {
+        "title": "Global errors",
+        "summary": "{{count}} global errors were reported.",
+        "healthySummary": "No global errors were reported."
+      },
+      "externalChecks": {
+        "passed": "Passed",
+        "failed": "Failed"
+      },
+      "qualityGates": {
+        "title": "Quality gates",
+        "summary": "{{failed}} of {{total}} evaluated quality gates failed.",
+        "healthySummary": "All {{total}} evaluated quality gates passed.",
+        "empty": "No quality gates were evaluated."
+      }
     }
   },
   "shortcuts": {

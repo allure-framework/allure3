@@ -1,0 +1,12 @@
+{
+  "id": "00000000-0000-4000-8000-000000000112",
+  "name": "Dependabot",
+  "status": "failed",
+  "tags": ["security", "dependencies"],
+  "details": {
+    "command": "gh api /repos/allure-framework/allure3/dependabot/alerts",
+    "message": "2 high-severity dependency vulnerabilities require attention",
+    "error": "GHSA demo advisory remains open in a production dependency",
+    "url": "https://example.com/checks/dependabot"
+  }
+}

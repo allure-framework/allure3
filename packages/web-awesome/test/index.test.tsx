@@ -18,6 +18,7 @@ const {
   fetchCategoriesDataMock,
   fetchEnvironmentsMock,
   fetchEnvInfoMock,
+  fetchExternalChecksMock,
   fetchGlobalsMock,
   fetchMetricsDataMock,
   fetchQualityGateResultsMock,
@@ -36,6 +37,7 @@ const {
   fetchCategoriesDataMock: vi.fn(),
   fetchEnvironmentsMock: vi.fn(),
   fetchEnvInfoMock: vi.fn(),
+  fetchExternalChecksMock: vi.fn(),
   fetchGlobalsMock: vi.fn(),
   fetchMetricsDataMock: vi.fn(),
   fetchQualityGateResultsMock: vi.fn(),
@@ -75,6 +77,7 @@ vi.mock("@/stores/env", async () => {
   };
 });
 vi.mock("@/stores/envInfo", () => ({ fetchEnvInfo: fetchEnvInfoMock }));
+vi.mock("@/stores/externalChecks", () => ({ fetchExternalChecks: fetchExternalChecksMock }));
 vi.mock("@/stores/globals", () => ({ fetchGlobals: fetchGlobalsMock }));
 vi.mock("@/stores/metrics", () => ({ fetchMetricsData: fetchMetricsDataMock }));
 vi.mock("@/stores/qualityGate", () => ({ fetchQualityGateResults: fetchQualityGateResultsMock }));

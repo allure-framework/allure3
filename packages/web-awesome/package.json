@@ -19,8 +19,8 @@
   "scripts": {
     "clean": "rimraf dist",
     "dev": "run-s dev:demo dev:copy dev:serve",
-    "dev:demo": "rimraf out/demo && yarn run -T allure generate ${ALLURE_RESULTS_DIR:-../sandbox/allure-results} --config=./allurerc-dev.mjs --output=./out/demo",
-    "dev:copy": "rimraf out/dev/data out/dev/widgets && mkdir -p out/dev && cp -R out/demo/data out/dev/data && cp -R out/demo/widgets out/dev/widgets",
+    "dev:demo": "node ./scripts/generate-dev-report.mjs",
+    "dev:copy": "node ./scripts/copy-dev-report.mjs",
     "dev:serve": "webpack serve --mode development",
     "build": "run clean && run build:prod:multi",
     "build:dev": "run-s clean build:dev:multi",

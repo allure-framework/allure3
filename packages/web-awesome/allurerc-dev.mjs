@@ -1,5 +1,11 @@
+import { sandboxPerformance, sandboxQualityGate } from "../sandbox/evidenceConfig.mjs";
+
 export default {
   name: "Allure Awesome Dev",
+  historyPath: "../sandbox/test/metrics-history.jsonl",
+  appendHistory: false,
+  qualityGate: sandboxQualityGate,
+  performance: sandboxPerformance,
   resolutions: {
     knownIssuesPath: "./out/known-issues.json",
     links: {

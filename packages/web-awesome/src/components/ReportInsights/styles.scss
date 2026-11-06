@@ -1,0 +1,128 @@
+.insights {
+  width: 100%;
+  max-width: 1120px;
+  min-height: 100%;
+  margin: 0 auto;
+  padding: 24px 0 20px;
+  color: var(--color-text-primary);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.card {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  padding: 20px;
+  border: 1px solid var(--color-border-default);
+  border-radius: 12px;
+  background: var(--color-bg-primary);
+  box-shadow: var(--shadow-small);
+}
+
+.card-success {
+  border-color: var(--color-intent-success-border);
+  background: var(--color-intent-success-bg-subtle);
+}
+
+.card-danger {
+  border-color: var(--color-intent-danger-border);
+  background: var(--color-intent-danger-bg-subtle);
+}
+
+.card-neutral {
+  background: var(--color-bg-secondary);
+}
+
+.card-header {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+}
+
+.card-icon {
+  display: inline-flex;
+  width: 36px;
+  height: 36px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  color: var(--color-icon-secondary);
+  background: var(--color-bg-primary);
+}
+
+.card-success .card-icon,
+.card-success .card-status {
+  color: var(--color-intent-success-text);
+}
+
+.card-danger .card-icon,
+.card-danger .card-status {
+  color: var(--color-intent-danger-text);
+}
+
+.card-title {
+  margin: 0;
+}
+
+.card-title-link {
+  color: var(--color-text-primary);
+  text-decoration: none;
+  border-radius: 3px;
+  outline: 1px solid transparent;
+  outline-offset: 2px;
+
+  &:hover {
+    color: var(--color-text-primary);
+    text-decoration: underline;
+  }
+
+  &:focus-visible {
+    color: var(--color-text-primary);
+    outline-color: var(--color-focus-ring);
+  }
+
+  &:active {
+    color: var(--color-text-primary);
+  }
+
+  &:visited {
+    color: var(--color-text-primary);
+  }
+}
+
+.card-status {
+  white-space: nowrap;
+}
+
+.card-summary {
+  margin: 16px 0 0;
+}
+
+.insights-split .grid {
+  grid-template-columns: 1fr;
+}
+
+@media (max-width: 768px) {
+  .insights {
+    padding-right: 16px;
+    padding-left: 16px;
+  }
+
+  .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .card-header {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .card-status {
+    grid-column: 2;
+  }
+}

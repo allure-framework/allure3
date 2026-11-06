@@ -102,7 +102,7 @@ export const isReportResultsTreeVisible = (): boolean => {
     return rootTab === "results";
   }
 
-  return true;
+  return false;
 };
 
 export const isTreeNavigationContext = (): boolean => {

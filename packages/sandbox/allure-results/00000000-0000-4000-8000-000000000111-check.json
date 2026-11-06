@@ -1,0 +1,11 @@
+{
+  "id": "00000000-0000-4000-8000-000000000111",
+  "name": "ESLint",
+  "status": "passed",
+  "tags": ["lint", "code-quality"],
+  "details": {
+    "command": "yarn lint",
+    "message": "No lint violations found",
+    "url": "https://example.com/checks/eslint"
+  }
+}

@@ -2,6 +2,8 @@ import { fileURLToPath } from "node:url";
 
 import { defaultChartsConfig, defineConfig } from "allure";
 
+import { sandboxPerformance, sandboxQualityGate } from "./evidenceConfig.mjs";
+
 const MAX_ENV_NAME_64 = "env-" + "x".repeat(60);
 const MAX_ENV_NAME_64_UNICODE = "я".repeat(64);
 const sandboxTestopsEnabled = process.env.SANDBOX_ENABLE_TESTOPS === "true";
@@ -157,58 +159,11 @@ export default defineConfig({
       },
     ],
   },
-  qualityGate: {
-    rules: [
-      {
-        maxFailures: 5,
-        fastFail: true,
-      },
-      {
-        // Fails: not all tests have env "foo" (some have "bar" or "default")
-        allTestsContainEnv: "foo",
-      },
-      {
-        // Fails: "staging" is not present in the run (only foo, bar, default exist)
-        environmentsTested: ["foo", "bar", "staging"],
-      },
-    ],
-  },
+  qualityGate: sandboxQualityGate,
   categories: {
     rules: comboRules,
   },
-  performance: {
-    groups: {
-      data: {
-        title: "Result data",
-      },
-      report: {
-        title: "Report generation",
-      },
-      attachments: {
-        title: "Attachment demos",
-      },
-    },
-    metrics: {
-      "sandbox.results.load": {
-        title: "Load sandbox results",
-        unit: "ms",
-        better: "lower",
-        group: "data",
-      },
-      "sandbox.report.awesome": {
-        title: "Generate Awesome report",
-        unit: "ms",
-        better: "lower",
-        group: "report",
-      },
-      "sandbox.attachments.httpExchange": {
-        title: "Render HTTP exchange attachments",
-        unit: "ms",
-        better: "lower",
-        group: "attachments",
-      },
-    },
-  },
+  performance: sandboxPerformance,
   plugins: {
     allure2: {
       options: {

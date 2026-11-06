@@ -5,10 +5,10 @@ import { useEffect } from "preact/hooks";
 import { NavTab, NavTabs, NavTabsList, useNavTabsContext } from "@/components/NavTabs";
 import { ReportBody } from "@/components/ReportBody";
 import { ReportCategories } from "@/components/ReportCategories";
-import { ReportFailureSummary } from "@/components/ReportFailureSummary";
 import { ReportGlobalAttachments } from "@/components/ReportGlobalAttachments";
 import { ReportGlobalErrors } from "@/components/ReportGlobalErrors";
 import { ReportHeader } from "@/components/ReportHeader";
+import { ReportInsights, getFailedInsightsCount } from "@/components/ReportInsights";
 import { ReportMetadata } from "@/components/ReportMetadata";
 import { ReportResolutionCategories } from "@/components/ReportResolutionCategories";
 import { reportStatsStore, useI18n } from "@/stores";
@@ -20,7 +20,7 @@ import { isSplitMode } from "@/stores/layout";
 import { qualityGateStore } from "@/stores/qualityGate";
 import { resolutionCategoriesStore } from "@/stores/resolutionCategories";
 import {
-  navigateToPlainTestResult,
+  navigateToInsights,
   navigateToRoot,
   navigateToRootTabRoot,
   navigateToRootTabTestResult,
@@ -33,6 +33,7 @@ import { ReportQualityGateResults } from "../ReportQualityGateResults";
 import * as styles from "./styles.scss";
 
 export enum ReportRootTab {
+  Insights = "insights",
   Results = "results",
   QualityGate = "qualityGate",
   GlobalAttachments = "globalAttachments",
@@ -42,6 +43,7 @@ export enum ReportRootTab {
 }
 
 const viewsByTab = {
+  [ReportRootTab.Insights]: () => <ReportInsights />,
   [ReportRootTab.Results]: () => (
     <>
       <ReportMetadata />
@@ -57,7 +59,7 @@ const viewsByTab = {
 
 const MainReportContent = () => {
   const { currentTab } = useNavTabsContext();
-  const tab = (currentTab as ReportRootTab) || ReportRootTab.Results;
+  const tab = (currentTab as ReportRootTab) || ReportRootTab.Insights;
   const Content = viewsByTab[tab];
 
   return <Content />;
@@ -66,6 +68,8 @@ const MainReportContent = () => {
 const MainReport = () => {
   const { t } = useI18n("tabs");
   const rootTabToReportTab: Record<string, ReportRootTab> = {
+    insights: ReportRootTab.Insights,
+    results: ReportRootTab.Results,
     categories: ReportRootTab.Categories,
     qualityGate: ReportRootTab.QualityGate,
     globalAttachments: ReportRootTab.GlobalAttachments,
@@ -80,8 +84,9 @@ const MainReport = () => {
     [ReportRootTab.ResolutionCategories]: "resolutionCategories",
   };
   const initialTab = rootTabRoute.value.matches
-    ? (rootTabToReportTab[rootTabRoute.value.params.rootTab] ?? ReportRootTab.Results)
-    : ReportRootTab.Results;
+    ? (rootTabToReportTab[rootTabRoute.value.params.rootTab] ?? ReportRootTab.Insights)
+    : ReportRootTab.Insights;
+  const failedInsightsCount = getFailedInsightsCount();
 
   const RootTab = (props: { id: ReportRootTab; children: any }) => {
     const { id, children } = props;
@@ -94,9 +99,21 @@ const MainReport = () => {
       }
       focusTreePane();
       setCurrentTab(id);
+      if (id === ReportRootTab.Insights) {
+        if (currentTrId.value) {
+          navigateToRootTabTestResult({
+            rootTab: "insights",
+            testResultId: currentTrId.value,
+            tab: trCurrentTab.value,
+          });
+        } else {
+          navigateToInsights();
+        }
+        return;
+      }
       if (id === ReportRootTab.Results) {
         if (currentTrId.value) {
-          navigateToPlainTestResult({ testResultId: currentTrId.value, tab: trCurrentTab.value });
+          navigateToRootTabTestResult({ rootTab: "results", testResultId: currentTrId.value, tab: trCurrentTab.value });
         } else {
           navigateToRoot();
         }
@@ -129,7 +146,7 @@ const MainReport = () => {
       const routeMatches = rootTabRoute.value.matches;
       const routeTab = routeMatches ? rootTabRoute.value.params.rootTab : undefined;
       const mapped =
-        routeMatches && routeTab ? (rootTabToReportTab[routeTab] ?? ReportRootTab.Results) : ReportRootTab.Results;
+        routeMatches && routeTab ? (rootTabToReportTab[routeTab] ?? ReportRootTab.Insights) : ReportRootTab.Insights;
       if (currentTab !== mapped) {
         setCurrentTab(mapped);
       }
@@ -145,7 +162,6 @@ const MainReport = () => {
     >
       <div className={styles["main-report-header"]}>
         <ReportHeader />
-        <ReportFailureSummary />
       </div>
       <div className={styles["main-report-tabs"]}>
         <NavTabs initialTab={initialTab}>
@@ -153,6 +169,9 @@ const MainReport = () => {
           <div>
             <div className={styles["main-report-tabs-nav"]}>
               <NavTabsList>
+                <RootTab id={ReportRootTab.Insights}>
+                  {t("insights")} {failedInsightsCount > 0 && <Counter status="failed" count={failedInsightsCount} />}
+                </RootTab>
                 <Loadable
                   source={reportStatsStore}
                   renderData={(stats) => (
