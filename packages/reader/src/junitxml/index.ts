@@ -282,6 +282,11 @@ const maybeParseStatus = (
     return { status };
   }
 
+  // an element with text content and no attributes is parsed as a plain string
+  if (typeof element === "string") {
+    return { status, trace: element };
+  }
+
   if (isStringAnyRecord(element)) {
     const { message, "#text": trace } = element;
     return { status, message: ensureString(message), trace: ensureString(trace) };
