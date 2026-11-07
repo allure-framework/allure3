@@ -222,6 +222,15 @@ describe("jenkins", () => {
       expect(jenkins.jobRunBranch).toBe("feature/my-branch");
     });
 
+    it("should prefer CHANGE_BRANCH over BRANCH_NAME on pull request builds", () => {
+      mockEnv({
+        BRANCH_NAME: "PR-123",
+        CHANGE_BRANCH: "feature/my-branch",
+      });
+
+      expect(jenkins.jobRunBranch).toBe("feature/my-branch");
+    });
+
     it("should return empty string when environment variable is not set", () => {
       (getEnv as Mock).mockImplementation((key: string) => {
         if (key === "BRANCH_NAME") {

@@ -62,12 +62,14 @@ describe("parsePullRequestNumberFromEventJson", () => {
 });
 
 describe("parsePullRequestContextFromEventJson", () => {
-  it("returns head and base refs from pull_request payload", () => {
+  it("returns title, url, head and base refs from pull_request payload", () => {
     expect(
       parsePullRequestContextFromEventJson(
         JSON.stringify({
           pull_request: {
             number: 12,
+            title: "Fix things",
+            html_url: "https://github.com/org/repo/pull/12",
             head: { ref: "feature/foo" },
             base: { ref: "main" },
           },
@@ -75,6 +77,8 @@ describe("parsePullRequestContextFromEventJson", () => {
       ),
     ).toEqual({
       number: "12",
+      title: "Fix things",
+      url: "https://github.com/org/repo/pull/12",
       headRef: "feature/foo",
       baseRef: "main",
     });
@@ -104,6 +108,31 @@ describe("parsePullRequestContextFromEventJson", () => {
     });
   });
 
+  it("returns title from workflow_run.pull_requests when present", () => {
+    expect(
+      parsePullRequestContextFromEventJson(
+        JSON.stringify({
+          workflow_run: {
+            event: "pull_request",
+            pull_requests: [
+              {
+                number: 34,
+                title: "Workflow PR",
+                head: { ref: "feature/bar" },
+                base: { ref: "main" },
+              },
+            ],
+          },
+        }),
+      ),
+    ).toEqual({
+      number: "34",
+      title: "Workflow PR",
+      headRef: "feature/bar",
+      baseRef: "main",
+    });
+  });
+
   it("returns undefined when workflow_run.pull_requests is empty", () => {
     expect(
       parsePullRequestContextFromEventJson(
@@ -115,6 +144,42 @@ describe("parsePullRequestContextFromEventJson", () => {
         }),
       ),
     ).toBeUndefined();
+  });
+
+  it("returns head and base refs from merge_group payload", () => {
+    expect(
+      parsePullRequestContextFromEventJson(
+        JSON.stringify({
+          merge_group: {
+            head_ref: "refs/heads/gh-readonly-queue/main/pr-3089-686be27e553fcc593f8ddb139c8b539ebbd1f273",
+            base_ref: "refs/heads/main",
+            head_sha: "e26bd29e4fe9a8373d704d3cd25bb08c83b6a6b4",
+            base_sha: "686be27e553fcc593f8ddb139c8b539ebbd1f273",
+          },
+        }),
+      ),
+    ).toEqual({
+      number: "3089",
+      headRef: "gh-readonly-queue/main/pr-3089-686be27e553fcc593f8ddb139c8b539ebbd1f273",
+      baseRef: "main",
+      headSha: "e26bd29e4fe9a8373d704d3cd25bb08c83b6a6b4",
+    });
+  });
+
+  it("returns branches from merge_group even when PR number cannot be parsed", () => {
+    expect(
+      parsePullRequestContextFromEventJson(
+        JSON.stringify({
+          merge_group: {
+            head_ref: "refs/heads/feature/queued",
+            base_ref: "refs/heads/develop",
+          },
+        }),
+      ),
+    ).toEqual({
+      headRef: "feature/queued",
+      baseRef: "develop",
+    });
   });
 });
 
@@ -191,7 +256,7 @@ describe("resolveGithubPullRequestNumber", () => {
     expect(resolveGithubPullRequestNumber()).toBe("78");
   });
 
-  it("does not read event file when ref-based detection succeeds", () => {
+  it("enriches ref-based detection with matching title and url from event file", () => {
     (getEnv as Mock).mockImplementation((key: string) => {
       const env: Record<string, string> = {
         GITHUB_HEAD_REF: "feature/foo",
@@ -202,9 +267,45 @@ describe("resolveGithubPullRequestNumber", () => {
 
       return env[key] ?? "";
     });
+    (readFileSync as Mock).mockReturnValue(
+      JSON.stringify({
+        pull_request: {
+          number: 55,
+          title: "Add new feature",
+          html_url: "https://github.com/org/repo/pull/55",
+        },
+      }),
+    );
 
     expect(resolveGithubPullRequestNumber()).toBe("55");
-    expect(readFileSync).not.toHaveBeenCalled();
+    expect(resolveGithubPullRequestContext()).toEqual({
+      number: "55",
+      title: "Add new feature",
+      url: "https://github.com/org/repo/pull/55",
+      headRef: "feature/foo",
+      baseRef: "main",
+    });
+    expect(readFileSync).toHaveBeenCalledWith("/tmp/event.json", "utf-8");
+  });
+
+  it("ignores event title when pull request number does not match ref", () => {
+    (getEnv as Mock).mockImplementation((key: string) => {
+      const env: Record<string, string> = {
+        GITHUB_HEAD_REF: "feature/foo",
+        GITHUB_BASE_REF: "main",
+        GITHUB_REF_NAME: "55/merge",
+        GITHUB_EVENT_PATH: "/tmp/event.json",
+      };
+
+      return env[key] ?? "";
+    });
+    (readFileSync as Mock).mockReturnValue(JSON.stringify({ pull_request: { number: 99, title: "Other PR" } }));
+
+    expect(resolveGithubPullRequestContext()).toEqual({
+      number: "55",
+      headRef: "feature/foo",
+      baseRef: "main",
+    });
   });
 
   it("returns empty string when event file is missing", () => {
@@ -263,6 +364,86 @@ describe("resolveGithubPullRequestNumber", () => {
       number: "897",
       headRef: "fix/x",
       baseRef: "main",
+    });
+  });
+
+  it("resolves pull request title from GITHUB_EVENT_PATH for pull_request_target workflows", () => {
+    (getEnv as Mock).mockImplementation((key: string) => {
+      const env: Record<string, string> = {
+        GITHUB_HEAD_REF: "feature/foo",
+        GITHUB_BASE_REF: "main",
+        GITHUB_REF: "refs/heads/main",
+        GITHUB_REF_NAME: "main",
+        GITHUB_EVENT_PATH: "/tmp/event.json",
+      };
+
+      return env[key] ?? "";
+    });
+    (readFileSync as Mock).mockReturnValue(
+      JSON.stringify({
+        pull_request: {
+          number: 77,
+          title: "Fix things",
+          html_url: "https://github.com/org/repo/pull/77",
+          head: { ref: "feature/foo" },
+          base: { ref: "main" },
+        },
+      }),
+    );
+
+    expect(resolveGithubPullRequestContext()).toEqual({
+      number: "77",
+      title: "Fix things",
+      url: "https://github.com/org/repo/pull/77",
+      headRef: "feature/foo",
+      baseRef: "main",
+    });
+  });
+
+  it("resolves merge_group context when HEAD/BASE env refs are unset", () => {
+    (getEnv as Mock).mockImplementation((key: string) => {
+      const env: Record<string, string> = {
+        GITHUB_EVENT_PATH: "/tmp/event.json",
+        GITHUB_REF: "refs/heads/gh-readonly-queue/main/pr-42-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        GITHUB_REF_NAME: "gh-readonly-queue/main/pr-42-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      };
+
+      return env[key] ?? "";
+    });
+    (readFileSync as Mock).mockReturnValue(
+      JSON.stringify({
+        merge_group: {
+          head_ref: "refs/heads/gh-readonly-queue/main/pr-42-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          base_ref: "refs/heads/main",
+          head_sha: "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          base_sha: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        },
+      }),
+    );
+
+    expect(resolveGithubPullRequestNumber()).toBe("42");
+    expect(resolveGithubPullRequestContext()).toEqual({
+      number: "42",
+      headRef: "gh-readonly-queue/main/pr-42-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      baseRef: "main",
+      headSha: "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    });
+  });
+
+  it("parses PR number and base branch from merge queue GITHUB_REF without event file", () => {
+    (getEnv as Mock).mockImplementation((key: string) => {
+      const env: Record<string, string> = {
+        GITHUB_REF: "refs/heads/gh-readonly-queue/release/1.0/pr-99-cccccccccccccccccccccccccccccccccccccccc",
+        GITHUB_REF_NAME: "gh-readonly-queue/release/1.0/pr-99-cccccccccccccccccccccccccccccccccccccccc",
+      };
+
+      return env[key] ?? "";
+    });
+
+    expect(resolveGithubPullRequestContext()).toEqual({
+      number: "99",
+      headRef: "gh-readonly-queue/release/1.0/pr-99-cccccccccccccccccccccccccccccccccccccccc",
+      baseRef: "release/1.0",
     });
   });
 });

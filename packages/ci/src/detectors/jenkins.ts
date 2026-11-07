@@ -35,7 +35,8 @@ const getBranchName = (): string | undefined => {
     return undefined;
   }
 
-  return getEnv("BRANCH_NAME") || getGitPluginBranch();
+  // CHANGE_BRANCH is the real source branch on PR builds; BRANCH_NAME is often "PR-N"
+  return getEnv("CHANGE_BRANCH") || getEnv("BRANCH_NAME") || getGitPluginBranch();
 };
 
 export const jenkins: CiDescriptor = {

@@ -95,7 +95,7 @@ describe("CI report context", () => {
         BITBUCKET_BUILD_NUMBER: "7",
       },
       commit: `https://bitbucket.org/org/repo/commits/${sha}`,
-      run: "https://bitbucket.org/org/repo/pipelines/results/{42}",
+      run: "https://bitbucket.org/org/repo/pipelines/results/7",
       name: "7",
     },
     {

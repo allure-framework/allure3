@@ -51,11 +51,25 @@ describe("amazon", () => {
   });
 
   describe("isBatchBuild", () => {
-    it("should be true for batch build", () => {
+    it("should be true when CODEBUILD_BATCH_BUILD_IDENTIFIER is set", () => {
+      (getEnv as Mock).mockImplementation((key: string) => {
+        if (key === "CODEBUILD_BATCH_BUILD_IDENTIFIER") {
+          return "batch-id";
+        }
+
+        return "";
+      });
+
+      expect(isBatchBuild()).toBe(true);
+    });
+
+    it("should be true for batch build via CODEBUILD_BUILD_BATCH_TRIGGERED", () => {
       (getEnv as Mock).mockImplementation((key: string) => {
         if (key === "CODEBUILD_BUILD_BATCH_TRIGGERED") {
           return "true";
         }
+
+        return "";
       });
 
       expect(isBatchBuild()).toBe(true);
@@ -66,17 +80,15 @@ describe("amazon", () => {
         if (key === "CODEBUILD_BUILD_BATCH_TRIGGERED") {
           return "false";
         }
+
+        return "";
       });
 
       expect(isBatchBuild()).toBe(false);
     });
 
     it("should be false for empty string", () => {
-      (getEnv as Mock).mockImplementation((key: string) => {
-        if (key === "CODEBUILD_BUILD_BATCH_TRIGGERED") {
-          return "";
-        }
-      });
+      (getEnv as Mock).mockImplementation(() => "");
 
       expect(isBatchBuild()).toBe(false);
     });
@@ -318,6 +330,44 @@ describe("amazon", () => {
         if (key === "CODEBUILD_BUILD_ARN") {
           return "arn:aws:codebuild:us-east-1:123456789012:build/my-project:1234567890";
         }
+
+        return "";
+      });
+
+      expect(amazon.jobRunUrl).toBe(
+        "https://console.aws.amazon.com/codebuild/home?region=us-east-1#/builds/my-project:1234567890/view/new",
+      );
+    });
+
+    it("should prefer CODEBUILD_BUILD_URL when it is an http(s) URL", () => {
+      (getEnv as Mock).mockImplementation((key: string) => {
+        if (key === "CODEBUILD_BUILD_URL") {
+          return "https://console.aws.amazon.com/codesuite/codebuild/projects/my-project/build/my-project:1234567890";
+        }
+
+        if (key === "CODEBUILD_BUILD_ARN") {
+          return "arn:aws:codebuild:us-east-1:123456789012:build/my-project:1234567890";
+        }
+
+        return "";
+      });
+
+      expect(amazon.jobRunUrl).toBe(
+        "https://console.aws.amazon.com/codesuite/codebuild/projects/my-project/build/my-project:1234567890",
+      );
+    });
+
+    it("should ignore CODEBUILD_BUILD_URL when it is not an http(s) URL", () => {
+      (getEnv as Mock).mockImplementation((key: string) => {
+        if (key === "CODEBUILD_BUILD_URL") {
+          return "not-a-url";
+        }
+
+        if (key === "CODEBUILD_BUILD_ARN") {
+          return "arn:aws:codebuild:us-east-1:123456789012:build/my-project:1234567890";
+        }
+
+        return "";
       });
 
       expect(amazon.jobRunUrl).toBe(
@@ -334,6 +384,8 @@ describe("amazon", () => {
         if (key === "CODEBUILD_INITIATOR") {
           return "codepipeline/my-pipeline";
         }
+
+        return "";
       });
 
       expect(amazon.jobRunUrl).toBe(
@@ -350,6 +402,8 @@ describe("amazon", () => {
         if (key === "CODEBUILD_BUILD_BATCH_TRIGGERED") {
           return "true";
         }
+
+        return "";
       });
 
       expect(amazon.jobRunUrl).toBe(
@@ -437,6 +491,66 @@ describe("amazon", () => {
       });
 
       expect(amazon.jobRunBranch).toBe("");
+    });
+  });
+
+  describe("pullRequestUrl", () => {
+    it("should build GitHub pull request URL from repo and webhook trigger", () => {
+      (getEnv as Mock).mockImplementation((key: string) => {
+        const env: Record<string, string> = {
+          CODEBUILD_SOURCE_REPO_URL: "https://github.com/myorg/myrepo.git",
+          CODEBUILD_WEBHOOK_TRIGGER: "pr/12",
+        };
+
+        return env[key] ?? "";
+      });
+
+      expect(amazon.pullRequestUrl).toBe("https://github.com/myorg/myrepo/pull/12");
+    });
+
+    it("should build GitLab merge request URL from repo and source version", () => {
+      (getEnv as Mock).mockImplementation((key: string) => {
+        const env: Record<string, string> = {
+          CODEBUILD_SOURCE_REPO_URL: "https://gitlab.com/myorg/myrepo.git",
+          CODEBUILD_SOURCE_VERSION: "pr/34",
+        };
+
+        return env[key] ?? "";
+      });
+
+      expect(amazon.pullRequestUrl).toBe("https://gitlab.com/myorg/myrepo/-/merge_requests/34");
+    });
+
+    it("should return empty string when pull request id is missing", () => {
+      (getEnv as Mock).mockImplementation((key: string) => {
+        if (key === "CODEBUILD_SOURCE_REPO_URL") {
+          return "https://github.com/myorg/myrepo.git";
+        }
+
+        return "";
+      });
+
+      expect(amazon.pullRequestUrl).toBe("");
+    });
+  });
+
+  describe("pullRequestName", () => {
+    it("should synthesize a pull request name when id is present", () => {
+      (getEnv as Mock).mockImplementation((key: string) => {
+        const env: Record<string, string> = {
+          CODEBUILD_WEBHOOK_TRIGGER: "pr/12",
+        };
+
+        return env[key] ?? "";
+      });
+
+      expect(amazon.pullRequestName).toBe("Pull request #12");
+    });
+
+    it("should return empty string when pull request id is missing", () => {
+      (getEnv as Mock).mockImplementation(() => "");
+
+      expect(amazon.pullRequestName).toBe("");
     });
   });
 });

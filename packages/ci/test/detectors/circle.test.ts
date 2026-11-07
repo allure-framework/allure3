@@ -277,7 +277,24 @@ describe("circle", () => {
 
       expect(circle.pullRequest).toMatchObject({
         id: "123",
+        title: "Pull request #123",
       });
+    });
+  });
+
+  describe("pullRequestName", () => {
+    it("should synthesize a pull request name when id is present", () => {
+      mockEnv({
+        CIRCLE_PULL_REQUEST: "https://github.com/myorg/myrepo/pull/55",
+      });
+
+      expect(circle.pullRequestName).toBe("Pull request #55");
+    });
+
+    it("should return empty string when pull request id is missing", () => {
+      mockEnv({});
+
+      expect(circle.pullRequestName).toBe("");
     });
   });
 });

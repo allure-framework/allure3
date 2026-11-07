@@ -1,5 +1,6 @@
 import { type CiDescriptor, CiType, GitProvider } from "@allurereport/core-api";
 
+import { buildPullRequestUrlForProvider } from "../helpers/gitProvider.js";
 import { getEnv } from "../utils.js";
 
 const stripGitSuffix = (url: string): string => url.replace(/\.git\/?$/i, "");
@@ -68,11 +69,18 @@ export const bitbucket: CiDescriptor = {
   },
 
   get jobRunUrl(): string {
-    return `${getJobURL()}/results/${this.jobRunUid}`;
+    const buildNumber = getEnv("BITBUCKET_BUILD_NUMBER");
+    const origin = getRepositoryUrl();
+
+    if (!buildNumber || !origin) {
+      return "";
+    }
+
+    return `${origin}/pipelines/results/${buildNumber}`;
   },
 
   get jobRunName(): string {
-    return getEnv("BITBUCKET_PIPELINE_UUID");
+    return getEnv("BITBUCKET_BUILD_NUMBER");
   },
 
   get jobRunBranch(): string {
@@ -92,11 +100,13 @@ export const bitbucket: CiDescriptor = {
       return "";
     }
 
-    return `${origin}/pull-requests/${prId}`;
+    return buildPullRequestUrlForProvider(GitProvider.Bitbucket, origin, prId);
   },
 
   get pullRequestName(): string {
-    return "";
+    const prId = getEnv("BITBUCKET_PR_ID");
+
+    return prId ? `Pull request #${prId}` : "";
   },
 
   get commitSha() {

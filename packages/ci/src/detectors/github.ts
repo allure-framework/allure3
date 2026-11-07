@@ -1,5 +1,3 @@
-import { join } from "node:path/posix";
-
 import { type CiDescriptor, CiType, GitProvider } from "@allurereport/core-api";
 
 import {
@@ -7,7 +5,7 @@ import {
   resolveGithubPullRequestContext,
   resolveGithubPullRequestNumber,
 } from "../helpers/github.js";
-import { stripRefsHeads } from "../helpers/gitProvider.js";
+import { buildPullRequestUrlForProvider, stripRefsHeads } from "../helpers/gitProvider.js";
 import { getEnv } from "../utils.js";
 
 const getBaseURL = () => getEnv("GITHUB_SERVER_URL");
@@ -115,27 +113,34 @@ export const github: CiDescriptor = {
   },
 
   get pullRequestUrl(): string {
-    const pullRequestNumber = resolveGithubPullRequestNumber();
+    const pullRequest = resolveGithubPullRequestContext();
 
-    if (!pullRequestNumber) {
+    if (!pullRequest?.number) {
       return "";
     }
 
-    const serverUrl = getEnv("GITHUB_SERVER_URL");
-    const repo = getRepo();
-    const pathname = join(repo, "pull", pullRequestNumber);
+    if (pullRequest.url) {
+      return pullRequest.url;
+    }
 
-    return new URL(pathname, serverUrl).toString();
+    const serverUrl = (getEnv("GITHUB_SERVER_URL") || "").replace(/\/+$/, "");
+    const repo = getRepo();
+
+    if (!serverUrl || !repo || !/^https?:\/\//i.test(serverUrl)) {
+      return "";
+    }
+
+    return buildPullRequestUrlForProvider(GitProvider.Github, `${serverUrl}/${repo}`, pullRequest.number);
   },
 
   get pullRequestName(): string {
-    const pullRequestNumber = resolveGithubPullRequestNumber();
+    const pullRequest = resolveGithubPullRequestContext();
 
-    if (!pullRequestNumber) {
+    if (!pullRequest?.number) {
       return "";
     }
 
-    return `Pull request #${pullRequestNumber}`;
+    return pullRequest.title || `Pull request #${pullRequest.number}`;
   },
 
   get commitSha() {
