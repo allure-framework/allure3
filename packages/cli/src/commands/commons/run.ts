@@ -1,11 +1,13 @@
 import { randomUUID } from "node:crypto";
-import { mkdtemp, rm, writeFile } from "node:fs/promises";
+import { constants, existsSync } from "node:fs";
+import { copyFile, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { join, resolve } from "node:path";
+import { dirname, join, resolve } from "node:path";
 
 import { Logger } from "@allurereport/cli-commons";
 import {
   AllureReport,
+  isFileNotFoundError,
   QualityGateState,
   filterFailedQualityGateResults,
   stringifyQualityGateResults,
@@ -382,6 +384,37 @@ const publishProcessGlobals = (params: {
   }
 };
 
+const preserveAttachments = async (allureReport: AllureReport, directory: string) => {
+  const preservedAttachments = new Map<PathResultFile, string>();
+
+  for (const attachment of await allureReport.store.allAttachments()) {
+    const content = await allureReport.store.attachmentContentById(attachment.id);
+
+    if (
+      !(content instanceof PathResultFile) ||
+      dirname(content.path) === directory ||
+      preservedAttachments.has(content)
+    ) {
+      continue;
+    }
+
+    const path = join(directory, randomUUID());
+
+    try {
+      await copyFile(content.path, path, constants.COPYFILE_FICLONE);
+    } catch (error) {
+      if (isFileNotFoundError(error)) {
+        continue;
+      }
+      throw error;
+    }
+
+    preservedAttachments.set(content, path);
+  }
+
+  return preservedAttachments;
+};
+
 export const executeAllureRun = async (params: {
   allureReport: AllureReport;
   cwd: string;
@@ -425,6 +458,7 @@ export const executeAllureRun = async (params: {
   };
   let qualityGateResults: QualityGateValidationResult[] = [];
   let testProcessResult: TestProcessResult | null = null;
+  let attachmentsDirectory: string | undefined;
 
   try {
     testProcessResult = await runTests({
@@ -517,6 +551,9 @@ export const executeAllureRun = async (params: {
         });
       }
 
+      // The replayed command may clean results from earlier attempts.
+      attachmentsDirectory ??= await mkdtemp(join(tmpdir(), "allure-run-attachments-"));
+      const preservedAttachments = await preserveAttachments(allureReport, attachmentsDirectory);
       const tmpDir = fullRerun ? undefined : await mkdtemp(join(tmpdir(), "allure-run-"));
       const testPlanPath = tmpDir ? resolve(tmpDir, `${rerun}-testplan.json`) : undefined;
 
@@ -547,6 +584,12 @@ export const executeAllureRun = async (params: {
           resultsPatterns,
         });
       } finally {
+        for (const [content, path] of preservedAttachments) {
+          if (!existsSync(content.path)) {
+            content.path = path;
+          }
+        }
+
         if (tmpDir) {
           await rm(tmpDir, { recursive: true, force: true });
         }
@@ -644,9 +687,15 @@ export const executeAllureRun = async (params: {
 
   allureReport.realtimeDispatcher.sendGlobalExitCode(globalExitCode);
 
-  logRunDiagnostic("finalizing report");
-  await allureReport.done();
-  logRunDiagnostic("report finalization complete");
+  try {
+    logRunDiagnostic("finalizing report");
+    await allureReport.done();
+    logRunDiagnostic("report finalization complete");
+  } finally {
+    if (attachmentsDirectory) {
+      await rm(attachmentsDirectory, { recursive: true, force: true });
+    }
+  }
 
   return {
     globalExitCode,

@@ -8,6 +8,7 @@ export const AllureReportMock = vi.fn(function (this: Record<string, unknown>, c
 AllureReportMock.prototype.store = {
   blockingFailedTestResults: vi.fn().mockResolvedValue([]),
   failedTestResults: vi.fn().mockResolvedValue([]),
+  allAttachments: vi.fn().mockResolvedValue([]),
   allTestResults: vi.fn().mockResolvedValue([]),
   allNewTestResults: vi.fn().mockResolvedValue([]),
   testsStatistic: vi.fn().mockResolvedValue({ total: 0, passed: 0, failed: 0, broken: 0, skipped: 0, unknown: 0 }),
