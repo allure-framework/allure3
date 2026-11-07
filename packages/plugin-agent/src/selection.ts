@@ -75,6 +75,7 @@ const buildTestPlan = (tests: AgentTestManifestLine[]): TestPlan => {
   return {
     version: "1.0",
     tests: selected,
+    mutedTests: [],
   };
 };
 
