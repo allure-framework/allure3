@@ -1,0 +1,256 @@
+name: Update web screenshots
+
+on:
+  workflow_dispatch:
+    inputs:
+      linux:
+        description: "Update Linux screenshots"
+        required: true
+        type: boolean
+        default: true
+      macos:
+        description: "Update macOS screenshots"
+        required: true
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: update-web-screenshots
+  cancel-in-progress: false
+
+jobs:
+  prepare:
+    name: Prepare screenshot update
+    runs-on: ubuntu-latest
+    outputs:
+      base_branch: ${{ steps.prepare.outputs.base_branch }}
+      base_sha: ${{ steps.prepare.outputs.base_sha }}
+      environments: ${{ steps.prepare.outputs.environments }}
+      matrix: ${{ steps.prepare.outputs.matrix }}
+      update_branch: ${{ steps.prepare.outputs.update_branch }}
+    steps:
+      - name: Resolve environments and base revision
+        id: prepare
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          LINUX: ${{ inputs.linux }}
+          MACOS: ${{ inputs.macos }}
+          BASE_BRANCH: ${{ github.event.repository.default_branch }}
+          RUN_ID: ${{ github.run_id }}
+        run: |
+          set -euo pipefail
+
+          matrix='[]'
+          if [[ "${LINUX}" == "true" ]]; then
+            matrix="$(jq -c '. + [{"name":"Linux","platform":"linux","runner":"ubuntu-latest"}]' <<< "${matrix}")"
+          fi
+          if [[ "${MACOS}" == "true" ]]; then
+            matrix="$(jq -c '. + [{"name":"macOS","platform":"darwin","runner":"macos-latest"}]' <<< "${matrix}")"
+          fi
+
+          if [[ "$(jq 'length' <<< "${matrix}")" == "0" ]]; then
+            echo "::error::Select at least one environment."
+            exit 1
+          fi
+
+          base_sha="$(gh api "repos/${GITHUB_REPOSITORY}/commits/${BASE_BRANCH}" --jq '.sha')"
+          environments="$(jq -r '[.[].name] | join(", ")' <<< "${matrix}")"
+          update_branch="chore/update-web-screenshots-${base_sha:0:8}-${RUN_ID}"
+
+          {
+            echo "base_branch=${BASE_BRANCH}"
+            echo "base_sha=${base_sha}"
+            echo "environments=${environments}"
+            echo "matrix={\"include\":${matrix}}"
+            echo "update_branch=${update_branch}"
+          } >> "${GITHUB_OUTPUT}"
+
+  update:
+    name: Update ${{ matrix.name }} screenshots
+    needs: prepare
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.prepare.outputs.matrix) }}
+    steps:
+      - name: Checkout base revision
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "24.14.x"
+
+      - name: Install dependencies
+        timeout-minutes: 10
+        run: yarn install --immutable --immutable-cache --check-cache
+
+      - name: Install Chromium for web screenshot suites
+        timeout-minutes: 10
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          suite_count=0
+          while IFS= read -r config; do
+            package_dir="$(dirname "${config}")"
+            workspace="$(node -e 'process.stdout.write(require(`./${process.argv[1]}/package.json`).name)' "${package_dir}")"
+            yarn workspace "${workspace}" playwright install chromium
+            if [[ "${RUNNER_OS}" == "Linux" ]]; then
+              yarn workspace "${workspace}" playwright install-deps chromium
+            fi
+            suite_count=$((suite_count + 1))
+          done < <(find packages -mindepth 2 -maxdepth 2 -type f -path 'packages/web-*/playwright.config.*' -print | sort)
+
+          if [[ "${suite_count}" == "0" ]]; then
+            echo "::error::No Playwright suites were found under packages/web-*."
+            exit 1
+          fi
+
+      - name: Build project
+        run: yarn build
+
+      - name: Update screenshots
+        env:
+          ALLURE_NO_ANALYTICS: "true"
+        shell: bash
+        run: yarn run test:e2e --update-snapshots
+
+      - name: Verify updated screenshots
+        env:
+          ALLURE_NO_ANALYTICS: "true"
+        shell: bash
+        run: yarn run test:e2e
+
+      - name: Stage screenshot artifact
+        shell: bash
+        env:
+          PLATFORM: ${{ matrix.platform }}
+        run: |
+          set -euo pipefail
+
+          artifact_dir=".ci-artifacts"
+          mkdir -p "${artifact_dir}"
+
+          screenshot_count=0
+          while IFS= read -r -d '' screenshot; do
+            destination="${artifact_dir}/${screenshot}"
+            mkdir -p "$(dirname "${destination}")"
+            cp "${screenshot}" "${destination}"
+            screenshot_count=$((screenshot_count + 1))
+          done < <(
+            find packages -type f \
+              -path 'packages/web-*/*-snapshots/*' \
+              -name "*-${PLATFORM}.png" \
+              -print0
+          )
+
+          if [[ "${screenshot_count}" == "0" ]]; then
+            echo "::error::No ${PLATFORM} screenshots were generated."
+            exit 1
+          fi
+
+      - name: Upload updated screenshots
+        uses: actions/upload-artifact@v7
+        with:
+          name: web-screenshots-${{ matrix.platform }}
+          path: .ci-artifacts/
+          if-no-files-found: error
+          compression-level: 0
+
+  pull-request:
+    name: Create screenshot pull request
+    needs: [prepare, update]
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+    steps:
+      - name: Create GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@v3
+        with:
+          client-id: ${{ vars.ALLURE_CI_APP_CLIENT_ID }}
+          private-key: ${{ secrets.ALLURE_CI_APP_PRIVATE_KEY }}
+          permission-contents: write
+          permission-pull-requests: write
+
+      - name: Checkout base revision
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.prepare.outputs.base_branch }}
+          token: ${{ steps.app-token.outputs.token }}
+
+      - name: Verify base revision is unchanged
+        shell: bash
+        env:
+          EXPECTED_SHA: ${{ needs.prepare.outputs.base_sha }}
+        run: |
+          set -euo pipefail
+
+          actual_sha="$(git rev-parse HEAD)"
+          if [[ "${actual_sha}" != "${EXPECTED_SHA}" ]]; then
+            echo "::error::The base branch moved from ${EXPECTED_SHA} to ${actual_sha}. Re-run the workflow."
+            exit 1
+          fi
+
+      - name: Download updated screenshots
+        uses: actions/download-artifact@v7
+        with:
+          pattern: web-screenshots-*
+          path: .ci-artifacts
+          merge-multiple: true
+
+      - name: Validate and apply screenshot artifacts
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          artifact_dir=".ci-artifacts"
+          mapfile -d '' screenshots < <(find "${artifact_dir}" -type f -name '*.png' -print0)
+          if [[ "${#screenshots[@]}" == "0" ]]; then
+            echo "::error::No screenshot artifacts were downloaded."
+            exit 1
+          fi
+
+          if [[ "$(find "${artifact_dir}" -type f | wc -l | tr -d ' ')" != "${#screenshots[@]}" ]]; then
+            echo "::error::The downloaded artifacts contain unexpected files."
+            exit 1
+          fi
+
+          for screenshot in "${screenshots[@]}"; do
+            relative_path="${screenshot#"${artifact_dir}/"}"
+            if [[ ! "${relative_path}" =~ ^packages/web-[A-Za-z0-9._-]+/.+-snapshots/[^/]+-(linux|darwin)\.png$ ]]; then
+              echo "::error::Unexpected screenshot path: ${relative_path}"
+              exit 1
+            fi
+            mkdir -p "$(dirname "${relative_path}")"
+            cp "${screenshot}" "${relative_path}"
+          done
+
+      - name: Create or update pull request
+        uses: peter-evans/create-pull-request@v8
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+          branch: ${{ needs.prepare.outputs.update_branch }}
+          base: ${{ needs.prepare.outputs.base_branch }}
+          commit-message: "chore: update web screenshots"
+          title: "chore: update web screenshots"
+          body: |
+            Updates the web visual baselines generated in CI.
+
+            Environments: ${{ needs.prepare.outputs.environments }}
+            Source revision: `${{ needs.prepare.outputs.base_sha }}`
+          committer: ${{ vars.ALLURE_CI_APP_SLUG }}[bot] <${{ vars.ALLURE_CI_APP_USER_ID }}+${{ vars.ALLURE_CI_APP_SLUG }}[bot]@users.noreply.github.com>
+          author: ${{ vars.ALLURE_CI_APP_SLUG }}[bot] <${{ vars.ALLURE_CI_APP_USER_ID }}+${{ vars.ALLURE_CI_APP_SLUG }}[bot]@users.noreply.github.com>
+          add-paths: |
+            packages/web-*/**/*-snapshots/*.png
+          delete-branch: true
