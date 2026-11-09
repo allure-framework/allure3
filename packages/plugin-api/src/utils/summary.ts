@@ -124,7 +124,8 @@ export const createPluginSummary = async (params: {
   );
   const retryTrs = allTrs.filter(({ retryHash }) => retryHash && retryHashesWithRetries.has(retryHash));
   const flakyTrs = allTrs.filter((tr) => !!tr?.flaky);
-  const duration = calculateRunDuration(allTrs);
+  // a retried attempt is still test activity: without it a long first attempt would look like an idle gap
+  const duration = calculateRunDuration(await store.allTestResults({ includeRetries: true, filter }));
   const exitCode = await store.globalExitCode();
   const globalErrors = await store.allGlobalErrors();
   const status = resolveReportStatus({

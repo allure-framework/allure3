@@ -249,6 +249,33 @@ describe("summary utils", () => {
     expect(summary.retryTests).toEqual(["current"]);
   });
 
+  it("createPluginSummary counts the retried attempts as test activity", async () => {
+    const minute = 60 * 1000;
+    const first = testResult({ id: "a", start: 0, stop: minute });
+    const retried = testResult({ id: "b-1", start: minute, stop: 121 * minute, isRetry: true });
+    const last = testResult({ id: "b-2", start: 121 * minute, stop: 122 * minute });
+    const filter = (tr: TestResult) => tr.id !== "hidden";
+    const store = {
+      allCheckResults: vi.fn().mockResolvedValue([]),
+      allTestResults: vi.fn(({ includeRetries } = {}) =>
+        Promise.resolve(includeRetries ? [first, retried, last] : [first, last]),
+      ),
+      allNewTestResults: vi.fn().mockResolvedValue([]),
+      testsStatistic: vi.fn().mockResolvedValue({ total: 2 }),
+      ...emptyStoreGlobals(),
+    };
+    const summary = await createPluginSummary({
+      name: "summary-name",
+      plugin: "summary-plugin",
+      store: store as any,
+      filter,
+      meta: {},
+    });
+
+    expect(summary.duration).toBe(122 * minute);
+    expect(store.allTestResults).toHaveBeenCalledWith({ includeRetries: true, filter });
+  });
+
   it("createPluginSummary falls back to passed when status is empty", async () => {
     const store = {
       allCheckResults: vi.fn().mockResolvedValue([]),
