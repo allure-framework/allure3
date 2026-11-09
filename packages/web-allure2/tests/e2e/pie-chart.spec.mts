@@ -26,6 +26,9 @@ for (const mode of Object.values(REPORT_MODES)) {
   test(`pie explanation and interaction in both chart locations (${mode})`, async ({ page }, testInfo) => {
     await openReport(page, { fixture: "success-rate", mode });
 
+    // A stable element to move focus out of caption.
+    const suitesLink = page.getByRole("link", { name: "Suites", exact: true });
+
     for (const route of ["", "graph"]) {
       if (route) {
         await page.locator('a[href="#graph"]').click();
@@ -48,7 +51,12 @@ for (const mode of Object.values(REPORT_MODES)) {
         await expect(caption).toBeFocused();
       });
       await test.step("Pointer can enter explanation, and leaving both targets closes it", async () => {
-        await caption.evaluate((element) => (element as SVGElement & { blur(): void }).blur());
+        // Redraws replace the caption and restore focus, so move focus outside the chart.
+        // Evaluating the caption and calling .blur() would introduce a race condition.
+        await suitesLink.focus();
+
+        await expect(caption).not.toBeFocused();
+
         await caption.hover();
 
         const tooltip = page.getByRole("tooltip");
@@ -95,14 +103,14 @@ for (const mode of Object.values(REPORT_MODES)) {
         contentType: "image/png",
       });
       await page.keyboard.press("Escape");
-      await caption.evaluate((element) => (element as SVGElement & { blur(): void }).blur());
+      await suitesLink.focus();
     }
 
     await testInfo.attach("input and expectations", {
       body: JSON.stringify({ passed: 493, failed: 45, skipped: 95, success: "91.63%", passedSlice: "77.88%" }),
       contentType: "application/json",
     });
-    await page.locator('a[href="#suites"]').click();
+    await suitesLink.click();
 
     await expect(page.getByRole("tooltip")).toHaveCount(0);
     await expect(page.locator('[id*="-description-"]')).toHaveCount(0);

@@ -9,6 +9,11 @@ export interface ReportFile {
 export interface ClassicDataWriter {
   writeData(fileName: string, data: any): Promise<void>;
 
+  /**
+   * Writes the content as is (without JSON serialization) to the `data` directory
+   */
+  writeRawData(fileName: string, content: string | Buffer): Promise<void>;
+
   writeWidget(fileName: string, data: any): Promise<void>;
 
   writeTestCase(test: ReportTestResult): Promise<void>;
@@ -23,6 +28,12 @@ export class InMemoryReportDataWriter implements ClassicDataWriter {
     const dist = joinPosixPath("data", fileName);
 
     this.#data[dist] = Buffer.from(JSON.stringify(data), "utf-8");
+  }
+
+  async writeRawData(fileName: string, content: string | Buffer): Promise<void> {
+    const dist = joinPosixPath("data", fileName);
+
+    this.#data[dist] = typeof content === "string" ? Buffer.from(content, "utf-8") : content;
   }
 
   async writeWidget(fileName: string, data: any): Promise<void> {
@@ -59,6 +70,13 @@ export class ReportFileDataWriter implements ClassicDataWriter {
 
   async writeData(fileName: string, data: any): Promise<void> {
     await this.reportFiles.addFile(joinPosixPath("data", fileName), Buffer.from(JSON.stringify(data), "utf-8"));
+  }
+
+  async writeRawData(fileName: string, content: string | Buffer): Promise<void> {
+    await this.reportFiles.addFile(
+      joinPosixPath("data", fileName),
+      typeof content === "string" ? Buffer.from(content, "utf-8") : content,
+    );
   }
 
   async writeWidget(fileName: string, data: any): Promise<void> {

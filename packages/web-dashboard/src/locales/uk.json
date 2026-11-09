@@ -234,7 +234,31 @@
       "slice_many": "{{count}} тестів ({{percent}}% усіх тестів)"
     },
     "retry": "Повторити",
-    "loadError": "Не вдалося завантажити діаграму"
+    "loadError": "Не вдалося завантажити діаграму",
+    "durationTrend": {
+      "title": "Тренд тривалості",
+      "duration": "Тривалість",
+      "value": "{{duration, format_duration}}"
+    },
+    "retriesTrend": {
+      "title": "Тренд повторних спроб",
+      "run": "Тести",
+      "retry": "Повторні спроби"
+    },
+    "categoriesTrend": {
+      "title": "Тренд категорій"
+    },
+    "runTrend": {
+      "empty": "Немає що показати",
+      "tooltips": {
+        "current": "Останній звіт ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "Звіт від {{timestamp, timestamp_long_no_seconds}}"
+      },
+      "ticks": {
+        "current": "Останній",
+        "history": "{{timestamp, timestamp_date}}"
+      }
+    }
   },
   "transitions": {
     "description": {

@@ -664,6 +664,33 @@ describe("createHistory", () => {
     expect(history.testResults["single-retry-hash"].retries).toEqual([]);
   });
 
+  it("should store the error, flaky flag and status transition used to match history to categories", async () => {
+    await story("status-transitions");
+    await label("coverage", "status-transitions");
+
+    const testResults = [
+      {
+        id: "result-id",
+        name: "result",
+        retryHash: "retry-hash",
+        status: "failed",
+        error: { message: "boom", trace: "at test" },
+        flaky: true,
+        transition: "regressed",
+        labels: [],
+      },
+    ] as unknown as TestResult[];
+
+    const history = createHistory("report-id", "Report", [], testResults);
+
+    expect(history.testResults["retry-hash"]).toMatchObject({
+      message: "boom",
+      trace: "at test",
+      flaky: true,
+      transition: "regressed",
+    });
+  });
+
   it("should set nested history test result url from remote url", () => {
     const remoteUrl = "https://service.allurereport.org/report/1";
     const testCases = [{ id: "test-case-id" }] as TestCase[];
