@@ -492,7 +492,31 @@
       "slice": "{{count}} tests ({{percent}}% van alle tests)"
     },
     "retry": "Opnieuw proberen",
-    "loadError": "Kan de grafiek niet laden"
+    "loadError": "Kan de grafiek niet laden",
+    "durationTrend": {
+      "title": "Trend duur",
+      "duration": "Duur",
+      "value": "{{duration, format_duration}}"
+    },
+    "retriesTrend": {
+      "title": "Trend nieuwe pogingen",
+      "retry": "Herhalingen",
+      "run": "Tests"
+    },
+    "categoriesTrend": {
+      "title": "Trend categorieën"
+    },
+    "runTrend": {
+      "empty": "Er is niets te tonen",
+      "ticks": {
+        "current": "Laatste",
+        "history": "{{timestamp, timestamp_date}}"
+      },
+      "tooltips": {
+        "current": "Laatste rapport ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "Rapport van {{timestamp, timestamp_long_no_seconds}}"
+      }
+    }
   },
   "transitions": {
     "description": {

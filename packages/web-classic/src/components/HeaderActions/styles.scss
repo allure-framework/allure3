@@ -80,3 +80,15 @@
     transform: rotate(180deg);
   }
 }
+
+.header-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tree-controls {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}

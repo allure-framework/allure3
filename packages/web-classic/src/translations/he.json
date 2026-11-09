@@ -62,10 +62,12 @@
   "empty": {
     "no-results": "אין תוצאות",
     "no-tests-found": "לא נמצאו תוצאות",
+    "no-message-provided": "לא סופק הודעה",
     "clear-filters": "נקה מסננים",
     "no-attachments-results": "לא נמצאה מידע על קבצים מצורפים",
     "no-history-results": "לא נמצאה מידע על היסטוריה",
-    "no-retries-results": "לא נמצאה מידע על נסיונות חוזרים"
+    "no-retries-results": "לא נמצאה מידע על נסיונות חוזרים",
+    "no-test-steps-results": "אין מידע על שלבי הבדיקה"
   },
   "severity": {
     "blocker": "חוסם",
@@ -96,7 +98,17 @@
     "showMore": "הצג עוד",
     "copy": "העתק",
     "attempt": "ניסיון {{attempt}} מתוך {{total}}",
-    "at": "ב-"
+    "at": "ב-",
+    "generated": "נוצר",
+    "precondition": "תנאי מקדים",
+    "expectedResult": "תוצאה צפויה",
+    "categories": "קטגוריות",
+    "tags": "תגיות",
+    "owner": "בעלים",
+    "fullname": "שם מלא",
+    "test-case-id": "מזהה מקרה בדיקה",
+    "history-id": "מזהה היסטוריה",
+    "successRate": "שיעור הצלחה {{rate}}% ({{passed}} מתוך {{total}})"
   },
   "controls": {
     "backToOverview": "חזרה לסקירה",
@@ -112,28 +124,323 @@
     "expand": "הרחב",
     "fullscreen": "מסך מלא",
     "language": "שנה שפה",
-    "openInNewTab": "פתח בכרטיסייה חדשה"
+    "openInNewTab": "פתח בכרטיסייה חדשה",
+    "theme": "החלף ערכת נושא",
+    "showDiff": "הצג הבדל",
+    "comparison": "השוואה",
+    "expected": "מצופה",
+    "actual": "מצב נוכחי",
+    "viewMode": "מצב תצוגה",
+    "unified": "מאוחד",
+    "side-by-side": "זה לצד זה",
+    "compareBy": "השוואה לפי",
+    "chars": "תווים",
+    "words": "מילים",
+    "lines": "שורות",
+    "loadComparisonError": "טעינת ההשוואה נכשלה",
+    "retry": "ניסיון חוזר",
+    "loadAttachmentViewerError": "טעינת מציג הקבצים המצורפים נכשלה",
+    "previewAttachment": "תצוגה מקדימה",
+    "viewCode": "הצג קוד"
   },
   "errors": {
     "missedAttachment": "הקובץ המצורף לא נמצא"
   },
   "nav": {
+    "overview": "סקירה כללית",
+    "behaviors": "התנהגויות",
+    "categories": "קטגוריות",
+    "graphs": "גרפים",
+    "packages": "חבילות",
+    "suites": "סוויטות",
+    "timeline": "ציר זמן",
     "comingSoon": "בקרוב"
   },
   "charts": {
     "retry": "ניסיון חוזר",
     "loadError": "טעינת התרשים נכשלה",
+    "currentStatus": {
+      "title": "סטטוס נוכחי",
+      "status": {
+        "passed": "$t(statuses:passed, capitalize)",
+        "failed": "$t(statuses:failed, capitalize)",
+        "broken": "$t(statuses:broken, capitalize)",
+        "skipped": "$t(statuses:skipped, capitalize)",
+        "unknown": "$t(statuses:unknown, capitalize)"
+      },
+      "percentage": "{{percentage}}%",
+      "of": "מתוך {{total}}",
+      "total": "סה\"כ",
+      "tests": {
+        "new_zero": "אין בדיקות חדשות",
+        "new_one": "{{count}} בדיקה חדשה",
+        "new_other": "{{count}} בדיקות חדשות",
+        "flaky_zero": "אין בדיקות לא יציבות",
+        "flaky_one": "{{count}} בדיקה לא יציבה",
+        "flaky_other": "{{count}} בדיקות לא יציבות",
+        "retries_zero": "אין בדיקות שנוסו שוב",
+        "retries_one": "{{count}} בדיקה שנוסתה שוב",
+        "retries_other": "{{count}} בדיקות שנוסו שוב"
+      }
+    },
+    "statusDynamics": {
+      "title": "דינמיקת סטטוס",
+      "status": {
+        "passed": "$t(statuses:passed, capitalize)",
+        "failed": "$t(statuses:failed, capitalize)",
+        "broken": "$t(statuses:broken, capitalize)",
+        "skipped": "$t(statuses:skipped, capitalize)",
+        "unknown": "$t(statuses:unknown, capitalize)"
+      },
+      "no-history": "$t(empty:no-history-results)",
+      "no-results": "$t(empty:no-results)",
+      "tooltips": {
+        "current": "דוח אחרון ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "דוח מ-{{timestamp, timestamp_long_no_seconds}}"
+      },
+      "ticks": {
+        "current": "מהאחרון",
+        "history": "{{timestamp, timestamp_date}}"
+      }
+    },
+    "statusTransitions": {
+      "title": "מעברי סטטוס",
+      "legend": {
+        "trend": "שיעור תיקון"
+      },
+      "transitions": {
+        "new": "$t(transitions:new, capitalize)",
+        "fixed": "$t(transitions:fixed, capitalize)",
+        "regressed": "$t(transitions:regressed, capitalize)",
+        "malfunctioned": "$t(transitions:malfunctioned, capitalize)"
+      },
+      "no-history": "$t(empty:no-history-results)",
+      "no-results": "$t(empty:no-results)",
+      "tooltips": {
+        "current": "דוח אחרון ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "דוח מ-{{timestamp, timestamp_long_no_seconds}}"
+      },
+      "ticks": {
+        "current": "מהאחרון",
+        "history": "{{timestamp, timestamp_date}}"
+      }
+    },
+    "durations": {
+      "title": "היסטוגרמת משכי זמן לפי {{groupBy}}",
+      "title_none": "היסטוגרמת משכי זמן",
+      "no-results": "$t(empty:no-results)",
+      "groupBy": {
+        "none": "ללא",
+        "layer": "שכבה"
+      },
+      "ticks": {
+        "durationRange": "{{from, format_duration}} - {{to, format_duration}}"
+      },
+      "tooltips": {
+        "durationRange": "{{from, format_duration}} - {{to, format_duration}}"
+      },
+      "legend": {
+        "value": "{{value}}",
+        "total": "מספר בדיקות"
+      }
+    },
+    "stabilityDistribution": {
+      "title": "התפלגות יציבות",
+      "no-results": "$t(empty:no-results)",
+      "legend": {
+        "stabilityRate": "שיעור יציבות"
+      }
+    },
+    "testBaseGrowthDynamics": {
+      "title": "דינמיקת צמיחת בסיס הבדיקות",
+      "status": {
+        "newpassed": "חדש $t(statuses:passed)",
+        "newfailed": "חדש $t(statuses:failed)",
+        "newbroken": "חדש $t(statuses:broken)",
+        "newskipped": "חדש $t(statuses:skipped)",
+        "newunknown": "חדש $t(statuses:unknown)",
+        "removedpassed": "הוסר $t(statuses:passed)",
+        "removedfailed": "הוסר $t(statuses:failed)",
+        "removedbroken": "הוסר $t(statuses:broken)",
+        "removedskipped": "הוסר $t(statuses:skipped)",
+        "removedunknown": "הוסר $t(statuses:unknown)"
+      },
+      "legend": {
+        "trend": "מגמת צמיחה"
+      },
+      "no-history": "$t(empty:no-history-results)",
+      "no-results": "$t(empty:no-results)",
+      "tooltips": {
+        "current": "דוח אחרון ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "דוח מ-{{timestamp, timestamp_long_no_seconds}}"
+      },
+      "ticks": {
+        "current": "אחרון",
+        "history": "{{timestamp, timestamp_date}}"
+      }
+    },
+    "statusAgePyramid": {
+      "title": "פירמידת גילאים לפי סטטוס",
+      "status": {
+        "passed": "$t(statuses:passed, capitalize)",
+        "failed": "$t(statuses:failed, capitalize)",
+        "broken": "$t(statuses:broken, capitalize)",
+        "skipped": "$t(statuses:skipped, capitalize)",
+        "unknown": "$t(statuses:unknown, capitalize)"
+      },
+      "no-history": "$t(empty:no-history-results)",
+      "no-results": "$t(empty:no-results)",
+      "tooltips": {
+        "current": "דוח אחרון ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "דוח מ-{{timestamp, timestamp_long_no_seconds}}"
+      },
+      "ticks": {
+        "current": "אחרון",
+        "history": "{{timestamp, timestamp_date}}"
+      }
+    },
+    "trSeverities": {
+      "title": "תוצאות בדיקות לפי חומרה",
+      "no-results": "$t(empty:no-results)",
+      "status": {
+        "passed": "$t(statuses:passed, capitalize)",
+        "failed": "$t(statuses:failed, capitalize)",
+        "broken": "$t(statuses:broken, capitalize)",
+        "skipped": "$t(statuses:skipped, capitalize)",
+        "unknown": "$t(statuses:unknown, capitalize)"
+      },
+      "severity": {
+        "blocker": "$t(severity:blocker, capitalize)",
+        "critical": "$t(severity:critical, capitalize)",
+        "normal": "$t(severity:normal, capitalize)",
+        "minor": "$t(severity:minor, capitalize)",
+        "trivial": "$t(severity:trivial, capitalize)",
+        "unset": "ללא חומרה"
+      }
+    },
+    "durationDynamics": {
+      "title": "דינמיקת משך זמן",
+      "durations": {
+        "sequential": "משך זמן רצף",
+        "duration": "משך זמן בדיקות",
+        "speedup": "האצה"
+      },
+      "no-results": "$t(empty:no-results)",
+      "tooltips": {
+        "current": "דוח אחרון ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "דוח מ-{{timestamp, timestamp_long_no_seconds}}"
+      },
+      "ticks": {
+        "current": "אחרון",
+        "history": "{{timestamp, timestamp_date}}"
+      },
+      "legend": {
+        "duration": "{{duration, format_duration}}",
+        "speedup": "{{speedup}}x"
+      }
+    },
     "successRate": {
       "successRate": "שיעור הצלחה: {{rate}}",
       "successRateDescription": "מחושב לפי בדיקות שעברו, נכשלו או נשברו. בדיקות שדולגו ובדיקות במצב לא ידוע אינן נכללות.",
-      "noResults": "אין תוצאות בדיקות.",
       "noEligibleResults": "אין בדיקות שעברו, נכשלו או נשברו. בדיקות שדולגו ובדיקות במצב לא ידוע אינן נכללות בשיעור ההצלחה.",
+      "noResults": "אין תוצאות בדיקות.",
+      "notAvailable": "לא זמין",
       "slice_one": "בדיקה אחת: {{count}} ({{percent}}% מכל הבדיקות)",
       "slice_other": "{{count}} בדיקות ({{percent}}% מכל הבדיקות)",
       "layer": "שכבה: {{layer}}",
       "statusSlice": "{{count}} {{status}} ({{percent}}% מכל הבדיקות)",
       "slice": "{{count}} בדיקות ({{percent}}% מכל הבדיקות)",
       "slice_two": "{{count}} בדיקות ({{percent}}% מכל הבדיקות)"
+    },
+    "durationTrend": {
+      "title": "מגמת זמן ריצה",
+      "duration": "משך",
+      "value": "{{duration, format_duration}}"
+    },
+    "retriesTrend": {
+      "title": "מגמת חזרות על ריצה",
+      "retry": "נסיונות חוזרים",
+      "run": "בדיקות"
+    },
+    "categoriesTrend": {
+      "title": "מגמת ריצה על קטגוריות"
+    },
+    "runTrend": {
+      "empty": "אין דבר להציג",
+      "ticks": {
+        "current": "מהאחרון",
+        "history": "{{timestamp, timestamp_date}}"
+      },
+      "tooltips": {
+        "current": "דוח אחרון ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "דוח מ-{{timestamp, timestamp_long_no_seconds}}"
+      }
     }
+  },
+  "transitions": {
+    "new": "חדש",
+    "fixed": "מתוקן",
+    "regressed": "נסוג",
+    "malfunctioned": "פגום"
+  },
+  "timeline": {
+    "empty": "אין נתונים",
+    "selected_one": "{{ count }} בדיקה ({{ percentage }}%) עם משך זמן יותר מ-{{ minDuration }} ופחות מ-{{ maxDuration }} נבחרה",
+    "selected_other": "{{ count }} בדיקות ({{ percentage }}%) עם משך זמן יותר מ-{{ minDuration }} ופחות מ-{{ maxDuration }} נבחרו",
+    "host": "מארח: {{ host }}"
+  },
+  "overview": {
+    "summary": "סיכום",
+    "successRateDescription": "שיעור הבדיקות שעברו מתוך כל הבדיקות.",
+    "dates": "{{start, timestamp_long}} – {{stop, timestamp_long}}",
+    "duration": "משך: {{duration, format_duration}}",
+    "testCases_one": "מקרה בדיקה אחד",
+    "testCases_other": "{{count}} מקרי בדיקה",
+    "suites": "סוויטות",
+    "features": "תכונות לפי סיפורים",
+    "categories": "קטגוריות",
+    "environment": "סביבה",
+    "executors": "מריצים",
+    "itemsTotal_one": "פריט אחד בסך הכול",
+    "itemsTotal_other": "{{count}} פריטים בסך הכול",
+    "showAll": "הצג הכול",
+    "noItems": "אין פריטים",
+    "noEnvironment": "אין משתני סביבה",
+    "noExecutors": "אין מידע על מריצי הבדיקות",
+    "build": "בנייה",
+    "ciBuild": "בניית CI",
+    "pullRequest": "Pull request",
+    "branch": "ענף",
+    "commit": "קומיט",
+    "testCases_two": "שני מקרי בדיקה",
+    "itemsTotal_two": "שני פריטים בסך הכול"
+  },
+  "attachments": {
+    "imageDiff": {
+      "mode": {
+        "diff": "הבדל",
+        "actual": "ממשי",
+        "expected": "צפוי",
+        "side-by-side": "צד אל צד",
+        "overlay": "שכבה"
+      },
+      "empty": {
+        "failed-to-load": "טעינת השוואת תמונות נכשלה"
+      },
+      "image": {
+        "diff": "הבדל",
+        "actual": "ממשי",
+        "expected": "צפוי"
+      }
+    }
+  },
+  "tree": {
+    "collapse-all": "כווץ את כל הקבוצות",
+    "expand-all": "הרחב את כל הקבוצות",
+    "show-groups-info": "הצג מידע על קבוצות",
+    "hide-groups-info": "הסתר מידע על קבוצות",
+    "download-csv": "הורד CSV",
+    "flaky": "לא יציב",
+    "retries": "ניסיונות חוזרים: {{count}}"
   }
 }

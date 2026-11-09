@@ -193,15 +193,16 @@ for (const singleFile of [false, true]) {
           await expect(title).toHaveText("Earlier attempt");
         });
 
-        if (frontend === "awesome") {
-          await step("Keep explicit result routing when switching tabs", async () => {
-            url.hash = `testresult/${currentId}`;
-            await page.goto(url.href);
-            await page.getByTestId("test-result-tab-history").click();
-            await expect(page).toHaveURL(new RegExp(`#testresult/${currentId}/history$`));
-            await expect(title).toHaveText("Current attempt");
-          });
-        }
+        await step("Keep the result tab through navigation and reload", async () => {
+          const tab = frontend === "classic" ? "retries" : "history";
+          url.hash = `testresult/${currentId}`;
+          await page.goto(url.href);
+          await page.getByTestId(`test-result-tab-${tab}`).click();
+          await expect(page).toHaveURL(new RegExp(`#testresult/${currentId}/${tab}$`));
+          await page.reload();
+          await expect(title).toHaveText("Current attempt");
+          await expect(page.getByTestId(`test-result-tab-${tab}`)).toHaveAttribute("aria-current", "true");
+        });
 
         await step("Keep the missing-result state instead of redirecting to the root", async () => {
           url.hash = `testresult/${"0".repeat(32)}`;

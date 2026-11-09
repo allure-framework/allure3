@@ -56,9 +56,10 @@ export const EnvironmentPicker = ({
 }: EnvironmentPickerProps) => {
   const environmentId = value;
   const selectedEnvironmentLabel = environmentId ? environmentNameById(environments, environmentId) : labels.all;
-  const { ref: selectedTextRef, isTruncated: isSelectedValueTruncated } = useElementTruncation<HTMLSpanElement>([
-    selectedEnvironmentLabel,
-  ]);
+  const { ref: selectedTextRef, isTruncated: isSelectedValueTruncated } = useElementTruncation<HTMLSpanElement>(
+    [selectedEnvironmentLabel],
+    { axis: "horizontal" },
+  );
 
   if (environments.length <= 1) {
     return null;

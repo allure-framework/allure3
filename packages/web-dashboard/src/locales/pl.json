@@ -234,7 +234,31 @@
       "slice_many": "{{count}} testów ({{percent}}% wszystkich testów)"
     },
     "retry": "Spróbuj ponownie",
-    "loadError": "Nie udało się załadować wykresu"
+    "loadError": "Nie udało się załadować wykresu",
+    "durationTrend": {
+      "title": "Trend czasu trwania",
+      "duration": "Czas trwania",
+      "value": "{{duration, format_duration}}"
+    },
+    "retriesTrend": {
+      "title": "Trend powtórzeń",
+      "retry": "Próby ponowne",
+      "run": "Testy"
+    },
+    "categoriesTrend": {
+      "title": "Trend kategorii"
+    },
+    "runTrend": {
+      "empty": "Brak czegokolwiek do pokazania",
+      "ticks": {
+        "current": "Wcześniejsze",
+        "history": "{{timestamp, timestamp_date}}"
+      },
+      "tooltips": {
+        "current": "Najnowszy raport ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "Raport z {{timestamp, timestamp_long_no_seconds}}"
+      }
+    }
   },
   "transitions": {
     "description": {
