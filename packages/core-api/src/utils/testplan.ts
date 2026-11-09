@@ -13,7 +13,7 @@ const createTestPlanTests = (testResults: TestResult[]): TestPlanTest[] => {
     .filter(
       (value) =>
         (value.selector && (seenSelectors.has(value.selector) ? false : !!seenSelectors.add(value.selector))) ||
-        (value.id && (seenIds.has(value.id) ? false : !!seenSelectors.add(value.id))),
+        (value.id && (seenIds.has(value.id) ? false : !!seenIds.add(value.id))),
     );
 };
 
