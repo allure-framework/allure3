@@ -19,15 +19,14 @@ export class TestPlanPlugin implements Plugin {
     const included = mutedOnly ? [] : testResults.filter(filter);
     const muted = testResults.filter((result) => result.muted === true);
 
-    if (!mutedOnly && included.length === 0 && muted.length === 0) {
-      console.log("no tests included to test plan, skipping the generation");
+    if ((included.length === 0 && muted.length === 0) || (mutedOnly && muted.length === 0)) {
+      const msg = mutedOnly ? "no muted tests found" : "no tests included in test plan";
+      console.log(`${msg}, skipping the generation`);
       return;
     }
 
     const testPlan = createTestPlan(included, muted);
-
-    const output = mutedOnly ? { version: testPlan.version, mutedTests: testPlan.mutedTests } : testPlan;
-    const result = Buffer.from(JSON.stringify(output), "utf-8");
+    const result = Buffer.from(JSON.stringify(testPlan), "utf-8");
 
     await reportFiles.addFile(fileName, result);
   };

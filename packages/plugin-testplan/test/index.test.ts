@@ -1,6 +1,7 @@
 import type { TestResult } from "@allurereport/core-api";
 import type { AllureStore, PluginContext } from "@allurereport/plugin-api";
-import { describe, expect, it, vi } from "vite-plus/test";
+import { story } from "allure-js-commons";
+import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 import { TestPlanPlugin } from "../src/plugin.js";
 
@@ -22,6 +23,10 @@ const generate = async (results: TestResult[], options: ConstructorParameters<ty
 
   return files;
 };
+
+beforeEach(async () => {
+  await story("index");
+});
 
 describe("TestPlanPlugin", () => {
   it("writes only muted tests without applying the selection filter", async () => {
@@ -49,19 +54,17 @@ describe("TestPlanPlugin", () => {
         name: "muted.json",
         plan: {
           version: "1.0",
+          tests: [],
           mutedTests: [{ selector: "mutedPassed", testCaseId: "adapter-muted", environment: "linux" }],
         },
       },
     ]);
   });
 
-  it.each([
-    { name: "no results", results: [] },
-    { name: "no muted results", results: [result({ fullName: "regularFailure", status: "failed" })] },
-  ])("writes an empty muted-only plan with $name", async ({ results }) => {
-    const files = await generate(results, { mutedOnly: true });
+  it("skips generation when no muted tests found with mutedOnly option", async () => {
+    const files = await generate([result({ fullName: "regularFailure", status: "failed" })], { mutedOnly: true });
 
-    expect(files).toEqual([{ name: "testplan.json", plan: { version: "1.0", mutedTests: [] } }]);
+    expect(files).toEqual([]);
   });
 
   it("collects muted results independently of default selection", async () => {
@@ -102,7 +105,7 @@ describe("TestPlanPlugin", () => {
     ]);
   });
 
-  it("writes a muted-only plan with a custom filter", async () => {
+  it("saves muted tests even when filter does not match any tests for execution", async () => {
     const results = [
       result({ fullName: "mutedPassed", muted: true }),
       result({ fullName: "resolvedMuted", resolution: "muted" }),
