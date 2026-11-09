@@ -1,5 +1,5 @@
 import { sanitizeExternalUrl } from "@allurereport/core-api";
-import { SvgIcon, Text, allureIcons } from "@allurereport/web-components";
+import { Button, SvgIcon, Text, allureIcons } from "@allurereport/web-components";
 import type { FunctionalComponent } from "preact";
 import { useState } from "preact/hooks";
 import type { ReportTestResult } from "types";
@@ -8,6 +8,8 @@ import { MetadataButton } from "@/components/MetadataButton";
 import { useI18n } from "@/stores/locale";
 
 import * as styles from "./styles.scss";
+
+export const VISIBLE_LINKS_LIMIT = 8;
 
 interface TestResultLinkProps {
   name: string;
@@ -25,11 +27,12 @@ const linksIconMap: Record<string, string> = {
 const TestResultLink: FunctionalComponent<{
   link: TestResultLinkProps;
 }> = ({ link }) => {
-  const { url, type } = link;
+  const { url, name, type } = link;
   const safeUrl = sanitizeExternalUrl(url);
+  const label = name || url;
 
   return (
-    <div className={styles["test-result-link"]}>
+    <div className={styles["test-result-link"]} data-testid="test-result-link">
       <SvgIcon id={linksIconMap[type] ?? allureIcons.lineGeneralLink1} />
       {safeUrl ? (
         <Text
@@ -40,11 +43,11 @@ const TestResultLink: FunctionalComponent<{
           size={"m"}
           className={styles["test-result-link-text"]}
         >
-          {url}
+          {label}
         </Text>
       ) : (
         <Text size={"m"} className={styles["test-result-link-text"]}>
-          {url}
+          {label}
         </Text>
       )}
     </div>
@@ -57,8 +60,11 @@ export type TestResultLinksProps = {
 
 export const TestResultLinks: FunctionalComponent<TestResultLinksProps> = ({ links }) => {
   const [isOpened, setIsOpen] = useState(true);
+  const [showAll, setShowAll] = useState(false);
   const { t } = useI18n("ui");
-  const linkMap = links.map((link, index) => {
+  const hasMore = links.length > VISIBLE_LINKS_LIMIT;
+  const visibleLinks = hasMore && !showAll ? links.slice(0, VISIBLE_LINKS_LIMIT) : links;
+  const linkMap = visibleLinks.map((link, index) => {
     return <TestResultLink link={link as TestResultLinkProps} key={index} />;
   });
 
@@ -66,7 +72,19 @@ export const TestResultLinks: FunctionalComponent<TestResultLinksProps> = ({ lin
     <div className={styles["test-result-links"]}>
       <div className={styles["test-result-links-wrapper"]}>
         <MetadataButton isOpened={isOpened} setIsOpen={setIsOpen} counter={links.length} title={t("links")} />
-        {isOpened && <div className={styles["test-result-links-list"]}>{linkMap}</div>}
+        {isOpened && (
+          <>
+            <div className={styles["test-result-links-list"]}>{linkMap}</div>
+            {hasMore && (
+              <Button
+                style="ghost"
+                size="s"
+                text={showAll ? t("showLess") : t("showMore")}
+                onClick={() => setShowAll(!showAll)}
+              />
+            )}
+          </>
+        )}
       </div>
     </div>
   );

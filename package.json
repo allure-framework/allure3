@@ -1,6 +1,6 @@
 {
   "name": "@allurereport/monorepo",
-  "version": "3.22.1",
+  "version": "3.33.0",
   "private": true,
   "description": "Allure framework TypeScript implementation",
   "keywords": [],
@@ -16,7 +16,7 @@
   "scripts": {
     "archive": "yarn allure archive",
     "audit": "yarn npm audit --all --recursive",
-    "build": "vp run -v --log labeled -F '{packages/*}' -F '!sandbox' vp:build",
+    "build": "rimraf -g 'packages/*/dist' && vp run -v --log labeled -F '{packages/*}' -F '!sandbox' vp:build",
     "check": "vp check",
     "check:dependencies": "sherif",
     "clean": "vp run -rv --log labeled --parallel clean",
@@ -43,7 +43,7 @@
     "@types/node": "^20.19.43",
     "allure": "workspace:*",
     "babel-plugin-prismjs": "^2.1.0",
-    "lefthook": "^2.1.4",
+    "lefthook": "^2.2.2",
     "rimraf": "^6.1.3",
     "sherif": "^1.13.0",
     "tslib": "^2.7.0",

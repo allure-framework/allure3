@@ -169,6 +169,49 @@ describe("utils > treeFilters", () => {
       expect(result).toEqual([expect.objectContaining({ name: "a1" })]);
     });
 
+    it("returns only new leaves when the new filter is enabled", () => {
+      const baseDate = Date.now();
+      const leaves = ["a1", "b2", "c3"];
+      const leavesById = {
+        a1: makeLeaf({ name: "a1", start: baseDate, transition: "new" }),
+        b2: makeLeaf({ name: "b2", start: baseDate + 1000, transition: "fixed" }),
+        c3: makeLeaf({ name: "c3", start: baseDate + 2000 }),
+      };
+      const result = filterLeaves(leaves, leavesById, {
+        query: "",
+        status: "total",
+        sortBy: "order",
+        direction: "asc",
+        filter: {
+          flaky: false,
+          retry: false,
+          new: true,
+        },
+      });
+
+      expect(result).toEqual([expect.objectContaining({ name: "a1" })]);
+    });
+
+    it("keeps every leaf when the new filter is disabled", () => {
+      const leavesById = {
+        a1: makeLeaf({ name: "a1", start: 1, transition: "new" }),
+        b2: makeLeaf({ name: "b2", start: 2 }),
+      };
+      const result = filterLeaves(["a1", "b2"], leavesById, {
+        query: "",
+        status: "total",
+        filter: {
+          flaky: false,
+          retry: false,
+          new: false,
+        },
+        sortBy: "order",
+        direction: "asc",
+      });
+
+      expect(result.map(({ name }) => name)).toEqual(["a1", "b2"]);
+    });
+
     it("sorts leave by duration in ascending order", () => {
       const leaves = ["a1", "b2", "c3"];
       const leavesById = {

@@ -123,3 +123,84 @@ describe("convertTestResult", () => {
     }
   });
 });
+
+describe("convertTestResult preconditions and expected results", () => {
+  it("converts markdown precondition and expected result to html", () => {
+    const result = convertTestResult(
+      createTestResult({ precondition: "user is **logged in**", expectedResult: "page is *shown*" }),
+    );
+
+    expect(result.preconditionHtml).toBe("<p>user is <strong>logged in</strong></p>\n");
+    expect(result.expectedResultHtml).toBe("<p>page is <em>shown</em></p>\n");
+  });
+
+  it("keeps provided precondition and expected result html as-is", () => {
+    const result = convertTestResult(
+      createTestResult({
+        precondition: "markdown",
+        preconditionHtml: "<p>precondition</p>",
+        expectedResult: "markdown",
+        expectedResultHtml: "<p>expected</p>",
+      }),
+    );
+
+    expect(result.preconditionHtml).toBe("<p>precondition</p>");
+    expect(result.expectedResultHtml).toBe("<p>expected</p>");
+  });
+
+  it("leaves precondition and expected result empty when they are missing", () => {
+    const result = convertTestResult(createTestResult());
+
+    expect(result.preconditionHtml).toBeUndefined();
+    expect(result.expectedResultHtml).toBeUndefined();
+  });
+});
+
+describe("convertTestResult ideaLinks", () => {
+  const labels = [{ name: "testClass", value: "org.example.FooTest" }];
+
+  it("does not add idea link by default", () => {
+    expect(convertTestResult(createTestResult({ labels })).links).toEqual([]);
+  });
+
+  it("adds idea link built from testClass label", () => {
+    const { links } = convertTestResult(createTestResult({ labels }), { ideaLinks: true });
+
+    expect(links).toEqual([
+      {
+        name: "Open in IDEA",
+        type: "idea",
+        url: "http://localhost:63342/api/file?file=org%2Fexample%2FFooTest.java",
+      },
+    ]);
+  });
+
+  it("respects custom options and keeps existing links first", () => {
+    const existing = { url: "https://example.org" };
+    const { links } = convertTestResult(createTestResult({ labels, links: [existing] }), {
+      ideaLinks: { port: 1234, fileExtension: ".kt", sourceRoot: "/src/test/kotlin/" },
+    });
+
+    expect(links).toHaveLength(2);
+    expect(links[0]).toBe(existing);
+    expect(links[1].url).toBe("http://localhost:1234/api/file?file=src%2Ftest%2Fkotlin%2Forg%2Fexample%2FFooTest.kt");
+  });
+
+  it("points nested classes to the outer class file", () => {
+    const { links } = convertTestResult(
+      createTestResult({ labels: [{ name: "testClass", value: "org.example.FooTest$Inner" }] }),
+      { ideaLinks: true },
+    );
+
+    expect(links[0].url).toBe("http://localhost:63342/api/file?file=org%2Fexample%2FFooTest.java");
+  });
+
+  it.each(["Login suite", "tests/login.spec.ts", "", "org..FooTest", "1abc.Foo", "$Foo"])(
+    "skips idea link for non-class testClass %j",
+    (value) => {
+      expect(
+        convertTestResult(createTestResult({ labels: [{ name: "testClass", value }] }), { ideaLinks: true }).links,
+      ).toEqual([]);
+    },
+  );
+});

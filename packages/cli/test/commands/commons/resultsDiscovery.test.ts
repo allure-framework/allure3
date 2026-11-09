@@ -50,7 +50,7 @@ describe("allureResultsDirectoriesGlobWatcher", () => {
     });
 
     await watcher.initialScan();
-    await (watchMock.mock.calls.at(-1)?.[1] as () => Promise<void>)();
+    await (watchMock.mock.calls.at(-1)!.at(1) as unknown as () => Promise<void>)();
 
     expect(updates[0]?.added).toEqual([]);
     expect(updates[1]?.added).toEqual(["/tmp/other-results/", "/tmp/results/"].sort());

@@ -1,5 +1,10 @@
 import type { AttachmentTestStepResult, DefaultTestStepResult, TestError, TestStatus } from "@allurereport/core-api";
-import { hasErrorDiff } from "@allurereport/web-commons";
+import {
+  hasErrorDiff,
+  isDisplayableTestError,
+  normalizeErrorText,
+  type TestErrorLike,
+} from "@allurereport/web-commons";
 import type { ReportFixtureResult, ReportTestResult } from "types";
 
 export type TestLevelErrorItem = {
@@ -19,30 +24,15 @@ export type TrStepItem = {
 
 export type TrBodyItem = TrStepItem | AttachmentTestStepResult | TestLevelErrorItem;
 
-type TestErrorLike = Pick<TestError, "message" | "trace" | "actual" | "expected">;
-
 type BuildResult = {
   bodyItems: TrBodyItem[];
   placedErrorIds: Set<string>;
 };
 
-// Same pattern as @allurereport/web-commons stripAnsi — kept inline to avoid
-// module-resolution issues in the vitest/webpack dual environment.
-// eslint-disable-next-line no-control-regex
-const ansiRegex = /\x1B\[[0-9;?]*[ -/]*[@-~]/g;
-
 export const getTestLevelErrorId = (testResultId: string) => `__test-error__:${testResultId}`;
 
 export const getTestLevelErrorItemId = (testResultId: string, index: number) =>
   index === 0 ? getTestLevelErrorId(testResultId) : `${getTestLevelErrorId(testResultId)}:${index}`;
-
-const normalizeErrorText = (value?: string) => {
-  if (typeof value !== "string") {
-    return "";
-  }
-
-  return value.replace(ansiRegex, "").trim();
-};
 
 const getTestLevelErrorTitle = (message?: string) => {
   return (
@@ -57,14 +47,6 @@ export { hasErrorDiff } from "@allurereport/web-commons";
 
 export const hasTestLevelErrorContent = (error?: TestErrorLike) =>
   Boolean(normalizeErrorText(error?.trace).length) || hasErrorDiff(error);
-
-export const isDisplayableTestError = (error?: TestErrorLike) => {
-  return (
-    Boolean(normalizeErrorText(error?.message).length) ||
-    Boolean(normalizeErrorText(error?.trace).length) ||
-    hasErrorDiff(error)
-  );
-};
 
 export const hasDisplayableTestStatusDetails = (status: TestStatus | undefined, error?: TestErrorLike) => {
   return (status === "failed" || status === "broken" || status === "skipped") && isDisplayableTestError(error);
@@ -159,6 +141,7 @@ export const fixtureResultToTrStepItem = (fixture: ReportFixtureResult): TrStepI
       message: err?.message,
       trace: err?.trace,
       error: err,
+      hasSimilarErrorInSubSteps: fixture.hasSimilarErrorInSubSteps,
     },
     bodyItems: getStepBodyItems(fixture.steps),
     suppressInlineError: false,

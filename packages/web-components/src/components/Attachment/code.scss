@@ -17,6 +17,15 @@
   line-height: 1.5;
 }
 
+// babel-plugin-prismjs bundles Prism's stock light theme after this file. Its `pre[class*="language-"]`
+// rules have the same specificity as the ones above, so they would win and paint code blocks (e.g. the
+// error diff) on a light background with black text in the dark theme.
+:global(:root) :global(pre[class*="language-"]),
+:global(:root) :global(code[class*="language-"]) {
+  background: var(--color-bg-secondary);
+  color: var(--color-text-primary);
+}
+
 :global(pre.attachment-code-block.line-numbers) {
   padding-left: 8px;
 }

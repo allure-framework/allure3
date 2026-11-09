@@ -1,24 +1,25 @@
 import type { AttachmentTestStepResult } from "@allurereport/core-api";
-import { downloadAttachment, openAttachmentInNewTab } from "@allurereport/web-commons";
-import { Button, Heading, IconButton, TooltipWrapper, allureIcons } from "@allurereport/web-components";
+import { attachmentType, downloadAttachment, openAttachmentInNewTab } from "@allurereport/web-commons";
+import { Attachment, Button, Heading, IconButton, TooltipWrapper, allureIcons } from "@allurereport/web-components";
 import { signal } from "@preact/signals";
 import type { FunctionalComponent, VNode } from "preact";
+import { cloneElement } from "preact";
 import { useEffect } from "preact/hooks";
-import Prism from "prismjs";
 import type { ReportTestResult } from "types";
 
-import { Attachment } from "@/components/TestResult/TestResultSteps/attachment";
-import { useI18n } from "@/stores";
-import { attachmentType } from "@/utils/attachments";
+import { hasAttachmentPreview } from "@/components/TestResult/TestResultSteps/attachmentPreview";
+import { useAttachmentI18n } from "@/components/TestResult/TestResultSteps/useAttachmentI18n";
+import { useI18n } from "@/stores/locale";
 
 import * as styles from "./styles.scss";
 
 export const isModalOpen = signal(false);
 
 interface ModalDataProps {
-  data: AttachmentTestStepResult | null;
+  data: Partial<AttachmentTestStepResult> | Record<string, unknown> | null;
   component: VNode | null;
   preview?: boolean;
+  title?: string;
 }
 
 export const modalData = signal<ModalDataProps>({
@@ -27,11 +28,12 @@ export const modalData = signal<ModalDataProps>({
   component: null,
 });
 
-const openModal = ({ data, component, preview }: ModalDataProps) => {
+const openModal = ({ data, component, preview, title }: ModalDataProps) => {
   modalData.value = {
     data,
     component,
     preview,
+    title,
   };
   isModalOpen.value = true;
 };
@@ -40,13 +42,18 @@ const closeModal = () => {
   isModalOpen.value = false;
 };
 
+const getAttachmentLink = (data: ModalDataProps["data"]) =>
+  (data as Partial<AttachmentTestStepResult> | null)?.link as AttachmentTestStepResult["link"] | undefined;
+
 const ModalThumb: FunctionalComponent<{ item: AttachmentTestStepResult }> = ({ item, children }) => {
-  const isActiveThumb = modalData.value.data?.link?.id === item.link?.id;
+  const i18n = useAttachmentI18n();
+  const isActiveThumb = getAttachmentLink(modalData.value.data)?.id === item.link?.id;
 
   const showAttach = (showedItem: AttachmentTestStepResult) => {
     openModal({
       data: showedItem,
-      component: <Attachment item={showedItem} key={showedItem.link?.id} />,
+      preview: hasAttachmentPreview(showedItem.link?.contentType),
+      component: <Attachment item={showedItem} key={showedItem.link?.id} i18n={i18n} />,
     });
   };
 
@@ -63,9 +70,9 @@ export type ModalGalleryProps = {
 
 const ModalGallery: FunctionalComponent<ModalGalleryProps> = ({ attachments = [] }) => {
   const filteredAttachments = attachments.filter(({ link: { contentType } }: AttachmentTestStepResult) => {
-    const type = attachmentType(contentType).type;
+    const type = attachmentType(contentType);
 
-    return !["archive", null].includes(type as string);
+    return !["archive", null].includes(type);
   });
 
   return (
@@ -84,14 +91,14 @@ export type ModalProps = {
 };
 
 const Modal: FunctionalComponent<ModalProps> = ({ testResult }) => {
-  const { t: tooltip } = useI18n("controls");
+  const { t } = useI18n("controls");
   const { t: tErrors } = useI18n("errors");
-  const { link } = modalData.value.data || {};
-  const attachName = link?.name ? `${link?.name}` : `${link?.id}${link?.ext}`;
+  const { data, component, preview, title } = modalData.value;
+  const link = getAttachmentLink(data);
+  const attachName = link?.name ? `${link?.name}` : link ? `${link?.id}${link?.ext}` : "";
+  const isAttachment = Boolean(link?.id);
 
   useEffect(() => {
-    Prism.highlightAll();
-
     if (isModalOpen.value) {
       document.body.style.overflow = "hidden";
     } else {
@@ -104,9 +111,7 @@ const Modal: FunctionalComponent<ModalProps> = ({ testResult }) => {
   }, []);
 
   const isImageAttachment = link?.contentType?.startsWith("image");
-  const isHtmlAttachment = link?.contentType === "text/html";
-  const isMarkdownAttachment = link?.contentType === "text/markdown";
-  const isPreviewToggleAttachment = isHtmlAttachment || isMarkdownAttachment;
+  const isPreviewToggleAttachment = hasAttachmentPreview(link?.contentType);
   const downloadData = async (e: Event) => {
     e.stopPropagation();
     const { id, ext, contentType } = link || {};
@@ -127,7 +132,7 @@ const Modal: FunctionalComponent<ModalProps> = ({ testResult }) => {
       <div className={styles["modal-content"]} onClick={(e) => e.stopPropagation()}>
         <div className={`${styles["modal-wrapper"]}`}>
           <div className={styles["modal-top"]}>
-            <Heading size={"s"}>{attachName}</Heading>
+            <Heading size={"s"}>{title || attachName}</Heading>
             <div className={styles["modal-buttons"]}>
               {isImageAttachment && (
                 <Button
@@ -135,47 +140,49 @@ const Modal: FunctionalComponent<ModalProps> = ({ testResult }) => {
                   isDisabled={link?.missed}
                   onClick={openInNewWindow}
                   icon={allureIcons.lineGeneralLinkExternal}
-                  text={"Open in new tab"}
+                  text={t("openInNewTab")}
                 />
               )}
               {isPreviewToggleAttachment && (
-                <TooltipWrapper tooltipText={"Preview attachment"}>
+                <TooltipWrapper tooltipText={t("previewAttachment")}>
                   <IconButton
                     style={"outline"}
                     size={"m"}
                     iconSize={"s"}
-                    icon={modalData.value.preview ? allureIcons.viewOff : allureIcons.view}
+                    icon={preview ? allureIcons.viewOff : allureIcons.view}
                     onClick={() => {
                       modalData.value = {
                         ...modalData.value,
-                        preview: !modalData.value.preview,
+                        preview: !preview,
                       };
                     }}
                   />
                 </TooltipWrapper>
               )}
-              <TooltipWrapper tooltipText={link?.missed ? tErrors("missedAttachment") : tooltip("downloadAttachment")}>
-                <IconButton
-                  style={"outline"}
-                  size={"m"}
-                  iconSize={"s"}
-                  data-testid="attachment-download-button"
-                  isDisabled={link?.missed}
-                  aria-label={tooltip("downloadAttachment")}
-                  icon={allureIcons.lineGeneralDownloadCloud}
-                  onClick={(e: MouseEvent) => downloadData(e)}
-                />
-              </TooltipWrapper>
+              {isAttachment && (
+                <TooltipWrapper tooltipText={link?.missed ? tErrors("missedAttachment") : t("downloadAttachment")}>
+                  <IconButton
+                    style={"outline"}
+                    size={"m"}
+                    iconSize={"s"}
+                    data-testid="attachment-download-button"
+                    isDisabled={link?.missed}
+                    aria-label={t("downloadAttachment")}
+                    icon={allureIcons.lineGeneralDownloadCloud}
+                    onClick={(e: MouseEvent) => downloadData(e)}
+                  />
+                </TooltipWrapper>
+              )}
               <IconButton iconSize={"m"} style={"ghost"} onClick={closeModal} icon={allureIcons.lineGeneralXClose} />
             </div>
           </div>
           <div className={styles["modal-data"]}>
-            <div className={styles["modal-data-component"]} key={modalData.value?.data?.link?.id}>
-              {modalData.value?.component}
+            <div className={styles["modal-data-component"]} key={link?.id ?? title}>
+              {isAttachment && component ? cloneElement(component, { previewable: !!preview }) : component}
             </div>
           </div>
         </div>
-        <ModalGallery attachments={testResult?.attachments} />
+        {isAttachment && <ModalGallery attachments={testResult?.attachments} />}
       </div>
     </div>
   );

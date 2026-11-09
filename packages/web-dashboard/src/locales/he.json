@@ -227,7 +227,31 @@
       "slice_two": "{{count}} בדיקות ({{percent}}% מכל הבדיקות)"
     },
     "retry": "ניסיון חוזר",
-    "loadError": "טעינת התרשים נכשלה"
+    "loadError": "טעינת התרשים נכשלה",
+    "durationTrend": {
+      "title": "מגמת זמן ריצה",
+      "duration": "משך",
+      "value": "{{duration, format_duration}}"
+    },
+    "retriesTrend": {
+      "title": "מגמת חזרות על ריצה",
+      "retry": "נסיונות חוזרים",
+      "run": "בדיקות"
+    },
+    "categoriesTrend": {
+      "title": "מגמת ריצה על קטגוריות"
+    },
+    "runTrend": {
+      "empty": "אין דבר להציג",
+      "ticks": {
+        "current": "מהאחרון",
+        "history": "{{timestamp, timestamp_date}}"
+      },
+      "tooltips": {
+        "current": "דוח אחרון ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "דוח מ-{{timestamp, timestamp_long_no_seconds}}"
+      }
+    }
   },
   "transitions": {
     "description": {

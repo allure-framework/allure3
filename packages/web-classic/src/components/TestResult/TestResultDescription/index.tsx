@@ -1,24 +1,40 @@
 import { proseStyles, resolveCssVarDeclarations, sanitizeIframeHtml, themeStore } from "@allurereport/web-commons";
 import type { FunctionalComponent } from "preact";
 import { useMemo, useState } from "preact/hooks";
-import type { ReportTestResult } from "types";
 
 import { MetadataButton } from "@/components/MetadataButton";
+import { useI18n } from "@/stores/locale";
 
 import * as styles from "./styles.scss";
 
+export type TestResultRichTextSection = "description" | "precondition" | "expectedResult";
+
 export type TestResultDescriptionProps = {
-  descriptionHtml: ReportTestResult["descriptionHtml"];
+  /** which rich text of the test result is rendered; the section title is translated by this key */
+  section?: TestResultRichTextSection;
+  html?: string;
 };
 
-const MIN_HEIGHT = 120;
+const getIframeContentHeight = (iframe: HTMLIFrameElement) => {
+  const documentElement = iframe.contentDocument?.documentElement;
+  const body = iframe.contentDocument?.body;
+  const bodyRectHeight = body?.getBoundingClientRect().height ?? 0;
+  const scrollHeight = Math.max(body?.scrollHeight ?? 0, documentElement?.scrollHeight ?? 0);
 
-export const TestResultDescription: FunctionalComponent<TestResultDescriptionProps> = ({ descriptionHtml }) => {
+  return Math.ceil(Math.max(bodyRectHeight, scrollHeight));
+};
+
+export const TestResultDescription: FunctionalComponent<TestResultDescriptionProps> = ({
+  section = "description",
+  html,
+}) => {
+  const { t } = useI18n("ui");
+  const title = t(section);
   const [isOpen, setIsOpen] = useState(true);
-  const [height, setHeight] = useState(MIN_HEIGHT);
+  const [height, setHeight] = useState(0);
   const currentTheme = themeStore.value.current;
 
-  const sanitized = useMemo(() => (descriptionHtml ? sanitizeIframeHtml(descriptionHtml) : ""), [descriptionHtml]);
+  const sanitized = useMemo(() => (html ? sanitizeIframeHtml(html) : ""), [html]);
 
   const iframeContent = useMemo(() => {
     if (!sanitized) {
@@ -39,23 +55,19 @@ export const TestResultDescription: FunctionalComponent<TestResultDescriptionPro
   }, [currentTheme, sanitized]);
 
   const handleLoad = (e: Event) => {
-    const iframe = e.currentTarget as HTMLIFrameElement;
-    const documentElement = iframe.contentDocument?.documentElement;
-    const body = iframe.contentDocument?.body;
-    const scrollHeight = Math.max(documentElement?.scrollHeight ?? 0, body?.scrollHeight ?? 0);
-    setHeight(Math.max(scrollHeight, MIN_HEIGHT));
+    setHeight(getIframeContentHeight(e.currentTarget as HTMLIFrameElement));
   };
 
   return (
-    <div className={styles["test-result-description"]} data-testid="test-result-description">
+    <div className={styles["test-result-description"]} data-testid={`test-result-${section}`}>
       <div className={styles["test-result-description-wrapper"]}>
-        <MetadataButton title="Description" setIsOpen={setIsOpen} isOpened={isOpen} />
+        <MetadataButton title={title} setIsOpen={setIsOpen} isOpened={isOpen} />
         {isOpen && (
           <div className={styles["test-result-description-text"]}>
             {iframeContent && (
               <iframe
-                data-testid="test-result-description-frame"
-                title="Description"
+                data-testid={`test-result-${section}-frame`}
+                title={title}
                 srcDoc={iframeContent}
                 width="100%"
                 height={String(height)}

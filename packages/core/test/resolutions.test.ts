@@ -198,48 +198,49 @@ describe("resolution rules", () => {
     );
   });
 
-  it("lets known beat matching muted config rules", () => {
+  it.each([
+    {
+      name: "known result beats a matching muted config rule",
+      resultFlags: { known: true },
+      rule: {
+        resolution: "muted",
+        comment: "would mute",
+        testCaseId: ["tc-1"],
+        environment: ["prod"],
+      } satisfies ResolutionRule,
+      expected: KNOWN_FROM_RESULT_RESOLUTION,
+    },
+    {
+      name: "known result beats a matching accepted config rule",
+      resultFlags: { known: true },
+      rule: {
+        resolution: "accepted",
+        comment: "would accept",
+        testCaseId: ["tc-1"],
+        environment: ["prod"],
+      } satisfies ResolutionRule,
+      expected: KNOWN_FROM_RESULT_RESOLUTION,
+    },
+    {
+      name: "muted result beats a matching accepted config rule",
+      resultFlags: { muted: true },
+      rule: {
+        resolution: "accepted",
+        comment: "would accept",
+        testCaseId: ["tc-1"],
+        environment: ["prod"],
+      } satisfies ResolutionRule,
+      expected: MUTED_FROM_RESULT_RESOLUTION,
+    },
+  ])("$name", ({ resultFlags, rule, expected }) => {
     const result = {
-      known: true,
+      ...resultFlags,
       status: "failed",
       testCase: { id: "tc-1" },
       environment: "prod",
-    } as TestResult;
+    } as unknown as TestResult;
 
-    expect(
-      getResolutionByRules(result, {
-        rules: [
-          {
-            resolution: "muted",
-            comment: "would mute",
-            testCaseId: ["tc-1"],
-            environment: ["prod"],
-          },
-        ],
-      }),
-    ).toBe(KNOWN_FROM_RESULT_RESOLUTION);
-  });
-
-  it("lets result muted beat matching accepted config rules", () => {
-    const result = {
-      muted: true,
-      status: "failed",
-      testCase: { id: "tc-1" },
-      environment: "prod",
-    } as TestResult;
-
-    expect(
-      getResolutionByRules(result, {
-        rules: [
-          {
-            resolution: "accepted",
-            comment: "would accept",
-            testCaseId: ["tc-1"],
-            environment: ["prod"],
-          },
-        ],
-      }),
-    ).toBe(MUTED_FROM_RESULT_RESOLUTION);
+    expect(getResolutionByRules(result, { rules: [rule] })).toBe(expected);
   });
 
   it("lets matching issue config rule beat result muted", () => {
@@ -378,6 +379,20 @@ describe("resolution config validation", () => {
         rules: [{ resolution: "accepted", comment: "expected", retryHash: [], messageRegexp: "[" }],
       }),
     ).toThrow(/non-empty array.*valid regular expression/);
+  });
+
+  it("rejects malformed rule collections, missing matchers, and unsupported resolutions", () => {
+    expect(() => validateResolutionsConfig({ rules: {} } as never)).toThrow(/resolutions\.rules must be an array/);
+    expect(() =>
+      validateResolutionsConfig({
+        rules: [{ resolution: "muted", comment: "No matcher" } as ResolutionRule],
+      }),
+    ).toThrow(/resolutions\.rules\[0\] must contain at least one matcher/);
+    expect(() =>
+      validateResolutionsConfig({
+        rules: [{ resolution: "ignored", retryHash: ["hash"] } as unknown as ResolutionRule],
+      }),
+    ).toThrow(/resolutions\.rules\[0\]\.resolution must be issue, muted, or accepted/);
   });
 });
 

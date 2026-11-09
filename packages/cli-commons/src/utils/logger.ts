@@ -105,10 +105,18 @@ export class Logger {
     }
   }
 
+  get verboseEnabled() {
+    return this.#isLogLevel("verbose");
+  }
+
   debug(message: LogMessage) {
     if (this.#isLogLevel("debug")) {
       console.debug(this.#format(message, gray));
     }
+  }
+
+  get debugEnabled() {
+    return this.#isLogLevel("debug");
   }
 
   info(message: LogMessage) {
@@ -117,15 +125,31 @@ export class Logger {
     }
   }
 
+  get infoEnabled() {
+    return this.#isLogLevel("info");
+  }
+
   warn(message: LogMessage) {
     if (this.#isLogLevel("warn")) {
       console.warn(this.#format(message, yellow));
     }
   }
 
+  get warnEnabled() {
+    return this.#isLogLevel("warn");
+  }
+
   error(message: LogMessage) {
     if (this.#isLogLevel("error")) {
       console.error(this.#format(message, red));
     }
+  }
+
+  get errorEnabled() {
+    return this.#isLogLevel("error");
+  }
+
+  get enabled() {
+    return this.errorEnabled;
   }
 }

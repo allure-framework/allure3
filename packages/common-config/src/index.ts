@@ -47,18 +47,9 @@ export const defaultTasksConfig = (
 
   const buildScript = loadScript(packageJson, "build");
   if (buildScript) {
-    let buildCommands = buildScript.split("&&");
-    if (buildCommands.length > 1 && ["rimraf", "run clean"].some((str) => buildCommands[0].includes(str))) {
-      buildCommands = buildCommands.slice(1);
-    }
-
-    tasks["vp:clean"] = {
-      command: "run clean",
-      cache: false,
-    };
     tasks["vp:build"] = {
-      command: buildCommands,
-      dependsOn: ["vp:clean", { task: "vp:build", from: ["dependencies", "devDependencies"] }],
+      command: buildScript,
+      dependsOn: [{ task: "vp:build", from: ["dependencies", "devDependencies"] }],
       cache:
         env.VITE_NO_CACHE === "true"
           ? false
@@ -66,6 +57,11 @@ export const defaultTasksConfig = (
               env: ["NODE_ENV"],
               input: [
                 { auto: true },
+                // Every command restores dist, including files emitted by earlier commands.
+                // Packaging steps must also invalidate when compiler inputs change.
+                "src/**",
+                "tsconfig*.json",
+                "package.json",
                 { pattern: "!.yarn/install-state.gz", base: "workspace" },
                 "!out/**",
                 "!dist/**",
