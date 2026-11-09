@@ -48,11 +48,12 @@ Use `allure testplan ./allure-results --muted-only` to generate only the muted l
 ```json
 {
   "version": "1.0",
+  "tests": [],
   "mutedTests": []
 }
 ```
 
-This mode omits `tests` entirely and always writes a file, even when no muted results are found. Muted results are selected by the boolean `muted` flag regardless of status; the `filter` option is not applied. Set the plugin option `mutedOnly: true` for the same behavior through configuration. Without this option, the default format and generation rules above apply.
+This mode omits calculating `tests` array based on configured test plan filtering. Muted results are selected by the boolean `muted` flag regardless of status; the `filter` option is not applied. Set the plugin option `mutedOnly: true` for the same behavior through configuration. Without this option, the default format and generation rules above apply.
 
 ## Install
 
