@@ -22,11 +22,11 @@ By default, generated plans retain version `"1.0"` and contain both `tests` and 
 {
   "version": "1.0",
   "tests": [
-    { "id": "42", "selector": "suite#mutedFailure", "testCaseId": "adapter-case-42", "environment": "linux" },
+    { "id": "42", "selector": "suite#mutedFailure" },
     { "selector": "suite#regularFailure" }
   ],
   "mutedTests": [
-    { "id": "42", "selector": "suite#mutedFailure", "testCaseId": "adapter-case-42", "environment": "linux" },
+    { "id": "42", "selector": "suite#mutedFailure" },
     { "selector": "suite#mutedPassed" }
   ]
 }
@@ -35,7 +35,6 @@ By default, generated plans retain version `"1.0"` and contain both `tests` and 
 - `tests` follows the configured `filter`, which selects failed and broken results by default.
 - `mutedTests` includes all results whose boolean `muted` flag is `true`, regardless of their status or the configured filter. A muted resolution without that flag does not qualify.
 - Entries use an optional `id` from the `ALLURE_ID` label and an optional `selector` from `runSelector`, falling back to `fullName`. Results without either identifier are omitted.
-- Entries also include optional `testCaseId` from the original adapter ID (`testCase.externalId`) and `environment` from the result when available. These fields are omitted when unavailable, including in muted-only output; they do not replace `id` or `selector` for selection or deduplication.
 - Overlap is intentional: a muted failed result can appear in both lists.
 - Either array can be empty, but both keys are always present. A muted-only plan has `tests: []`.
 - Generation is skipped only when neither collection has candidate results, before mapping identifiers.

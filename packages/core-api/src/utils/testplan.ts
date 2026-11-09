@@ -9,8 +9,6 @@ const createTestPlanTests = (testResults: TestResult[]): TestPlanTest[] => {
     .map((tr) => ({
       selector: tr.runSelector ?? tr.fullName,
       id: findByLabelName(tr.labels, "ALLURE_ID"),
-      testCaseId: tr.testCase?.externalId,
-      environment: tr.environment,
     }))
     .filter(
       (value) =>
