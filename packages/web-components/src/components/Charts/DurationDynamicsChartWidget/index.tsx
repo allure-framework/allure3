@@ -63,7 +63,7 @@ export const DurationDynamicsChartWidget: FunctionalComponent<Props> = (props) =
         hasValueFn={() => true}
         formatIndexBy={(arg) => {
           if (arg.id === "current") {
-            return i18n("tooltips.current");
+            return i18n("tooltips.current", { timestamp: arg.timestamp });
           }
 
           return i18n("tooltips.history", { timestamp: arg?.timestamp });
