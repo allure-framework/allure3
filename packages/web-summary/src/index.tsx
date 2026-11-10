@@ -1,7 +1,9 @@
+import { goTo, parseTestResultRoute, subscribeToUrlChange } from "@allurereport/web-commons";
 import { type ReportSummary, ReportSummaryCard } from "@allurereport/web-components";
 
 import "@allurereport/web-components/index.css";
 import { render } from "preact";
+import { useEffect } from "preact/hooks";
 
 import "@/assets/scss/index.scss";
 import { EmptyPlaceholder } from "@/components/EmptyPlaceholder";
@@ -16,6 +18,19 @@ const getSummaries = () => {
 };
 
 const App = () => {
+  useEffect(() => {
+    const fallbackToRoot = () => {
+      if (parseTestResultRoute(window.location.hash)) {
+        const url = new URL(window.location.href);
+        url.hash = "";
+        goTo(url, { replace: true });
+      }
+    };
+
+    fallbackToRoot();
+    return subscribeToUrlChange(fallbackToRoot);
+  }, []);
+
   const summaries = getSummaries();
   const { t: tEmpty } = useI18n("empty");
   const { t: tSummary } = useI18n("summary");
