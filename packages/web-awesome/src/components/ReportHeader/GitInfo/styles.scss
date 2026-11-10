@@ -1,12 +1,9 @@
 .git-info {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 4px 12px;
   color: var(--color-text-secondary);
-}
-
-.git-info li + li {
-  margin-top: 4px;
 }
 
 .git-info-item {
