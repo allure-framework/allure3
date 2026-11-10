@@ -613,7 +613,7 @@ describe("JiraPlugin", () => {
         allTestResults: vi.fn().mockResolvedValue(mockTestResults),
         allHistoryDataPoints: vi.fn().mockResolvedValue([{ uuid: "hist-1" } as any]),
         allGlobalErrors: vi.fn().mockResolvedValue([]),
-        globalExitCode: vi.fn().mockResolvedValue({ actual: 0, original: 0 }),
+        globalExitCode: vi.fn().mockResolvedValue({ original: 0 }),
         allEnvironments: vi.fn().mockResolvedValue([]),
         retriesByTr: vi.fn().mockResolvedValue([]),
         testsStatistic: vi
@@ -640,6 +640,45 @@ describe("JiraPlugin", () => {
           payload: expect.objectContaining({
             report: expect.objectContaining({
               status: "failed",
+            }),
+          }),
+        }),
+      );
+    });
+
+    it("should upload report as passed when Allure resolved the exit code to 0 despite failed tests", async () => {
+      const mockTestResults = [createTestResult({ status: "failed" })];
+      const mockStore = createMockStore({
+        allTestResults: vi.fn().mockResolvedValue(mockTestResults),
+        allHistoryDataPoints: vi.fn().mockResolvedValue([{ uuid: "hist-1" } as any]),
+        allGlobalErrors: vi.fn().mockResolvedValue([]),
+        globalExitCode: vi.fn().mockResolvedValue({ actual: 0, original: 1 }),
+        allEnvironments: vi.fn().mockResolvedValue([]),
+        retriesByTr: vi.fn().mockResolvedValue([]),
+        testsStatistic: vi
+          .fn()
+          .mockResolvedValue({ total: 1, passed: 0, failed: 1, broken: 0, skipped: 0, unknown: 0 }),
+      });
+      const axiosPostSpy = vi.spyOn(axios, "post");
+
+      const plugin = new JiraPlugin({
+        token: "test-token",
+        webhook: "http://example.com/webhook",
+        issue: "PROJ-123",
+        uploadReport: true,
+      });
+
+      axiosPostSpy.mockResolvedValue({ data: { success: true } } as any);
+
+      await plugin.done(defaultPluginContext, mockStore);
+
+      expect(axiosPostSpy).toHaveBeenCalledWith(
+        "http://example.com/webhook",
+        expect.objectContaining({
+          operation: "upload-report",
+          payload: expect.objectContaining({
+            report: expect.objectContaining({
+              status: "passed",
             }),
           }),
         }),
