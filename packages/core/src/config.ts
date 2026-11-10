@@ -2,12 +2,22 @@ import { readFile, stat } from "node:fs/promises";
 import { extname, resolve } from "node:path";
 import * as process from "node:process";
 
-import { parseIntegerConfigValue, validateEnvironmentName } from "@allurereport/core-api";
-import type { Config, Plugin, PluginConstructorContext, PluginDescriptor } from "@allurereport/plugin-api";
-import { createJiti } from "jiti";
+import {
+  validateEnvironmentName,
+  validateFlakinessScoringOptions,
+  validatePerformanceConfig,
+} from "@allurereport/core-api";
+import { type NameContext, createNameContext, resolveName } from "@allurereport/core-api/expression";
+import type { Config, PluginConstructor, PluginConstructorContext, PluginDescriptor } from "@allurereport/plugin-api";
 import { parse } from "yaml";
 
 import type { FullConfig, PluginInstance } from "./api.js";
+import { resolveAllureService } from "./config/allureService.js";
+import { resolveCategories } from "./config/categories.js";
+import { resolveEnvironments } from "./config/environments.js";
+import { resolveHideLabels } from "./config/hideLabels.js";
+import { resolvePluginOptions } from "./config/pluginOptions.js";
+import { resolveQualityGate } from "./config/qualityGate.js";
 import { FileSystemReportFiles } from "./plugin.js";
 import { DEFAULT_KNOWN_ISSUES_PATH, resolveExactIssuesFilePath, validateResolutionsConfig } from "./resolutions.js";
 import {
@@ -19,11 +29,10 @@ import {
   validateAllowedEnvironmentId,
 } from "./utils/environment.js";
 import { importWrapper } from "./utils/module.js";
+import { assertNodeSupportsTsConfig } from "./utils/nodeVersion.js";
 import { normalizeImportPath } from "./utils/path.js";
 import { normalizeResultsDir } from "./utils/resultsDir.js";
 import { assertValidPluginIdForWindows, isWindows } from "./utils/windows.js";
-
-type PluginConstructor = new (options?: Record<string, any>, context?: PluginConstructorContext) => Plugin;
 
 export interface ConfigOverride {
   cwd?: string;
@@ -52,8 +61,6 @@ const CONFIG_FILENAMES = [
   "allurerc.yml",
 ] as const;
 const DEFAULT_CONFIG: Config = {} as const;
-const DEFAULT_ALLURE_SERVICE_UPLAOD_MAX_ATTEMPTS = 5;
-const DEFAULT_ALLURE_SERVICE_UPLOAD_MAX_SIMULTANEOUS_FAILURES = 5;
 
 export const isAgentDescriptor = (value: string | undefined) => {
   return value === "agent" || value === "@allurereport/plugin-agent";
@@ -237,16 +244,16 @@ export const loadJsConfig = async (configPath: string): Promise<Config> => {
 };
 
 /**
- * Loads the TypeScript config from the given path
+ * Loads the TypeScript config from the given path via Node native type stripping
  * @param configPath
  */
 export const loadTsConfig = async (configPath: string): Promise<Config> => {
-  const jiti = createJiti(import.meta.url);
+  assertNodeSupportsTsConfig();
 
-  return await jiti.import<Config>(resolve(configPath), { default: true });
+  return loadJsConfig(configPath);
 };
 
-const resolveConfigEnvironments = (config: Config) => {
+const resolveConfigEnvironments = (config: Config, context: NameContext) => {
   const errors: string[] = [];
   const {
     ids: allowedEnvironments,
@@ -254,7 +261,7 @@ const resolveConfigEnvironments = (config: Config) => {
     errors: allowedEnvironmentErrors,
   } = validateAllowedEnvironmentIds(config.allowedEnvironments, "config.allowedEnvironments");
   const { normalized: environments, errors: environmentErrors } = normalizeEnvironmentDescriptorMap(
-    config.environments ?? {},
+    resolveEnvironments(config.environments, context) ?? {},
     "config.environments",
   );
   let environment: string | undefined;
@@ -323,6 +330,7 @@ const validateFlakyDetectionConfig = (config: Config["flakyDetection"]) => {
   if (includePassedTests !== undefined && typeof includePassedTests !== "boolean") {
     throw new TypeError("flakyDetection.includePassedTests must be a boolean");
   }
+  validateFlakinessScoringOptions(config, "flakyDetection");
 };
 
 export const resolveConfig = async (config: Config, override: ConfigOverride = {}): Promise<FullConfig> => {
@@ -334,14 +342,16 @@ export const resolveConfig = async (config: Config, override: ConfigOverride = {
 
   validateResolutionsConfig(config.resolutions);
   validateFlakyDetectionConfig(config.flakyDetection);
+  validatePerformanceConfig(config.performance);
 
-  const { environments, environment, allowedEnvironments } = resolveConfigEnvironments(config);
+  const nameContext = createNameContext();
+  const { environments, environment, allowedEnvironments } = resolveConfigEnvironments(config, nameContext);
 
-  const name = override.name ?? config.name ?? "Allure Report";
+  const name = override.name ?? resolveName(config.name ?? "Allure Report", "name", nameContext)!;
   const open = override.open ?? config.open ?? false;
   const port = override.port ?? config.port ?? undefined;
   const host = override.host ?? config.host ?? undefined;
-  const hideLabels = override.hideLabels ?? config.hideLabels;
+  const hideLabels = resolveHideLabels(override.hideLabels ?? config.hideLabels);
   const historyPath = override.historyPath ?? config.historyPath;
   const historyBaseUrl = override.historyBaseUrl ?? config.historyBaseUrl;
   const historyLimit = override.historyLimit ?? config.historyLimit;
@@ -381,10 +391,8 @@ export const resolveConfig = async (config: Config, override: ConfigOverride = {
           },
         };
 
-    pluginInstances = await resolvePlugins(pluginsWithAgent);
+    pluginInstances = await resolvePlugins(pluginsWithAgent, nameContext);
   }
-
-  const uploadConcurrency = parseIntegerConfigValue(config.allureService?.uploadConcurrency, 1);
 
   return {
     name,
@@ -409,22 +417,10 @@ export const resolveConfig = async (config: Config, override: ConfigOverride = {
     reportFiles: new FileSystemReportFiles(output),
     plugins: pluginInstances,
     defaultLabels: config.defaultLabels ?? {},
-    qualityGate: config.qualityGate,
+    qualityGate: resolveQualityGate(config.qualityGate),
     performance: config.performance,
-    allureService: config.allureService
-      ? {
-          accessToken: config.allureService.accessToken,
-          private: config.allureService.private,
-          ...(uploadConcurrency === undefined ? {} : { uploadConcurrency }),
-          uploadMaxAttempts:
-            parseIntegerConfigValue(config.allureService.uploadMaxAttempts, 1) ??
-            DEFAULT_ALLURE_SERVICE_UPLAOD_MAX_ATTEMPTS,
-          uploadMaxSimultaneousFailures:
-            parseIntegerConfigValue(config.allureService.uploadMaxSimultaneousFailures, 0) ??
-            DEFAULT_ALLURE_SERVICE_UPLOAD_MAX_SIMULTANEOUS_FAILURES,
-        }
-      : undefined,
-    categories: config.categories,
+    allureService: resolveAllureService(config.allureService, nameContext.env),
+    categories: resolveCategories(config.categories, nameContext),
     globalAttachments: config.globalAttachments,
     ...(resultsDir.length ? { resultsDir } : {}),
   };
@@ -543,13 +539,19 @@ export const resolvePlugin = async (path: string): Promise<PluginConstructor> =>
   }
 };
 
-const resolvePlugins = async (plugins: Record<string, PluginDescriptor>) => {
+const resolvePlugins = async (plugins: Record<string, PluginDescriptor>, context: NameContext) => {
   const pluginInstances: PluginInstance[] = [];
 
   for (const id in plugins) {
     const pluginConfig = plugins[id];
     const pluginId = getPluginId(id);
     const Plugin = await resolvePlugin(pluginConfig.import ?? id);
+    const options = resolvePluginOptions(
+      pluginConfig.options,
+      Plugin.configExpressions,
+      `plugins[${JSON.stringify(id)}].options`,
+      context,
+    );
     const enabled = pluginConfig.enabled ?? true;
     const constructorContext: PluginConstructorContext = {};
 
@@ -560,8 +562,8 @@ const resolvePlugins = async (plugins: Record<string, PluginDescriptor>) => {
     pluginInstances.push({
       id: pluginId,
       enabled,
-      options: pluginConfig.options ?? {},
-      plugin: new Plugin(pluginConfig.options, constructorContext),
+      options: options ?? {},
+      plugin: new Plugin(options, constructorContext),
     });
   }
 

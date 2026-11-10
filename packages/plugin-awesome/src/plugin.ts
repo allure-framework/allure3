@@ -15,9 +15,12 @@ import {
   type ReportExecutorInfo,
   type ReportRunSummary,
   type Plugin,
+  type PluginExpressionFields,
   type PluginContext,
   type PluginSummary,
   createPluginSummary,
+  generateTimeline,
+  getRunSummary,
 } from "@allurereport/plugin-api";
 import { preciseTreeLabels } from "@allurereport/plugin-api";
 import { generateHistoryDataPoints } from "@allurereport/plugin-api/internal/report";
@@ -25,7 +28,6 @@ import { collectChartAssetFeatures, validateChartsOptions } from "@allurereport/
 
 import { collectViewerAssetFeatures } from "./assetRequirements.js";
 import { applyCategoriesToTestResults, generateCategories } from "./categories.js";
-import { generateTimeline } from "./generateTimeline.js";
 import {
   generateAllCharts,
   generateAttachmentsFiles,
@@ -45,7 +47,6 @@ import {
   generateTree,
   generateTreeFilters,
   generateVariables,
-  getRunSummary,
 } from "./generators.js";
 import type { AwesomePluginOptions } from "./model.js";
 import { type AwesomeDataWriter, InMemoryReportDataWriter, ReportFileDataWriter } from "./writer.js";
@@ -112,6 +113,12 @@ type PerfAwarePluginContext = PluginContext & {
 };
 
 export class AwesomePlugin implements Plugin {
+  static readonly configExpressions = {
+    filter: "testFilter",
+    reportName: "name",
+    charts: { items: { title: "name" } },
+  } as const satisfies PluginExpressionFields;
+
   // Updating runs retain all assets through done; only start resets this policy.
   #retainAllAssets = false;
 
@@ -250,7 +257,7 @@ export class AwesomePlugin implements Plugin {
       }
     }
     await measure("charts", () => generateAllCharts(this.#writer!, store, this.options, context));
-    const hasMetrics = await generateMetricsWidget(this.#writer!, store, context.reportUuid);
+    const hasMetrics = await generateMetricsWidget(this.#writer!, store, context.reportUuid, context.metricHierarchy);
 
     const convertedTrs = await measure("convert", () =>
       generateTestResults(this.#writer!, store, allTrs, {
@@ -278,13 +285,13 @@ export class AwesomePlugin implements Plugin {
     const hasGroupBy = groupBy.length > 0;
 
     await measure("timeline", () =>
-      generateTimeline(
-        this.#writer!,
-        allTrs,
-        this.options,
-        envIdByTrId,
-        new Map(environments.map(({ id, name }) => [id, name])),
-      ),
+      generateTimeline(this.#writer!, allTrs, {
+        minDuration: this.options.timeline?.minDuration,
+        environments: {
+          idByTrId: envIdByTrId,
+          nameById: new Map(environments.map(({ id, name }) => [id, name])),
+        },
+      }),
     );
 
     const treeLabels = hasGroupBy
@@ -390,10 +397,9 @@ export class AwesomePlugin implements Plugin {
       ? [...new Set([...configuredSections, "metrics"])]
       : configuredSections.filter((section) => section !== "metrics");
 
-    const chartFeatures =
-      singleFile && !this.#retainAllAssets
-        ? collectChartAssetFeatures(this.options.charts ?? defaultChartsConfig)
-        : undefined;
+    const chartFeatures = !this.#retainAllAssets
+      ? collectChartAssetFeatures(this.options.charts ?? defaultChartsConfig)
+      : undefined;
 
     await measure("staticFiles", () =>
       generateStaticFiles({
@@ -412,7 +418,11 @@ export class AwesomePlugin implements Plugin {
         runSummaryByEnv,
         reportDataFiles,
         requiredAssetFeatures: chartFeatures
-          ? [...chartFeatures, ...collectViewerAssetFeatures(convertedTrs, attachments, globals)]
+          ? [
+              ...chartFeatures,
+              ...(hasMetrics ? ["chart-metrics-timeline"] : []),
+              ...collectViewerAssetFeatures(convertedTrs, attachments, globals),
+            ]
           : undefined,
       }),
     );

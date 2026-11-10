@@ -32,7 +32,7 @@ jobs:
         run: |
           expr "${{ github.event.inputs.releaseVersion }}" : '\(^[1-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*\(-beta\.[0-9][0-9]*\)\{0,1\}\)$'
 
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           token: ${{ steps.app-token.outputs.token }}
 

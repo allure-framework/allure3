@@ -15,12 +15,14 @@ const leaf = (
   status,
   duration: 1,
   groupOrder: 1,
+  flaky: false,
+  retry: false,
   resolutionStatus,
   resolutionState,
 });
 
 const tree = (leaves: ReportTreeLeaf[]): ReportTree => ({
-  root: { nodeId: "root", name: "root", groups: [], leaves: leaves.map(({ nodeId }) => nodeId) },
+  root: { groups: [], leaves: leaves.map(({ nodeId }) => nodeId) },
   groupsById: {},
   leavesById: Object.fromEntries(leaves.map((item) => [item.nodeId, item])),
 });

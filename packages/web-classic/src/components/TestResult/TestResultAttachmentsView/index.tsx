@@ -12,12 +12,12 @@ export type TestResultAttachmentViewProps = {
 };
 
 export const TestResultAttachmentView: FunctionalComponent<TestResultAttachmentViewProps> = ({ testResult }) => {
-  const { attachments } = testResult ?? {};
+  const { attachments = [] } = testResult ?? {};
   const { t } = useI18n("empty");
 
   return (
     <div className={styles["test-result-attachments-view"]}>
-      {attachments.length ? (
+      {attachments?.length ? (
         attachments?.map((attach, key) => (
           <TestResultAttachment item={attach as AttachmentTestStepResult} key={key} stepIndex={key + 1} />
         ))

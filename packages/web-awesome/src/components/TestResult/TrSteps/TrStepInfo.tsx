@@ -9,7 +9,7 @@ import clsx from "clsx";
 
 import * as styles from "@/components/TestResult/TrSteps/styles.scss";
 
-const countErrorStatuses = (step: TestStepResult): Record<string, number> => {
+const countErrorStatuses = (step: TestStepResult): Record<string, number> | undefined => {
   if (step.type !== "step") {
     return;
   }
@@ -27,6 +27,41 @@ const countErrorStatuses = (step: TestStepResult): Record<string, number> => {
   step?.steps?.forEach(collectFromSteps);
 
   return result;
+};
+
+/**
+ * Counts all nested steps under `step` (not including `step` itself), recursively.
+ * Matches Allure 2 `stepsCount` and keeps parity with recursive failed-substep badges.
+ */
+export const countDescendantSteps = (step: TestStepResult): number => {
+  if (step.type !== "step") {
+    return 0;
+  }
+
+  return (step.steps ?? []).reduce((count, child) => {
+    if (child.type !== "step") {
+      return count;
+    }
+
+    return count + 1 + countDescendantSteps(child);
+  }, 0);
+};
+
+/**
+ * Counts all nested attachments under `step`, recursively (Allure 2 `attachmentsCount` parity).
+ */
+export const countDescendantAttachments = (step: TestStepResult): number => {
+  if (step.type !== "step") {
+    return 0;
+  }
+
+  return (step.steps ?? []).reduce((count, child) => {
+    if (child.type === "attachment") {
+      return count + 1;
+    }
+
+    return count + countDescendantAttachments(child);
+  }, 0);
 };
 
 const {
@@ -48,8 +83,8 @@ const icons = {
 export const TrStepInfo = (props: { item: DefaultTestStepResult }) => {
   const { item } = props;
   const formattedDuration = formatDuration(item?.duration as number);
-  const stepLength = item.steps?.length;
-  const attachmentLength = item.steps?.filter((step) => step.type === "attachment")?.length;
+  const stepLength = countDescendantSteps(item);
+  const attachmentLength = countDescendantAttachments(item);
 
   const failedStepsInTree = countErrorStatuses(item) || {};
 
@@ -71,13 +106,13 @@ export const TrStepInfo = (props: { item: DefaultTestStepResult }) => {
   return (
     <div className={styles["item-info"]}>
       <FailedSteps />
-      {Boolean(stepLength) && (
+      {!!stepLength && (
         <div className={styles["item-info-step"]}>
           <SvgIcon id={allureIcons.lineArrowsCornerDownRight} className={styles["item-info-step-icon"]} />
           <Text size={"s"}>{stepLength}</Text>
         </div>
       )}
-      {Boolean(attachmentLength) && (
+      {!!attachmentLength && (
         <div className={styles["item-info-step"]}>
           <SvgIcon id={allureIcons.lineFilesFileAttachment2} className={styles["item-info-step-icon"]} />
           <Text size={"s"}>{attachmentLength}</Text>

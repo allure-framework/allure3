@@ -82,7 +82,7 @@ describe("testResultRawToState", () => {
           null,
           { name: "", value: "skip" },
           { name: "first", value: "", hidden: true },
-          { name: "second", value: null, excluded: true, masked: true },
+          { name: "second", value: null as unknown as string, excluded: true, masked: true },
         ]),
         links: Array(1).concat([
           null,
@@ -465,10 +465,10 @@ describe("testResultRawToState", () => {
       emptyStateData,
       {
         parameters: [
-          { name: null, value: "null name" },
+          { name: null as unknown as string, value: "null name" },
           { name: "", value: "empty name" },
           { name: 1 as unknown as string, value: "numeric name" },
-          { name: "kept", value: null, hidden: true, masked: true, excluded: true },
+          { name: "kept", value: null as unknown as string, hidden: true, masked: true, excluded: true },
         ],
       },
       { readerId },

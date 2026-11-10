@@ -391,6 +391,20 @@
       }
     },
     "metrics": {
+      "tableView": "Таблиця",
+      "timelineView": "Часова шкала",
+      "timelineDescription": "Смуги показують записані інтервали початку й завершення та можуть перекриватися. Ієрархія групує ключі метрик, а не окремі виклики. Інтервали бенчмарків охоплюють увесь запуск; значення — середня затримка.",
+      "timelineHelp": "Про графік",
+      "resetZoom": "Скинути масштаб",
+      "zoomHint": "Натисніть на блок, щоб наблизити його часовий інтервал.",
+      "invalidIntervals": "Виключено вимірювань із некоректними інтервалами: {{count}}",
+      "noIntervals": "Немає вимірювань із коректними часовими інтервалами.",
+      "noMeasurement": "Немає вимірювання",
+      "good": "Покращення",
+      "bad": "Погіршення",
+      "neutral": "Без змін / немає порівняння",
+      "interval": "Інтервал",
+      "previousValue": "Попереднє середнє",
       "title": "Метрики продуктивності",
       "phaseSummary": "Зведення метрик",
       "currentValues": "Поточні значення",
@@ -431,7 +445,31 @@
       "slice_many": "{{count}} тестів ({{percent}}% усіх тестів)"
     },
     "retry": "Повторити",
-    "loadError": "Не вдалося завантажити діаграму"
+    "loadError": "Не вдалося завантажити діаграму",
+    "durationTrend": {
+      "title": "Тренд тривалості",
+      "duration": "Тривалість",
+      "value": "{{duration, format_duration}}"
+    },
+    "retriesTrend": {
+      "title": "Тренд повторних спроб",
+      "run": "Тести",
+      "retry": "Повторні спроби"
+    },
+    "categoriesTrend": {
+      "title": "Тренд категорій"
+    },
+    "runTrend": {
+      "empty": "Немає що показати",
+      "tooltips": {
+        "current": "Останній звіт ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "Звіт від {{timestamp, timestamp_long_no_seconds}}"
+      },
+      "ticks": {
+        "current": "Останній",
+        "history": "{{timestamp, timestamp_date}}"
+      }
+    }
   },
   "transitions": {
     "description": {

@@ -1,4 +1,4 @@
-import { fetchReportJsonData } from "@allurereport/web-commons";
+import { errorMessageFromUnknown, fetchReportJsonData } from "@allurereport/web-commons";
 import { signal } from "@preact/signals";
 
 import type { StoreSignalState } from "@/stores/types";
@@ -34,7 +34,7 @@ export const fetchVariables = async (env: string = "default") => {
   } catch (e) {
     variables.value = {
       ...variables.peek(),
-      error: e.message,
+      error: errorMessageFromUnknown(e),
       loading: false,
     };
   }

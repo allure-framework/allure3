@@ -211,22 +211,26 @@ const createMeaningfulStep = (name: string = "assert expected behavior"): TestSt
       {
         name: "state",
         value: "verified",
+        hidden: false,
+        excluded: false,
+        masked: false,
       },
     ],
     status: "passed",
     steps: [],
-  }) as TestStepResult;
+    stepId: "meaningful-step",
+  }) satisfies TestStepResult;
 
 const createStoreWithGlobalLogs = (
   overrides: Partial<AllureStore> = {},
-  attachmentContents: Record<string, AttachmentContentFixture> = {},
+  attachmentContents: Record<string, AttachmentContentFixture | undefined> = {},
 ): AllureStore => {
   const stdout = createAttachment({
     id: "global-stdout",
     name: "stdout.txt",
     originalFileName: "stdout.txt",
   });
-  const contents = new Map<string, AttachmentContentFixture>([
+  const contents = new Map<string, AttachmentContentFixture | undefined>([
     [
       stdout.id,
       {
@@ -261,7 +265,7 @@ describe("AgentPlugin", () => {
     testResult?: TestResult;
     environmentId?: string;
     attachments?: AttachmentLink[];
-    attachmentContents?: Record<string, AttachmentContentFixture>;
+    attachmentContents?: Record<string, AttachmentContentFixture | undefined>;
   }) => {
     const outputDir = join(tempDir, params.outputName);
     const testResult =
@@ -343,7 +347,7 @@ describe("AgentPlugin", () => {
       fullName: "suite live result",
     });
     let currentTests: TestResult[] = [];
-    let currentStats = { total: 0 };
+    let currentStats: { total: number; passed?: number } = { total: 0 };
     const store = createStore({
       allTestResults: vi.fn().mockImplementation(async () => currentTests),
       testsStatistic: vi.fn().mockImplementation(async () => currentStats),

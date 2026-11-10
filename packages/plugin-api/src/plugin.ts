@@ -5,11 +5,14 @@ import type {
   CiDescriptor,
   GlobalAttachmentLink,
   HistoryDataPoint,
+  LabelMatcher,
+  MetricHierarchyNode,
   Statistic,
   TestError,
   TestResult,
   TestStatus,
 } from "@allurereport/core-api";
+import type { NameContext } from "@allurereport/core-api/expression";
 
 import type { QualityGateValidationResult } from "./qualityGate.js";
 import type { ResultFile } from "./resultFile.js";
@@ -23,6 +26,26 @@ export interface PluginDescriptor {
 
 export interface PluginConstructorContext {
   enabled?: boolean;
+}
+
+export type PluginExpressionKind = "name" | "testFilter" | "qualityGateFilter";
+
+export interface PluginExpressionContext extends NameContext {
+  path: string;
+}
+
+export type PluginExpressionResolver = (source: string, context: PluginExpressionContext) => unknown;
+
+export type PluginExpressionFields = {
+  readonly [field: string]:
+    | PluginExpressionKind
+    | PluginExpressionResolver
+    | { readonly items: PluginExpressionFields };
+};
+
+export interface PluginConstructor {
+  new (options?: Record<string, any>, context?: PluginConstructorContext): Plugin;
+  readonly configExpressions?: PluginExpressionFields;
 }
 
 export interface ReportFiles {
@@ -44,7 +67,9 @@ export interface PluginContext {
   allureVersion: string;
   reportUuid: string;
   reportName: string;
-  hideLabels?: (string | RegExp)[];
+  hideLabels?: LabelMatcher[];
+  /** Configured metric-key structure, independent of observed samples and dump metadata. */
+  metricHierarchy?: readonly MetricHierarchyNode[];
   reportFiles: ReportFiles;
   reportUrl?: string;
   /**

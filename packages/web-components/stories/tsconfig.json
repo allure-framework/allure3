@@ -1,0 +1,28 @@
+{
+  "extends": [
+    "../../../tsconfig.test.json",
+    "../tsconfig.json"
+  ],
+  "compilerOptions": {
+    "rootDir": "..",
+    "noEmit": true,
+    "emitDeclarationOnly": false,
+    "lib": [
+      "ESNext",
+      "DOM",
+      "DOM.Iterable"
+    ],
+    "types": [
+      "node"
+    ],
+    "strict": true
+  },
+  "include": [
+    "**/*.ts",
+    "**/*.tsx",
+    "../global.d.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
+}

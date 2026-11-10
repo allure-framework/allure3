@@ -64,8 +64,8 @@ export const TrLinks: FunctionalComponent<TrLinksProps> = ({ id, links }) => {
   const { t } = useI18n("ui");
   const linksId = id ? `${id}-links` : null;
   const linksShowAllId = id ? `${id}-links-showAll` : null;
-  const isOpened = !collapsedTrees.value.has(linksId);
-  const showAll = collapsedTrees.value.has(linksShowAllId);
+  const isOpened = !(linksId !== null && collapsedTrees.value.has(linksId));
+  const showAll = linksShowAllId !== null && collapsedTrees.value.has(linksShowAllId);
   const visibleLinks =
     links.length <= VISIBLE_LINKS_LIMIT ? links : showAll ? links : links.slice(0, VISIBLE_LINKS_LIMIT);
   const linkMap = visibleLinks.map((link, index) => {

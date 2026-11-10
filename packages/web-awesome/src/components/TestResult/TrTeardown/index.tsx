@@ -17,7 +17,7 @@ import * as styles from "@/components/TestResult/TrSteps/styles.scss";
 
 export type TrTeardownProps = {
   teardown: ReportTestResult["teardown"];
-  id: string;
+  id?: string;
 };
 
 export const TrTeardown: FunctionalComponent<TrTeardownProps> = ({ teardown, id }) => {

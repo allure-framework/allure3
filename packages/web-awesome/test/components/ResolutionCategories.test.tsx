@@ -18,7 +18,7 @@ const resolutionCategoriesStoreMock = vi.hoisted(() => ({
     loading: false,
     error: undefined,
     data: {
-      groups: [],
+      groups: [] as ReportResolutionCategoriesData["groups"],
     },
   },
 }));

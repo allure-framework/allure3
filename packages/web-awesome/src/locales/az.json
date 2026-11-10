@@ -440,6 +440,20 @@
       }
     },
     "metrics": {
+      "tableView": "Cədvəl",
+      "timelineView": "Zaman xətti",
+      "timelineDescription": "Zolaqlar qeydə alınmış başlanğıc/son intervallarını göstərir və üst-üstə düşə bilər. İyerarxiya ayrı-ayrı çağırışları deyil, metrik açarlarını qruplaşdırır. Bençmark intervalları bütün icranı əhatə edir; dəyərlər orta gecikmədir.",
+      "timelineHelp": "Qrafik haqqında",
+      "resetZoom": "Miqyası sıfırla",
+      "zoomHint": "Zaman intervalını böyütmək üçün zolağa klikləyin.",
+      "invalidIntervals": "Yanlış intervallara görə çıxarılan ölçmələr: {{count}}",
+      "noIntervals": "Düzgün zaman intervallı ölçmə yoxdur.",
+      "noMeasurement": "Ölçmə yoxdur",
+      "good": "Yaxşılaşma",
+      "bad": "Pisləşmə",
+      "neutral": "Dəyişməyib / müqayisə yoxdur",
+      "interval": "İnterval",
+      "previousValue": "Əvvəlki orta",
       "title": "Performans metrikləri",
       "phaseSummary": "Metrik xülasəsi",
       "currentValues": "Cari dəyərlər",
@@ -478,7 +492,31 @@
       "slice": "{{count}} test (bütün testlərin {{percent}}%-i)"
     },
     "retry": "Yenidən cəhd et",
-    "loadError": "Diaqramı yükləmək mümkün olmadı"
+    "loadError": "Diaqramı yükləmək mümkün olmadı",
+    "durationTrend": {
+      "title": "Müddət trendi",
+      "duration": "Müddət",
+      "value": "{{duration, format_duration}}"
+    },
+    "retriesTrend": {
+      "title": "Yenidən cəhdlər trendi",
+      "retry": "Təkrar cəhdlər",
+      "run": "Testlər"
+    },
+    "categoriesTrend": {
+      "title": "Kateqoriyalar trendi"
+    },
+    "runTrend": {
+      "empty": "Göstəriləcək heç nə yoxdur",
+      "ticks": {
+        "current": "Sonuncu",
+        "history": "{{timestamp, timestamp_date}}"
+      },
+      "tooltips": {
+        "current": "Son hesabat ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "{{timestamp, timestamp_long_no_seconds}} tarixli hesabat"
+      }
+    }
   },
   "transitions": {
     "description": {

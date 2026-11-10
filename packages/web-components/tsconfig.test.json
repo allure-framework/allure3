@@ -1,0 +1,30 @@
+{
+  "extends": [
+    "../../tsconfig.test.json",
+    "./tsconfig.json"
+  ],
+  "compilerOptions": {
+    "rootDir": ".",
+    "noEmit": true,
+    "emitDeclarationOnly": false,
+    "strict": true,
+    "types": [
+      "node",
+      "@testing-library/jest-dom/vitest"
+    ],
+    "lib": [
+      "ESNext",
+      "DOM",
+      "DOM.Iterable"
+    ]
+  },
+  "include": [
+    "src/**/*.test.ts",
+    "src/**/*.test.tsx",
+    "global.d.ts",
+    "src/types/**/*.d.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
+}

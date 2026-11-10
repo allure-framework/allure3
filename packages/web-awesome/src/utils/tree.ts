@@ -1,7 +1,7 @@
 import type { ReportRecursiveTree as RecursiveTree } from "types";
 import type { ReportTreeLeaf } from "types";
 
-type Localizer = (data: string, params?: Record<string, unknown>) => string;
+type Localizer = (data: string, params?: Record<string, string | number>) => string;
 
 type Localizers = {
   tooltip: Localizer;
@@ -11,10 +11,10 @@ export const createLeafLocalizer =
   (t: Localizers) =>
   (leaf: ReportTreeLeaf): ReportTreeLeaf => {
     const tooltips = {
-      transition: t.tooltip(leaf.transition),
-      flaky: leaf.flaky && t.tooltip("flaky"),
-      retries: leaf.retriesCount && t.tooltip("retries", { count: leaf.retriesCount }),
-      retriesStatusChange: leaf.retriesStatusChange && t.tooltip("retriesStatusChange"),
+      transition: leaf.transition ? t.tooltip(leaf.transition) : undefined,
+      flaky: leaf.flaky ? t.tooltip("flaky") : undefined,
+      retries: leaf.retriesCount ? t.tooltip("retries", { count: leaf.retriesCount }) : undefined,
+      retriesStatusChange: leaf.retriesStatusChange ? t.tooltip("retriesStatusChange") : undefined,
       resolution: leaf.resolution && t.tooltip(`resolution.${leaf.resolution}`),
     };
     return {

@@ -144,7 +144,7 @@ const treeStatusFilter = computed<AwesomeFilter>(() => {
     logicalOperator: "AND",
     value: {
       key: "status",
-      value: status,
+      value: status ?? "",
       type: "string",
       strict: false,
     },

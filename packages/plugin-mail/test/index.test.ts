@@ -41,7 +41,7 @@ const createStore = (results: TestResult[]) => {
 };
 
 const createContext = (overrides: Partial<PluginContext> = {}) => {
-  const addFile = vi.fn(async (path: string) => path);
+  const addFile = vi.fn(async (path: string, _content?: Buffer) => path);
 
   return {
     context: { reportName: "My Report", reportFiles: { addFile }, ...overrides } as unknown as PluginContext,
@@ -201,7 +201,7 @@ describe("MailPlugin", () => {
 
     expect(addFile).toHaveBeenCalledOnce();
     expect(addFile.mock.calls[0][0]).toBe("mail.html");
-    expect(addFile.mock.calls[0][1].toString()).toContain("<html");
+    expect(addFile.mock.calls[0][1]!.toString()).toContain("<html");
   });
 
   it("supports a custom filename and does not fail without results", async () => {

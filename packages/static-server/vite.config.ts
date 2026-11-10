@@ -8,6 +8,6 @@ export default defineConfig(
     defaultVitestConfig(packageRoot, {
       include: ["./test/unit/**/*.test.ts"],
     }),
-    defaultTasksConfig(packageRoot),
+    defaultTasksConfig(packageRoot, { testInput: ["!test/e2e/fixtures/sample.json"] }),
   ),
 );

@@ -1,6 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from "vite-plus/test";
 
-import type { ReportTestResult, ReportTree, ReportTreeLeaf } from "../../../../types";
 import { environmentsStore } from "../../../src/stores/env";
 import { activePane, treeFocusId } from "../../../src/stores/keyboard";
 import {
@@ -20,6 +19,7 @@ import { testResultFocusId } from "../../../src/stores/testResultOverviewNav";
 import { testResultNavStore, testResultStore } from "../../../src/stores/testResults";
 import { TEST_RESULT_TAB } from "../../../src/stores/testResultTabs";
 import { collapsedTrees, treeStore } from "../../../src/stores/tree";
+import type { ReportTestResult, ReportTree, ReportTreeLeaf } from "../../../types";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -71,7 +71,7 @@ const makeLeaf = (id: string, order = 0): ReportTreeLeaf => ({
   start: order * 1000,
   groupOrder: order,
   flaky: false,
-  transition: false,
+  transition: undefined,
   retry: false,
   retriesCount: 0,
 });

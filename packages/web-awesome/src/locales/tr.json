@@ -440,6 +440,20 @@
       }
     },
     "metrics": {
+      "tableView": "Tablo",
+      "timelineView": "Zaman çizelgesi",
+      "timelineDescription": "Çubuklar kaydedilen başlangıç/bitiş aralıklarını gösterir ve çakışabilir. Hiyerarşi tek tek çağrıları değil, metrik anahtarlarını gruplar. Kıyaslama aralıkları tüm çalışmayı kapsar; değerleri ortalama gecikmedir.",
+      "timelineHelp": "Grafik hakkında",
+      "resetZoom": "Yakınlaştırmayı sıfırla",
+      "zoomHint": "Zaman aralığını yakınlaştırmak için bir çubuğa tıklayın.",
+      "invalidIntervals": "Geçersiz aralıklı dışlanan ölçümler: {{count}}",
+      "noIntervals": "Geçerli zaman aralığı olan ölçüm yok.",
+      "noMeasurement": "Ölçüm yok",
+      "good": "İyileşme",
+      "bad": "Gerileme",
+      "neutral": "Değişmedi / karşılaştırma yok",
+      "interval": "Aralık",
+      "previousValue": "Önceki ortalama",
       "title": "Performans metrikleri",
       "phaseSummary": "Metrik özeti",
       "currentValues": "Geçerli değerler",
@@ -478,7 +492,31 @@
       "slice": "{{count}} test (tüm testlerin %{{percent}} kadarı)"
     },
     "retry": "Yeniden dene",
-    "loadError": "Grafik yüklenemedi"
+    "loadError": "Grafik yüklenemedi",
+    "durationTrend": {
+      "title": "Süre trendi",
+      "duration": "Süre",
+      "value": "{{duration, format_duration}}"
+    },
+    "retriesTrend": {
+      "title": "Tekrar trendi",
+      "retry": "Tekrar Denemeler",
+      "run": "Testler"
+    },
+    "categoriesTrend": {
+      "title": "Kategoriler trendi"
+    },
+    "runTrend": {
+      "empty": "Gösterilecek bir şey yok",
+      "ticks": {
+        "current": "Son",
+        "history": "{{timestamp, timestamp_date}}"
+      },
+      "tooltips": {
+        "current": "Son rapor ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "{{timestamp, timestamp_long_no_seconds}} tarihli rapor"
+      }
+    }
   },
   "transitions": {
     "description": {

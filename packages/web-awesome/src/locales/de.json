@@ -440,6 +440,20 @@
       }
     },
     "metrics": {
+      "tableView": "Tabelle",
+      "timelineView": "Zeitachse",
+      "timelineDescription": "Balken zeigen aufgezeichnete Start-/Endintervalle und können sich überlappen. Die Hierarchie gruppiert Metrikschlüssel, keine einzelnen Aufrufe. Benchmark-Intervalle umfassen den gesamten Lauf; ihre Werte sind mittlere Latenzen.",
+      "timelineHelp": "Über dieses Diagramm",
+      "resetZoom": "Zoom zurücksetzen",
+      "zoomHint": "Klicken Sie auf einen Balken, um dessen Zeitintervall zu vergrößern.",
+      "invalidIntervals": "Ausgeschlossene Messungen mit ungültigen Intervallen: {{count}}",
+      "noIntervals": "Keine Messungen mit gültigen Zeitintervallen.",
+      "noMeasurement": "Keine Messung",
+      "good": "Verbessert",
+      "bad": "Verschlechtert",
+      "neutral": "Unverändert / kein Vergleich",
+      "interval": "Intervall",
+      "previousValue": "Vorheriger Mittelwert",
       "title": "Leistungsmetriken",
       "phaseSummary": "Metrikübersicht",
       "currentValues": "Aktuelle Werte",
@@ -478,7 +492,31 @@
       "slice": "{{count}} Tests ({{percent}}% aller Tests)"
     },
     "retry": "Erneut versuchen",
-    "loadError": "Diagramm konnte nicht geladen werden"
+    "loadError": "Diagramm konnte nicht geladen werden",
+    "durationTrend": {
+      "title": "Dauer Trend",
+      "duration": "Dauer",
+      "value": "{{duration, format_duration}}"
+    },
+    "retriesTrend": {
+      "title": "Wiederholungen Trend",
+      "retry": "Wiederholungen",
+      "run": "Tests"
+    },
+    "categoriesTrend": {
+      "title": "Kategorien Trend"
+    },
+    "runTrend": {
+      "empty": "Hier gibt es nichts zu zeigen",
+      "ticks": {
+        "current": "Neueste",
+        "history": "{{timestamp, timestamp_date}}"
+      },
+      "tooltips": {
+        "current": "Neuester Bericht ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "Bericht vom {{timestamp, timestamp_long_no_seconds}}"
+      }
+    }
   },
   "transitions": {
     "description": {

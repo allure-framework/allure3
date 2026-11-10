@@ -22,35 +22,33 @@ export const isIncluded = (leaf: TreeLeaf<ReportTreeLeaf>, filterOptions: TreeFi
     !filterOptions?.status || filterOptions?.status === "total" || leaf.status === filterOptions.status;
   const flakyMatched = !filterOptions?.filter?.flaky || leaf.flaky;
   const retryMatched = !filterOptions?.filter?.retry || leaf.retry;
-  // TODO: at this moment we don't have a new field implementation even in the generator
-  // const newMatched = !filterOptions?.filter?.new || leaf.new;
+  // a test is new when it has no history: the generator marks such leaves with the "new" status transition
+  const newMatched = !filterOptions?.filter?.new || leaf.transition === "new";
 
-  return [queryMatched, statusMatched, flakyMatched, retryMatched].every(Boolean);
+  return [queryMatched, statusMatched, flakyMatched, retryMatched, newMatched].every(Boolean);
 };
 
 const leafComparatorByTreeSortBy = (sortBy: TreeSortBy): Comparator<TreeLeaf<ReportTreeLeaf>> => {
-  const typedCompareBy = compareBy<TreeLeaf<ReportTreeLeaf>>;
   switch (sortBy) {
     case "order":
-      return typedCompareBy("groupOrder", ordinal());
+      return compareBy<TreeLeaf<ReportTreeLeaf>, "groupOrder">("groupOrder", ordinal());
     case "duration":
-      return typedCompareBy("duration", ordinal());
+      return compareBy<TreeLeaf<ReportTreeLeaf>, "duration">("duration", ordinal());
     case "alphabet":
-      return typedCompareBy("name", alphabetically());
+      return compareBy<TreeLeaf<ReportTreeLeaf>, "name">("name", alphabetically());
     case "status":
-      return typedCompareBy("status", byStatus());
+      return compareBy<TreeLeaf<ReportTreeLeaf>, "status">("status", byStatus());
   }
 };
 
 const groupComparatorByTreeSortBy = (sortBy: TreeSortBy): Comparator<DefaultTreeGroup> => {
-  const typedCompareBy = compareBy<DefaultTreeGroup>;
   switch (sortBy) {
     case "alphabet":
-      return typedCompareBy("name", alphabetically());
+      return compareBy<DefaultTreeGroup, "name">("name", alphabetically());
     case "order":
     case "duration":
     case "status":
-      return typedCompareBy("statistic", byStatistic());
+      return compareBy<DefaultTreeGroup, "statistic">("statistic", byStatistic());
   }
 };
 
@@ -103,7 +101,7 @@ export const createRecursiveTree = (payload: {
   group: ReportTreeGroup;
   groupsById: ReportTree["groupsById"];
   leavesById: ReportTree["leavesById"];
-  filterOptions?: TreeFiltersState;
+  filterOptions: TreeFiltersState;
 }): ReportRecursiveTree => {
   const { group, groupsById, leavesById, filterOptions } = payload;
   const groupLeaves: string[] = group.leaves ?? [];

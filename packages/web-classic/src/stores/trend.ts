@@ -1,5 +1,5 @@
 import type { ChartsData, ChartsResponse, UIChartsData } from "@allurereport/web-commons";
-import { createCharts, fetchReportJsonData } from "@allurereport/web-commons";
+import { errorMessageFromUnknown, createCharts, fetchReportJsonData } from "@allurereport/web-commons";
 import { signal } from "@preact/signals";
 
 import type { StoreSignalState } from "@/stores/types";
@@ -30,7 +30,7 @@ export const fetchTrendData = async () => {
   } catch (err) {
     trendStore.value = {
       data: undefined,
-      error: err.message,
+      error: errorMessageFromUnknown(err),
       loading: false,
     };
   }

@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "strict": false,
+    "strict": true,
     "module": "node16",
     "target": "ES2017",
     "lib": ["ES2017"],

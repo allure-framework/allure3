@@ -53,22 +53,20 @@ export const TrOverview: FunctionalComponent<TrOverviewProps> = ({ testResult })
           <TrError {...error} status={status} />
         </div>
       )}
-      {Boolean(pwTraces?.length) && <TrPwTraces pwTraces={pwTraces} />}
-      {Boolean(parameters?.length) && <TrParameters id={testResultId} parameters={parameters} />}
-      {Boolean(groupedLabels && Object.keys(groupedLabels || {})?.length) && (
+      {pwTraces && pwTraces.length > 0 && <TrPwTraces pwTraces={pwTraces} />}
+      {parameters && parameters.length > 0 && <TrParameters id={testResultId} parameters={parameters} />}
+      {!!(groupedLabels && Object.keys(groupedLabels || {})?.length) && (
         <TrMetadata id={testResultId} testResult={testResult} />
       )}
-      {Boolean(links?.length) && <TrLinks id={testResultId} links={links} />}
-      {Boolean(descriptionHtml) && <TrRichTextSection id={testResultId} section="description" html={descriptionHtml} />}
-      {Boolean(preconditionHtml) && (
-        <TrRichTextSection id={testResultId} section="precondition" html={preconditionHtml} />
-      )}
+      {links && links.length > 0 && <TrLinks id={testResultId} links={links} />}
+      {descriptionHtml && <TrRichTextSection id={testResultId} section="description" html={descriptionHtml} />}
+      {preconditionHtml && <TrRichTextSection id={testResultId} section="precondition" html={preconditionHtml} />}
       <div className={styles["test-results"]}>
         {isNoSteps && <TestStepsEmpty />}
-        {Boolean(setup?.length) && <TrSetup id={testResultId} setup={setup} />}
-        {Boolean(bodyItems.length) && <TrSteps id={testResultId} bodyItems={bodyItems} />}
-        {Boolean(teardown?.length) && <TrTeardown id={testResultId} teardown={teardown} />}
-        {Boolean(expectedResultHtml) && (
+        {setup && setup.length > 0 && <TrSetup id={testResultId} setup={setup} />}
+        {!!bodyItems.length && <TrSteps id={testResultId} bodyItems={bodyItems} />}
+        {teardown && teardown.length > 0 && <TrTeardown id={testResultId} teardown={teardown} />}
+        {expectedResultHtml && (
           <TrRichTextSection id={testResultId} section="expectedResult" html={expectedResultHtml} />
         )}
       </div>

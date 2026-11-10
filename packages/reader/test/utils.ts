@@ -1,5 +1,7 @@
 import { existsSync } from "fs";
+import { exec } from "node:child_process";
 import { basename, resolve } from "node:path";
+import { platform } from "node:process";
 import { Writable } from "node:stream";
 
 import type { ResultFile } from "@allurereport/plugin-api";
@@ -121,4 +123,19 @@ export const zipFolder = async (dirPath: string) => {
   await archive.finalize();
 
   return Buffer.concat(chunks);
+};
+
+export const isWinUnprivileged = async (): Promise<boolean> => {
+  let cached: boolean | undefined;
+  if (cached === undefined) {
+    cached =
+      platform === "win32"
+        ? await new Promise((resolve) => {
+            exec("net session", (error) => {
+              resolve(Boolean(error));
+            });
+          })
+        : false;
+  }
+  return cached!;
 };

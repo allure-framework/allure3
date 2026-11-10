@@ -33,7 +33,6 @@ test.describe("commons", () => {
         reportConfig: {
           name: "Sample allure report",
           appendHistory: false,
-          knownIssuesPath: undefined,
         },
         testResults: [
           {
@@ -231,7 +230,6 @@ test.describe("SearchBox component with debounce", () => {
         reportConfig: {
           name: "Sample allure report",
           appendHistory: false,
-          knownIssuesPath: "",
         },
         history: [],
         testResults: [
@@ -279,7 +277,6 @@ test.describe("suites", () => {
         reportConfig: {
           name: "Sample allure report",
           appendHistory: false,
-          knownIssuesPath: undefined,
         },
         testResults: [
           {
@@ -345,7 +342,6 @@ test.describe("suites", () => {
         reportConfig: {
           name: "Sample allure report",
           appendHistory: false,
-          knownIssuesPath: undefined,
         },
         testResults: [
           {
@@ -407,7 +403,7 @@ test.describe("suites", () => {
         reportConfig: {
           name: "Sample allure report",
           appendHistory: false,
-          knownIssuesPath: undefined,
+
           defaultLabels: {
             parentSuite: "Assign me please!",
           },
@@ -473,7 +469,6 @@ test.describe("suites", () => {
         reportConfig: {
           name: "Sample allure report",
           appendHistory: false,
-          knownIssuesPath: undefined,
         },
         testResults: [
           {
@@ -545,7 +540,6 @@ test.describe("features", () => {
         reportConfig: {
           name: "Sample allure report",
           appendHistory: false,
-          knownIssuesPath: undefined,
         },
         testResults: [
           {
@@ -594,7 +588,6 @@ test.describe("stories", () => {
         reportConfig: {
           name: "Sample allure report",
           appendHistory: false,
-          knownIssuesPath: undefined,
         },
         testResults: [
           {

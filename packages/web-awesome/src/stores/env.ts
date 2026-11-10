@@ -16,13 +16,15 @@ import { effect, signal } from "@preact/signals";
 
 import type { StoreSignalState } from "@/stores/types";
 
-export const environmentsStore = signal<StoreSignalState<EnvironmentIdentity[]>>({
+export const environmentsStore = signal<StoreSignalState<EnvironmentIdentity[]> & { data: EnvironmentIdentity[] }>({
   loading: false,
   error: undefined,
   data: [],
 });
 
-export const testEnvGroupsStore = signal<StoreSignalState<Record<string, TestEnvGroup>>>({
+export const testEnvGroupsStore = signal<
+  StoreSignalState<Record<string, TestEnvGroup | undefined>> & { data: Record<string, TestEnvGroup | undefined> }
+>({
   loading: false,
   error: undefined,
   data: {},

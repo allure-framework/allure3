@@ -1,17 +1,30 @@
 import type {
   AllureServiceConfig,
-  CategoriesConfig,
+  CategoryRule,
+  Matcher,
   DefaultLabelsConfig,
   DynamicEnvironmentsConfig,
-  EnvironmentsConfig,
+  EnvironmentDescriptor,
   FlakyDetectionConfig,
   PerformanceConfig,
   ReportVariables,
   ResolutionsConfig,
 } from "@allurereport/core-api";
 
+import type { QualityGateConfigInput } from "./config/qualityGate.js";
 import type { PluginDescriptor } from "./plugin.js";
-import type { QualityGateConfig } from "./qualityGate.js";
+
+export type CategoryRuleConfig = Omit<CategoryRule, "matchers"> & {
+  matchers?: Matcher | string | readonly (Matcher | string)[];
+};
+
+export type CategoriesConfigInput = false | CategoryRuleConfig[] | { rules: CategoryRuleConfig[] };
+
+export type EnvironmentDescriptorConfig = Omit<EnvironmentDescriptor, "matcher"> & {
+  matcher: EnvironmentDescriptor["matcher"] | string;
+};
+
+export type EnvironmentsConfigInput = Record<string, EnvironmentDescriptorConfig>;
 
 export interface Config {
   name?: string;
@@ -37,7 +50,7 @@ export interface Config {
    */
   environment?: string;
   allowedEnvironments?: string[];
-  environments?: EnvironmentsConfig;
+  environments?: EnvironmentsConfigInput;
   /**
    * Derives an environment from test result labels as results arrive, so environments
    * don't have to be listed upfront. Statically configured `environments` take priority.
@@ -78,10 +91,10 @@ export interface Config {
    */
   plugins?: Record<string, PluginDescriptor>;
   appendHistory?: boolean;
-  qualityGate?: QualityGateConfig;
+  qualityGate?: QualityGateConfigInput;
   performance?: PerformanceConfig;
   allureService?: AllureServiceConfig;
-  categories?: CategoriesConfig;
+  categories?: CategoriesConfigInput;
   /**
    * Array of glob patterns or full paths to match files in the working directory which should be attached to allure report as global attachments
    */

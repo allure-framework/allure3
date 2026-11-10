@@ -4,3 +4,7 @@ pre-commit:
     - name: Check code
       run: "yarn check --no-error-on-unmatched-pattern --fix --quiet {staged_files}"
       stage_fixed: true
+    - name: Check dependencies
+      run: "yarn check:dependencies --fix"
+      stage_fixed: true
+      glob: yarn.lock

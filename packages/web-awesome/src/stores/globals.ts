@@ -1,5 +1,5 @@
 import { type PluginGlobals } from "@allurereport/plugin-api";
-import { fetchReportJsonData } from "@allurereport/web-commons";
+import { errorMessageFromUnknown, fetchReportJsonData } from "@allurereport/web-commons";
 import { signal } from "@preact/signals";
 
 import { type StoreSignalState } from "./types";
@@ -22,7 +22,7 @@ export const fetchGlobals = async () => {
   } catch (err) {
     globalsStore.value = {
       ...globalsStore.peek(),
-      error: err.message,
+      error: errorMessageFromUnknown(err),
       loading: false,
     };
   }

@@ -161,7 +161,7 @@ describe("AllureTestOpsClient", () => {
 
   describe("downloadHistory", () => {
     it("should return an empty history because the TestOps upload API does not expose history", async () => {
-      const res = await testOpsClient.downloadHistory({});
+      const res = await testOpsClient.downloadHistory();
 
       expect(res).toEqual([]);
       expect(HttpClientMock.prototype.get).not.toHaveBeenCalled();

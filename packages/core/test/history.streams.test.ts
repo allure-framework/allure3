@@ -50,6 +50,7 @@ const dataPoint = (uuid: string): HistoryDataPoint => ({
   knownTestCaseIds: [],
   testResults: {},
   metrics: {},
+  url: "",
 });
 
 let historyPath: string;

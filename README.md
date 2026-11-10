@@ -191,7 +191,7 @@ In this example, the generated report is named *Allure Report Example* and saved
 
 ### TypeScript Configuration File
 
-TypeScript configuration files are loaded directly by the Allure CLI, so you don't need to precompile them or install `tsx` or `ts-node`.
+TypeScript configuration files are loaded with Node.js native type stripping, so you don't need to precompile them or install `tsx` or `ts-node`. This requires Node.js 22.18+ and erasable TypeScript syntax only.
 
 ```ts
 import type { AllureConfig } from "allure";
@@ -212,6 +212,7 @@ The configuration file allows you to fine-tune report generation. Key options in
 - **`output`**: Defines the directory where the report will be saved.
 - **`hideLabels`** *(`(string | RegExp)[]`)*: Hides matching labels by name in report data. Currently, only Allure Awesome report respects the option. Labels with names starting with `_` are hidden by default.
 - **`plugins`**: Enables and configures plugins, with each supporting various options.
+- **`flakyDetection`**: Selects status-change or retry-failure-rate detection. See [Flaky test detection](./docs/flaky-test-detection.md) for algorithms, thresholds, history windows, and stability chart settings.
 
 ### Awesome Plugin Options
 

@@ -199,7 +199,13 @@
     "gitCommit": "Commit",
     "openPullRequest": "Open PR",
     "openJobRun": "Open job run",
-    "breadcrumbs-hidden": "Show hidden breadcrumbs"
+    "breadcrumbs-hidden": "Show hidden breadcrumbs",
+    "failureSummary": {
+      "title": "Report failed",
+      "unsuccessfulTests": "Unsuccessful tests",
+      "failedQualityGates": "Failed quality gates",
+      "globalErrors": "Global errors"
+    }
   },
   "shortcuts": {
     "title": "Keyboard shortcuts",
@@ -506,6 +512,20 @@
       }
     },
     "metrics": {
+      "tableView": "Table",
+      "timelineView": "Timeline",
+      "timelineDescription": "Bars show recorded start/stop intervals and may overlap. Hierarchy groups metric keys, not individual calls. Benchmark intervals cover the whole run; their values are mean latency.",
+      "timelineHelp": "About this chart",
+      "resetZoom": "Reset zoom",
+      "zoomHint": "Click a bar to zoom into its time interval.",
+      "invalidIntervals": "Excluded measurements with invalid intervals: {{count}}",
+      "noIntervals": "No measurements with valid time intervals.",
+      "noMeasurement": "No measurement",
+      "good": "Improved",
+      "bad": "Regressed",
+      "neutral": "Unchanged / no comparison",
+      "interval": "Interval",
+      "previousValue": "Previous average",
       "title": "Performance metrics",
       "phaseSummary": "Metric summary",
       "currentValues": "Current values",
@@ -545,7 +565,31 @@
       "slice": "{{count}} tests ({{percent}}% of all tests)"
     },
     "retry": "Retry",
-    "loadError": "Failed to load chart"
+    "loadError": "Failed to load chart",
+    "durationTrend": {
+      "title": "Duration trend",
+      "duration": "Duration",
+      "value": "{{duration, format_duration}}"
+    },
+    "retriesTrend": {
+      "title": "Retries trend",
+      "run": "Tests",
+      "retry": "Retries"
+    },
+    "categoriesTrend": {
+      "title": "Categories trend"
+    },
+    "runTrend": {
+      "empty": "There is nothing to show",
+      "tooltips": {
+        "current": "Latest report ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "Report from {{timestamp, timestamp_long_no_seconds}}"
+      },
+      "ticks": {
+        "current": "Latest",
+        "history": "{{timestamp, timestamp_date}}"
+      }
+    }
   },
   "transitions": {
     "description": {

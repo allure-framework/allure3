@@ -28,6 +28,10 @@ const namespaces = [
   "nav",
   "charts",
   "transitions",
+  "timeline",
+  "overview",
+  "attachments",
+  "tree",
 ];
 
 export const currentLocale = signal<LangLocale>("" as LangLocale);
@@ -69,13 +73,13 @@ i18next
     },
   })
   .then(() => {
-    i18next.services.formatter.add("capitalize", (value: string) => {
+    i18next.services.formatter!.add("capitalize", (value: string) => {
       return value.charAt(0).toLocaleUpperCase() + value.slice(1);
     });
-    i18next.services.formatter.add(
+    i18next.services.formatter!.add(
       "timestamp_date",
-      (value: number, lng: string, options?: Intl.DateTimeFormatOptions) => {
-        const override = getLocaleDateTimeOverride(lng, "date");
+      (value: number, lng: string | undefined, options?: Intl.DateTimeFormatOptions) => {
+        const override = getLocaleDateTimeOverride(lng ?? currentLocale.value, "date");
         const formatter = new Intl.DateTimeFormat(override?.locale ?? lng, {
           ...options,
           month: "numeric",
@@ -87,10 +91,10 @@ i18next
         return override?.stripComma ? formatted.replace(",", "") : formatted;
       },
     );
-    i18next.services.formatter.add(
+    i18next.services.formatter!.add(
       "timestamp_long",
-      (value: number, lng: string, options?: Intl.DateTimeFormatOptions) => {
-        const override = getLocaleDateTimeOverride(lng, "dateTime");
+      (value: number, lng: string | undefined, options?: Intl.DateTimeFormatOptions) => {
+        const override = getLocaleDateTimeOverride(lng ?? currentLocale.value, "dateTime");
         const formatter = new Intl.DateTimeFormat(override?.locale ?? lng, {
           ...options,
           month: "numeric",
@@ -109,10 +113,10 @@ i18next
         return formatted.replace(",", ` ${i18next.t("ui:at")}`);
       },
     );
-    i18next.services.formatter.add(
+    i18next.services.formatter!.add(
       "timestamp_long_no_seconds",
-      (value: number, lng: string, options?: Intl.DateTimeFormatOptions) => {
-        const override = getLocaleDateTimeOverride(lng, "dateTimeNoSeconds");
+      (value: number, lng: string | undefined, options?: Intl.DateTimeFormatOptions) => {
+        const override = getLocaleDateTimeOverride(lng ?? currentLocale.value, "dateTimeNoSeconds");
         const formatter = new Intl.DateTimeFormat(override?.locale ?? lng, {
           ...options,
           month: "numeric",
@@ -130,7 +134,7 @@ i18next
         return formatted.replace(",", ` ${i18next.t("ui:at")}`);
       },
     );
-    i18next.services.formatter.add("format_duration", (value: number) => {
+    i18next.services.formatter!.add("format_duration", (value: number) => {
       return formatDuration(value);
     });
   });

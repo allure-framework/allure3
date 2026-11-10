@@ -509,7 +509,7 @@ describe("Filter Edge Cases - Arrays", () => {
 
   describe("Array edge cases", () => {
     test("should handle sparse arrays", () => {
-      const items = [{ id: 1, sparse: [] }];
+      const items = [{ id: 1, sparse: [] as string[] }];
       items[0].sparse[5] = "value";
 
       const result = filterByAql(items, 'sparse[5] = "value"');
@@ -527,7 +527,7 @@ describe("Filter Edge Cases - Arrays", () => {
     });
 
     test("should handle very large array indices", () => {
-      const items = [{ id: 1, large: [] }];
+      const items = [{ id: 1, large: [] as string[] }];
       items[0].large[1000] = "test";
 
       const result = filterByAql(items, 'large[1000] = "test"');

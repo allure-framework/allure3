@@ -8,14 +8,14 @@ const meta: Meta<typeof MiddleEllipsis> = {
   parameters: { layout: "padded" },
   argTypes: {
     text: { control: "text", description: "The text which is cut out from the middle when there is no room for it." },
-    tailLength: {
+    endLength: {
       control: { type: "number", min: 1, max: 20 },
       description: "How many last characters are always shown.",
     },
   },
   args: {
     text: "7978df3c8132d35f922679e1c72c4e3d26c95061",
-    tailLength: 6,
+    endLength: 6,
   },
 };
 
@@ -82,11 +82,11 @@ export const TextsAndTails: Story = {
           12,
         ],
         ["A short text is not split", "release/3.x", 6],
-      ].map(([title, text, tailLength]) => (
+      ].map(([title, text, endLength]) => (
         <div key={String(title)}>
           <div style={captionStyle}>{title}</div>
           <div style={{ width: 200, outline: "1px dashed rgba(127, 127, 127, 0.5)" }}>
-            <MiddleEllipsis text={String(text)} tailLength={Number(tailLength)} />
+            <MiddleEllipsis text={String(text)} endLength={Number(endLength)} />
           </div>
         </div>
       ))}

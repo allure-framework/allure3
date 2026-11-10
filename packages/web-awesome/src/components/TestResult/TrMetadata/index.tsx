@@ -21,9 +21,9 @@ export const TrMetadata: FunctionalComponent<TrMetadataProps> = ({ id, testResul
   const { labels, groupedLabels } = testResult ?? {};
   const labelsId = id ? `${id}-labels` : null;
   const labelsShowAllId = id !== null ? `${id}-labels-showAll` : null;
-  const isOpened = !collapsedTrees.value.has(labelsId);
+  const isOpened = !(labelsId !== null && collapsedTrees.value.has(labelsId));
   const entries = groupedLabels ? Object.entries(groupedLabels) : [];
-  const showAll = collapsedTrees.value.has(labelsShowAllId);
+  const showAll = labelsShowAllId !== null && collapsedTrees.value.has(labelsShowAllId);
   const visibleEntries = showAll ? entries : entries.slice(0, VISIBLE_LABELS_LIMIT);
   const groupedLabelsVisible = Object.fromEntries(visibleEntries);
 

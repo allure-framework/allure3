@@ -1,3 +1,4 @@
+import "preact/debug";
 import { ensureReportDataReady, testPlatform } from "@allurereport/web-commons";
 import { Spinner, SvgIcon, allureIcons } from "@allurereport/web-components/core";
 
@@ -46,9 +47,7 @@ const Loader = () => {
   );
 };
 
-const isTestResultRoute = computed(
-  () => testResultRoute.value.matches || Boolean(rootTabRoute.value.params.testResultId),
-);
+const isTestResultRoute = computed(() => testResultRoute.value.matches || !!rootTabRoute.value.params.testResultId);
 
 const removeInitialLoader = () => {
   document.getElementById("allure-app-loader")?.remove();
@@ -95,7 +94,7 @@ const App = () => {
       await waitForI18next;
       await Promise.all(fns.map((fn) => fn(currentEnvironment.value)));
 
-      const environmentIds = environmentsStore.value.data.map(({ id }) => id).filter((id): id is string => Boolean(id));
+      const environmentIds = environmentsStore.value.data.map(({ id }) => id).filter((id): id is string => !!id);
 
       if (currentEnvironment.value) {
         await fetchEnvTreesData([currentEnvironment.value]);
@@ -166,7 +165,7 @@ const App = () => {
   );
 };
 
-const rootElement = document.getElementById("app");
+const rootElement = document.getElementById("app")!;
 
 document.addEventListener("DOMContentLoaded", () => {
   if (isMac) {

@@ -57,3 +57,35 @@
 .gutter-horizontal {
   //background-image: url("vertical.png");
 }
+
+.side-back {
+  display: none;
+}
+
+@media (max-width: $narrow-max-width) {
+  // Split.js sizes the panes inline, so the narrow layout has to win over it
+  .side-left,
+  .side-right {
+    width: 100% !important;
+  }
+
+  .side-right,
+  .side-selected .side-left,
+  .gutter {
+    display: none;
+  }
+
+  .side-selected .side-right {
+    display: block;
+  }
+
+  .side-back {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 16px;
+    color: var(--color-link-text);
+    text-decoration: none;
+    border-bottom: 1px solid var(--color-border-subtle);
+  }
+}

@@ -36,7 +36,7 @@ const Header = () => {
                 .map((status) => {
                   return { status, value: statusTabCounts[status] };
                 })
-                .filter(({ value }) => value);
+                .filter((entry): entry is typeof entry & { value: number } => !!entry.value);
               const isStatListHaveCurrentTab = statList.filter(({ status }) => status === treeStatus.value);
 
               if (!isStatListHaveCurrentTab.length && treeStatus.value !== "total") {

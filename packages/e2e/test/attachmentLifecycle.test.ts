@@ -4,7 +4,7 @@ import { fileURLToPath } from "node:url";
 import AwesomePlugin from "@allurereport/plugin-awesome";
 import ClassicPlugin from "@allurereport/plugin-classic";
 import { expect, test } from "@playwright/test";
-import { attachment, label } from "allure-js-commons";
+import { attachment, label, Status } from "allure-js-commons";
 
 import { bootstrapReport } from "./utils/index.js";
 
@@ -24,7 +24,12 @@ for (const variant of ["awesome", "classic"] as const) {
       reportConfig: {
         name: "Attachment lifecycle",
         plugins: [
-          { id: variant, enabled: true, plugin: variant === "awesome" ? new AwesomePlugin() : new ClassicPlugin() },
+          {
+            id: variant,
+            enabled: true,
+            options: {},
+            plugin: variant === "awesome" ? new AwesomePlugin() : new ClassicPlugin(),
+          },
         ],
       },
       rawTestResults: [
@@ -32,7 +37,7 @@ for (const variant of ["awesome", "classic"] as const) {
           uuid: "preview-owner",
           name: "Preview owner",
           fullName: "preview-owner",
-          status: "passed",
+          status: Status.PASSED,
           labels: [{ name: "suite", value: "Lifecycle" }],
           attachments: [{ name: "Preview image", source: "image.png", type: "image/png" }],
         },
@@ -40,7 +45,7 @@ for (const variant of ["awesome", "classic"] as const) {
           uuid: "next-test",
           name: "Next test",
           fullName: "next-test",
-          status: "passed",
+          status: Status.PASSED,
           labels: [{ name: "suite", value: "Lifecycle" }],
         },
       ],
@@ -109,7 +114,7 @@ for (const variant of ["awesome", "classic"] as const) {
         await expect(modal.locator('img[src^="blob:"]')).toHaveCount(variant === "classic" ? 2 : 1);
         const urls = await modal
           .locator('img[src^="blob:"]')
-          .evaluateAll((images) => images.map((img: HTMLImageElement) => img.src));
+          .evaluateAll((images) => images.map((img) => img.getAttribute("src") ?? ""));
         expect(
           await page.evaluate((active) => active.every((url) => !window.previewUrls.revoked.includes(url)), urls),
         ).toBe(true);

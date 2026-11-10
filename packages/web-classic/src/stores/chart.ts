@@ -1,4 +1,4 @@
-import { fetchReportJsonData } from "@allurereport/web-commons";
+import { errorMessageFromUnknown, fetchReportJsonData } from "@allurereport/web-commons";
 import { signal } from "@preact/signals";
 
 import { StoreSignalState } from "@/stores/types";
@@ -26,7 +26,7 @@ export const fetchPieChartData = async () => {
     };
   } catch (err) {
     pieChartStore.value = {
-      error: err.message,
+      error: errorMessageFromUnknown(err),
       loading: false,
     };
   }

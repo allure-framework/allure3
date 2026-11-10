@@ -119,7 +119,7 @@ describe("AllureReport.restoreState (dump zip)", () => {
     process.chdir(previousCwd);
     vi.restoreAllMocks();
     await Promise.all(zipPaths.splice(0).map((p) => unlink(p).catch(() => {})));
-    await Promise.all(tempDirs.splice(0).map((p) => rm(p, { recursive: true, force: true })));
+    await Promise.all(tempDirs.splice(0).map((p) => rm(p, { recursive: true, force: true, maxRetries: 3 })));
   });
 
   const tempZipPath = (): string => {
@@ -692,7 +692,7 @@ describe("AllureReport.restoreState (dump zip)", () => {
       data: Parameters<typeof originalEntry>[1],
       callback: Parameters<typeof originalEntry>[2],
     ) {
-      if (data.name === attachmentId) {
+      if (data?.name === attachmentId) {
         callback?.(new Error("zip entry write failed"));
         return this;
       }
@@ -776,7 +776,7 @@ describe("AllureReport.restoreState (dump zip)", () => {
       data: Parameters<typeof originalEntry>[1],
       callback: Parameters<typeof originalEntry>[2],
     ) {
-      if (data.name === AllureStoreDumpFiles.TestResults) {
+      if (data?.name === AllureStoreDumpFiles.TestResults) {
         callback?.(new Error("metadata entry write failed"));
         return this;
       }

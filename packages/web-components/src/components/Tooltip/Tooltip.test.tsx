@@ -43,11 +43,15 @@ describe("TooltipWrapper activation", () => {
     const button = screen.getByRole("button", { name: "Trigger" });
     const wrapper = button.parentElement!.parentElement!;
     fireEvent.mouseEnter(wrapper);
-    await act(async () => vi.advanceTimersByTimeAsync(200));
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(200);
+    });
     expect(screen.queryByTestId("details")).toBeNull();
     rerender(tooltip(true));
     fireEvent.mouseEnter(wrapper);
-    await act(async () => vi.advanceTimersByTimeAsync(200));
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(200);
+    });
     expect(screen.queryByTestId("details")).not.toBeNull();
     rerender(tooltip(false));
     expect(screen.queryByTestId("details")).toBeNull();
@@ -66,12 +70,16 @@ describe("TooltipWrapper activation", () => {
     const wrapper = button.parentElement!.parentElement!;
     fireEvent.click(button);
     fireEvent.mouseLeave(wrapper);
-    await act(async () => vi.advanceTimersByTimeAsync(200));
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(200);
+    });
     rerender(tooltip(false));
     expect(screen.queryByTestId("details")).toBeNull();
     rerender(tooltip(true));
     expect(screen.queryByTestId("details")).not.toBeNull();
-    await act(async () => vi.advanceTimersByTimeAsync(400));
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(400);
+    });
     expect(screen.queryByTestId("details")).toBeNull();
     rerender(tooltip(false));
     rerender(tooltip(true));

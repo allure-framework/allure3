@@ -52,7 +52,7 @@ const { exitMock, stdoutWriteMock, stderrWriteMock, childProcess } = vi.hoisted(
 });
 
 vi.mock("node:process", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("node:process")>();
+  const actual = await importOriginal<typeof import("node:process") & { default: typeof import("node:process") }>();
   const processMock = {
     cwd: actual.default.cwd.bind(actual.default),
     stdout: {

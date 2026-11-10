@@ -1,6 +1,7 @@
 import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
+import type { Writable } from "node:stream";
 
 import { readConfig, readRawConfig } from "@allurereport/core";
 import {
@@ -249,7 +250,7 @@ describe("agent command", () => {
       ],
       args,
       {
-        stdout: stdout as unknown as NodeJS.WritableStream,
+        stdout: stdout as unknown as Writable,
       },
     );
 

@@ -18,7 +18,7 @@ describe("cucumberjson reader", () => {
   it("should ignore a file with no .json extension", async () => {
     const resultFile = await readResourceAsResultFile("cucumberjsondata/reference/names/wellDefined.json", "cucumber");
 
-    expect(cucumberjson.matches(resultFile)).toBe(false);
+    expect(cucumberjson.matches!(resultFile)).toBe(false);
   });
 
   // As implemented in https://github.com/cucumber/cucumber-ruby or https://github.com/cucumber/json-formatter (which

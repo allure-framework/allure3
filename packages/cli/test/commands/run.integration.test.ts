@@ -1,8 +1,8 @@
-import { execFile, spawn } from "node:child_process";
+import { type ExecFileOptionsWithStringEncoding, execFile, spawn } from "node:child_process";
 import { mkdir, mkdtemp, readFile, readdir, rm, stat, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, isAbsolute, join, resolve } from "node:path";
-import process, { platform } from "node:process";
+import process from "node:process";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { promisify } from "node:util";
 
@@ -24,7 +24,7 @@ const cliPath = join(repoRoot, "packages", "cli", "cli.js");
 const simpleResultFixture = join(repoRoot, "packages", "reader", "test", "resources", "allure2data", "simple.json");
 const maxBuffer = 10 * 1024 * 1024;
 
-type RunCommandOptions = Parameters<typeof execFileAsync>[2];
+type RunCommandOptions = ExecFileOptionsWithStringEncoding;
 
 const runCommand = async (command: string, args: string[], options: RunCommandOptions = {}) => {
   const { env: customEnv, ...restOptions } = options;
@@ -37,6 +37,7 @@ const runCommand = async (command: string, args: string[], options: RunCommandOp
     env,
     maxBuffer,
     ...restOptions,
+    encoding: "utf8",
   });
 };
 
@@ -179,6 +180,96 @@ describe("run command integration", () => {
   afterAll(async () => {
     await rm(tempDir, { recursive: true, force: true });
   });
+
+  it("persists a global error when SIGINT interrupts allure run", async () => {
+    const fixtureDir = join(tempDir, "sigint-global-error");
+    const outputDir = join(fixtureDir, "report");
+    const configPath = join(fixtureDir, "allurerc.mjs");
+    const runnerPath = join(fixtureDir, "runner.mjs");
+    const preloadPath = join(fixtureDir, "interrupt.mjs");
+    const readyMarker = "sigint-global-error-target-ready";
+    const cleanupMarker = "sigint-global-error-target-cleaned-up";
+
+    await step("prepare a cooperative child and interrupt the CLI only after child readiness", async () => {
+      await mkdir(fixtureDir, { recursive: true });
+      await writeFile(
+        configPath,
+        `export default {
+          output: ${JSON.stringify(outputDir)},
+          plugins: { awesome: { options: { singleFile: false } } }
+        };`,
+        "utf-8",
+      );
+      await writeFile(
+        runnerPath,
+        `
+          const timeout = setTimeout(() => process.exit(42), 20000);
+          process.once("SIGINT", () => {
+            clearTimeout(timeout);
+            console.log(${JSON.stringify(cleanupMarker)});
+            process.exitCode = 20;
+          });
+          console.log(${JSON.stringify(readyMarker)});
+        `,
+        "utf-8",
+      );
+      // Windows cannot deliver SIGINT using child.kill(). Emit it inside the CLI
+      // after its real supervisor forwards the ready marker from the child.
+      await writeFile(
+        preloadPath,
+        `
+          const write = process.stdout.write.bind(process.stdout);
+          let output = "";
+          let interrupted = false;
+          process.stdout.write = (chunk, ...args) => {
+            const result = write(chunk, ...args);
+            output += chunk.toString();
+            if (!interrupted && output.includes(${JSON.stringify(readyMarker)})) {
+              interrupted = true;
+              setImmediate(() => process.emit("SIGINT", "SIGINT"));
+            }
+            return result;
+          };
+        `,
+        "utf-8",
+      );
+    });
+
+    await step("run the built CLI and verify the child handles SIGINT", async () => {
+      const result = await runCommandWithExitCode(
+        process.execPath,
+        [
+          "--import",
+          pathToFileURL(preloadPath).href,
+          cliPath,
+          "run",
+          "--cwd",
+          fixtureDir,
+          "--config",
+          configPath,
+          "--",
+          process.execPath,
+          runnerPath,
+        ],
+        { timeout: 40_000 },
+      );
+      await attachCommandOutput("SIGINT-interrupted allure run", result);
+      expect(result.stdout).toContain(readyMarker);
+      expect(result.stdout).toContain(cleanupMarker);
+      expect(result.stderr).toBe("");
+      expect(result.exitCode).toBe(20);
+    });
+
+    await step("verify a global error was added", async () => {
+      const globalsContent = await readFile(join(outputDir, "widgets", "globals.json"), "utf-8");
+      await attachment("interrupted run report globals", globalsContent, "application/json");
+      const globals = JSON.parse(globalsContent);
+      expect(globals.errors).toEqual([
+        expect.objectContaining({ message: "The test run was interrupted. Some tests may not have run." }),
+      ]);
+      await expect(stat(join(outputDir, "index.html"))).resolves.toBeTruthy();
+    });
+  }, 60_000);
 
   it("prints the agent task map from built CLI help", async () => {
     let stdout = "";
@@ -720,6 +811,7 @@ await new Promise((resolve) => setTimeout(resolve, 2500));
       expect(isAbsolute(invocations[1]!.testPlanPath!)).toBe(true);
       expect(invocations[1]?.testPlan).toEqual({
         version: "1.0",
+        mutedTests: [],
         tests: [{ selector: "Quality Gate Suite > becomes fast enough after rerun" }],
       });
     });
@@ -1513,6 +1605,7 @@ console.log(\`selected selectors: \${Array.from(selectors).join(",")}\`);
     await step("verify selected rerun output", async () => {
       expect(JSON.parse(selectStdout)).toEqual({
         version: "1.0",
+        mutedTests: [],
         tests: [
           {
             selector: "suite feature A",
@@ -1522,6 +1615,7 @@ console.log(\`selected selectors: \${Array.from(selectors).join(",")}\`);
       expect(selectStderr).toBe("");
       expect(JSON.parse(await readFile(selectedTestPlanPath, "utf-8"))).toEqual({
         version: "1.0",
+        mutedTests: [],
         tests: [
           {
             selector: "suite feature A",
@@ -1630,6 +1724,374 @@ console.log(\`selected selectors: \${Array.from(selectors).join(",")}\`);
       expect(result.stderr).not.toContain("Update available");
     });
   }, 60_000);
+
+  it.each(["pipe", "file"])(
+    "preserves redirected output with --ignore-logs (%s)",
+    async (destination) => {
+      const fixtureDir = join(tempDir, `ignore-logs-${destination}`);
+      await mkdir(fixtureDir, { recursive: true });
+      const configPath = join(fixtureDir, "allurerc.mjs");
+      const targetPath = join(fixtureDir, "target.mjs");
+      const wrapperPath = join(fixtureDir, "redirect.mjs");
+      await writeFile(configPath, "export default { plugins: {} };\n");
+      await writeFile(
+        targetPath,
+        `
+          import { readFileSync, fstatSync } from "node:fs";
+          console.log(readFileSync(0, "utf8"));
+          console.log("stdout-is-file:" + fstatSync(1).isFile());
+          console.log("target-stdout-marker");
+          console.error("target-stderr-marker");
+        `,
+      );
+      const args = [
+        cliPath,
+        "run",
+        "--config",
+        configPath,
+        "--cwd",
+        fixtureDir,
+        "--ignore-logs",
+        "--",
+        process.execPath,
+        targetPath,
+      ];
+      await writeFile(
+        wrapperPath,
+        `
+          import { spawnSync } from "node:child_process";
+          import { openSync, closeSync, readFileSync } from "node:fs";
+          delete process.env.ALLURE_CLI_ACTIVE_COMMAND;
+          const file = ${JSON.stringify(join(fixtureDir, "stdout.log"))};
+          const descriptor = ${JSON.stringify(destination)} === "file" ? openSync(file, "w") : null;
+          const result = spawnSync(process.execPath, ${JSON.stringify(args)}, {
+            stdio: ["pipe", descriptor ?? "pipe", "pipe"], input: "redirected-stdin-marker", encoding: "utf8", timeout: 30000,
+          });
+          if (descriptor !== null) closeSync(descriptor);
+          if (result.error) throw result.error;
+          console.log(JSON.stringify({ exitCode: result.status,
+            stdout: descriptor === null ? result.stdout : readFileSync(file, "utf8"), stderr: result.stderr }));
+        `,
+      );
+
+      const result = await runCommand(process.execPath, [wrapperPath], { timeout: 40_000 });
+
+      const output = JSON.parse(result.stdout);
+      await attachCommandOutput(`${destination} output`, output);
+
+      await step("Verify redirected streams remain usable and separate", async () => {
+        expect(output.exitCode).toBe(0);
+        expect(output.stdout).toContain("target-stdout-marker");
+        expect(output.stdout).toContain("redirected-stdin-marker");
+        expect(output.stdout).toContain(`stdout-is-file:${destination === "file"}`);
+        expect(output.stderr).toContain("target-stderr-marker");
+        expect(output.stdout).not.toContain("target-stderr-marker");
+        expect(output.stderr).not.toContain("target-stdout-marker");
+      });
+    },
+    60_000,
+  );
+
+  it.skipIf(process.platform !== "win32").each([
+    { scenario: "idle stdin", input: "", source: "", expected: "" },
+    { scenario: "write-only output", input: "", source: "", expected: "" },
+    {
+      scenario: "console input",
+      input: "console-input",
+      source:
+        'process.stdin.setEncoding("utf8"); await new Promise(resolve => process.stdin.once("data", value => { console.log(value.trim()); process.stdin.destroy(); resolve(); }));',
+      expected: "console-input",
+    },
+    {
+      scenario: "console input bytes",
+      input: "caf\u00e9",
+      source:
+        'const chunks = []; await new Promise(resolve => process.stdin.on("data", chunk => { chunks.push(chunk); if (Buffer.concat(chunks).includes(10)) { process.stdin.destroy(); resolve(); } })); console.log("stdin-bytes:" + Buffer.concat(chunks).toString("hex"));',
+      expected: "stdin-bytes:636166e90d0a",
+    },
+    {
+      scenario: "console output bytes",
+      input: "",
+      source:
+        "await Promise.all([process.stdout, process.stderr].map(stream => new Promise(resolve => stream.write(Buffer.from([0x63, 0x61, 0x66, 0xe9, 0x0a]), resolve))));",
+      expected: "caf\u00e9",
+    },
+    {
+      scenario: "large output",
+      input: "",
+      source:
+        'await Promise.all([process.stdout, process.stderr].map(stream => new Promise(resolve => stream.write("X".repeat(131072) + "\\n", resolve))));',
+      expected: "",
+    },
+  ])(
+    "preserves console stdout and stderr with --ignore-logs ($scenario)",
+    async ({ scenario, input, source, expected }) => {
+      const fixtureDir = join(tempDir, `ignore-logs-console-${scenario.replaceAll(" ", "-")}`);
+      await mkdir(fixtureDir, { recursive: true });
+
+      const configPath = join(fixtureDir, "allurerc.mjs");
+      const scriptPath = join(fixtureDir, "run.mjs");
+      const targetPath = join(fixtureDir, "target.mjs");
+      const outputPath = join(fixtureDir, "console.json");
+      const tracePath = join(fixtureDir, "console.trace.log");
+
+      // allurerc.mjs: a minimal config with no report plugins
+      await writeFile(configPath, "export default { plugins: {} };\n");
+
+      // target.mjs: the final target script that writes to stdout and stderr
+      //             if stdin is tested, create a marker file to indicate readiness for input.
+      const targetContentPrefix = input
+        ? `
+            import { writeFileSync } from "node:fs";
+            writeFileSync(${JSON.stringify(scriptPath + ".stdin-ready")}, "");
+          `
+        : "";
+      const targetContent = `
+        ${targetContentPrefix}
+        ${source}
+        console.log("target-stdout-marker");
+        console.error("target-stderr-marker");
+      `;
+      await writeFile(targetPath, targetContent);
+
+      const args = [
+        cliPath,
+        "-v",
+        "run",
+        "--config",
+        configPath,
+        "--cwd",
+        fixtureDir,
+        "--ignore-logs",
+        "--",
+        process.execPath,
+        targetPath,
+      ];
+
+      // run.mjs: allows separating fixture/handle inheritance failures
+      //  1. Removes ALLURE_CLI_ACTIVE_COMMAND to test the supervisor, not the nested Allure shortcut.
+      //  2. Prints to stdout and stderr proving that the fixture has working handles and handle inheritance is correct.
+      //  3. Delegates to allure bypassing complex Windows argument quoting rules.
+      await writeFile(
+        scriptPath,
+        `
+          delete process.env.ALLURE_CLI_ACTIVE_COMMAND;
+          process.stdout.write("fixture-stdout-ready\\n");
+          process.stderr.write("fixture-stderr-ready\\n");
+          process.argv = [process.execPath, ...${JSON.stringify(args)}];
+          await import(${JSON.stringify(pathToFileURL(cliPath).href)});
+        `,
+      );
+
+      await step("Run --ignore-logs with separate real console output buffers", async () => {
+        // We're running 'allure run' through PowerShell because we need WinAPI
+        // to create separate console output buffers on Windows.
+        // Capturing stdout/stderr through redirection would change console to pipes,
+        // which cannot prove --ignore-logs actually works.
+        type CommandError = Error & {
+          code?: number | string | null;
+          killed?: boolean;
+          signal?: string | null;
+          stderr?: string;
+          stdout?: string;
+        };
+        let commandError: CommandError | undefined;
+        let result: Awaited<ReturnType<typeof runCommand>> = { stdout: "", stderr: "" };
+        try {
+          result = await runCommand(
+            "powershell.exe",
+            [
+              "-NoProfile",
+              "-NonInteractive",
+              "-ExecutionPolicy",
+              "Bypass",
+              "-File",
+              join(commandsDir, "fixtures", "console-output.ps1"),
+              process.execPath,
+              scriptPath,
+              outputPath,
+              input,
+              scenario === "write-only output" ? "write-only" : "read-write",
+              tracePath,
+            ],
+            { timeout: 40_000, windowsHide: true },
+          );
+        } catch (error) {
+          commandError = error as CommandError;
+          result = {
+            stdout: commandError.stdout ?? "",
+            stderr: commandError.stderr ?? "",
+          };
+        }
+        const trace = await readFile(tracePath, "utf8").catch(() => "<trace file was not created>");
+        const diagnostics = [
+          `code: ${String(commandError ? commandError.code : 0)}`,
+          `signal: ${String(commandError?.signal ?? null)}`,
+          `killed: ${String(commandError?.killed ?? false)}`,
+          `stdout: ${result.stdout || "<empty>"}`,
+          `stderr: ${result.stderr || "<empty>"}`,
+          "trace:",
+          trace,
+        ].join("\n");
+
+        console.error(`Console fixture diagnostics (${scenario}):\n${diagnostics}\n`);
+        await attachment("console fixture diagnostics", diagnostics, "text/plain");
+        if (commandError) {
+          commandError.message += `\n\nConsole fixture timeout diagnostics:\n${diagnostics}`;
+          commandError.stack = `${commandError.stack ?? commandError.message}\n\nConsole fixture timeout diagnostics:\n${diagnostics}`;
+          throw commandError;
+        }
+      });
+
+      // Read the output removing the BOM if present.
+      const output = JSON.parse((await readFile(outputPath, "utf8")).replace(/^\uFEFF/, ""));
+      await attachCommandOutput("console buffers", output);
+
+      await step("Verify console handle access matches the scenario", async () => {
+        const expectedError = scenario === "write-only output" ? 5 : 0;
+        expect(output.stdoutModeError).toBe(expectedError);
+        expect(output.stderrModeError).toBe(expectedError);
+      });
+
+      await step("Verify the fixture has working console stdout and stderr", async () => {
+        // Failing would mean something is wrong with the PowerShell fixture or console handle inheritance.
+        expect(output.stdout).toContain("fixture-stdout-ready");
+        expect(output.stderr).toContain("fixture-stderr-ready");
+      });
+
+      await step("Verify target output reaches the matching console stream", async () => {
+        expect(output.exitCode).toBe(0);
+
+        // Verify the output produced by the target script reaches the correct console streams
+        expect.soft(output.stdout).toContain("target-stdout-marker");
+        expect.soft(output.stderr).toContain("target-stderr-marker");
+        expect(output.stdout).not.toContain("target-stderr-marker");
+        expect(output.stderr).not.toContain("target-stdout-marker");
+
+        if (expected) {
+          expect.soft(output.stdout).toContain(expected);
+        }
+        if (scenario === "console output bytes") {
+          // The console must interpret 0xe9 using CP1252 on both output streams.
+          expect.soft(output.stderr).toContain(expected);
+        }
+        if (scenario === "large output") {
+          expect(output.stdout.match(/X/g)?.length).toBeGreaterThanOrEqual(131072);
+          expect(output.stderr.match(/X/g)?.length).toBeGreaterThanOrEqual(131072);
+        }
+      });
+    },
+    60_000,
+  );
+
+  it("retains a viewer from an early rerun and removes stale assets only with clean", async () => {
+    await feature("selective-directory-assets");
+    const root = await mkdtemp(join(tmpdir(), "allure-selective-cli-"));
+    const output = join(root, "report"),
+      results = join(root, "allure-results");
+    const configPath = join(root, "allurerc.mjs"),
+      runner = join(root, "runner.mjs");
+    const dump = join(root, "snapshot.zip");
+    try {
+      await mkdir(results);
+      await writeFile(
+        configPath,
+        `export default { appendHistory: false, plugins: { awesome: { options: { charts: [], sections: ["default"] } } } };`,
+      );
+      await writeFile(
+        runner,
+        `
+      import { writeFile } from "node:fs/promises";
+      const rerun = process.env.ALLURE_RERUN !== undefined;
+      const results = ${JSON.stringify(results)};
+      if (!rerun) await writeFile(results + "/retry.mmd", "sequenceDiagram\\nClient->>Server: early attempt");
+      await writeFile(results + "/" + (rerun ? "passed" : "failed") + "-result.json", JSON.stringify({
+        uuid: rerun ? "passed" : "failed", historyId: "selective-rerun", name: "Selective rerun", fullName: "selective-rerun",
+        status: rerun ? "passed" : "failed", stage: "finished", start: rerun ? 2000 : 1000, stop: rerun ? 2100 : 1100,
+        attachments: rerun ? [] : [{ name: "Early diagram", source: "retry.mmd", type: "application/vnd.allure.diagrams.mermaid" }]
+      }));
+      process.exitCode = rerun ? 0 : 1;
+    `,
+      );
+      const runResult = await runCommand(
+        process.execPath,
+        [
+          cliPath,
+          "run",
+          "--config",
+          configPath,
+          "--output",
+          output,
+          "--results-dir",
+          results,
+          "--rerun",
+          "1",
+          "--",
+          process.execPath,
+          runner,
+        ],
+        { cwd: root },
+      );
+      await attachCommandOutput("selective rerun", runResult);
+      const scripts = async () => (await readdir(output)).filter((file) => file.endsWith(".js"));
+      expect((await scripts()).some((file) => file.startsWith("attachment-mermaid-"))).toBe(true);
+      expect((await scripts()).some((file) => file.startsWith("chart-bar-"))).toBe(false);
+      await rm(results, { recursive: true });
+      await mkdir(results);
+      const dumpResult = await runCommandWithExitCode(
+        process.execPath,
+        [
+          cliPath,
+          "run",
+          "--config",
+          configPath,
+          "--output",
+          join(root, "dump-report"),
+          "--results-dir",
+          results,
+          "--dump",
+          join(root, "snapshot"),
+          "--",
+          process.execPath,
+          runner,
+        ],
+        { cwd: root, env: { ALLURE_RERUN: undefined } },
+      );
+      await attachCommandOutput("selective dump", dumpResult);
+      expect(dumpResult.exitCode).toBe(1);
+      expect(await pathExists(dump)).toBe(true);
+      // The dump contains the failed attempt and its attachment; regeneration must discover that viewer.
+      const restore = await runCommand(
+        process.execPath,
+        [cliPath, "generate", "--config", configPath, "--output", output, "--dump", dump],
+        { cwd: root },
+      );
+      await attachCommandOutput("selective dump restore", restore);
+      expect((await scripts()).some((file) => file.startsWith("attachment-mermaid-"))).toBe(true);
+      await rm(results, { recursive: true });
+      await mkdir(results);
+      await writeJson(join(results, "passed-result.json"), {
+        uuid: "final",
+        name: "No attachments",
+        fullName: "no-attachments",
+        status: "passed",
+      });
+      await writeFile(join(output, "user.txt"), "user");
+      for (const clean of [false, true]) {
+        const generated = await runCommand(
+          process.execPath,
+          [cliPath, "generate", "--config", configPath, "--output", output, ...(clean ? ["--clean"] : []), results],
+          { cwd: root },
+        );
+        await attachCommandOutput(`selective generate clean=${clean}`, generated);
+        expect((await scripts()).some((file) => file.startsWith("attachment-mermaid-"))).toBe(!clean);
+        if (!clean) expect(await readFile(join(output, "user.txt"), "utf8")).toBe("user");
+        else expect(await pathExists(join(output, "user.txt"))).toBe(false);
+      }
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
+  }, 30000);
 });
 
 const waitForOutput = (pattern: RegExp, streams: (NodeJS.ReadableStream | null)[], timeoutMs = 120_000) =>
@@ -1748,80 +2210,74 @@ describe("serve command integration", () => {
     await rm(workspace, { recursive: true, force: true });
   });
 
-  // re-enable once issues with vite+ caching and hanging powershell are resolved
-  it(
-    "keeps the HTTP server running when historyPath is configured",
-    { skip: platform === "win32" },
-    async () => {
-      const historyPath = join(workspace, "allure-history.jsonl");
+  it("keeps the HTTP server running when historyPath is configured", { timeout: 240_000 }, async () => {
+    const historyPath = join(workspace, "allure-history.jsonl");
 
-      await mkdir(join(workspace, "allure-results"), { recursive: true });
-      await writeJson(join(workspace, "allure-results", "x-result.json"), {
-        uuid: "11111111-1111-1111-1111-111111111111",
-        historyId: "abc",
-        name: "dummy test",
-        status: "passed",
-        stage: "finished",
-        start: 1_784_900_000_000,
-        stop: 1_784_900_001_000,
-        labels: [],
-        steps: [],
-        parameters: [],
-        links: [],
-      });
-      await writeFile(
-        join(workspace, "allurerc.mjs"),
-        `export default {
+    await mkdir(join(workspace, "allure-results"), { recursive: true });
+    await writeJson(join(workspace, "allure-results", "x-result.json"), {
+      uuid: "11111111-1111-1111-1111-111111111111",
+      historyId: "abc",
+      name: "dummy test",
+      status: "passed",
+      stage: "finished",
+      start: 1_784_900_000_000,
+      stop: 1_784_900_001_000,
+      labels: [],
+      steps: [],
+      parameters: [],
+      links: [],
+    });
+    await writeFile(
+      join(workspace, "allurerc.mjs"),
+      `export default {
   name: "repro",
   historyPath: ${JSON.stringify(historyPath)},
 };
 `,
-        "utf-8",
-      );
+      "utf-8",
+    );
 
-      const env = { ...process.env };
+    const env = { ...process.env };
 
-      // other suites in the same worker may have left it behind, and the CLI refuses nested commands
-      delete env.ALLURE_CLI_ACTIVE_COMMAND;
+    // other suites in the same worker may have left it behind, and the CLI refuses nested commands
+    delete env.ALLURE_CLI_ACTIVE_COMMAND;
 
-      const child = spawn(process.execPath, [cliPath, "serve", "allure-results"], {
-        cwd: workspace,
-        env,
-        stdio: ["ignore", "pipe", "pipe"],
-      });
+    const child = spawn(process.execPath, [cliPath, "serve", "allure-results"], {
+      cwd: workspace,
+      env,
+      stdio: ["ignore", "pipe", "pipe"],
+    });
 
-      try {
-        const serverPattern = /Allure is running on http:\/\/localhost:\d+/;
-        let earlyOutput = "";
+    try {
+      const serverPattern = /Allure is running on http:\/\/localhost:\d+/;
+      let earlyOutput = "";
 
-        child.stdout?.on("data", (chunk: Buffer) => (earlyOutput += chunk.toString()));
-        child.stderr?.on("data", (chunk: Buffer) => (earlyOutput += chunk.toString()));
+      child.stdout?.on("data", (chunk: Buffer) => (earlyOutput += chunk.toString()));
+      child.stderr?.on("data", (chunk: Buffer) => (earlyOutput += chunk.toString()));
 
-        const exited = new Promise<never>((_, rejectPromise) => {
-          child.once("exit", (code, signal) => {
-            rejectPromise(
-              new Error(
-                `allure serve exited before starting the server (code: ${code}, signal: ${signal}):\n${earlyOutput || "<no output>"}`,
-              ),
-            );
-          });
+      const exited = new Promise<never>((_, rejectPromise) => {
+        child.once("exit", (code, signal) => {
+          rejectPromise(
+            new Error(
+              `allure serve exited before starting the server (code: ${code}, signal: ${signal}):\n${earlyOutput || "<no output>"}`,
+            ),
+          );
         });
-        const output = await Promise.race([waitForOutput(serverPattern, [child.stdout, child.stderr]), exited]);
+      });
+      const output = await Promise.race([waitForOutput(serverPattern, [child.stdout, child.stderr]), exited]);
 
-        await attachment("serve output", output, "text/plain");
+      await attachment("serve output", output, "text/plain");
 
-        expect(output).toMatch(serverPattern);
-        expect(child.exitCode).toBeNull();
+      expect(output).toMatch(serverPattern);
+      expect(child.exitCode).toBeNull();
 
-        const history = await readHistoryEntries(historyPath);
+      const history = await readHistoryEntries(historyPath);
 
-        await attachment("history file", JSON.stringify(history, null, 2), "application/json");
+      await attachment("history file", JSON.stringify(history, null, 2), "application/json");
 
-        expect(history).toHaveLength(1);
-      } finally {
-        await terminate(child);
-      }
-    },
-    240_000,
-  );
+      expect(history).toHaveLength(1);
+    } finally {
+      await terminate(child);
+    }
+  });
 });

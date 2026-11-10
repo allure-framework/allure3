@@ -1,5 +1,5 @@
 import type { Statistic } from "@allurereport/core-api";
-import { fetchReportJsonData } from "@allurereport/web-commons";
+import { errorMessageFromUnknown, fetchReportJsonData } from "@allurereport/web-commons";
 import { signal } from "@preact/signals";
 
 import type { StoreSignalState } from "@/stores/types";
@@ -30,7 +30,7 @@ export const fetchStats = async () => {
   } catch (err) {
     statsStore.value = {
       data: { total: 0 },
-      error: err.message,
+      error: errorMessageFromUnknown(err),
       loading: false,
     };
   }

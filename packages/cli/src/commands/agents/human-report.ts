@@ -1,12 +1,26 @@
 import * as console from "node:console";
 
-import { readConfig, readRawConfig, type FullConfig, type PluginInstance } from "@allurereport/core";
+import {
+  readConfig,
+  readRawConfig,
+  resolvePluginOptions,
+  type FullConfig,
+  type PluginInstance,
+} from "@allurereport/core";
+import { createNameContext } from "@allurereport/core-api/expression";
 import type {
   AgentHumanReportMode,
   AgentHumanReportStatus,
   AgentHumanReportStatusProvider,
 } from "@allurereport/plugin-agent";
-import type { AllureStore, Plugin, PluginContext, PluginSummary, RealtimeSubscriber } from "@allurereport/plugin-api";
+import type {
+  AllureStore,
+  Config,
+  Plugin,
+  PluginContext,
+  PluginSummary,
+  RealtimeSubscriber,
+} from "@allurereport/plugin-api";
 import AwesomePlugin, { type AwesomePluginOptions } from "@allurereport/plugin-awesome";
 
 export const AGENT_HUMAN_REPORT_THRESHOLD = 1000;
@@ -15,7 +29,7 @@ type AgentHumanReportConfigOverride = {
   name?: FullConfig["name"];
   open?: FullConfig["open"];
   port?: FullConfig["port"];
-  hideLabels?: FullConfig["hideLabels"];
+  hideLabels?: Config["hideLabels"];
   historyLimit?: FullConfig["historyLimit"];
 };
 
@@ -64,7 +78,12 @@ const configuredAwesomeOptions = async (cwd: string, configPath?: string): Promi
     const descriptor = plugins[id];
 
     if (isAwesomeDescriptor(id, descriptor)) {
-      return (descriptor.options ?? {}) as AwesomePluginOptions;
+      return resolvePluginOptions(
+        descriptor.options ?? {},
+        AwesomePlugin.configExpressions,
+        `plugins[${JSON.stringify(id)}].options`,
+        createNameContext(),
+      ) as AwesomePluginOptions;
     }
   }
 

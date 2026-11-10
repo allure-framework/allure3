@@ -1,3 +1,4 @@
+import type { ComponentChildren } from "preact";
 import { useEffect } from "preact/hooks";
 
 import Modal from "@/components/Modal";
@@ -8,7 +9,7 @@ import { testResultStore } from "@/stores/testResults";
 
 import * as styles from "./styles.scss";
 
-export const BaseLayout = ({ children }) => {
+export const BaseLayout = ({ children }: { children: ComponentChildren }) => {
   const { testResultId } = route.value.params;
   const testResult = testResultStore.value;
 
@@ -19,7 +20,7 @@ export const BaseLayout = ({ children }) => {
     <div className={styles.layout}>
       <SideNav />
       {children}
-      <Modal testResult={testResult.data?.[testResultId]} />
+      <Modal testResult={testResultId ? testResult.data?.[testResultId] : undefined} />
     </div>
   );
 };

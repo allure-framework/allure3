@@ -5,7 +5,7 @@ import { setTimeout } from "node:timers/promises";
 import { epic, feature, label, story } from "allure-js-commons";
 import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
-import { AllureStoreEvents, RealtimeSubscriber } from "../../src/utils/event.js";
+import { AllureStoreEvents, RealtimeEvents, RealtimeSubscriber } from "../../src/utils/event.js";
 import { RealtimeChannel } from "../../src/utils/realtimeChannel.js";
 
 const getRandomInt = (max: number): number => Math.floor(Math.random() * max);
@@ -28,7 +28,7 @@ describe("Events", () => {
     const result: string[] = [];
     for (let i = 1; i < 10; i++) {
       const id = `id${i}`;
-      emitter.emit("testResult", id);
+      emitter.emit(RealtimeEvents.TestResult, id);
       result.push(id);
     }
 
@@ -51,7 +51,7 @@ describe("Events", () => {
     for (let i = 1; i < 10; i++) {
       const id = `id${i}`;
       const delay = getRandomInt(50);
-      const timeout = setTimeout(delay).then(() => emitter.emit("testResult", id));
+      const timeout = setTimeout(delay).then(() => emitter.emit(RealtimeEvents.TestResult, id));
       promises.push(timeout);
       result.push(id);
     }
@@ -78,7 +78,7 @@ describe("Events", () => {
     for (let i = 1; i < 10; i++) {
       const id = `id${i}`;
       const delay = getRandomInt(50);
-      const timeout = setTimeout(delay).then(() => emitter.emit("testResult", id));
+      const timeout = setTimeout(delay).then(() => emitter.emit(RealtimeEvents.TestResult, id));
       promises.push(timeout);
       batch1.push(id);
     }
@@ -90,7 +90,7 @@ describe("Events", () => {
       // the first batch is sometime between 0ms-100ms or 50ms-150ms depends on the first emit
       // we should ensure the second batch starts after 150ms
       const delay = getRandomInt(50) + 151;
-      const timeout = setTimeout(delay).then(() => emitter.emit("testResult", id));
+      const timeout = setTimeout(delay).then(() => emitter.emit(RealtimeEvents.TestResult, id));
       promises.push(timeout);
       batch2.push(id);
     }
@@ -119,7 +119,7 @@ describe("Events", () => {
     for (let i = 1; i < 10; i++) {
       const id = `id${i}`;
       const delay = getRandomInt(50);
-      const timeout = setTimeout(delay).then(() => emitter.emit("testResult", id));
+      const timeout = setTimeout(delay).then(() => emitter.emit(RealtimeEvents.TestResult, id));
       promises.push(timeout);
       result.push(id);
     }
@@ -141,7 +141,7 @@ describe("Events", () => {
     const events = new RealtimeSubscriber(emitter);
     const listener = vi.fn();
     events.onTestResults(listener);
-    emitter.emit("testResult", "123");
+    emitter.emit(RealtimeEvents.TestResult, "123");
     events.offAll();
     // default batch timeout is set to 100
     await setTimeout(150);
@@ -154,7 +154,7 @@ describe("Events", () => {
     const listener = vi.fn();
     const unsubscribe = events.onTestResults(listener);
 
-    emitter.emit("testResult", "123");
+    emitter.emit(RealtimeEvents.TestResult, "123");
     unsubscribe();
 
     // default batch timeout is set to 100
@@ -171,7 +171,7 @@ describe("Events", () => {
     events.onTestResults((ids) => {
       result.push(ids);
     });
-    emitter.emit("testResult", "123");
+    emitter.emit(RealtimeEvents.TestResult, "123");
 
     // default batch timeout is set to 100
     await setTimeout(150);
@@ -186,7 +186,7 @@ describe("Events", () => {
     const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
 
     events.onTestResults(vi.fn().mockRejectedValue(error));
-    emitter.emit("testResult", "123");
+    emitter.emit(RealtimeEvents.TestResult, "123");
 
     // default batch timeout is set to 100
     await setTimeout(150);
@@ -206,14 +206,14 @@ describe("Events", () => {
     const listener = vi.fn((ids: string[]) => (ids.includes("first") ? firstBatch : undefined));
 
     events.onTestResults(listener);
-    emitter.emit("testResult", "first");
+    emitter.emit(RealtimeEvents.TestResult, "first");
 
     // default batch timeout is set to 100
     await setTimeout(150);
     expect(listener).toBeCalledTimes(1);
     expect(listener).toHaveBeenLastCalledWith(["first"]);
 
-    emitter.emit("testResult", "second");
+    emitter.emit(RealtimeEvents.TestResult, "second");
 
     // The second batch should stay buffered while the first listener is still active.
     await setTimeout(150);
@@ -232,7 +232,7 @@ describe("Events", () => {
     const listener = vi.fn(() => Promise.resolve());
 
     events.onGlobalError(listener);
-    emitter.emit("globalError", { message: "global failure" });
+    emitter.emit(RealtimeEvents.GlobalError, { message: "global failure" });
 
     expect(listener).toBeCalledWith({ message: "global failure" });
   });
@@ -264,7 +264,7 @@ describe("Events", () => {
     const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
 
     events.onGlobalError(vi.fn().mockRejectedValue(error));
-    emitter.emit("globalError", { message: "global failure" });
+    emitter.emit(RealtimeEvents.GlobalError, { message: "global failure" });
 
     await setTimeout(0);
 
@@ -284,7 +284,7 @@ describe("Events", () => {
         throw error;
       }),
     );
-    emitter.emit("globalError", { message: "global failure" });
+    emitter.emit(RealtimeEvents.GlobalError, { message: "global failure" });
 
     await setTimeout(0);
 

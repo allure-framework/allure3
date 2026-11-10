@@ -1,0 +1,8 @@
+{
+  "name": "Rich text test",
+  "status": "passed",
+  "precondition": "User is **signed out**.\n\nAn account exists.",
+  "preconditionHtml": "<p>User is <strong>signed out</strong>.</p>",
+  "expectedResult": "The **dashboard** opens.",
+  "expectedResultHtml": "<p>The <strong>dashboard</strong> opens.</p>"
+}

@@ -5,8 +5,9 @@
  *
  * Method:
  * 1. Resolve the internal workspace dependency closure for `allure`.
- * 2. Pack each workspace package, inject built `dist/` from the repo, rewrite
- *    `workspace:*` dependency specs to concrete versions, and repack.
+ * 2. Pack each workspace package with Yarn to resolve catalogs, inject built
+ *    `dist/` from the repo, rewrite `workspace:*` dependency specs to concrete
+ *    versions, and repack.
  * 3. Install only `allure` in a clean temp project; use npm overrides so every
  *    `@allurereport/*` dependency resolves to the local tarballs. External deps
  *    still come from the npm registry.
@@ -379,19 +380,15 @@ const rewriteWorkspaceDependencies = (packageJson, versionsByName) => {
 };
 
 const packWorkspace = (repoRoot, workspaceName, destination, abortSignal) => {
-  const output = execSync(`npm pack -w "${workspaceName}" --pack-destination "${destination}" --ignore-scripts`, {
+  const tarballPath = join(destination, `${workspaceName.replace("/", "-")}.tgz`);
+  execSync(`yarn workspace "${workspaceName}" pack --out "${tarballPath}"`, {
     cwd: repoRoot,
     encoding: "utf8",
     stdio: ["ignore", "pipe", "pipe"],
     signal: abortSignal,
-  }).trim();
+  });
 
-  const tarballName = output.split(/\s+/).pop();
-  if (!tarballName) {
-    throw new Error(`npm pack did not return a tarball name for ${workspaceName}`);
-  }
-
-  return join(destination, tarballName);
+  return tarballPath;
 };
 
 const extractTarball = (tarballPath, extractRoot, abortSignal) => {

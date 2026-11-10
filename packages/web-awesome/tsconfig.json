@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "strict": false,
+    "strict": true,
     "paths": {
       "@/*": ["./src/*"],
       "types": ["./types"]
@@ -13,7 +13,7 @@
     "module": "ESNext",
     "moduleResolution": "Bundler",
     "allowSyntheticDefaultImports": true,
-    "useUnknownInCatchVariables": false,
+    "useUnknownInCatchVariables": true,
     "noEmit": true,
     "noImplicitAny": true,
     "resolveJsonModule": true,

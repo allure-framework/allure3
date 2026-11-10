@@ -10,7 +10,7 @@ import { epic, feature, label, story } from "allure-js-commons";
 import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 import { junitXml } from "../src/index.js";
-import { mockVisitor, readResourceAsResultFile, readResults } from "./utils.js";
+import { mockVisitor, readResourceAsResultFile, readResults, isWinUnprivileged } from "./utils.js";
 
 const randomTestsuiteFileName = () => `${randomUUID()}.xml`;
 
@@ -557,7 +557,7 @@ describe("junit xml reader", () => {
   });
 
   describe("attachments", () => {
-    describe("stdout", () => {
+    describe("stdout", async () => {
       it("should parse system-out", async () => {
         const visitor = await readResults(junitXml, {
           "junitxmldata/attachments/stdout/wellDefined.xml": randomTestsuiteFileName(),
@@ -683,7 +683,8 @@ describe("junit xml reader", () => {
         }
       });
 
-      it("should reject symbolic link attachments", async ({ onTestFinished }) => {
+      // symlink requires Admin rights on Windows.
+      it.skipIf(await isWinUnprivileged())("should reject symbolic link attachments", async ({ onTestFinished }) => {
         const dir = await mkdtemp(join(tmpdir(), "allure-junit-"));
         onTestFinished(() => rm(dir, { recursive: true, force: true }));
         const reportDir = join(dir, "report");

@@ -9,7 +9,7 @@ import { collapsedTrees, toggleTree } from "@/stores/tree";
 import * as styles from "./styles.scss";
 
 export type TrRichTextSectionProps = {
-  id: string;
+  id?: string;
   section: "description" | "precondition" | "expectedResult";
   html?: string;
 };

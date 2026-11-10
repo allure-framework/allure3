@@ -1,3 +1,5 @@
+import type { Writable } from "node:stream";
+
 import { epic, feature, label, story } from "allure-js-commons";
 import { run } from "clipanion";
 import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
@@ -16,7 +18,7 @@ describe("migrate command", () => {
     const stdout = { write: vi.fn() };
 
     const code = await run(MigrateCommand, ["migrate"], {
-      stdout: stdout as unknown as NodeJS.WritableStream,
+      stdout: stdout as unknown as Writable,
     });
     const output = stdout.write.mock.calls.map(([chunk]) => String(chunk)).join("");
 

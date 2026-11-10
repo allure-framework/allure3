@@ -200,6 +200,7 @@ describe("Chaos Monkey / Fuzzing Tests", () => {
           errors++;
           // Should always throw AQL errors, not generic errors
           expect(isAqlError(error)).toBe(true);
+          if (!isAqlError(error)) throw error;
         }
       }
 
@@ -213,6 +214,7 @@ describe("Chaos Monkey / Fuzzing Tests", () => {
         parseAql(longInput);
       } catch (error) {
         expect(isAqlError(error)).toBe(true);
+        if (!isAqlError(error)) throw error;
       }
       // Should not crash or hang
     });
@@ -232,6 +234,7 @@ describe("Chaos Monkey / Fuzzing Tests", () => {
           parseAql(input);
         } catch (error) {
           expect(isAqlError(error)).toBe(true);
+          if (!isAqlError(error)) throw error;
         }
       });
     });
@@ -249,6 +252,7 @@ describe("Chaos Monkey / Fuzzing Tests", () => {
         } catch (error) {
           // Should throw AQL error, not crash
           expect(isAqlError(error)).toBe(true);
+          if (!isAqlError(error)) throw error;
           expect(error.code).toBeDefined();
           expect(error.message).toBeDefined();
         }
@@ -272,6 +276,7 @@ describe("Chaos Monkey / Fuzzing Tests", () => {
           }
         } catch (error) {
           expect(isAqlError(error)).toBe(true);
+          if (!isAqlError(error)) throw error;
         }
       });
     });
@@ -292,6 +297,7 @@ describe("Chaos Monkey / Fuzzing Tests", () => {
           }
         } catch (error) {
           expect(isAqlError(error)).toBe(true);
+          if (!isAqlError(error)) throw error;
         }
       });
     });
@@ -306,6 +312,7 @@ describe("Chaos Monkey / Fuzzing Tests", () => {
         expect(result.expression === null || typeof result.expression === "object").toBe(true);
       } catch (error) {
         expect(isAqlError(error)).toBe(true);
+        if (!isAqlError(error)) throw error;
       }
     });
 
@@ -320,6 +327,7 @@ describe("Chaos Monkey / Fuzzing Tests", () => {
           }
         } catch (error) {
           expect(isAqlError(error)).toBe(true);
+          if (!isAqlError(error)) throw error;
         }
       });
     });
@@ -333,6 +341,7 @@ describe("Chaos Monkey / Fuzzing Tests", () => {
         }
       } catch (error) {
         expect(isAqlError(error)).toBe(true);
+        if (!isAqlError(error)) throw error;
       }
     });
 
@@ -352,6 +361,7 @@ describe("Chaos Monkey / Fuzzing Tests", () => {
           parseAql(input);
         } catch (error) {
           expect(isAqlError(error)).toBe(true);
+          if (!isAqlError(error)) throw error;
         }
       });
     });
@@ -367,6 +377,7 @@ describe("Chaos Monkey / Fuzzing Tests", () => {
           // If it doesn't throw, it should return valid result
         } catch (error) {
           expect(isAqlError(error)).toBe(true);
+          if (!isAqlError(error)) throw error;
           expect(error.code).toBeDefined();
           expect(typeof error.code).toBe("string");
           expect(Object.values(AqlErrorCode)).toContain(error.code);
@@ -379,6 +390,7 @@ describe("Chaos Monkey / Fuzzing Tests", () => {
         parseAql('status = "unterminated');
       } catch (error) {
         expect(isAqlError(error)).toBe(true);
+        if (!isAqlError(error)) throw error;
         expect(error.details).toBeDefined();
         expect(error.fullDetails).toBeDefined();
         expect(error.fullDetails.code).toBeDefined();
@@ -392,6 +404,7 @@ describe("Chaos Monkey / Fuzzing Tests", () => {
           parseAql(input);
         } catch (error) {
           expect(isAqlError(error)).toBe(true);
+          if (!isAqlError(error)) throw error;
         }
       });
       // Should not leak memory or crash
@@ -409,6 +422,7 @@ describe("Chaos Monkey / Fuzzing Tests", () => {
           // Should not crash
         } catch (error) {
           expect(isAqlError(error)).toBe(true);
+          if (!isAqlError(error)) throw error;
         }
       });
     });
@@ -488,6 +502,7 @@ describe("Chaos Monkey / Fuzzing Tests", () => {
         try {
           return parseAql(input);
         } catch (error) {
+          if (!(error instanceof Error)) throw error;
           return error;
         }
       });
@@ -527,6 +542,7 @@ describe("Chaos Monkey / Fuzzing Tests", () => {
           parseAql(input);
         } catch (error) {
           expect(isAqlError(error)).toBe(true);
+          if (!isAqlError(error)) throw error;
           expect(error.code).toBe(AqlErrorCode.INVALID_INPUT);
         }
       });
@@ -541,6 +557,7 @@ describe("Chaos Monkey / Fuzzing Tests", () => {
         parseAql(stringLike as any);
       } catch (error) {
         expect(isAqlError(error)).toBe(true);
+        if (!isAqlError(error)) throw error;
         expect(error.code).toBe(AqlErrorCode.INVALID_INPUT);
       }
     });

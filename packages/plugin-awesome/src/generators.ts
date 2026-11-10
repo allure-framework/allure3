@@ -6,7 +6,9 @@ import {
   type EnvironmentIdentity,
   type EnvironmentItem,
   type HistoryTestResultUrlResolver,
+  type LabelMatcher,
   type MetricSample,
+  type MetricHierarchyNode,
   type ResolutionCategory,
   type Statistic,
   type TestEnvGroup,
@@ -160,7 +162,7 @@ export const generateTestResults = async (
   trs: TestResult[],
   options: {
     pluginId: string;
-    hideLabels?: readonly (string | RegExp)[];
+    hideLabels?: readonly LabelMatcher[];
     ideaLinks?: boolean | IdeaLinksOptions;
     related?: TestResultRelatedData;
     resolveHistoryUrl?: HistoryTestResultUrlResolver;
@@ -304,22 +306,6 @@ export const generateSearchIndex = async (
   const searchDocuments = trs.filter(({ isRetry }) => !isRetry).map(searchDocumentFactory);
 
   await writer.writeWidget(filename, searchDocuments);
-};
-
-export const getRunSummary = (testResults: Pick<TestResult, "start" | "stop">[]): ReportRunSummary | undefined => {
-  let start = Infinity;
-  let stop = -Infinity;
-
-  for (const { start: s, stop: e } of testResults) {
-    if (typeof s === "number" && Number.isFinite(s) && typeof e === "number" && Number.isFinite(e)) {
-      start = Math.min(start, s);
-      stop = Math.max(stop, e);
-    }
-  }
-
-  return Number.isFinite(start) && Number.isFinite(stop)
-    ? { start, stop, duration: Math.max(0, stop - start) }
-    : undefined;
 };
 
 export const generateTree = async (
@@ -822,6 +808,7 @@ export const generateStaticFiles = async (
   } = payload;
   const staticAssets = await readReportStaticAssets(reportStaticArchive);
   const { manifest } = staticAssets;
+  const selectedFiles = selectReportStaticFiles(staticAssets, payload.requiredAssetFeatures);
   const headTags: string[] = [];
   const bodyTags: string[] = [];
   const sections: string[] = payload.sections?.length ? payload.sections : ["charts", "timeline"];
@@ -829,6 +816,7 @@ export const generateStaticFiles = async (
   if (!payload.singleFile) {
     for (const key in manifest) {
       const fileName = manifest[key];
+      if (!selectedFiles.has(fileName)) continue;
 
       if (key.includes(".woff")) {
         headTags.push(createFontLinkTag(fileName));
@@ -843,7 +831,7 @@ export const generateStaticFiles = async (
       }
     }
 
-    await copyReportStaticAssets(staticAssets, reportFiles);
+    await copyReportStaticAssets({ ...staticAssets, files: selectedFiles }, reportFiles);
   } else {
     const mainJs = manifest["main.js"];
     const mainCss = manifest["main.css"];
@@ -854,9 +842,7 @@ export const generateStaticFiles = async (
       headTags.push(createStylesLinkTag(`data:text/css;base64,${mainCssContent.toString("base64")}`));
     }
 
-    bodyTags.push(
-      createSingleFileScripts(selectReportStaticFiles(staticAssets, payload.requiredAssetFeatures), mainJs),
-    );
+    bodyTags.push(createSingleFileScripts(selectedFiles, mainJs));
   }
 
   const now = Date.now();
@@ -917,7 +903,14 @@ export const generateAllCharts = async (
 ): Promise<void> => {
   const { charts = defaultChartsConfig, filter } = options;
 
-  const generatedChartsData = await generateCharts(charts, store, context.reportName, randomUUID, filter);
+  const generatedChartsData = await generateCharts(
+    charts,
+    store,
+    context.reportName,
+    randomUUID,
+    filter,
+    context.categories,
+  );
 
   if (Object.keys(generatedChartsData.general).length > 0) {
     await writer.writeWidget("charts.json", generatedChartsData);
@@ -926,6 +919,7 @@ export const generateAllCharts = async (
 
 export type AwesomeMetricsWidget = {
   current: MetricSample[];
+  hierarchy?: readonly MetricHierarchyNode[];
   history: {
     uuid: string;
     name: string;
@@ -939,6 +933,7 @@ export const generateMetricsWidget = async (
   writer: AwesomeDataWriter,
   store: AllureStore,
   reportUuid: string,
+  hierarchy?: readonly MetricHierarchyNode[],
 ): Promise<boolean> => {
   const current = await store.allMetrics();
 
@@ -959,6 +954,7 @@ export const generateMetricsWidget = async (
   await writer.writeWidget("metrics.json", {
     current,
     history,
+    ...(hierarchy?.length ? { hierarchy } : {}),
   } satisfies AwesomeMetricsWidget);
   return true;
 };

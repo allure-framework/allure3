@@ -45,6 +45,8 @@ $min-pane-size: 300px;
 
 $sidebar-full-width: 180px;
 $sidebar-collapsed: 60px;
+// Below this width the report switches to its narrow (phone) layout
+$narrow-max-width: 767px;
 
 $sidebar-separator-color: #4d4d4d;
 $sidebar-active-accent-color: #64b5f6;

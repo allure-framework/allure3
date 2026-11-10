@@ -243,7 +243,7 @@ describe("Allure2Plugin", () => {
     await plugin.done(context, createStore());
 
     const reportDataChunks = concatSpy.mock.calls.find(([chunks]) =>
-      chunks.some((chunk) => chunk.includes("window.reportDataReady = false;")),
+      chunks.some((chunk) => Buffer.from(chunk).includes("window.reportDataReady = false;")),
     )?.[0];
 
     expect(reportDataChunks).toBeDefined();

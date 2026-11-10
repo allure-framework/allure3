@@ -16,8 +16,12 @@ import { TestResultView } from "@/components/TestResultView";
 import Timeline from "@/components/Timeline";
 import { currentLocale, getLocale } from "@/stores";
 import { handleHashChange, route } from "@/stores/router";
+import { fetchTestResultNav } from "@/stores/testResults";
 
-const tabComponents = {
+const tabComponents: Record<
+  string,
+  preact.FunctionalComponent<{ params?: { id: string | null; testResultId: string | null } }>
+> = {
   overview: Overview,
   behaviors: Behaviors,
   categories: Categories,
@@ -32,6 +36,8 @@ const App = () => {
   useEffect(() => {
     getLocale();
     handleHashChange();
+    // the list of test results for the previous/next buttons of the test result page
+    fetchTestResultNav();
   }, []);
 
   useEffect(() => {
@@ -43,7 +49,8 @@ const App = () => {
   }, []);
 
   const ActiveComponent = useMemo(
-    () => tabComponents[route.value.tabName] || (() => null),
+    // Unknown tabs fall back to Overview, like the Allure 2 default route
+    () => tabComponents[route.value.tabName] || Overview,
     // oxlint-disable-next-line eslint-plugin-react-hooks/exhaustive-deps
     [route.value.tabName],
   );
@@ -58,7 +65,7 @@ const App = () => {
   );
 };
 
-const rootElement = document.getElementById("app");
+const rootElement = document.getElementById("app")!;
 
 (async () => {
   render(<App />, rootElement);

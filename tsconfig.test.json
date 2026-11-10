@@ -1,0 +1,23 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "noEmit": true,
+    "emitDeclarationOnly": false,
+    "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
+    "lib": [
+      "ESNext",
+      "DOM",
+      "DOM.Iterable"
+    ],
+    "jsx": "react-jsx",
+    "jsxImportSource": "preact",
+    "types": [
+      "node"
+    ],
+    "strict": true,
+    "rootDir": "."
+  }
+}

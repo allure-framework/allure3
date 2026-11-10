@@ -1,6 +1,6 @@
-import { signal } from "@preact/signals";
 import { cleanup, fireEvent, render, screen } from "@testing-library/preact";
 import { epic, feature, label, story } from "allure-js-commons";
+import type { ComponentChildren } from "preact";
 import { type Mock, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 beforeEach(async () => {
@@ -11,19 +11,19 @@ beforeEach(async () => {
 });
 
 import { SectionPicker } from "@/components/SectionPicker";
-import { currentSection, setSection } from "@/stores/sections";
+import { setSection } from "@/stores/sections";
 
 vi.mock("@allurereport/web-components/core", () => {
-  const Menu = (props: { size?: string; menuTrigger: (p: object) => unknown; children: unknown }) => (
+  const Menu = (props: { size?: string; menuTrigger: (p: object) => unknown; children: ComponentChildren }) => (
     <div data-testid="menu" data-size={props.size}>
       {props.menuTrigger({ isOpened: false, onClick: () => {} })}
       {props.children}
     </div>
   );
 
-  Menu.Section = (props: { children: unknown }) => <>{props.children}</>;
+  Menu.Section = (props: { children: ComponentChildren }) => <>{props.children}</>;
   Menu.ItemWithCheckmark = (props: {
-    children: unknown;
+    children: ComponentChildren;
     isChecked: boolean;
     leadingIcon?: string;
     leadingIconFilled?: boolean;
@@ -58,16 +58,17 @@ vi.mock("@/stores", () => ({
   useI18n: () => ({ t: (key: string) => key }),
 }));
 // the available sections of the store are a plain array, the current section is a signal
+const currentSectionMock = vi.hoisted(() => ({ value: "default" }));
 vi.mock("@/stores/sections", () => ({
   availableSections: ["charts", "timeline", "metrics"],
-  currentSection: signal("default"),
+  currentSection: currentSectionMock,
   setSection: vi.fn(),
 }));
 
 beforeEach(() => {
   cleanup();
   vi.clearAllMocks();
-  currentSection.value = "default";
+  currentSectionMock.value = "default";
 });
 
 describe("components > SectionPicker", () => {
@@ -84,7 +85,7 @@ describe("components > SectionPicker", () => {
   });
 
   it("should show the title and the icon of the current section in the trigger", () => {
-    currentSection.value = "timeline";
+    currentSectionMock.value = "timeline";
 
     render(<SectionPicker />);
 
@@ -93,7 +94,7 @@ describe("components > SectionPicker", () => {
   });
 
   it("should fall back to the report for an unknown section", () => {
-    currentSection.value = "unknown";
+    currentSectionMock.value = "unknown";
 
     render(<SectionPicker />);
 
@@ -101,7 +102,7 @@ describe("components > SectionPicker", () => {
   });
 
   it("should check only the current section", () => {
-    currentSection.value = "charts";
+    currentSectionMock.value = "charts";
 
     render(<SectionPicker />);
 
@@ -132,7 +133,7 @@ describe("components > SectionPicker", () => {
   });
 
   it("should set the default section for the report", () => {
-    currentSection.value = "charts";
+    currentSectionMock.value = "charts";
 
     render(<SectionPicker />);
     fireEvent.click(screen.getAllByTestId("section")[0]);

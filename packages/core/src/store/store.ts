@@ -9,6 +9,7 @@ import {
   type AttachmentLinkLinked,
   type DefaultLabelsConfig,
   DEFAULT_ENVIRONMENT,
+  ExpressionError,
   DEFAULT_ENVIRONMENT_IDENTITY,
   UNRESOLVED_ENVIRONMENT,
   type DynamicEnvironmentResolver,
@@ -44,6 +45,7 @@ import {
   ordinal,
   reverse,
   resolveMetricSamples,
+  validatePerformanceConfig,
   validateEnvironmentId,
   validateEnvironmentName,
 } from "@allurereport/core-api";
@@ -264,6 +266,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     this.#history = history;
     this.#detectFlaky = createFlakyDetector(flakyDetection);
     this.#resolutionsConfig = resolutionsConfig;
+    validatePerformanceConfig(performance);
     this.#performance = performance;
 
     this.#realtimeDispatcher = realtimeDispatcher;
@@ -469,7 +472,12 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
         }
 
         dynamic = resolveDynamicEnvironmentIdentity(this.#dynamicEnvironments, { labels }, this.#environmentsConfig);
-      } catch {
+      } catch (error) {
+        if (error instanceof ExpressionError) {
+          throw new ExpressionError(`${error.message} (restored test result ${JSON.stringify(testResult.id)})`, {
+            cause: error,
+          });
+        }
         // the resolver can not handle this result anymore, there is nothing to rebuild from it
         continue;
       }
@@ -830,7 +838,8 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   }
 
   #applyHistoryFlags(result: TestResult, history: (HistoryTestResult | undefined)[]): void {
-    result.flaky = result.sourceMetadata?.reportedFlaky === true || this.#detectFlaky(result, history);
+    const current = { ...result, retries: this.#retriesByTr(result) };
+    result.flaky = result.sourceMetadata?.reportedFlaky === true || this.#detectFlaky(current, history);
     const resolvedHistory = history.filter((entry): entry is HistoryTestResult => entry !== undefined);
     result.transition = getStatusTransition(result, resolvedHistory);
   }

@@ -1,5 +1,6 @@
 import { getReportOptions } from "@allurereport/web-commons";
 import { render, screen } from "@testing-library/preact";
+import type { ComponentChildren } from "preact";
 import { type Mock, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 import { ReportHeader } from "@/components/ReportHeader";
@@ -12,10 +13,14 @@ vi.mock("@allurereport/web-commons", async (importOriginal) => ({
 vi.mock("@allurereport/web-components/core", () => ({
   Heading: (props: { children: string }) => <h2>{props.children}</h2>,
   Loadable: (props: { renderData: (data: unknown) => unknown }) => props.renderData({}),
-  Text: (props: { "children": unknown; "data-testid"?: string }) => (
+  Text: (props: { "children": ComponentChildren; "data-testid"?: string }) => (
     <span data-testid={props["data-testid"]}>{props.children}</span>
   ),
-  TooltipWrapper: (props: { children: unknown }) => props.children,
+  TooltipWrapper: (props: { children: ComponentChildren }) => props.children,
+}));
+
+vi.mock("@/components/ReportHeader/GitInfo", () => ({
+  GitInfo: () => <div data-testid="git-info" />,
 }));
 
 vi.mock("@/components/ReportHeader/ReportHeaderLogo", () => ({
@@ -65,6 +70,7 @@ describe("components > ReportHeader", () => {
     render(<ReportHeader />);
 
     expect(screen.getByTestId("report-data")).toHaveTextContent("long:1000");
+    expect(screen.getByTestId("report-data").nextElementSibling).toBe(screen.getByTestId("git-info"));
     expect(screen.getByTestId("report-data")).not.toHaveTextContent("long:2500");
     expect(screen.getByTestId("report-data")).not.toHaveTextContent("long:42");
   });

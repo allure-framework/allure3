@@ -21,11 +21,11 @@ describe("createDictionary", () => {
     const dictionary = createDictionary<number>();
 
     dictionary.__proto__ = 1;
-    dictionary.constructor = 2;
-    dictionary.toString = 3;
+    dictionary["constructor"] = 2;
+    dictionary["toString"] = 3;
 
     expect(dictionary.__proto__).toBe(1);
-    expect(dictionary.constructor).toBe(2);
-    expect(dictionary.toString).toBe(3);
+    expect(dictionary["constructor"]).toBe(2);
+    expect(dictionary["toString"]).toBe(3);
   });
 });

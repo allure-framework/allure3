@@ -440,6 +440,20 @@
       }
     },
     "metrics": {
+      "tableView": "Tabla",
+      "timelineView": "Línea temporal",
+      "timelineDescription": "Las barras muestran intervalos de inicio y fin y pueden solaparse. La jerarquía agrupa claves de métricas, no llamadas individuales. Los intervalos de benchmarks abarcan toda la ejecución; sus valores son latencias medias.",
+      "timelineHelp": "Acerca del gráfico",
+      "resetZoom": "Restablecer zoom",
+      "zoomHint": "Haz clic en una barra para ampliar su intervalo de tiempo.",
+      "invalidIntervals": "Mediciones excluidas por intervalos inválidos: {{count}}",
+      "noIntervals": "No hay mediciones con intervalos válidos.",
+      "noMeasurement": "Sin medición",
+      "good": "Mejora",
+      "bad": "Empeoramiento",
+      "neutral": "Sin cambios / sin comparación",
+      "interval": "Intervalo",
+      "previousValue": "Media anterior",
       "title": "Métricas de rendimiento",
       "phaseSummary": "Resumen de métricas",
       "currentValues": "Valores actuales",
@@ -479,7 +493,31 @@
       "slice_many": "{{count}} pruebas ({{percent}}% de todas las pruebas)"
     },
     "retry": "Reintentar",
-    "loadError": "No se pudo cargar el gráfico"
+    "loadError": "No se pudo cargar el gráfico",
+    "durationTrend": {
+      "title": "Tendencia de duraciones",
+      "duration": "Duración",
+      "value": "{{duration, format_duration}}"
+    },
+    "retriesTrend": {
+      "title": "Tendencia de reintentos",
+      "retry": "Reintentos",
+      "run": "Pruebas"
+    },
+    "categoriesTrend": {
+      "title": "Tendencia de categorías"
+    },
+    "runTrend": {
+      "empty": "No hay nada para mostrar",
+      "ticks": {
+        "current": "Reciente",
+        "history": "{{timestamp, timestamp_date}}"
+      },
+      "tooltips": {
+        "current": "Último informe ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "Informe del {{timestamp, timestamp_long_no_seconds}}"
+      }
+    }
   },
   "transitions": {
     "description": {

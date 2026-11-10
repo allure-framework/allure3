@@ -120,6 +120,7 @@ beforeEach(async () => {
 
 afterEach(() => {
   process.chdir(previousCwd);
+  vi.unstubAllEnvs();
 });
 
 describe("report", () => {
@@ -146,6 +147,7 @@ describe("report", () => {
     const config = await resolveConfig(
       {
         name: "Allure Report",
+        output: "out/allure-report",
       },
       { plugins: {} },
     );
@@ -454,6 +456,14 @@ describe("report", () => {
       await expect(readFile(join(output, "index.html"), "utf8")).resolves.toBe("index");
       await expect(readFile(join(output, "p1", "index.html"), "utf8")).rejects.toThrow();
     });
+  });
+
+  it("leaves disabled quality gates inactive during report generation", async () => {
+    const config = await resolveConfig({ qualityGate: { enabled: false } }, { plugins: {} });
+
+    const report = new AllureReport(config);
+
+    expect(report.hasQualityGate).toBe(false);
   });
 
   it("should write quality gate results with related test ids", async () => {
@@ -1057,6 +1067,78 @@ describe("report", () => {
     expect(widget.history).toEqual([]);
   });
 
+  it.each([undefined, "forced"])(
+    "generates reports using expression matchers (forced environment: %s)",
+    async (environment) => {
+      const output = await mkdtemp(join(tmpdir(), "allure3-expression-report-"));
+      const resultsDir = await mkdtemp(join(tmpdir(), "allure3-expression-results-"));
+      const config = await resolveConfig({
+        output,
+        plugins: {},
+        environment,
+        allowedEnvironments: ["alice", "forced"],
+        environments: {
+          alice: { name: "Alice", matcher: "${{ labels.exists(l, l.name == 'owner' && l.value == 'alice') }}" },
+          forced: { name: "Forced", matcher: "${{ false }}" },
+        },
+        hideLabels: ["${{ name.startsWith('internal_') }}"],
+        categories: [
+          {
+            name: "Connections",
+            matchers:
+              "${{ has(data.message) && data.message.matches('connection.*refused') && data.labels.exists(l, l.name == 'owner' && l.value == 'alice') }}",
+          },
+        ],
+      });
+      config.plugins = [{ id: "awesome", enabled: true, options: {}, plugin: new AwesomePlugin({}) }];
+      for (const owner of ["alice", "bob"]) {
+        await writeFile(
+          join(resultsDir, `${owner}-result.json`),
+          JSON.stringify({
+            uuid: owner,
+            name: owner,
+            fullName: `connection.${owner}`,
+            status: "failed",
+            statusDetails: { message: "connection refused" },
+            start: 1000,
+            stop: 1100,
+            labels: [
+              { name: "owner", value: owner },
+              { name: "internal_token", value: "secret" },
+            ],
+          }),
+        );
+      }
+      const report = new AllureReport(config);
+
+      await report.start();
+      await report.readDirectory(resultsDir);
+      await report.done();
+      const tests = await report.store.allTestResults();
+      const cases = await Promise.all(
+        tests.map(async ({ id }) =>
+          JSON.parse(await readFile(join(output, "data", "test-results", `${id}.json`), "utf8")),
+        ),
+      );
+
+      expect(cases).toHaveLength(2);
+      expect(tests.find((test) => test.name === "alice")?.environment).toBe(environment ?? "alice");
+      expect(tests.find((test) => test.name === "bob")?.environment).toBe(environment ?? "default");
+      expect(cases.find((test) => test.name === "alice").environment).toBe(environment ?? "alice");
+      expect(cases.find((test) => test.name === "bob").environment).toBe(environment ?? "default");
+      expect(cases.map((test) => test.labels.some(({ name }: { name: string }) => name === "internal_token"))).toEqual([
+        false,
+        false,
+      ]);
+      expect(cases.find((test) => test.name === "alice").categories).toEqual(
+        expect.arrayContaining([expect.objectContaining({ name: "Connections" })]),
+      );
+      expect(cases.find((test) => test.name === "bob").categories).not.toEqual(
+        expect.arrayContaining([expect.objectContaining({ name: "Connections" })]),
+      );
+    },
+  );
+
   it("should call plugins in specified order on start()", async () => {
     const p1 = createPlugin("p1");
     const p2 = createPlugin("p2");
@@ -1533,6 +1615,25 @@ describe("report", () => {
 
   it("should use default uploadConcurrency in service client config", async () => {
     await verifyUploadOptionsForwarding();
+  });
+
+  it("keeps the service inactive for a guarded missing token without using ALLURE_TOKEN", async () => {
+    vi.stubEnv("ALLURE_MISSING_SERVICE_TOKEN", undefined);
+    vi.stubEnv("ALLURE_TOKEN", validAccessToken);
+    const config = await resolveConfig(
+      {
+        allureService: {
+          accessToken: "${{ has(env.ALLURE_MISSING_SERVICE_TOKEN) ? env.ALLURE_MISSING_SERVICE_TOKEN : '' }}",
+        },
+      },
+      { plugins: {} },
+    );
+
+    new AllureReport(config);
+
+    expect(config.allureService).toEqual({ accessToken: "", private: undefined, ...defaultUploadConfig });
+    expect(AllureServiceClientMock).not.toHaveBeenCalled();
+    expect(AllureTestOpsClientMock).not.toHaveBeenCalled();
   });
 
   it("should use TestOps default uploadConcurrency in client config", async () => {

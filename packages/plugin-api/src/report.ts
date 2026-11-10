@@ -71,6 +71,8 @@ export type ReportFixtureResult = Omit<
   "testResultIds" | "start" | "stop" | "sourceMetadata" | "steps"
 > & {
   steps: ReportTestStepResult[];
+  /** True when the fixture error message repeats the error of one of its nested steps. */
+  hasSimilarErrorInSubSteps?: boolean;
 };
 
 export type ReportStatus = TestStatus | "total";
@@ -136,7 +138,7 @@ export type ReportTreeLeaf = Pick<
   nodeId: string;
   id?: string;
   transitionTooltip?: string;
-  tooltips?: Record<string, string>;
+  tooltips?: Partial<Record<string, string>>;
   tags?: string[];
   categories?: string[];
   /**

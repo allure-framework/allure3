@@ -6,7 +6,7 @@ import { MiddleEllipsis } from "@/components/MiddleEllipsis";
 import { SvgIcon, allureIcons } from "@/components/SvgIcon";
 import { Text } from "@/components/Typography";
 
-const meta: Meta<typeof Menu> = {
+const meta: Meta<Parameters<typeof Menu>[0] & ExtraArgs> = {
   title: "Commons/Menu",
   component: Menu,
   parameters: { layout: "padded" },
@@ -41,7 +41,7 @@ const meta: Meta<typeof Menu> = {
 };
 
 export default meta;
-type Story = StoryObj<typeof Menu>;
+type Story = StoryObj<Parameters<typeof Menu>[0] & ExtraArgs>;
 
 export const DefaultMenu: Story = {
   args: {

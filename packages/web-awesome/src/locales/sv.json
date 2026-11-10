@@ -440,6 +440,20 @@
       }
     },
     "metrics": {
+      "tableView": "Tabell",
+      "timelineView": "Tidslinje",
+      "timelineDescription": "Staplar visar registrerade start-/stoppintervall och kan överlappa. Hierarkin grupperar mätvärdesnycklar, inte enskilda anrop. Benchmarkintervall omfattar hela körningen; värdena är genomsnittliga latenser.",
+      "timelineHelp": "Om diagrammet",
+      "resetZoom": "Återställ zoom",
+      "zoomHint": "Klicka på en stapel för att zooma in dess tidsintervall.",
+      "invalidIntervals": "Uteslutna mätningar med ogiltiga intervall: {{count}}",
+      "noIntervals": "Inga mätningar med giltiga tidsintervall.",
+      "noMeasurement": "Ingen mätning",
+      "good": "Förbättring",
+      "bad": "Försämring",
+      "neutral": "Oförändrat / ingen jämförelse",
+      "interval": "Intervall",
+      "previousValue": "Föregående medelvärde",
       "title": "Prestandamått",
       "phaseSummary": "Måttsammanfattning",
       "currentValues": "Aktuella värden",
@@ -478,7 +492,31 @@
       "slice": "{{count}} tester ({{percent}}% av alla tester)"
     },
     "retry": "Försök igen",
-    "loadError": "Det gick inte att ladda diagrammet"
+    "loadError": "Det gick inte att ladda diagrammet",
+    "durationTrend": {
+      "title": "Varaktighet trend",
+      "duration": "Varaktighet",
+      "value": "{{duration, format_duration}}"
+    },
+    "retriesTrend": {
+      "title": "Återförsöks trend",
+      "retry": "Omtagningar",
+      "run": "Tester"
+    },
+    "categoriesTrend": {
+      "title": "Kategorier trend"
+    },
+    "runTrend": {
+      "empty": "Det finns ingenting att visa här",
+      "ticks": {
+        "current": "Senast",
+        "history": "{{timestamp, timestamp_date}}"
+      },
+      "tooltips": {
+        "current": "Senaste rapporten ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "Rapport från {{timestamp, timestamp_long_no_seconds}}"
+      }
+    }
   },
   "transitions": {
     "description": {

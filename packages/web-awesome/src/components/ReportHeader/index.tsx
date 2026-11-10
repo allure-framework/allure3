@@ -4,6 +4,7 @@ import { getReportOptions } from "@allurereport/web-commons";
 import { Heading, Loadable, Text } from "@allurereport/web-components/core";
 import type { ReportOptions } from "types";
 
+import { GitInfo } from "@/components/ReportHeader/GitInfo";
 import { ReportHeaderLogo } from "@/components/ReportHeader/ReportHeaderLogo";
 import { ReportHeaderPie } from "@/components/ReportHeader/ReportHeaderPie";
 import { TrStatus } from "@/components/TestResult/TrStatus";
@@ -63,14 +64,14 @@ export const ReportHeader = () => {
             const headerStatus = resolveHeaderStatus(errors, exitCode);
             let reportDate = formattedReportTime;
 
-            if (code !== undefined && exitCode.actual !== undefined) {
+            if (code !== undefined && exitCode?.actual !== undefined) {
               // Keep the existing i18n parameter name; the value can now be either a timestamp or run interval.
               reportDate = t("finishedAtBoth", {
                 formattedCreatedAt: formattedReportTime,
                 actual: exitCode.actual,
                 original: exitCode.original,
               });
-            } else if (code !== undefined) {
+            } else if (code !== undefined && exitCode) {
               reportDate = t("finishedAtOriginal", {
                 formattedCreatedAt: formattedReportTime,
                 original: exitCode.original,
@@ -88,6 +89,7 @@ export const ReportHeader = () => {
                 <Text type="paragraph" size="m" className={styles["report-date"]} data-testid="report-data">
                   {reportDate}
                 </Text>
+                <GitInfo />
               </div>
             );
           }}

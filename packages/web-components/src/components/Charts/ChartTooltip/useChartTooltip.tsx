@@ -1,15 +1,22 @@
-import { autoUpdate, computePosition, flip, offset, shift } from "@floating-ui/dom";
+import { autoUpdate, computePosition, flip, offset, shift, size } from "@floating-ui/dom";
+import type { RefObject } from "preact";
 import { createPortal } from "preact/compat";
 import { useEffect, useId, useLayoutEffect, useRef, useState } from "preact/hooks";
 
 import { Tooltip } from "../../Tooltip";
 
 /** A tooltip shared by HTML and SVG chart targets, including keyboard interaction. */
-export const useChartTooltip = (text: string, tooltipText = text) => {
+export const useChartTooltip = (
+  text: string,
+  tooltipText = text,
+  { followPointer = false, boundary }: { followPointer?: boolean; boundary?: RefObject<Element> } = {},
+) => {
   const id = useId();
   const [anchor, setAnchor] = useState<Element | null>(null);
   const [open, setOpen] = useState(false);
   const tooltipRef = useRef<HTMLDivElement>(null);
+  const pointer = useRef<{ x: number; y: number } | null>(null);
+  const updatePosition = useRef<() => void>();
   const focused = useRef(false);
   const hovered = useRef(false);
   const tooltipHovered = useRef(false);
@@ -23,11 +30,16 @@ export const useChartTooltip = (text: string, tooltipText = text) => {
   };
   const show = (event: Event) => {
     cancelHide();
-    setAnchor(event.currentTarget as Element);
+    pointer.current = followPointer && event instanceof MouseEvent ? { x: event.clientX, y: event.clientY } : null;
+    setAnchor((followPointer ? event.target : event.currentTarget) as Element);
     setOpen(true);
+    if (followPointer) updatePosition.current?.();
   };
 
   useEffect(() => () => clearTimeout(hideTimer.current), []);
+  useEffect(() => {
+    if (!text) setOpen(false);
+  }, [text]);
   useLayoutEffect(() => {
     const tooltip = tooltipRef.current;
 
@@ -36,17 +48,45 @@ export const useChartTooltip = (text: string, tooltipText = text) => {
     }
 
     let active = true;
-    const release = autoUpdate(anchor, tooltip, () => {
-      void computePosition(anchor, tooltip, {
+    const overflow = boundary ? { boundary: boundary.current ?? undefined, padding: 8 } : undefined;
+    const reference = followPointer
+      ? {
+          contextElement: anchor,
+          getBoundingClientRect: () => {
+            const point = pointer.current;
+            return point ? new DOMRect(point.x, point.y, 0, 0) : anchor.getBoundingClientRect();
+          },
+        }
+      : anchor;
+    const update = () => {
+      void computePosition(reference, tooltip, {
         strategy: "fixed",
-        placement: "top",
-        middleware: [offset(8), flip(), shift({ padding: 8 })],
+        placement: pointer.current ? "right" : "top",
+        middleware: [
+          offset(8),
+          flip(overflow),
+          shift({ ...overflow, padding: 8 }),
+          ...(boundary
+            ? [
+                size({
+                  ...overflow,
+                  apply: ({ availableWidth, availableHeight }) => {
+                    tooltip.style.setProperty("--tooltip-max-width", `${Math.max(0, availableWidth)}px`);
+                    tooltip.style.maxHeight = `${Math.max(0, availableHeight)}px`;
+                    tooltip.style.overflow = "auto";
+                  },
+                }),
+              ]
+            : []),
+        ],
       }).then(({ x, y }) => {
         if (active) {
           Object.assign(tooltip.style, { left: `${x}px`, top: `${y}px` });
         }
       });
-    });
+    };
+    updatePosition.current = update;
+    const release = autoUpdate(anchor, tooltip, update);
 
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
@@ -59,10 +99,11 @@ export const useChartTooltip = (text: string, tooltipText = text) => {
 
     return () => {
       active = false;
+      updatePosition.current = undefined;
       release();
       document.removeEventListener("keydown", onKeyDown);
     };
-  }, [open, anchor, text]);
+  }, [open, anchor, text, followPointer, boundary]);
 
   return {
     triggerProps: {

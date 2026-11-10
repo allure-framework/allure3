@@ -5,7 +5,7 @@ import { epic, feature, label, story } from "allure-js-commons";
 import { beforeEach, describe, expect, it } from "vite-plus/test";
 
 import { allure2 } from "../src/index.js";
-import { readResults } from "./utils.js";
+import { attachResultFile, mockVisitor, readResults } from "./utils.js";
 
 const generateTestResultName = () => `${randomUUID()}-result.json`;
 const generateCheckResultName = () => `${randomUUID()}-check.json`;
@@ -105,6 +105,42 @@ describe("allure2 reader", () => {
     });
   });
 
+  it("should preserve preconditions and expected results in both formats", async () => {
+    const visitor = await readResults(allure2, {
+      "allure2data/rich-text.json": generateTestResultName(),
+    });
+
+    expect(visitor.visitTestResult.mock.calls).toHaveLength(1);
+    expect(visitor.visitTestResult.mock.calls[0][0]).toMatchObject({
+      precondition: "User is **signed out**.\n\nAn account exists.",
+      preconditionHtml: "<p>User is <strong>signed out</strong>.</p>",
+      expectedResult: "The **dashboard** opens.",
+      expectedResultHtml: "<p>The <strong>dashboard</strong> opens.</p>",
+    });
+  });
+
+  it.each([undefined, null, 42, ""])("should normalize rich-text fields with value %s", async (value) => {
+    const fields = {
+      precondition: value,
+      preconditionHtml: value,
+      expectedResult: value,
+      expectedResultHtml: value,
+    };
+    const file = new BufferResultFile(Buffer.from(JSON.stringify(fields)), generateTestResultName());
+    const visitor = mockVisitor();
+    await attachResultFile(file);
+
+    expect(await allure2.read(visitor, file)).toBe(true);
+    expect(visitor.visitTestResult.mock.calls).toHaveLength(1);
+    const expected = value === "" ? "" : undefined;
+    expect(visitor.visitTestResult.mock.calls[0][0]).toMatchObject({
+      precondition: expected,
+      preconditionHtml: expected,
+      expectedResult: expected,
+      expectedResultHtml: expected,
+    });
+  });
+
   it("should parse start", async () => {
     const visitor = await readResults(allure2, {
       "allure2data/timings-start.json": generateTestResultName(),
@@ -186,6 +222,17 @@ describe("allure2 reader", () => {
         },
         {
           value: "only value",
+        },
+        {
+          name: "AS_ID",
+          value: "123",
+        },
+        {
+          name: "boolean",
+          value: "false",
+        },
+        {
+          name: "null",
         },
       ]),
     );
@@ -468,9 +515,9 @@ describe("allure2 reader", () => {
     expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
     const tr = visitor.visitTestResult.mock.calls[0][0];
 
-    const step = tr.steps.find((item) => item.name === "Some step with parameters");
+    const step = tr.steps?.find((item) => "parameters" in item && item.name === "Some step with parameters");
 
-    expect(step?.parameters).toEqual(
+    expect(step && "parameters" in step ? step.parameters : undefined).toEqual(
       expect.arrayContaining([
         {
           name: "param 1",

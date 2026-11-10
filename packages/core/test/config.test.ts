@@ -1,7 +1,13 @@
 import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
 
-import { MAX_ENVIRONMENT_ID_LENGTH, MAX_ENVIRONMENT_NAME_LENGTH } from "@allurereport/core-api";
+import {
+  MAX_ENVIRONMENT_ID_LENGTH,
+  MAX_ENVIRONMENT_NAME_LENGTH,
+  matchCategory,
+  normalizeCategoriesConfig,
+  shouldHideLabel,
+} from "@allurereport/core-api";
 import type { Config, PluginConstructorContext } from "@allurereport/plugin-api";
 import { epic, feature, label, story } from "allure-js-commons";
 import type { MockInstance } from "vite-plus/test";
@@ -39,6 +45,24 @@ beforeEach(async () => {
 });
 
 describe("flaky detection configuration", () => {
+  it.each([
+    ["algorithm", "failure-rate"],
+    ["retryFailureThreshold", -0.1],
+    ["retryFailureThreshold", 1.1],
+    ["retryFailureThreshold", Number.POSITIVE_INFINITY],
+    ["retryFailureThreshold", "0.1"],
+  ])("rejects invalid classifier setting %s=%s", async (field, value) => {
+    const input = { flakyDetection: { [field]: value } } as Config;
+
+    await expect(resolveConfig(input, { plugins: {} })).rejects.toThrow(`flakyDetection.${field}`);
+  });
+  it.each([0, 0.1, 1])("accepts retry failure rate with threshold %s", async (retryFailureThreshold) => {
+    const input: Config = { flakyDetection: { algorithm: "retry-failure-rate", retryFailureThreshold } };
+
+    const config = await resolveConfig(input, { plugins: {} });
+
+    expect(config.flakyDetection).toEqual(input.flakyDetection);
+  });
   it.each([1, 5])("preserves stabilizationPeriod=%s", async (stabilizationPeriod) => {
     const input = { flakyDetection: { stabilizationPeriod } };
 
@@ -62,6 +86,26 @@ describe("flaky detection configuration", () => {
     const resolution = resolveConfig(input, { plugins: {} });
 
     await expect(resolution).rejects.toThrow("flakyDetection.historyDepth");
+  });
+  it.each([
+    { historyDepth: 5 },
+    { historyDepth: 3, stabilizationPeriod: 3 },
+    { historyDepth: 3, stabilizationPeriod: 4 },
+  ])("rejects stabilization periods that cannot fit below bounded history $historyDepth", async (flakyDetection) => {
+    const resolution = resolveConfig({ flakyDetection }, { plugins: {} });
+
+    await expect(resolution).rejects.toThrow("flakyDetection.stabilizationPeriod");
+  });
+  it.each([
+    { historyDepth: 6 },
+    { historyDepth: 3, stabilizationPeriod: 2 },
+    { historyDepth: 0, stabilizationPeriod: 100 },
+    { historyDepth: -1, stabilizationPeriod: 100 },
+    { stabilizationPeriod: 100 },
+  ])("accepts compatible bounded, unlimited and disabled history $historyDepth", async (flakyDetection) => {
+    const config = await resolveConfig({ flakyDetection }, { plugins: {} });
+
+    expect(config.flakyDetection).toEqual(flakyDetection);
   });
   it("rejects a non-boolean includePassedTests", async () => {
     const input = { flakyDetection: { includePassedTests: "true" } } as unknown as Config;
@@ -481,6 +525,26 @@ describe("resolveConfig", () => {
     expect(resolved.hideLabels).toEqual(["owner", /^tag/]);
   });
 
+  it("compiles hidden-label expressions from the selected override", async () => {
+    const input = { hideLabels: ["${{ name. }}"] };
+
+    const resolved = await resolveConfig(input, {
+      plugins: {},
+      hideLabels: ["${{ name.startsWith('internal_') }}"],
+    });
+
+    expect(shouldHideLabel("internal_id", resolved.hideLabels)).toBe(true);
+    expect(shouldHideLabel("public", resolved.hideLabels)).toBe(false);
+  });
+
+  it("allows an empty hidden-label override", async () => {
+    const input = { hideLabels: ["${{ name. }}"] };
+
+    const resolved = await resolveConfig(input, { plugins: {}, hideLabels: [] });
+
+    expect(resolved.hideLabels).toEqual([]);
+  });
+
   it("normalizes resultsDir string and array; omits empty values", async () => {
     expect((await resolveConfig({ resultsDir: "./a" })).resultsDir).toEqual(["./a"]);
     expect((await resolveConfig({ resultsDir: [" ./a ", "./b"] })).resultsDir).toEqual([" ./a ", "./b"]);
@@ -793,7 +857,7 @@ describe("resolveConfig", () => {
       },
     });
 
-    expect(resolved.plugins.map(({ id }) => id)).toEqual(["awesome", "agent"]);
+    expect(resolved.plugins?.map(({ id }) => id)).toEqual(["awesome", "agent"]);
   });
 
   it("should not duplicate agent when explicitly configured", async () => {
@@ -810,7 +874,7 @@ describe("resolveConfig", () => {
       },
     });
 
-    expect(resolved.plugins.filter(({ id }) => id === "agent")).toHaveLength(1);
+    expect(resolved.plugins?.filter(({ id }) => id === "agent")).toHaveLength(1);
   });
 
   it("should honor disabled agent config", async () => {
@@ -964,7 +1028,7 @@ describe("resolveConfig", () => {
     });
 
     expect(resolved.environment).toBe("default");
-    expect(Object.keys(resolved.environments)).toEqual(["foo"]);
+    expect(Object.keys(resolved.environments ?? {})).toEqual(["foo"]);
   });
 
   it("should accept environment ID in the public environment field", async () => {
@@ -979,7 +1043,7 @@ describe("resolveConfig", () => {
     });
 
     expect(resolved.environment).toBe("qa_env");
-    expect(Object.keys(resolved.environments)).toEqual(["qa_env"]);
+    expect(Object.keys(resolved.environments ?? {})).toEqual(["qa_env"]);
     expect(resolved.environments?.qa_env?.name).toBe("QA Env");
   });
 
@@ -1007,7 +1071,7 @@ describe("resolveConfig", () => {
       },
     });
 
-    expect(Object.keys(resolved.environments)).toEqual(["compat_env"]);
+    expect(Object.keys(resolved.environments ?? {})).toEqual(["compat_env"]);
   });
 
   it("should reject duplicate display names across explicit environment ids", async () => {
@@ -1038,8 +1102,8 @@ describe("resolveConfig", () => {
       },
     });
 
-    expect(Object.keys(resolved.environments)).toEqual(["QA"]);
-    expect(resolved.environments.QA?.name).toBe("QA");
+    expect(Object.keys(resolved.environments ?? {})).toEqual(["QA"]);
+    expect(resolved.environments?.QA?.name).toBe("QA");
   });
 
   it("should reject duplicate ids after trimming surrounding spaces", async () => {
@@ -1408,9 +1472,84 @@ describe("readConfig", () => {
   });
 
   afterEach(async () => {
+    vi.restoreAllMocks();
     try {
       await rm(fixturesDir, { recursive: true });
     } catch {}
+  });
+
+  const yamlConfig = `
+hideLabels:
+  - owner
+  - "\${{ name.matches('^internal_[0-9]+$') }}"
+categories:
+  - name: Timeout
+    matchers:
+      - message: unrelated
+      - "\${{ has(data.message) && data.message.matches('timeout') && data.labels.exists(l, l.name == 'owner' && l.value == 'alice') }}"
+`;
+
+  it("loads expressions from YAML through runtime matching", async () => {
+    const filename = "allurerc.yaml";
+    await writeFile(join(fixturesDir, filename), yamlConfig, "utf-8");
+
+    const config = await readConfig(fixturesDir, filename, { plugins: {} });
+    const categories = normalizeCategoriesConfig(config.categories);
+    const hidden = ["owner", "OWNER", "internal_42", "internal_id", "public", "_private"].map((name) =>
+      shouldHideLabel(name, config.hideLabels),
+    );
+    const matched = matchCategory(categories, {
+      status: "failed",
+      flaky: false,
+      labels: [{ name: "owner", value: "alice" }],
+      message: "request failed: timeout",
+    });
+
+    expect(hidden).toEqual([true, false, true, false, false, true]);
+    expect(matched?.name).toBe("Timeout");
+  });
+
+  it("loads JSON expressions with regex escaping and object-form categories", async () => {
+    const content = JSON.stringify({
+      hideLabels: ["${{ name.matches('^internal_\\\\d+$') }}"],
+      categories: { rules: [{ name: "Slow", matchers: "${{ data.duration > 42 }}" }] },
+    });
+    await writeFile(join(fixturesDir, "allurerc.json"), content, "utf-8");
+
+    const config = await readConfig(fixturesDir, undefined, { plugins: {} });
+    const hidden = ["internal_42", "internal_id"].map((name) => shouldHideLabel(name, config.hideLabels));
+    const matched = matchCategory(normalizeCategoriesConfig(config.categories), {
+      status: "passed",
+      flaky: false,
+      labels: [],
+      duration: 100,
+    });
+
+    expect(hidden).toEqual([true, false]);
+    expect(matched?.name).toBe("Slow");
+  });
+
+  it.each([
+    [
+      `hideLabels:
+  - owner
+  - "\${{ name. }}"
+`,
+      "hideLabels[1]",
+    ],
+    [
+      `categories:
+  - name: Malformed
+    matchers: "\${{ data. }}"
+`,
+      "categories[0].matchers",
+    ],
+  ])("rejects malformed YAML expressions with their configuration path: %s", async (content, path) => {
+    await writeFile(join(fixturesDir, "allurerc.yaml"), content, "utf-8");
+
+    const resolution = readConfig(fixturesDir, undefined, { plugins: {} });
+
+    await expect(resolution).rejects.toThrow(`Invalid expression at ${path}:`);
   });
 
   it("should preserve the requested working directory", async () => {

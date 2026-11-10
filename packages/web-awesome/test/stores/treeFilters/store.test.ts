@@ -1,6 +1,7 @@
 import { type ResolutionCategory, type TestStatus, type TestStatusTransition } from "@allurereport/core-api";
 import { buildFilterPredicate, setParams } from "@allurereport/web-commons";
 import { epic, feature, label, story } from "allure-js-commons";
+import type { ReportTreeLeaf } from "types";
 import { beforeEach, describe, expect, it } from "vite-plus/test";
 
 import type { ResolutionFilterValue } from "../../../src/stores/treeFilters/constants.js";
@@ -172,6 +173,7 @@ const leaf = (params: {
   retry?: boolean;
   resolution?: ResolutionCategory;
   resolutionStatus?: ResolutionFilterValue;
+  resolutionState?: ReportTreeLeaf["resolutionState"];
   transition?: TestStatusTransition;
 }) => ({
   nodeId: "node",
@@ -253,11 +255,19 @@ describe("stores > treeFilters > store", () => {
     expect(matchesActiveFilters(leaf({ status: "broken", resolutionStatus: "none" }))).toBe(false);
   });
 
-  it("should combine resolution category with retry and flaky markers as OR", () => {
+  it("should combine resolution category with retry filters as OR", () => {
+    setParams({ key: "resolution", value: ["issue"] }, { key: "retry", value: "true" });
+
+    expect(matchesActiveFilters(leaf({ resolution: "issue", resolutionStatus: "issue" }))).toBe(true);
+    expect(matchesActiveFilters(leaf({ retry: true, resolutionStatus: "none" }))).toBe(true);
+    expect(matchesActiveFilters(leaf({ retry: false, resolutionStatus: "none" }))).toBe(false);
+  });
+
+  it("should combine resolution category with flaky filters as OR", () => {
     setParams({ key: "resolution", value: ["issue"] }, { key: "flaky", value: "true" });
 
-    expect(matchesActiveFilters(leaf({ resolution: "issue", resolutionStatus: "issue", flaky: false }))).toBe(true);
-    expect(matchesActiveFilters(leaf({ flaky: true }))).toBe(true);
-    expect(matchesActiveFilters(leaf({ flaky: false }))).toBe(false);
+    expect(matchesActiveFilters(leaf({ resolution: "issue", resolutionStatus: "issue" }))).toBe(true);
+    expect(matchesActiveFilters(leaf({ flaky: true, resolutionStatus: "none" }))).toBe(true);
+    expect(matchesActiveFilters(leaf({ flaky: false, resolutionStatus: "none" }))).toBe(false);
   });
 });

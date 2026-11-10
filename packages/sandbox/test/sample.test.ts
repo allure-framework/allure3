@@ -13,7 +13,7 @@ it("always pass 3", () => {
 });
 
 it("sample check 1", async () => {
-  await new Promise((resolve) => {
+  await new Promise<void>((resolve) => {
     setTimeout(() => {
       resolve();
 
@@ -23,7 +23,7 @@ it("sample check 1", async () => {
 });
 
 it("sample check 2", async () => {
-  await new Promise((resolve) => {
+  await new Promise<void>((resolve) => {
     setTimeout(() => {
       resolve();
 
@@ -33,7 +33,7 @@ it("sample check 2", async () => {
 });
 
 it("sample check 3", async () => {
-  await new Promise((resolve) => {
+  await new Promise<void>((resolve) => {
     setTimeout(() => {
       resolve();
 

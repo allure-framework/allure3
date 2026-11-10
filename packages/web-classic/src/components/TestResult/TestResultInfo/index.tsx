@@ -1,15 +1,16 @@
-import { formatDuration } from "@allurereport/core-api";
 import { Counter, Heading, Text, TooltipWrapper } from "@allurereport/web-components";
 import type { FunctionalComponent } from "preact";
 import type { ReportTestResult } from "types";
 
 import { TestResultInfoStatuses } from "@/components/TestResult/TestResultInfo/TestResultInfoStatuses";
+import { TestResultMeta } from "@/components/TestResult/TestResultMeta";
 import { TestResultNavigation } from "@/components/TestResult/TestResultNavigation";
 import { TestResultPrevStatuses } from "@/components/TestResult/TestResultPrevStatuses";
 import { TestResultSeverity } from "@/components/TestResult/TestResultSeverity";
 import { TestResultStatus } from "@/components/TestResult/TestResultStatus";
 import { TestResultTab, TestResultTabsList } from "@/components/TestResult/TestResultTabs";
 import { useI18n } from "@/stores/locale";
+import { formatClassicDuration } from "@/utils/duration";
 import { timestampToDate } from "@/utils/time";
 
 import * as styles from "./styles.scss";
@@ -20,11 +21,11 @@ export type TestResultInfoProps = {
 
 export const TestResultInfo: FunctionalComponent<TestResultInfoProps> = ({ testResult }) => {
   const { name, status, muted, flaky, known, duration, labels, history, retries, attachments, stop } = testResult ?? {};
-  const formattedDuration = formatDuration(duration as number);
-  const fullDate = stop && timestampToDate(stop);
+  const formattedDuration = formatClassicDuration(duration);
+  const fullDate = stop ? timestampToDate(stop) : undefined;
   const severity = labels?.find((label) => label.name === "severity")?.value ?? "normal";
   const { t } = useI18n("ui");
-  const statuses = Object.entries({ flaky, muted, known }).filter(([, value]) => value);
+  const statuses = Object.entries({ flaky: !!flaky, muted: !!muted, known: !!known }).filter(([, value]) => value);
 
   const Content = () => {
     return (
@@ -35,35 +36,36 @@ export const TestResultInfo: FunctionalComponent<TestResultInfoProps> = ({ testR
           </Heading>
         )}
         <div className={styles["test-result-info-data"]}>
-          {Boolean(status) && <TestResultStatus status={status} />}
-          {Boolean(history?.length) && <TestResultPrevStatuses history={history} />}
+          {!!status && <TestResultStatus status={status} />}
+          {!!history?.length && <TestResultPrevStatuses history={history} />}
           <TestResultSeverity severity={severity} />
-          {Boolean(statuses.length) && <TestResultInfoStatuses statuses={statuses} />}
+          {!!statuses.length && <TestResultInfoStatuses statuses={statuses} />}
           <TooltipWrapper tooltipText={fullDate}>
             <Text tag={"div"} size={"s"} bold className={styles["test-result-duration"]}>
               {formattedDuration}
             </Text>
           </TooltipWrapper>
         </div>
+        <TestResultMeta testResult={testResult} />
         <div className={styles["test-result-tabs"]}>
           <TestResultTabsList>
             <TestResultTab id="overview">{t("overview")}</TestResultTab>
             <TestResultTab id="history" disabled={!history?.length}>
               <div className={styles["test-result-tab"]}>
                 {t("history")}
-                {Boolean(history?.length) && <Counter size={"s"} count={history?.length} />}
+                {!!history?.length && <Counter size={"s"} count={history?.length} />}
               </div>
             </TestResultTab>
             <TestResultTab id="retries" disabled={!retries?.length}>
               <div className={styles["test-result-tab"]}>
                 {t("retries")}
-                {Boolean(retries?.length) && <Counter size={"s"} count={retries?.length} />}
+                {!!retries?.length && <Counter size={"s"} count={retries?.length} />}
               </div>
             </TestResultTab>
             <TestResultTab id="attachments" disabled={!attachments?.length}>
               <div className={styles["test-result-tab"]}>
                 {t("attachments")}
-                {Boolean(attachments?.length) && <Counter size={"s"} count={attachments?.length} />}
+                {!!attachments?.length && <Counter size={"s"} count={attachments?.length} />}
               </div>
             </TestResultTab>
           </TestResultTabsList>

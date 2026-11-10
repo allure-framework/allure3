@@ -117,7 +117,7 @@ export const formatNormalizedEnvironmentCollision = (
  * Returns 0 if there is no envs in the group or the only one is default (shouldn't be rendered in the report)
  * @param group
  */
-export const getRealEnvsCount = (group: TestEnvGroup): number => {
+export const getRealEnvsCount = (group?: TestEnvGroup): number => {
   const { testResultsByEnv = {} } = group ?? {};
   const envsCount = Object.keys(testResultsByEnv).length;
 

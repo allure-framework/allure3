@@ -440,6 +440,20 @@
       }
     },
     "metrics": {
+      "tableView": "Աղյուսակ",
+      "timelineView": "Ժամանակային սանդղակ",
+      "timelineDescription": "Շերտերը ցույց են տալիս գրանցված սկզբի և ավարտի միջակայքերը և կարող են համընկնել։ Հիերարխիան խմբավորում է չափումների բանալիները, ոչ թե առանձին կանչերը։ Բենչմարքի միջակայքը ներառում է ամբողջ գործարկումը, իսկ արժեքը միջին ուշացումն է։",
+      "timelineHelp": "Գծապատկերի մասին",
+      "resetZoom": "Վերականգնել մասշտաբը",
+      "zoomHint": "Սեղմեք գոտու վրա՝ դրա ժամանակային միջակայքը մեծացնելու համար։",
+      "invalidIntervals": "Անվավեր միջակայքերով բացառված չափումներ՝ {{count}}",
+      "noIntervals": "Վավեր ժամանակային միջակայքերով չափումներ չկան։",
+      "noMeasurement": "Չափում չկա",
+      "good": "Բարելավում",
+      "bad": "Վատթարացում",
+      "neutral": "Անփոփոխ / համեմատություն չկա",
+      "interval": "Միջակայք",
+      "previousValue": "Նախորդ միջին",
       "title": "Արտադրողականության մետրիկաներ",
       "phaseSummary": "Մետրիկաների ամփոփում",
       "currentValues": "Ընթացիկ արժեքներ",
@@ -478,7 +492,31 @@
       "slice": "{{count}} թեստ (բոլոր թեստերի {{percent}}%-ը)"
     },
     "retry": "Կրկին փորձել",
-    "loadError": "Չհաջողվեց բեռնել գծապատկերը"
+    "loadError": "Չհաջողվեց բեռնել գծապատկերը",
+    "durationTrend": {
+      "title": "Տևողության միտում",
+      "duration": "Տևողություն",
+      "value": "{{duration, format_duration}}"
+    },
+    "retriesTrend": {
+      "title": "Կրկնությունների միտում",
+      "run": "Թեստեր",
+      "retry": "Կրկնություններ"
+    },
+    "categoriesTrend": {
+      "title": "Կատեգորիաների միտում"
+    },
+    "runTrend": {
+      "empty": "Ցուցադրելու ոչինչ չկա",
+      "tooltips": {
+        "current": "Վերջին հաշվետվություն ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "Հաշվետվություն՝ {{timestamp, timestamp_long_no_seconds}}"
+      },
+      "ticks": {
+        "current": "Վերջին",
+        "history": "{{timestamp, timestamp_date}}"
+      }
+    }
   },
   "transitions": {
     "description": {

@@ -1,4 +1,4 @@
-import { allureIcons } from "@allurereport/web-components";
+import { Text, allureIcons } from "@allurereport/web-components";
 import type { FunctionalComponent } from "preact";
 import { useState } from "preact/hooks";
 import type { ReportTestResult, ReportTestStepResult } from "types";
@@ -10,24 +10,15 @@ import { useI18n } from "@/stores/locale";
 
 import * as styles from "./styles.scss";
 
-const typeMap = {
-  step: TestResultStep,
-  attachment: TestResultAttachment,
-} as const;
-
 export type TestResultStepsProps = {
   steps: ReportTestResult["steps"];
 };
-
-type StepComponentProps = FunctionalComponent<{
-  item?: ReportTestStepResult;
-  stepIndex?: number;
-}>;
 
 export const TestResultSteps: FunctionalComponent<TestResultStepsProps> = ({ steps }) => {
   const [isOpened, setIsOpen] = useState(true);
 
   const { t } = useI18n("execution");
+  const { t: empty } = useI18n("empty");
   return (
     <div className={styles["test-result-steps"]}>
       <TestResultDropdown
@@ -39,12 +30,19 @@ export const TestResultSteps: FunctionalComponent<TestResultStepsProps> = ({ ste
       />
       {isOpened && (
         <div className={styles["test-result-steps-root"]}>
-          {steps?.map((item: ReportTestStepResult, index) => {
-            const { type } = item;
-            const StepComponent: StepComponentProps = typeMap[type];
-            return StepComponent ? <StepComponent item={item} stepIndex={index + 1} key={index} /> : null;
-          })}
+          {steps?.map((item: ReportTestStepResult, index) =>
+            item.type === "step" ? (
+              <TestResultStep item={item} stepIndex={index + 1} key={index} />
+            ) : item.type === "attachment" ? (
+              <TestResultAttachment item={item} stepIndex={index + 1} key={index} />
+            ) : null,
+          )}
         </div>
+      )}
+      {isOpened && !steps?.length && (
+        <Text tag={"p"} size={"s"} className={styles["test-result-steps-empty"]} data-testid="test-result-steps-empty">
+          {empty("no-test-steps-results")}
+        </Text>
       )}
     </div>
   );

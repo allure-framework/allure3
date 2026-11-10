@@ -6,6 +6,8 @@ import _times from "lodash.times";
 
 import type { ReportConfig } from "../../types.js";
 
+type CompleteTestResult = TestResult & { known: boolean } & Required<Pick<TestResult, "name" | "fullName" | "status">>;
+
 export type ItemMaker<T> = (index: number, params: T) => Partial<T>;
 
 export const MIN_DURATION = 1000;
@@ -49,7 +51,7 @@ export const generateDuration = () => faker.number.int({ min: MIN_DURATION, max:
  * @param prefix - Prefix for the name
  * @returns Object containing name and fullName
  */
-export const makeTestResultNames = (prefix: string): Pick<TestResult, "name" | "fullName"> => ({
+export const makeTestResultNames = (prefix: string): Required<Pick<TestResult, "name" | "fullName">> => ({
   name: generateUniqueName(prefix),
   fullName: generateUniqueName(`${prefix}: fullName`),
 });
@@ -76,7 +78,7 @@ export const makeHistoryId = (fullName: string, strParameters = "") => {
  * Generates a TestResult with random data
  * @param params - Partial TestResult to override default values
  */
-export const makeTestResult = (params?: Partial<TestResult>): TestResult => {
+export const makeTestResult = (params?: Partial<TestResult>): CompleteTestResult => {
   const start = generateDate();
   const stop = start + generateDuration();
   const {
@@ -118,7 +120,7 @@ export const makeTestResult = (params?: Partial<TestResult>): TestResult => {
  * @param count - Number of test results to generate
  * @param maker - Function to customize each test result
  */
-export const makeTestResults = (count: number, maker: ItemMaker<TestResult>): TestResult[] => {
+export const makeTestResults = (count: number, maker: ItemMaker<CompleteTestResult>): CompleteTestResult[] => {
   const now = generateDate();
   const duration = generateDuration();
 
@@ -176,16 +178,12 @@ export const makeHistory = (count: number, maker: ItemMaker<HistoryDataPoint>): 
   });
 };
 
-export const makeHistoryTestResult = (testResult: TestResult): HistoryTestResult => {
+export const makeHistoryTestResult = (testResult: CompleteTestResult): HistoryTestResult => {
   return {
     id: testResult.uuid,
-    name: testResult.name,
-    fullName: testResult.fullName,
-    status: testResult.status,
     start: testResult.start,
     stop: testResult.stop,
     duration: testResult.stop && testResult.start ? testResult.stop - testResult.start : undefined,
-    labels: testResult.labels || [],
     url: "",
     ...testResult,
   };
@@ -195,7 +193,7 @@ export const makeHistoryTestResult = (testResult: TestResult): HistoryTestResult
  * Converts an array of HistoryTestResults into a map keyed by history ID
  * @param testResults - Array of test results to convert
  */
-export const makeHistoryTestResults = (testResults: TestResult[] = []): Record<string, HistoryTestResult> => {
+export const makeHistoryTestResults = (testResults: CompleteTestResult[] = []): Record<string, HistoryTestResult> => {
   const map: Record<string, HistoryTestResult> = {};
 
   testResults.forEach((tr) => {
@@ -212,12 +210,11 @@ export const makeHistoryTestResults = (testResults: TestResult[] = []): Record<s
  * @param params - Additional parameters to override defaults
  */
 export const makeReportConfig = (params?: Partial<ReportConfig>): ReportConfig => {
-  const { name = generateWord(), appendHistory = true, knownIssuesPath = undefined, ...rest } = params || {};
+  const { name = generateWord(), appendHistory = true, ...rest } = params || {};
 
   return {
     name,
     appendHistory,
-    knownIssuesPath,
     ...rest,
   };
 };

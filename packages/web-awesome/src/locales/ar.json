@@ -435,6 +435,20 @@
       }
     },
     "metrics": {
+      "tableView": "جدول",
+      "timelineView": "المخطط الزمني",
+      "timelineDescription": "تعرض الأشرطة فترات البداية والنهاية المسجلة وقد تتداخل. يجمع التسلسل الهرمي مفاتيح المقاييس وليس الاستدعاءات الفردية. تغطي فترات اختبارات الأداء التشغيل بأكمله؛ وقيمها هي متوسط زمن الاستجابة.",
+      "timelineHelp": "حول الرسم البياني",
+      "resetZoom": "إعادة ضبط التكبير",
+      "zoomHint": "انقر على شريط لتكبير فترته الزمنية.",
+      "invalidIntervals": "القياسات المستبعدة بسبب فترات غير صالحة: {{count}}",
+      "noIntervals": "لا توجد قياسات ذات فترات زمنية صالحة.",
+      "noMeasurement": "لا يوجد قياس",
+      "good": "تحسن",
+      "bad": "تراجع",
+      "neutral": "دون تغيير / لا توجد مقارنة",
+      "interval": "الفترة",
+      "previousValue": "المتوسط السابق",
       "title": "مقاييس الأداء",
       "phaseSummary": "ملخص المقاييس",
       "currentValues": "القيم الحالية",
@@ -477,7 +491,31 @@
       "slice_many": "{{count}} اختبارًا ({{percent}}% من جميع الاختبارات)"
     },
     "retry": "إعادة المحاولة",
-    "loadError": "تعذّر تحميل الرسم البياني"
+    "loadError": "تعذّر تحميل الرسم البياني",
+    "durationTrend": {
+      "duration": "المدة",
+      "value": "{{duration, format_duration}}",
+      "title": "اتجاه المدة"
+    },
+    "retriesTrend": {
+      "retry": "محاولات الإعادة",
+      "run": "الاختبارات",
+      "title": "اتجاه إعادة المحاولات"
+    },
+    "categoriesTrend": {
+      "title": "اتجاه الفئات"
+    },
+    "runTrend": {
+      "empty": "$t(empty:no-results)",
+      "ticks": {
+        "current": "الأحدث",
+        "history": "{{timestamp, timestamp_date}}"
+      },
+      "tooltips": {
+        "current": "أحدث تقرير ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "تقرير من {{timestamp, timestamp_long_no_seconds}}"
+      }
+    }
   },
   "transitions": {
     "description": {

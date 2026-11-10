@@ -49,7 +49,7 @@ jobs:
         id: build
         with:
           yarn-hardened-mode: "0"
-          cache-type: test
+          save-cache: "${{ matrix.os != 'ubuntu-latest' }}"
       - parallel:
           - name: Install Playwright browsers
             timeout-minutes: 5
@@ -61,12 +61,6 @@ jobs:
         env:
           ENABLE_COVERAGE: ${{ matrix.os == 'ubuntu-latest' && 'true' || 'false' }}
         run: yarn allure run --config=./allurerc.mjs --environment=${{ matrix.os }} --dump=allure-results-${{ matrix.os }} -- yarn test
-      - name: Save Vite Task cache
-        if: ${{ !cancelled() }}
-        uses: actions/cache/save@v6
-        with:
-          path: node_modules/.vite/task-cache
-          key: ${{ steps.build.outputs.cache-key }}
       - name: Upload test results
         timeout-minutes: 10
         uses: actions/upload-artifact@v7
@@ -134,6 +128,7 @@ jobs:
       ALLURE_PROJECT_ID: ${{ secrets.ALLURE_PROJECT_ID }}
       ALLURE_ENDPOINT: ${{ secrets.ALLURE_ENDPOINT }}
       ALLURE_LAUNCH_TAGS: "${{ secrets.ALLURE_LAUNCH_TAGS }}, ${{ github.event_name }}"
+      ALLURE_PR_TITLE: ${{ github.event.pull_request.title }}
     steps:
       - name: Checkout project
         uses: actions/checkout@v7

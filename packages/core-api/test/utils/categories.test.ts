@@ -312,7 +312,7 @@ describe("extractErrorMatchingData", () => {
         { name: "severity", value: "critical" },
       ],
       error: { message: "boom", trace: "stack" },
-    } satisfies Pick<TestResult, "status" | "labels" | "error" | "flaky" | "duration">;
+    } satisfies Pick<TestResult, "status" | "labels" | "error" | "flaky" | "duration" | "transition" | "environment">;
 
     const d = extractErrorMatchingData(tr);
     expect(d.status).toBe("failed");

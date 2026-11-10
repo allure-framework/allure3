@@ -1,3 +1,4 @@
+/** @type {import("@svgr/core").Config} */
 export const svgrOptions = {
   icon: true,
   svgoConfig: {

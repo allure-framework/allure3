@@ -1,6 +1,7 @@
 import type { CiDescriptor, EnvironmentIdentity, TestResult } from "@allurereport/core-api";
 import type { AllureStore, PluginContext, PluginState } from "@allurereport/plugin-api";
 import { epic, feature, label, story } from "allure-js-commons";
+import { AxiosHeaders } from "axios";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vite-plus/test";
 
 import { TestOpsPlugin } from "../../src/plugin.js";
@@ -106,6 +107,10 @@ const setup = (params: {
     ...(params.envVariables?.[envId] ?? {}),
   }));
   requests.createNamedEnvsRequest.mockImplementation(async (_url, data) => ({
+    status: 200,
+    statusText: "OK",
+    headers: {},
+    config: { headers: new AxiosHeaders() },
     data: data.items.map(({ externalId }: { externalId: string }, idx: number) => ({ id: idx + 1, externalId })),
   }));
 

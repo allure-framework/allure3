@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from "vite-plus/test";
 import { allureResultsDirectoriesGlobWatcher } from "../../../src/commands/commons/resultsDiscovery.js";
 
 const { watchMock, differenceMock, findDirectoriesByGlobsMock } = vi.hoisted(() => ({
-  watchMock: vi.fn((initial: () => Promise<void>) => {
+  watchMock: vi.fn((initial: () => Promise<void>, _poll: () => Promise<void>) => {
     void initial();
     return {
       initialScan: vi.fn().mockResolvedValue(undefined),
@@ -50,7 +50,7 @@ describe("allureResultsDirectoriesGlobWatcher", () => {
     });
 
     await watcher.initialScan();
-    await (watchMock.mock.calls.at(-1)?.[1] as () => Promise<void>)();
+    await (watchMock.mock.calls.at(-1)!.at(1) as unknown as () => Promise<void>)();
 
     expect(updates[0]?.added).toEqual([]);
     expect(updates[1]?.added).toEqual(["/tmp/other-results/", "/tmp/results/"].sort());

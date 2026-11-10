@@ -116,7 +116,6 @@ test.describe("Steps in Allure Awesome", () => {
       reportConfig: {
         name: "Sample allure report",
         appendHistory: false,
-        knownIssuesPath: undefined,
       },
       testResults: fixtures.testResults,
     });

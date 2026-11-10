@@ -1,5 +1,6 @@
 import * as console from "node:console";
 
+import { ExpressionError } from "@allurereport/core-api";
 import type {
   RawStep,
   RawTestAttachment,
@@ -84,6 +85,9 @@ export const allure1: ResultsReader = {
 
       return await parseRootElement(visitor, parsed);
     } catch (e) {
+      if (e instanceof ExpressionError) {
+        throw e;
+      }
       console.error("error parsing", data.getOriginalFileName(), e);
       return false;
     }

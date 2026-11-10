@@ -70,13 +70,13 @@ const setElementSizeMocks = () => {
     if (clientWidthDescriptor) {
       Object.defineProperty(HTMLElement.prototype, "clientWidth", clientWidthDescriptor);
     } else {
-      delete (HTMLElement.prototype as Partial<HTMLElement>).clientWidth;
+      Reflect.deleteProperty(HTMLElement.prototype, "clientWidth");
     }
 
     if (scrollWidthDescriptor) {
       Object.defineProperty(HTMLElement.prototype, "scrollWidth", scrollWidthDescriptor);
     } else {
-      delete (HTMLElement.prototype as Partial<HTMLElement>).scrollWidth;
+      Reflect.deleteProperty(HTMLElement.prototype, "scrollWidth");
     }
   };
 
@@ -121,7 +121,9 @@ describe("components > EnvironmentPicker", () => {
     const queryTooltip = () => screen.queryByTestId("environment-picker-selected-tooltip");
 
     fireEvent.mouseEnter(getTooltipTrigger());
-    await act(async () => vi.advanceTimersByTimeAsync(200));
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(200);
+    });
     expect(queryTooltip()).toBeNull();
     fireEvent.mouseLeave(getTooltipTrigger());
 
@@ -181,7 +183,9 @@ describe("components > EnvironmentPicker", () => {
       );
       const button = screen.getByTestId("environment-picker-button");
       fireEvent.mouseEnter(button.parentElement!.parentElement!);
-      await act(async () => vi.advanceTimersByTimeAsync(200));
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(200);
+      });
       expect(screen.queryByTestId("environment-picker-selected-tooltip")).not.toBeNull();
     },
   );

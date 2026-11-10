@@ -440,6 +440,20 @@
       }
     },
     "metrics": {
+      "tableView": "Tableau",
+      "timelineView": "Chronologie",
+      "timelineDescription": "Les barres représentent les intervalles enregistrés et peuvent se chevaucher. La hiérarchie regroupe les clés de métriques, pas les appels individuels. Les intervalles des benchmarks couvrent toute l’exécution ; leurs valeurs sont des latences moyennes.",
+      "timelineHelp": "À propos du graphique",
+      "resetZoom": "Réinitialiser le zoom",
+      "zoomHint": "Cliquez sur une barre pour agrandir son intervalle de temps.",
+      "invalidIntervals": "Mesures exclues pour intervalles non valides : {{count}}",
+      "noIntervals": "Aucune mesure avec un intervalle valide.",
+      "noMeasurement": "Aucune mesure",
+      "good": "Amélioration",
+      "bad": "Régression",
+      "neutral": "Inchangé / sans comparaison",
+      "interval": "Intervalle",
+      "previousValue": "Moyenne précédente",
       "title": "Métriques de performance",
       "phaseSummary": "Résumé des métriques",
       "currentValues": "Valeurs actuelles",
@@ -479,7 +493,31 @@
       "slice_many": "{{count}} tests ({{percent}}% de tous les tests)"
     },
     "retry": "Réessayer",
-    "loadError": "Échec du chargement du graphique"
+    "loadError": "Échec du chargement du graphique",
+    "durationTrend": {
+      "title": "Tendance de la durée",
+      "duration": "Durée",
+      "value": "{{duration, format_duration}}"
+    },
+    "retriesTrend": {
+      "title": "Tendance des tentatives",
+      "retry": "Réessais",
+      "run": "Tests"
+    },
+    "categoriesTrend": {
+      "title": "Tendance des catégories"
+    },
+    "runTrend": {
+      "empty": "Il n'y a rien à montrer",
+      "ticks": {
+        "current": "Derniers",
+        "history": "{{timestamp, timestamp_date}}"
+      },
+      "tooltips": {
+        "current": "Dernier rapport ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "Rapport du {{timestamp, timestamp_long_no_seconds}}"
+      }
+    }
   },
   "transitions": {
     "description": {

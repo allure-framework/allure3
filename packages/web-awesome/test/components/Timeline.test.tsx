@@ -1,6 +1,7 @@
 import { signal } from "@preact/signals";
 import { cleanup, render, screen } from "@testing-library/preact";
 import { epic, feature, label, story } from "allure-js-commons";
+import type { ComponentChildren } from "preact";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 beforeEach(async () => {
@@ -38,11 +39,11 @@ const setup = async (timelineData: TimelineTestResult[]) => {
     Timeline: ({ data, dataId }: { data: TimelineTestResult[]; dataId: string }) => (
       <div data-testid={`timeline-${dataId}`}>{data.map(({ id }) => id).join(",")}</div>
     ),
-    Grid: ({ children }: { children: unknown }) => <div>{children as any}</div>,
-    GridItem: ({ children }: { children: unknown }) => <div>{children as any}</div>,
+    Grid: ({ children }: { children: ComponentChildren }) => <div>{children as any}</div>,
+    GridItem: ({ children }: { children: ComponentChildren }) => <div>{children as any}</div>,
     Loadable: ({ renderData }: { renderData: () => any }) => renderData(),
     PageLoader: () => <div>loading</div>,
-    Widget: ({ children }: { children: unknown }) => <div>{children as any}</div>,
+    Widget: ({ children }: { children: ComponentChildren }) => <div>{children as any}</div>,
   });
   vi.doMock("@allurereport/web-components/core", mockComponents);
   vi.doMock("@allurereport/web-components/Grid", mockComponents);

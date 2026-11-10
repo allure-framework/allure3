@@ -2,6 +2,7 @@ import {
   ChartType,
   type DurationDynamicsChartData,
   type DurationsChartData,
+  type StabilityDistributionChartData,
   type StatusAgePyramidChartData,
   type TrSeveritiesChartData,
 } from "@allurereport/charts-api";
@@ -12,9 +13,10 @@ import {
   type TestResult,
   fallbackTestCaseIdLabelName,
 } from "@allurereport/core-api";
+import * as coreApi from "@allurereport/core-api";
 import { type AllureStore, md5 } from "@allurereport/plugin-api";
 import { epic, feature, label, story } from "allure-js-commons";
-import { beforeEach, describe, expect, it } from "vite-plus/test";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 import { generateCharts } from "../../src/charts/generators.js";
 
@@ -23,6 +25,10 @@ beforeEach(async () => {
   await feature("charts");
   await story("generators");
   await label("coverage", "charts");
+});
+
+afterEach(() => {
+  vi.restoreAllMocks();
 });
 
 const baseTestResult: Pick<
@@ -38,8 +44,16 @@ const baseTestResult: Pick<
   | "links"
   | "steps"
   | "sourceMetadata"
+  | "testCaseHash"
+  | "parametersHash"
+  | "environmentHash"
+  | "retryHash"
 > = {
   id: "tr-1",
+  testCaseHash: null,
+  parametersHash: "",
+  environmentHash: null,
+  retryHash: null,
   name: "Test",
   flaky: false,
   muted: false,
@@ -71,6 +85,7 @@ const createStore = (params: {
   allTestResultsByEnvironment?: Record<string, TestResult[]>;
   historyDataPointsByEnvironment?: Record<string, HistoryDataPoint[]>;
   statistic?: Statistic;
+  retriesByTestResultId?: Record<string, TestResult[]>;
 }): AllureStore => {
   const {
     environments,
@@ -104,10 +119,85 @@ const createStore = (params: {
     allHistoryDataPointsByEnvironment: async (env: string) => historyDataPointsByEnvironment?.[env] ?? [],
     allHistoryDataPointsByEnvironmentId: async (envId: string) => historyDataPointsByEnvironment?.[envId] ?? [],
     testsStatistic: async () => statistic ?? { total: testResults.length, failed: testResults.length },
+    retriesByTrId: async (id: string) => params.retriesByTestResultId?.[id] ?? [],
   } as unknown as AllureStore;
 };
 
 describe("generateCharts", () => {
+  it("supplies current attempts to the stability classifier", async () => {
+    const classifier = vi.spyOn(coreApi, "getTestFlakiness");
+    const current = createTestResult({
+      status: "passed",
+      retryHash: "test",
+      labels: [{ name: "feature", value: "Recovery" }],
+    });
+    const retry = { ...current, id: "retry", status: "failed" as const, isRetry: true };
+    const store = createStore({
+      testResults: [current],
+      retriesByTestResultId: { [current.id]: [retry] },
+      historyDataPoints: [
+        {
+          uuid: "run",
+          name: "previous",
+          timestamp: 1,
+          knownTestCaseIds: [],
+          metrics: {},
+          url: "",
+          testResults: { test: { id: "previous", name: "Test", status: "passed", url: "" } },
+        },
+      ],
+    });
+
+    const charts = await generateCharts([{ type: ChartType.StabilityDistribution }], store, "Report", () => "chart");
+
+    expect(classifier).toHaveBeenCalledWith(
+      expect.objectContaining({
+        id: current.id,
+        retries: [expect.objectContaining({ id: retry.id, status: "failed" })],
+      }),
+      [expect.objectContaining({ id: "previous" })],
+      expect.objectContaining({ historyDepth: undefined }),
+    );
+    expect((charts.general.chart as StabilityDistributionChartData).data[0].stabilityRate).toBe(100);
+    expect(current.retries).toBeUndefined();
+  });
+  it("loads current retries for retry failure-rate stability charts", async () => {
+    const current = createTestResult({
+      status: "passed",
+      retryHash: "retry-failure-rate-test",
+      labels: [{ name: "feature", value: "Recovery" }],
+    });
+    const retry = { ...current, id: "retry", status: "failed" as const, isRetry: true };
+    const store = createStore({
+      testResults: [current],
+      retriesByTestResultId: { [current.id]: [retry] },
+      historyDataPoints: [
+        {
+          uuid: "run",
+          name: "previous",
+          timestamp: 1,
+          knownTestCaseIds: [],
+          metrics: {},
+          url: "",
+          testResults: {
+            "retry-failure-rate-test": { id: "previous", name: "Test", status: "passed", retries: ["failed"], url: "" },
+          },
+        },
+      ],
+    });
+
+    const charts = await generateCharts(
+      [{ type: ChartType.StabilityDistribution, algorithm: "retry-failure-rate" }],
+      store,
+      "Report",
+      () => "retry-failure-rate-chart",
+    );
+
+    expect((charts.general["retry-failure-rate-chart"] as StabilityDistributionChartData).data[0].stabilityRate).toBe(
+      0,
+    );
+    expect(current.retries).toBeUndefined();
+  });
   it("should ignore fallback identity without a cross-report catalog", async () => {
     const fallbackTestCaseId = md5("legacy-test-case-id");
     const fallbackRetryHash = `${fallbackTestCaseId}.${md5("")}`;
@@ -115,6 +205,7 @@ describe("generateCharts", () => {
     const store = createStore({
       historyDataPoints: [
         {
+          url: "",
           uuid: "run-1",
           name: "run-1",
           timestamp: 1_700_000_000_000,
@@ -122,6 +213,7 @@ describe("generateCharts", () => {
           metrics: {},
           testResults: {
             [fallbackRetryHash]: {
+              url: "",
               id: "legacy-result-id",
               retryHash: fallbackRetryHash,
               name: "legacy test name",
@@ -164,6 +256,7 @@ describe("generateCharts", () => {
     const store = createStore({
       historyDataPoints: [
         {
+          url: "",
           uuid: "run-1",
           name: "run-1",
           timestamp: 1_700_000_000_000,
@@ -171,6 +264,7 @@ describe("generateCharts", () => {
           metrics: {},
           testResults: {
             [fallbackRetryHash]: {
+              url: "",
               id: "legacy-result-id",
               retryHash: fallbackRetryHash,
               name: "legacy test name",
@@ -243,6 +337,7 @@ describe("generateCharts", () => {
       },
       historyDataPoints: [
         {
+          url: "",
           uuid: "chrome-run",
           name: "chrome-run",
           timestamp: 1_700_000_000_000,
@@ -250,6 +345,7 @@ describe("generateCharts", () => {
           metrics: {},
           testResults: {
             [chromeRetryHash]: {
+              url: "",
               id: "chrome-history-result",
               retryHash: chromeRetryHash,
               name: "chrome test",
@@ -258,6 +354,7 @@ describe("generateCharts", () => {
           },
         },
         {
+          url: "",
           uuid: "firefox-run",
           name: "firefox-run",
           timestamp: 1_700_000_000_100,
@@ -265,6 +362,7 @@ describe("generateCharts", () => {
           metrics: {},
           testResults: {
             [firefoxRetryHash]: {
+              url: "",
               id: "firefox-history-result",
               retryHash: firefoxRetryHash,
               name: "firefox test",
@@ -276,6 +374,7 @@ describe("generateCharts", () => {
       historyDataPointsByEnvironment: {
         chrome: [
           {
+            url: "",
             uuid: "chrome-run",
             name: "chrome-run",
             timestamp: 1_700_000_000_000,
@@ -283,6 +382,7 @@ describe("generateCharts", () => {
             metrics: {},
             testResults: {
               [chromeRetryHash]: {
+                url: "",
                 id: "chrome-history-result",
                 retryHash: chromeRetryHash,
                 name: "chrome test",
@@ -293,6 +393,7 @@ describe("generateCharts", () => {
         ],
         firefox: [
           {
+            url: "",
             uuid: "firefox-run",
             name: "firefox-run",
             timestamp: 1_700_000_000_100,
@@ -300,6 +401,7 @@ describe("generateCharts", () => {
             metrics: {},
             testResults: {
               [firefoxRetryHash]: {
+                url: "",
                 id: "firefox-history-result",
                 retryHash: firefoxRetryHash,
                 name: "firefox test",
@@ -442,6 +544,7 @@ describe("generateCharts", () => {
       allTestResults: [retry, latest],
       historyDataPoints: [
         {
+          url: "",
           uuid: "run-1",
           name: "run-1",
           timestamp: 1_700_000_000_000,
@@ -475,7 +578,7 @@ describe("generateCharts", () => {
         levels: ["blocker", "critical"],
         includeUnset: true,
       },
-    ];
+    ] satisfies Parameters<typeof generateCharts>[0];
     const store = createStore({
       testResults: [
         createTestResult({

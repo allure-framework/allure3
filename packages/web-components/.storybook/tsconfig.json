@@ -1,0 +1,24 @@
+{
+  "extends": [
+    "../../../tsconfig.test.json",
+    "../tsconfig.json"
+  ],
+  "compilerOptions": {
+    "rootDir": "..",
+    "noEmit": true,
+    "emitDeclarationOnly": false,
+    "strict": true,
+    "types": [
+      "node"
+    ],
+    "allowJs": true
+  },
+  "include": [
+    "**/*.ts",
+    "../src/types/**/*.d.ts",
+    "../svgr.config.js"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
+}

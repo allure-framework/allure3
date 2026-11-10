@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it, type Mock, vi } from "vite-plus/test"
 import { gitlab } from "../../src/detectors/gitlab.js";
 import { getEnv } from "../../src/utils.js";
 
-const mockEnv = (env: Record<string, string>) => {
+const mockEnv = (env: Record<string, string | undefined>) => {
   (getEnv as Mock).mockImplementation((key: string) => env[key] ?? "");
 };
 

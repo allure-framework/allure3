@@ -26,9 +26,7 @@ const MainReportWrapper = () => {
   );
 };
 
-const isTestResultRoute = computed(
-  () => testResultRoute.value.matches || Boolean(rootTabRoute.value.params.testResultId),
-);
+const isTestResultRoute = computed(() => testResultRoute.value.matches || !!rootTabRoute.value.params.testResultId);
 
 export const SplitLayout = () => {
   const testResultId = currentTrId.value;
@@ -45,7 +43,7 @@ export const SplitLayout = () => {
         source={testResultStore}
         renderLoader={() => <TestResultLoader />}
         transformData={(allResults) => {
-          if (testResultId in allResults) {
+          if (testResultId && testResultId in allResults) {
             return allResults[testResultId];
           }
         }}

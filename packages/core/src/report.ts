@@ -15,9 +15,15 @@ import type {
   CategoryDefinition,
   CiDescriptor,
   HistoryDataPoint,
+  MetricHierarchyNode,
   TestResult,
 } from "@allurereport/core-api";
-import { normalizeCategoriesConfig, parseIntegerConfigValue } from "@allurereport/core-api";
+import {
+  ExpressionError,
+  buildMetricHierarchy,
+  normalizeCategoriesConfig,
+  parseIntegerConfigValue,
+} from "@allurereport/core-api";
 import {
   type AllureStoreDump,
   AllureStoreDumpFiles,
@@ -179,6 +185,7 @@ export class AllureReport {
   readonly #realtimeUpdateScheduler: RealtimeUpdateScheduler;
   readonly #realTime: any;
   readonly #hideLabels: FullConfig["hideLabels"];
+  readonly #metricHierarchy: MetricHierarchyNode[];
   readonly #output: string;
   readonly #history: AllureHistory | undefined;
   readonly #historyBaseUrl: string | undefined;
@@ -276,11 +283,12 @@ export class AllureReport {
     this.#appendHistory = appendHistory ?? true;
     this.#knownIssuesPath = resolutions?.knownIssuesPath;
 
-    if (qualityGate) {
+    if (qualityGate && qualityGate.enabled !== false) {
       this.#qualityGate = new QualityGate(qualityGate);
     }
 
     this.#categories = normalizeCategoriesConfig(categories);
+    this.#metricHierarchy = buildMetricHierarchy(performance);
 
     this.#historyBaseUrl =
       !this.#allureServiceClient && historyPath && historyBaseUrl ? normalizeHistoryBaseUrl(historyBaseUrl) : undefined;
@@ -592,12 +600,18 @@ export class AllureReport {
               try {
                 await this.readResult(new PathResultFile(join(resultsDirPath, dirent.name), dirent.name));
               } catch (e) {
+                if (e instanceof ExpressionError) {
+                  throw e;
+                }
                 console.error(`can't read result file ${dirent.name}`, e);
               }
             }),
           ),
         );
       } catch (e) {
+        if (e instanceof ExpressionError) {
+          throw e;
+        }
         console.error("can't read directory", e);
       }
 
@@ -629,7 +643,13 @@ export class AllureReport {
         if (processed) {
           return;
         }
-      } catch {}
+      } catch (error) {
+        if (error instanceof ExpressionError) {
+          throw new ExpressionError(`${error.message} (result file ${JSON.stringify(data.getOriginalFileName())})`, {
+            cause: error,
+          });
+        }
+      }
     }
   };
 
@@ -1121,6 +1141,9 @@ export class AllureReport {
               }
             }
           } catch (err) {
+            if (err instanceof ExpressionError) {
+              throw new ExpressionError(`${err.message} (state dump ${JSON.stringify(dump)})`, { cause: err });
+            }
             console.error(`Failed to restore state from "${dump}", continuing without it`);
             console.error(errorDetails(err));
           }
@@ -1480,6 +1503,7 @@ export class AllureReport {
         reportUuid: this.reportUuid,
         reportName: this.reportName,
         hideLabels: this.#hideLabels,
+        metricHierarchy: this.#metricHierarchy,
         state: pluginState,
         reportFiles: pluginFiles,
         ...(isPerfMetricsEnabled()

@@ -1,4 +1,5 @@
 import {
+  errorMessageFromUnknown,
   type ChartsResponse,
   type UIChartsDataWithEnvs,
   createChartsWithEnvs,
@@ -32,7 +33,7 @@ export const fetchDashboardData = async () => {
   } catch (err) {
     dashboardStore.value = {
       data: undefined,
-      error: err.message,
+      error: errorMessageFromUnknown(err),
       loading: false,
     };
   }

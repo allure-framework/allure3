@@ -23,7 +23,7 @@ import { currentEnvironment } from "@/stores/env";
 import { treeStore } from "@/stores/tree";
 import type { AwesomeFilterGroupSimple } from "@/stores/treeFilters/model";
 
-import type { AwesomeTree, AwesomeTreeLeaf } from "../../types";
+import type { ReportTree, ReportTreeLeaf } from "../../types";
 
 vi.mock("@/stores/locale", () => ({
   useI18n: () => ({
@@ -49,25 +49,27 @@ const resolutionGroup = (resolutions: string[] = []): AwesomeFilterGroupSimple =
 
 const leaf = (
   id: string,
-  resolutionStatus?: AwesomeTreeLeaf["resolutionStatus"],
-  status: AwesomeTreeLeaf["status"] = "failed",
-): AwesomeTreeLeaf => ({
+  resolutionStatus?: ReportTreeLeaf["resolutionStatus"],
+  status: ReportTreeLeaf["status"] = "failed",
+): ReportTreeLeaf => ({
   id,
   nodeId: id,
   name: id,
   status,
   duration: 1,
   groupOrder: 1,
+  flaky: false,
+  retry: false,
   resolutionStatus,
   resolution: resolutionStatus === "none" ? undefined : resolutionStatus,
 });
 
-const tree = (leaves: AwesomeTreeLeaf[]): AwesomeTree =>
+const tree = (leaves: ReportTreeLeaf[]): ReportTree =>
   ({
     root: { nodeId: "root", name: "root", children: [] },
     groupsById: {},
     leavesById: Object.fromEntries(leaves.map((item) => [item.nodeId, item])),
-  }) as AwesomeTree;
+  }) as ReportTree;
 
 const openResolutionFilter = () => {
   render(<ResolutionFilter group={resolutionGroup()} onChange={vi.fn()} />);

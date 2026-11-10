@@ -3,15 +3,18 @@ import { env } from "node:process";
 import { defineConfig } from "allure";
 import { qualityGateDefaultRules } from "allure/rules";
 
-const { ALLURE_QUALITY_GATE, ALLURE_REQUIRE_NEW_TESTS, ALLURE_SERVICE_ACCESS_TOKEN } = env;
+const { ALLURE_QUALITY_GATE, ALLURE_REQUIRE_NEW_TESTS, ALLURE_SERVICE_ACCESS_TOKEN, ALLURE_PR_TITLE } = env;
 const qualityGateEnabled = Boolean(ALLURE_QUALITY_GATE);
 const requireNewTests = ALLURE_REQUIRE_NEW_TESTS === "1";
+const launchDate = new Date().toISOString().slice(0, 10);
+const launchName = `${ALLURE_PR_TITLE || "Allure 3 GitHub actions run"} (${launchDate})`;
 
-const msMetric = (title, group) => ({
+const msMetric = ({ title, group, parent }) => ({
   title,
   unit: "ms",
   better: "lower",
   group,
+  ...(parent === undefined ? {} : { parent }),
 });
 
 const awesomeMetricTitles = {
@@ -38,7 +41,7 @@ const awesomeMetricTitles = {
 const awesomeMetrics = Object.fromEntries(
   Object.entries(awesomeMetricTitles).map(([key, title]) => [
     `generate.plugin.awesome.${key}`,
-    msMetric(title, "awesome"),
+    msMetric({ title, group: "awesome", parent: key === "summary.create" ? "summary.generate" : "generate.plugin.done.awesome" }),
   ]),
 );
 
@@ -50,7 +53,7 @@ const readResultsMetricTitles = {
 const readResultsMetrics = Object.fromEntries(
   Object.entries(readResultsMetricTitles).map(([key, title]) => [
     `generate.readResults.${key}`,
-    msMetric(title, "generate"),
+    msMetric({ title, group: "generate", parent: "generate.readResults" }),
   ]),
 );
 
@@ -105,7 +108,7 @@ const config = {
     },
     testops: {
       options: {
-        launchName: `Allure 3 GitHub actions run (${new Date().toISOString()})`,
+        launchName,
         gitFlow: true,
       },
     },
@@ -170,41 +173,41 @@ const config = {
       },
     },
     metrics: {
-      "aql.parse.simple": msMetric("Parse simple condition", "aql"),
-      "aql.parse.complex": msMetric("Parse complex expression", "aql"),
-      "aql.parse.array": msMetric("Parse array condition", "aql"),
-      "aql.parse.nested": msMetric("Parse nested expression", "aql"),
-      "aql.parse.many": msMetric("Parse 1000 expressions", "aql"),
-      "aql.filter.small": msMetric("Filter 100 items", "aql"),
-      "aql.filter.medium": msMetric("Filter 1000 items", "aql"),
-      "aql.filter.large": msMetric("Filter 10000 items", "aql"),
-      "aql.filter.complex": msMetric("Filter complex expression", "aql"),
-      "aql.filter.in": msMetric("Filter IN operator", "aql"),
-      "aql.filter.nested": msMetric("Filter nested properties", "aql"),
-      "aql.filter.reuse": msMetric("Filter pre-parsed expression", "aql"),
-      "aql.filter.empty": msMetric("Filter empty result", "aql"),
-      "aql.workflow.parseAndFilter": msMetric("Parse and filter", "aql"),
-      "aql.workflow.multipleFilters": msMetric("Run multiple filters", "aql"),
-      "allure.total": msMetric("Allure total", "allure"),
-      "restoreState.total": msMetric("Restore state total", "restoreState"),
-      "restoreState.dump": msMetric("Restore state dump", "restoreState"),
-      "restoreState.attachments": msMetric("Restore state attachments", "restoreState"),
-      "restoreState.storeRestore": msMetric("Restore state store restore", "restoreState"),
-      "generate.total": msMetric("Generate total", "generate"),
-      "generate.readResults": msMetric("Read results", "generate"),
-      "generate.plugins.done": msMetric("Plugins done", "generate"),
-      "generate.plugin.done.awesome": msMetric("Awesome plugin done", "generate"),
-      "generate.plugin.done.classic": msMetric("Classic plugin done", "generate"),
-      "generate.plugin.done.allure2": msMetric("Allure 2 plugin done", "generate"),
-      "generate.plugin.done.log": msMetric("Log plugin done", "generate"),
-      "generate.plugin.done.dashboard": msMetric("Dashboard plugin done", "generate"),
-      "generate.plugin.done.testops": msMetric("Allure TestOps plugin done", "generate"),
-      "summary.generate": msMetric("Generate summary", "summary"),
-      "publish.upload.total": msMetric("Upload total", "publish"),
-      "publish.upload.plugin.awesome": msMetric("Awesome upload", "publish"),
-      "publish.upload.plugin.classic": msMetric("Classic upload", "publish"),
-      "publish.upload.plugin.allure2": msMetric("Allure 2 upload", "publish"),
-      "publish.upload.plugin.dashboard": msMetric("Dashboard upload", "publish"),
+      "aql.parse.simple": msMetric({ title: "Parse simple condition", group: "aql" }),
+      "aql.parse.complex": msMetric({ title: "Parse complex expression", group: "aql" }),
+      "aql.parse.array": msMetric({ title: "Parse array condition", group: "aql" }),
+      "aql.parse.nested": msMetric({ title: "Parse nested expression", group: "aql" }),
+      "aql.parse.many": msMetric({ title: "Parse 1000 expressions", group: "aql" }),
+      "aql.filter.small": msMetric({ title: "Filter 100 items", group: "aql" }),
+      "aql.filter.medium": msMetric({ title: "Filter 1000 items", group: "aql" }),
+      "aql.filter.large": msMetric({ title: "Filter 10000 items", group: "aql" }),
+      "aql.filter.complex": msMetric({ title: "Filter complex expression", group: "aql" }),
+      "aql.filter.in": msMetric({ title: "Filter IN operator", group: "aql" }),
+      "aql.filter.nested": msMetric({ title: "Filter nested properties", group: "aql" }),
+      "aql.filter.reuse": msMetric({ title: "Filter pre-parsed expression", group: "aql" }),
+      "aql.filter.empty": msMetric({ title: "Filter empty result", group: "aql" }),
+      "aql.workflow.parseAndFilter": msMetric({ title: "Parse and filter", group: "aql" }),
+      "aql.workflow.multipleFilters": msMetric({ title: "Run multiple filters", group: "aql" }),
+      "allure.total": msMetric({ title: "Allure total", group: "allure" }),
+      "restoreState.total": msMetric({ title: "Restore state total", group: "restoreState", parent: "allure.total" }),
+      "restoreState.dump": msMetric({ title: "Restore state dump", group: "restoreState", parent: "restoreState.total" }),
+      "restoreState.attachments": msMetric({ title: "Restore state attachments", group: "restoreState", parent: "restoreState.dump" }),
+      "restoreState.storeRestore": msMetric({ title: "Restore state store restore", group: "restoreState", parent: "restoreState.dump" }),
+      "generate.total": msMetric({ title: "Generate total", group: "generate", parent: "allure.total" }),
+      "generate.readResults": msMetric({ title: "Read results", group: "generate", parent: "generate.total" }),
+      "generate.plugins.done": msMetric({ title: "Plugins done", group: "generate", parent: "generate.total" }),
+      "generate.plugin.done.awesome": msMetric({ title: "Awesome plugin done", group: "generate", parent: "generate.plugins.done" }),
+      "generate.plugin.done.classic": msMetric({ title: "Classic plugin done", group: "generate", parent: "generate.plugins.done" }),
+      "generate.plugin.done.allure2": msMetric({ title: "Allure 2 plugin done", group: "generate", parent: "generate.plugins.done" }),
+      "generate.plugin.done.log": msMetric({ title: "Log plugin done", group: "generate", parent: "generate.plugins.done" }),
+      "generate.plugin.done.dashboard": msMetric({ title: "Dashboard plugin done", group: "generate", parent: "generate.plugins.done" }),
+      "generate.plugin.done.testops": msMetric({ title: "Allure TestOps plugin done", group: "generate", parent: "generate.plugins.done" }),
+      "summary.generate": msMetric({ title: "Generate summary", group: "summary", parent: "allure.total" }),
+      "publish.upload.total": msMetric({ title: "Upload total", group: "publish" }),
+      "publish.upload.plugin.awesome": msMetric({ title: "Awesome upload", group: "publish", parent: "publish.upload.total" }),
+      "publish.upload.plugin.classic": msMetric({ title: "Classic upload", group: "publish", parent: "publish.upload.total" }),
+      "publish.upload.plugin.allure2": msMetric({ title: "Allure 2 upload", group: "publish", parent: "publish.upload.total" }),
+      "publish.upload.plugin.dashboard": msMetric({ title: "Dashboard upload", group: "publish", parent: "publish.upload.total" }),
       ...readResultsMetrics,
       ...awesomeMetrics,
     },

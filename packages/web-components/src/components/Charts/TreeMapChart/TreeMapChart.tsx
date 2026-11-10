@@ -3,8 +3,9 @@ import type { ComputedNode } from "@nivo/treemap";
 import { ResponsiveTreeMap as ResponsiveTreeMapChart } from "@nivo/treemap";
 import type { FunctionalComponent } from "preact";
 import type { ReactNode } from "preact/compat";
-import { useCallback, useMemo } from "preact/hooks";
+import { useCallback, useMemo, useRef, useState } from "preact/hooks";
 
+import { useChartTooltip } from "../ChartTooltip/useChartTooltip.js";
 import { CHART_MOTION_CONFIG, CHART_THEME, REDUCE_MOTION } from "../config.js";
 import { EmptyDataStub } from "../EmptyDataStub/index.js";
 import { defaultTreeChartConfig } from "./config.js";
@@ -15,6 +16,55 @@ import type { TreeMapChartProps } from "./types.js";
 import { createCustomParentLabelControl } from "./utils.js";
 
 import styles from "./styles.scss";
+
+// Keep tooltip state outside the chart so moving between cells does not render every node.
+const TreeMapChartContainer: FunctionalComponent<
+  Pick<TreeMapChartProps, "width" | "height" | "rootAriaLabel"> & { isSuccessRate: boolean }
+> = ({ width, height, rootAriaLabel, isSuccessRate, children }) => {
+  const boundary = useRef<HTMLDivElement>(null);
+  const [tooltipText, setTooltipText] = useState("");
+  const chartTooltip = useChartTooltip(tooltipText, tooltipText, { followPointer: true, boundary });
+
+  return (
+    <div
+      ref={boundary}
+      role={isSuccessRate ? "group" : "img"}
+      aria-label={rootAriaLabel}
+      tabIndex={isSuccessRate ? undefined : 0}
+      style={{ width, height }}
+      className={styles.treeMapChart}
+      onMouseMove={
+        isSuccessRate
+          ? (event) => {
+              const text = event.target instanceof SVGElement && event.target.getAttribute("aria-label");
+              if (text) {
+                setTooltipText(text);
+                chartTooltip.triggerProps.onMouseEnter(event);
+              } else {
+                chartTooltip.triggerProps.onMouseLeave();
+              }
+            }
+          : undefined
+      }
+      onMouseLeave={isSuccessRate ? chartTooltip.triggerProps.onMouseLeave : undefined}
+      onFocus={
+        isSuccessRate
+          ? (event) => {
+              const text = event.target instanceof SVGElement && event.target.getAttribute("aria-label");
+              if (text) {
+                setTooltipText(text);
+                chartTooltip.triggerProps.onFocus(event);
+              }
+            }
+          : undefined
+      }
+      onBlur={isSuccessRate ? chartTooltip.triggerProps.onBlur : undefined}
+    >
+      {children}
+      {isSuccessRate && chartTooltip.tooltip}
+    </div>
+  );
+};
 
 export const TreeMapChart: FunctionalComponent<
   TreeMapChartProps & {
@@ -39,6 +89,7 @@ export const TreeMapChart: FunctionalComponent<
   labelColor,
   ...restProps
 }) => {
+  const isSuccessRate = "successRateText" in data;
   const isEmpty = useMemo(() => (data.children ?? []).length === 0, [data]);
 
   const parentLabel = useCallback(
@@ -58,19 +109,14 @@ export const TreeMapChart: FunctionalComponent<
   }
 
   return (
-    <div
-      role={"successRateText" in data ? "group" : "img"}
-      aria-label={rootAriaLabel}
-      tabIndex={"successRateText" in data ? undefined : 0}
-      style={{ width, height }}
-      className={styles.treeMapChart}
-    >
+    <TreeMapChartContainer width={width} height={height} rootAriaLabel={rootAriaLabel} isSuccessRate={isSuccessRate}>
       <ResponsiveTreeMapChart<TreeMapNode>
         data={data}
         parentLabel={parentLabel}
         tooltip={tooltipControl}
         {...defaultTreeChartConfig}
         {...restProps}
+        isInteractive={!isSuccessRate && restProps.isInteractive !== false}
         theme={CHART_THEME}
         motionConfig={CHART_MOTION_CONFIG}
         animate={!REDUCE_MOTION}
@@ -94,6 +140,6 @@ export const TreeMapChart: FunctionalComponent<
           domain={legendDomain}
         />
       )}
-    </div>
+    </TreeMapChartContainer>
   );
 };

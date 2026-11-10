@@ -12,7 +12,7 @@ import { treeStore } from "@/stores/tree";
 import * as styles from "./styles.scss";
 
 export const BaseLayout = () => {
-  const matches = testResultRoute.value.matches || Boolean(rootTabRoute.value.params.testResultId);
+  const matches = testResultRoute.value.matches || !!rootTabRoute.value.params.testResultId;
   const testResultId = testResultRoute.value.matches
     ? testResultRoute.value.params.testResultId
     : rootTabRoute.value.params.testResultId;
@@ -33,7 +33,7 @@ export const BaseLayout = () => {
               <TestResultLoader />
             </div>
           )}
-          transformData={(data) => data[testResultId]}
+          transformData={(data) => (testResultId ? data[testResultId] : undefined)}
           renderData={(testResult) => (
             <>
               <div className={styles.wrapper} key={testResult?.id}>

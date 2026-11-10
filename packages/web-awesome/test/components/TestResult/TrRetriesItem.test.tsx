@@ -1,4 +1,5 @@
 import { fireEvent, render, screen } from "@testing-library/preact";
+import type { ComponentChildren } from "preact";
 import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 import { TrRetriesItem } from "@/components/TestResult/TrRetriesView/TrRetriesItem";
@@ -10,7 +11,7 @@ vi.mock("@allurereport/web-components/core", () => ({
   IconButton: (props: { "onClick": () => void; "data-testid"?: string }) => (
     <button data-testid={props["data-testid"]} type="button" onClick={props.onClick} />
   ),
-  Text: (props: { "children": unknown; "data-testid"?: string }) => (
+  Text: (props: { "children": ComponentChildren; "data-testid"?: string }) => (
     <span data-testid={props["data-testid"]}>{props.children}</span>
   ),
   TreeItemIcon: () => <span data-testid="retry-status" />,

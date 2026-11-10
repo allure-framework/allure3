@@ -1,7 +1,7 @@
 import * as console from "node:console";
 import { randomUUID } from "node:crypto";
 
-import { type AllureCheckResult, type AllurePerformanceResult, notNull } from "@allurereport/core-api";
+import { type AllureCheckResult, type AllurePerformanceResult, ExpressionError, notNull } from "@allurereport/core-api";
 import type {
   RawGlobalAttachment,
   RawGlobalError,
@@ -194,6 +194,9 @@ export const allure2: ResultsReader = {
 
         return true;
       } catch (e) {
+        if (e instanceof ExpressionError) {
+          throw e;
+        }
         console.error("error parsing", originalFileName, e);
         return false;
       }
@@ -349,6 +352,10 @@ const processTestResult = async (visitor: ResultsVisitor, result: Partial<TestRe
 
     description: ensureString(result.description),
     descriptionHtml: ensureString(result.descriptionHtml),
+    precondition: ensureString(result.precondition),
+    preconditionHtml: ensureString(result.preconditionHtml),
+    expectedResult: ensureString(result.expectedResult),
+    expectedResultHtml: ensureString(result.expectedResultHtml),
 
     status: convertStatus(result.status),
     message,
@@ -652,7 +659,7 @@ const convertGlobalError = ({ environment, ...error }: GlobalStatusDetails): Raw
 const convertLabel = ({ name, value }: Label): RawTestLabel => {
   return {
     name: ensureString(name),
-    value: ensureString(value),
+    ...(value === undefined || value === null ? {} : { value: String(value) }),
   };
 };
 

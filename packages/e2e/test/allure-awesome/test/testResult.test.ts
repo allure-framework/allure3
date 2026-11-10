@@ -49,7 +49,7 @@ test.beforeAll(async () => {
     reportConfig: {
       name: "Sample allure report",
       appendHistory: false,
-      knownIssuesPath: undefined,
+
       plugins: [
         {
           id: "awesome",
@@ -351,8 +351,8 @@ test.describe("allure-awesome", () => {
         await testResultPage.clickNextTestResult();
       }
 
-      await expect(testResultPage.navCurrentLocator).not.toHaveText(navCounterText);
-      await expect(testResultPage.titleLocator).not.toHaveText(testTitleText);
+      await expect(testResultPage.navCurrentLocator).not.toHaveText(navCounterText!);
+      await expect(testResultPage.titleLocator).not.toHaveText(testTitleText!);
 
       if (!pressNextButton) {
         await testResultPage.clickNextTestResult();
@@ -360,8 +360,8 @@ test.describe("allure-awesome", () => {
         await testResultPage.clickPrevTestResult();
       }
 
-      await expect(testResultPage.navCurrentLocator).toHaveText(navCounterText);
-      await expect(testResultPage.titleLocator).toHaveText(testTitleText);
+      await expect(testResultPage.navCurrentLocator).toHaveText(navCounterText!);
+      await expect(testResultPage.titleLocator).toHaveText(testTitleText!);
     });
 
     test("test result fullname copies to clipboard", async ({ browserName, page, context }) => {

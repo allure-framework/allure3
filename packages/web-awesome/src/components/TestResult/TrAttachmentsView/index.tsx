@@ -14,7 +14,7 @@ export type TrAttachmentViewProps = {
 };
 
 export const TrAttachmentView: FunctionalComponent<TrAttachmentViewProps> = ({ testResult, className }) => {
-  const { attachments } = testResult ?? {};
+  const { attachments = [] } = testResult ?? {};
   const { t } = useI18n("empty");
 
   return (

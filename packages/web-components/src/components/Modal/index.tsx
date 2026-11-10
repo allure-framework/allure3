@@ -8,7 +8,7 @@ import {
 import { clsx } from "clsx";
 import type { VNode } from "preact";
 import { cloneElement } from "preact/compat";
-import { useEffect, useMemo, useState } from "preact/hooks";
+import { useEffect, useLayoutEffect, useMemo, useState } from "preact/hooks";
 
 import { Button, IconButton } from "@/components/Button";
 import Gallery from "@/components/Modal/Gallery";
@@ -24,7 +24,7 @@ export type ModalGalleryProps = {
 
 export interface ModalDataProps<T = any> {
   data?: T;
-  component: VNode;
+  component: VNode | null;
   preview?: boolean;
   isModalOpen?: boolean;
   closeModal?: () => void;
@@ -104,7 +104,7 @@ export const Modal = ({
     };
   }, [isModalOpen]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!isModalOpen) return;
 
     const handleKeyDown = (e: KeyboardEvent) => {

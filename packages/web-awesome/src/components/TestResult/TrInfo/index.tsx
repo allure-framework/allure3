@@ -39,7 +39,7 @@ export const TrInfo: FunctionalComponent<TrInfoProps> = ({ testResult }) => {
     categories,
   } = testResult ?? {};
   const formattedDuration = formatDuration(duration as number);
-  const fullDate = stop && timestampToDate(stop);
+  const fullDate = stop ? timestampToDate(stop) : undefined;
   const severity = labels?.find((label) => label.name === "severity")?.value ?? "normal";
   const categoryName = categories?.[0]?.name;
   const { t } = useI18n("ui");
@@ -53,8 +53,8 @@ export const TrInfo: FunctionalComponent<TrInfoProps> = ({ testResult }) => {
           </Heading>
         )}
         <div className={styles["test-result-info-data"]}>
-          {Boolean(status) && <TrStatus status={status} />}
-          {Boolean(history?.length) && <TrPrevStatuses history={history} />}
+          {!!status && <TrStatus status={status} />}
+          {!!history?.length && <TrPrevStatuses history={history} />}
           {retriesStatusChange && <TrRetriesStatusChange />}
           <TrSeverity severity={severity} />
           {flaky && <TrFlaky />}
@@ -83,22 +83,22 @@ export const TrInfo: FunctionalComponent<TrInfoProps> = ({ testResult }) => {
             <TrTab id="history">
               <div className={styles["test-result-tab"]}>
                 {t("history")}
-                {Boolean(history?.length) && <Counter size={"s"} count={history?.length} />}
+                {!!history?.length && <Counter size={"s"} count={history?.length} />}
               </div>
             </TrTab>
             <TrTab id="retries">
               <div className={styles["test-result-tab"]}>
                 {t("retries")}
-                {Boolean(retries?.length) && <Counter size={"s"} count={retries?.length} />}
+                {!!retries?.length && <Counter size={"s"} count={retries?.length} />}
               </div>
             </TrTab>
             <TrTab id="attachments">
               <div className={styles["test-result-tab"]}>
                 {t("attachments")}
-                {Boolean(attachments?.length) && <Counter size={"s"} count={attachments?.length} />}
+                {!!attachments?.length && <Counter size={"s"} count={attachments?.length} />}
               </div>
             </TrTab>
-            <Loadable<Record<string, TestEnvGroup>, TestEnvGroup | undefined>
+            <Loadable<Record<string, TestEnvGroup | undefined>, TestEnvGroup | undefined>
               source={testEnvGroupsStore}
               transformData={(groups) => {
                 const groupId = testEnvGroupId(testResult);
