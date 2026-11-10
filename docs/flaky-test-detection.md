@@ -52,8 +52,7 @@ stabilization block, more than one status change indicates flakiness, except a
 single `passed → failed → passed` or `passed → broken → passed` recovery.
 Consecutive identical final outcomes clear earlier instability.
 
-Use this option when retry data is unavailable or you prefer a rule-based
-classification. `retryFailureThreshold` has no effect on this algorithm.
+Use this option when retry data is unavailable, `retryFailureThreshold` has no effect on this algorithm.
 
 ### Retry failure rate
 
