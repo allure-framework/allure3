@@ -1,15 +1,31 @@
+import type { FlakyDetectionConfig } from "../../config.js";
 import type { HistoryTestResult } from "../../history.js";
 import type { TestResult } from "../../model.js";
-import { DEFAULT_FLAKINESS_OPTIONS, type FlakinessAlgorithm, type FlakinessOptions } from "./algorithm.js";
-import { RetryFailureRateFlakinessAlgorithm } from "./retry-failure-rate.js";
-import { StatusChangesFlakinessAlgorithm } from "./status-changes.js";
+import { retryFailureRateFlakiness } from "./retry-failure-rate.js";
+import { statusChangesFlakiness } from "./status-changes.js";
 
-export type { FlakinessOptions } from "./algorithm.js";
+export type FlakinessOptions = Pick<
+  FlakyDetectionConfig,
+  "algorithm" | "retryFailureThreshold" | "historyDepth" | "stabilizationPeriod"
+>;
+
+export const DEFAULT_FLAKINESS_OPTIONS: Readonly<Required<FlakinessOptions>> = {
+  algorithm: "status-changes",
+  historyDepth: 0,
+  stabilizationPeriod: 5,
+  retryFailureThreshold: 0.1,
+};
+
+export type FlakinessAlgorithm = (
+  current: TestResult,
+  history: (HistoryTestResult | undefined)[],
+  options: Required<FlakinessOptions>,
+) => boolean | undefined;
 
 const algorithms = {
-  "status-changes": StatusChangesFlakinessAlgorithm,
-  "retry-failure-rate": RetryFailureRateFlakinessAlgorithm,
-} satisfies Record<NonNullable<FlakinessOptions["algorithm"]>, typeof FlakinessAlgorithm>;
+  "status-changes": statusChangesFlakiness,
+  "retry-failure-rate": retryFailureRateFlakiness,
+} satisfies Record<NonNullable<FlakinessOptions["algorithm"]>, FlakinessAlgorithm>;
 
 /** Validate algorithm settings at report/plugin configuration boundaries. */
 export const validateFlakinessScoringOptions = (
@@ -47,6 +63,13 @@ export const getTestFlakiness = (
   history: (HistoryTestResult | undefined)[],
   options: FlakinessOptions = {},
 ): boolean | undefined => {
-  const Algorithm = algorithms[options.algorithm ?? DEFAULT_FLAKINESS_OPTIONS.algorithm];
-  return new Algorithm(current, history, options).isFlaky();
+  const resolvedOptions: Required<FlakinessOptions> = {
+    algorithm: options.algorithm ?? DEFAULT_FLAKINESS_OPTIONS.algorithm,
+    historyDepth: options.historyDepth ?? DEFAULT_FLAKINESS_OPTIONS.historyDepth,
+    stabilizationPeriod: options.stabilizationPeriod ?? DEFAULT_FLAKINESS_OPTIONS.stabilizationPeriod,
+    retryFailureThreshold: options.retryFailureThreshold ?? DEFAULT_FLAKINESS_OPTIONS.retryFailureThreshold,
+  };
+  const algorithm = algorithms[resolvedOptions.algorithm];
+  const selectedHistory = resolvedOptions.historyDepth > 0 ? history.slice(0, resolvedOptions.historyDepth) : history;
+  return algorithm(current, selectedHistory, resolvedOptions);
 };
