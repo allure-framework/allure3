@@ -18,7 +18,9 @@ export const getUnresolvedStatusCounts = (
     return getRawStatusCounts(stats);
   }
 
-  const counts: Partial<Record<TestStatus, number>> = {};
+  // Every status gets an explicit count, so a status whose results are all resolved reads as 0
+  // instead of being absent and making callers fall back to the raw stats.
+  const counts: Partial<Record<TestStatus, number>> = Object.fromEntries(statusesList.map((status) => [status, 0]));
   const envIds = environmentId ? [environmentId] : Object.keys(trees);
 
   if (envIds.some((envId) => !trees[envId])) {

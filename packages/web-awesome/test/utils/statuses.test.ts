@@ -44,7 +44,7 @@ describe("utils > statuses", () => {
       "default",
     );
 
-    expect(counts).toEqual({ failed: 2, broken: 1, passed: 1 });
+    expect(counts).toEqual({ failed: 2, broken: 1, passed: 1, skipped: 0, unknown: 0 });
   });
 
   it("should aggregate counts across environments", () => {
@@ -56,7 +56,37 @@ describe("utils > statuses", () => {
       },
     );
 
-    expect(counts).toEqual({ failed: 2, passed: 1 });
+    expect(counts).toEqual({ failed: 2, broken: 0, passed: 1, skipped: 0, unknown: 0 });
+  });
+
+  it("should report zero failed and broken when every result of that status is resolved", () => {
+    const counts = getUnresolvedStatusCounts(
+      { total: 4, failed: 2, broken: 1, passed: 1 },
+      {
+        default: tree([
+          leaf("failed-issue", "failed", "issue"),
+          leaf("failed-muted", "failed", "muted", "active"),
+          leaf("broken-accepted", "broken", "accepted"),
+          leaf("passed", "passed"),
+        ]),
+      },
+      "default",
+    );
+
+    expect(counts).toEqual({ failed: 0, broken: 0, passed: 1, skipped: 0, unknown: 0 });
+  });
+
+  it("should report zero failed when every failed result is resolved in every environment", () => {
+    const counts = getUnresolvedStatusCounts(
+      { total: 3, failed: 2, passed: 1 },
+      {
+        "env-a": tree([leaf("issue-env-a", "failed", "issue")]),
+        "env-b": tree([leaf("muted-env-b", "failed", "muted"), leaf("passed-env-b", "passed")]),
+      },
+    );
+
+    expect(counts.failed).toBe(0);
+    expect(counts.passed).toBe(1);
   });
 
   it("should fall back to raw stats until the requested environment tree is available", () => {
