@@ -98,4 +98,30 @@ describe("utils > statuses", () => {
 
     expect(counts).toEqual({ failed: 2, broken: 1, passed: undefined, skipped: undefined, unknown: undefined });
   });
+
+  it("should fall back to raw stats for all environments until every environment tree is loaded", () => {
+    // Only the passing environment tree is loaded, the failing one is not fetched yet
+    const counts = getUnresolvedStatusCounts(
+      { total: 2, failed: 1, passed: 1 },
+      { "env-pass": tree([leaf("passed-env-pass", "passed")]) },
+      "",
+      ["env-pass", "env-fail"],
+    );
+
+    expect(counts).toEqual({ failed: 1, broken: undefined, passed: 1, skipped: undefined, unknown: undefined });
+  });
+
+  it("should count unresolved results across all environments once every environment tree is loaded", () => {
+    const counts = getUnresolvedStatusCounts(
+      { total: 3, failed: 2, passed: 1 },
+      {
+        "env-pass": tree([leaf("passed-env-pass", "passed")]),
+        "env-fail": tree([leaf("failed-env-fail", "failed", "none"), leaf("muted-env-fail", "failed", "muted")]),
+      },
+      "",
+      ["env-pass", "env-fail"],
+    );
+
+    expect(counts).toEqual({ failed: 1, broken: 0, passed: 1, skipped: 0, unknown: 0 });
+  });
 });
