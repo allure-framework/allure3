@@ -29,7 +29,20 @@ const SUITE_PARENT_LABEL_NAME = "parentSuite";
 const SUITE_LABEL_NAME = "suite";
 const TEST_CLASS_LABEL_NAME = "testClass";
 
-const arrayTags: Set<string> = new Set(["testsuite.testcase", "testsuites.testsuite", "testsuites.testsuite.testcase"]);
+// Suites may be nested at any depth, so `testcase` and `testsuite` children of a suite
+// (and `testsuite` children of `testsuites`) are always parsed as arrays, even if there is only one.
+const isArrayTag = (jPath: string) => {
+  const segments = jPath.split(".");
+  if (segments.length < 2) {
+    return false;
+  }
+  const tag = segments[segments.length - 1];
+  const parent = segments[segments.length - 2];
+  return (
+    (parent === "testsuite" && (tag === "testcase" || tag === "testsuite")) ||
+    (parent === "testsuites" && tag === "testsuite")
+  );
+};
 
 const xmlParser = new XMLParser({
   parseTagValue: false,
@@ -38,7 +51,7 @@ const xmlParser = new XMLParser({
   removeNSPrefix: true,
   allowBooleanAttributes: true,
   processEntities: false,
-  isArray: (tagName, jPath) => arrayTags.has(jPath.toString()),
+  isArray: (tagName, jPath) => isArrayTag(jPath.toString()),
 });
 
 const readerId = "junit";
@@ -128,21 +141,30 @@ const parseTestSuite = async (
   testSuite: Record<string, any>,
   isAggregated: boolean,
   reportDir: string,
+  parent: { name?: string; suitePackage?: string } = {},
 ) => {
-  const { name, package: packageAttribute, testcase } = testSuite;
+  const { name, package: packageAttribute, testcase, testsuite: nestedTestSuites } = testSuite;
 
-  if (!isStringAnyRecordArray(testcase)) {
-    return;
+  // A test case is labeled with its nearest suite; a nested suite without a name or a package
+  // inherits it from the enclosing suite.
+  const suite = {
+    name: ensureString(name) ?? parent.name,
+    suitePackage: ensureString(packageAttribute) ?? parent.suitePackage,
+  };
+
+  if (isStringAnyRecordArray(testcase)) {
+    for (const testcaseElement of testcase) {
+      await parseTestCase(visitor, suite, testcaseElement, isAggregated, reportDir);
+    }
   }
 
-  for (const testcaseElement of testcase) {
-    await parseTestCase(
-      visitor,
-      { name: ensureString(name), suitePackage: ensureString(packageAttribute) },
-      testcaseElement,
-      isAggregated,
-      reportDir,
-    );
+  if (Array.isArray(nestedTestSuites)) {
+    for (const nestedTestSuite of nestedTestSuites) {
+      // empty nested suites are parsed as empty strings and skipped
+      if (isStringAnyRecord(nestedTestSuite)) {
+        await parseTestSuite(visitor, nestedTestSuite, isAggregated, reportDir, suite);
+      }
+    }
   }
 };
 

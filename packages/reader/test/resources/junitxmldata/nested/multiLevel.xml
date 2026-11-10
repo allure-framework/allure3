@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="root">
+  <testcase name="root test"/>
+  <testsuite/>
+  <testsuite name="level1">
+    <testcase name="level1 test"/>
+    <testsuite name="level2a">
+      <testcase name="level2a test 1"/>
+      <testcase name="level2a test 2"/>
+    </testsuite>
+    <testsuite name="level2b">
+      <testsuite name="level3">
+        <testcase name="level3 test"/>
+      </testsuite>
+    </testsuite>
+  </testsuite>
+</testsuite>
