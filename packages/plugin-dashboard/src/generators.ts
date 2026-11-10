@@ -73,7 +73,14 @@ export const generateAllCharts = async (
 ): Promise<void> => {
   const { layout = defaultChartsConfig } = options;
 
-  const generatedChartsData = await generateCharts(layout, store, context.reportName, randomUUID, filter);
+  const generatedChartsData = await generateCharts(
+    layout,
+    store,
+    context.reportName,
+    randomUUID,
+    filter,
+    context.categories,
+  );
 
   // The frontend requests this widget even when the layout contains no charts.
   await writer.writeWidget("charts.json", generatedChartsData);

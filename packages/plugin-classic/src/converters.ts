@@ -1,5 +1,5 @@
 import { type TestLabel, type TestResult, redactParameters } from "@allurereport/core-api";
-import type { ReportTestResult } from "@allurereport/plugin-api";
+import { type IdeaLinksOptions, type ReportTestResult, createIdeaLink } from "@allurereport/plugin-api";
 import { convertTestStepResult } from "@allurereport/plugin-api/internal/report";
 import MarkdownIt from "markdown-it";
 
@@ -18,7 +18,10 @@ const mapLabelsByName = (labels: TestLabel[]): Record<string, string[]> => {
   }, {});
 };
 
-export const convertTestResult = (tr: TestResult): ReportTestResult => {
+export const convertTestResult = (
+  tr: TestResult,
+  options: { ideaLinks?: boolean | IdeaLinksOptions } = {},
+): ReportTestResult => {
   return {
     id: tr.id,
     name: tr.name,
@@ -38,12 +41,14 @@ export const convertTestResult = (tr: TestResult): ReportTestResult => {
     labels: tr.labels,
     groupedLabels: mapLabelsByName(tr.labels),
     parameters: redactParameters(tr.parameters),
-    links: tr.links,
+    links: options.ideaLinks ? [...tr.links, ...createIdeaLink(tr.labels, options.ideaLinks)] : tr.links,
     steps: (tr.steps ?? []).map(convertTestStepResult),
     error: tr.error,
     errors: tr.errors,
     testCase: tr.testCase,
     descriptionHtml: tr.descriptionHtml ?? markdownToHtml(tr.description),
+    preconditionHtml: tr.preconditionHtml ?? markdownToHtml(tr.precondition),
+    expectedResultHtml: tr.expectedResultHtml ?? markdownToHtml(tr.expectedResult),
     setup: [],
     teardown: [],
     history: [],

@@ -1,5 +1,6 @@
-import { getReportOptions } from "@allurereport/web-commons";
+import { getReportOptions, themeStore, toggleUserTheme } from "@allurereport/web-commons";
 import { SvgIcon, Tag, Text, allureIcons } from "@allurereport/web-components";
+import { ThemeButton } from "@allurereport/web-components/core";
 import clsx from "clsx";
 import { h } from "preact";
 import { useState } from "preact/hooks";
@@ -10,23 +11,27 @@ import { activeTab } from "@/stores/router";
 import { navigateTo } from "@/utils/navigate";
 
 import type { ReportOptions } from "../../../types";
+import { SideNavBrand } from "./SideNavBrand";
+import { SideNavReportInfo } from "./SideNavReportInfo";
 
 import * as styles from "./styles.scss";
 
-const tabs: {
+type SideNavTab = {
   tabName: string;
   title: string;
   icon: keyof typeof allureIcons;
   active: boolean;
   comingSoon?: boolean;
-}[] = [
+};
+
+const tabs: SideNavTab[] = [
   { tabName: "overview", title: "Overview", icon: "lineGeneralHomeLine", active: false },
   { tabName: "behaviors", title: "Behaviors", icon: "lineFilesClipboardCheck", active: false },
   { tabName: "categories", title: "Categories", icon: "lineFilesFile2", active: false },
-  { tabName: "graphs", title: "Graphs", icon: "lineChartsBarChartSquare", active: false, comingSoon: true },
+  { tabName: "graphs", title: "Graphs", icon: "lineChartsBarChartSquare", active: false },
   { tabName: "packages", title: "Packages", icon: "lineDevDataflow3", active: false },
   { tabName: "suites", title: "Suites", icon: "lineFilesFolder", active: false },
-  { tabName: "timeline", title: "Timeline", icon: "lineTimeClockStopwatch", active: false, comingSoon: true },
+  { tabName: "timeline", title: "Timeline", icon: "lineTimeClockStopwatch", active: false },
 ];
 const SideNav = () => {
   const { t: controls } = useI18n("controls");
@@ -41,12 +46,7 @@ const SideNav = () => {
 
   return (
     <div class={clsx(styles["side-nav"], isCollapsed && styles.collapsed)}>
-      <a href="#" className={styles.brand} data-ga4-event="home_click">
-        <SvgIcon id={allureIcons.reportLogo} size={"s"} className={styles.icon} />
-        <Text className={styles["brand-text"]} bold>
-          Allure Report
-        </Text>
-      </a>
+      <SideNavBrand />
       {overviewHref && (
         <div className={styles.item} data-tooltip={controls("backToOverview")}>
           <a
@@ -106,9 +106,15 @@ const SideNav = () => {
       </ul>
       <div className={styles.strut} />
       <div className={styles.footer}>
-        <div className={styles["language-picker"]} data-tooltip="Language">
-          <LanguagePicker />
+        <div className={styles.controls}>
+          <div className={styles["language-picker"]} data-tooltip="Language">
+            <LanguagePicker />
+          </div>
+          <div className={styles["theme-button"]} data-tooltip={controls("theme")} data-testid="theme-button">
+            <ThemeButton theme={themeStore.value.selected} toggleTheme={toggleUserTheme} />
+          </div>
         </div>
+        <SideNavReportInfo />
         <div className={styles.item} data-tooltip="Expand" data-ga4-event="expand_menu_click" onClick={toggleCollapsed}>
           <div className={styles.collapse}>
             <span className={styles["collapse-icon"]}>

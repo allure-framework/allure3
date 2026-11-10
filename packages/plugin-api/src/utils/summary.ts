@@ -8,6 +8,7 @@ import {
 } from "@allurereport/core-api";
 
 import type { ExitCode, PluginSummary, SummaryCheckResult, TestResultRegistry, TestResultSummary } from "../plugin.js";
+import type { ReportRunSummary } from "../report.js";
 import type { AllureStore } from "../store.js";
 
 /**
@@ -50,7 +51,11 @@ export const convertToSummaryCheckResult = (check: AllureCheckResult): SummaryCh
   status: check.status,
 });
 
-export const calculateRunDuration = (testResults: Pick<TestResult, "start" | "stop" | "duration">[]): number => {
+/**
+ * Returns the time span of the run, from the earliest start to the latest stop of the given test results,
+ * the results without timings are skipped
+ */
+export const getRunSummary = (testResults: Pick<TestResult, "start" | "stop">[]): ReportRunSummary | undefined => {
   let start = Infinity;
   let stop = -Infinity;
 
@@ -66,12 +71,13 @@ export const calculateRunDuration = (testResults: Pick<TestResult, "start" | "st
     }
   }
 
-  if (Number.isFinite(start) && Number.isFinite(stop)) {
-    return Math.max(0, stop - start);
-  }
-
-  return testResults.reduce((acc, { duration = 0 }) => acc + duration, 0);
+  return Number.isFinite(start) && Number.isFinite(stop)
+    ? { start, stop, duration: Math.max(0, stop - start) }
+    : undefined;
 };
+
+export const calculateRunDuration = (testResults: Pick<TestResult, "start" | "stop" | "duration">[]): number =>
+  getRunSummary(testResults)?.duration ?? testResults.reduce((acc, { duration = 0 }) => acc + duration, 0);
 
 export const createPluginSummary = async (params: {
   filter?: (testResult: TestResult) => boolean;

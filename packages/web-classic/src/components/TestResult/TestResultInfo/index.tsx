@@ -1,15 +1,16 @@
-import { formatDuration } from "@allurereport/core-api";
 import { Counter, Heading, Text, TooltipWrapper } from "@allurereport/web-components";
 import type { FunctionalComponent } from "preact";
 import type { ReportTestResult } from "types";
 
 import { TestResultInfoStatuses } from "@/components/TestResult/TestResultInfo/TestResultInfoStatuses";
+import { TestResultMeta } from "@/components/TestResult/TestResultMeta";
 import { TestResultNavigation } from "@/components/TestResult/TestResultNavigation";
 import { TestResultPrevStatuses } from "@/components/TestResult/TestResultPrevStatuses";
 import { TestResultSeverity } from "@/components/TestResult/TestResultSeverity";
 import { TestResultStatus } from "@/components/TestResult/TestResultStatus";
 import { TestResultTab, TestResultTabsList } from "@/components/TestResult/TestResultTabs";
 import { useI18n } from "@/stores/locale";
+import { formatClassicDuration } from "@/utils/duration";
 import { timestampToDate } from "@/utils/time";
 
 import * as styles from "./styles.scss";
@@ -20,7 +21,7 @@ export type TestResultInfoProps = {
 
 export const TestResultInfo: FunctionalComponent<TestResultInfoProps> = ({ testResult }) => {
   const { name, status, muted, flaky, known, duration, labels, history, retries, attachments, stop } = testResult ?? {};
-  const formattedDuration = formatDuration(duration as number);
+  const formattedDuration = formatClassicDuration(duration);
   const fullDate = stop ? timestampToDate(stop) : undefined;
   const severity = labels?.find((label) => label.name === "severity")?.value ?? "normal";
   const { t } = useI18n("ui");
@@ -45,6 +46,7 @@ export const TestResultInfo: FunctionalComponent<TestResultInfoProps> = ({ testR
             </Text>
           </TooltipWrapper>
         </div>
+        <TestResultMeta testResult={testResult} />
         <div className={styles["test-result-tabs"]}>
           <TestResultTabsList>
             <TestResultTab id="overview">{t("overview")}</TestResultTab>

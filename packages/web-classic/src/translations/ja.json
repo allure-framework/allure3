@@ -62,10 +62,12 @@
   "empty": {
     "no-results": "結果がありません",
     "no-tests-found": "結果が見つかりません",
+    "no-message-provided": "メッセージが提供されていません",
     "clear-filters": "フィルターをクリア",
     "no-attachments-results": "添付ファイル情報が利用できません",
     "no-history-results": "履歴情報が利用できません",
-    "no-retries-results": "再試行情報が利用できません"
+    "no-retries-results": "再試行情報が利用できません",
+    "no-test-steps-results": "テスト手順の情報は利用できません"
   },
   "severity": {
     "blocker": "ブロッカー",
@@ -96,7 +98,17 @@
     "showMore": "もっと見る",
     "copy": "コピー",
     "attempt": "試行 {{attempt}} 回目（全 {{total}} 回）",
-    "at": "時"
+    "at": "時",
+    "generated": "生成日時",
+    "precondition": "事前条件",
+    "expectedResult": "期待される結果",
+    "categories": "カテゴリ",
+    "tags": "タグ",
+    "owner": "オーナー",
+    "fullname": "完全名",
+    "test-case-id": "テストケース ID",
+    "history-id": "履歴 ID",
+    "successRate": "成功率 {{rate}}%（{{total}} 件中 {{passed}} 件）"
   },
   "controls": {
     "backToOverview": "概要に戻る",
@@ -112,27 +124,318 @@
     "expand": "展開",
     "fullscreen": "全画面",
     "language": "言語を変更",
-    "openInNewTab": "新しいタブで開く"
+    "openInNewTab": "新しいタブで開く",
+    "theme": "テーマを切り替え",
+    "showDiff": "違いを表示",
+    "comparison": "比較",
+    "expected": "予想",
+    "actual": "実際",
+    "viewMode": "表示モード",
+    "unified": "統一",
+    "side-by-side": "並列",
+    "compareBy": "比較基準",
+    "chars": "文字",
+    "words": "単語",
+    "lines": "行",
+    "loadComparisonError": "比較を読み込めませんでした",
+    "retry": "再試行",
+    "loadAttachmentViewerError": "添付ファイルビューアーを読み込めませんでした",
+    "previewAttachment": "プレビュー",
+    "viewCode": "コードを表示"
   },
   "errors": {
     "missedAttachment": "添付ファイルが見つかりません"
   },
   "nav": {
+    "overview": "概要",
+    "behaviors": "振る舞い",
+    "categories": "カテゴリ",
+    "graphs": "グラフ",
+    "packages": "パッケージ",
+    "suites": "スイート",
+    "timeline": "タイムライン",
     "comingSoon": "近日公開"
   },
   "charts": {
     "retry": "再試行",
     "loadError": "チャートを読み込めませんでした",
+    "currentStatus": {
+      "title": "現在のステータス",
+      "status": {
+        "passed": "$t(statuses:passed, capitalize)",
+        "failed": "$t(statuses:failed, capitalize)",
+        "broken": "$t(statuses:broken, capitalize)",
+        "skipped": "$t(statuses:skipped, capitalize)",
+        "unknown": "$t(statuses:unknown, capitalize)"
+      },
+      "percentage": "{{percentage}}%",
+      "of": "{{total}} のうち",
+      "total": "合計",
+      "tests": {
+        "new_zero": "新しいテストなし",
+        "new_one": "{{count}} 件の新しいテスト",
+        "new_other": "{{count}} 件の新しいテスト",
+        "flaky_zero": "不安定なテストなし",
+        "flaky_one": "{{count}} 件の不安定なテスト",
+        "flaky_other": "{{count}} 件の不安定なテスト",
+        "retries_zero": "再試行テストなし",
+        "retries_one": "{{count}} 件の再試行テスト",
+        "retries_other": "{{count}} 件の再試行テスト"
+      }
+    },
+    "statusDynamics": {
+      "title": "ステータス動態",
+      "status": {
+        "passed": "$t(statuses:passed, capitalize)",
+        "failed": "$t(statuses:failed, capitalize)",
+        "broken": "$t(statuses:broken, capitalize)",
+        "skipped": "$t(statuses:skipped, capitalize)",
+        "unknown": "$t(statuses:unknown, capitalize)"
+      },
+      "no-history": "$t(empty:no-history-results)",
+      "no-results": "$t(empty:no-results)",
+      "tooltips": {
+        "current": "最新レポート ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "{{timestamp, timestamp_long_no_seconds}} のレポート"
+      },
+      "ticks": {
+        "current": "最新",
+        "history": "{{timestamp, timestamp_date}}"
+      }
+    },
+    "statusTransitions": {
+      "title": "ステータス遷移",
+      "legend": {
+        "trend": "修正率"
+      },
+      "transitions": {
+        "new": "$t(transitions:new, capitalize)",
+        "fixed": "$t(transitions:fixed, capitalize)",
+        "regressed": "$t(transitions:regressed, capitalize)",
+        "malfunctioned": "$t(transitions:malfunctioned, capitalize)"
+      },
+      "no-history": "$t(empty:no-history-results)",
+      "no-results": "$t(empty:no-results)",
+      "tooltips": {
+        "current": "最新レポート ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "{{timestamp, timestamp_long_no_seconds}} のレポート"
+      },
+      "ticks": {
+        "current": "最新",
+        "history": "{{timestamp, timestamp_date}}"
+      }
+    },
+    "durations": {
+      "title": "{{groupBy}}別の継続時間ヒストグラム",
+      "title_none": "継続時間ヒストグラム",
+      "no-results": "$t(empty:no-results)",
+      "groupBy": {
+        "none": "なし",
+        "layer": "レイヤー"
+      },
+      "ticks": {
+        "durationRange": "{{from, format_duration}} - {{to, format_duration}}"
+      },
+      "tooltips": {
+        "durationRange": "{{from, format_duration}} - {{to, format_duration}}"
+      },
+      "legend": {
+        "value": "{{value}}",
+        "total": "テスト数"
+      }
+    },
+    "stabilityDistribution": {
+      "title": "安定性分布",
+      "no-results": "$t(empty:no-results)",
+      "legend": {
+        "stabilityRate": "安定性率"
+      }
+    },
+    "testBaseGrowthDynamics": {
+      "title": "テストベースの成長動態",
+      "status": {
+        "newpassed": "新規 $t(statuses:passed)",
+        "newfailed": "新規 $t(statuses:failed)",
+        "newbroken": "新規 $t(statuses:broken)",
+        "newskipped": "新規 $t(statuses:skipped)",
+        "newunknown": "新規 $t(statuses:unknown)",
+        "removedpassed": "削除 $t(statuses:passed)",
+        "removedfailed": "削除 $t(statuses:failed)",
+        "removedbroken": "削除 $t(statuses:broken)",
+        "removedskipped": "削除 $t(statuses:skipped)",
+        "removedunknown": "削除 $t(statuses:unknown)"
+      },
+      "legend": {
+        "trend": "成長トレンド"
+      },
+      "no-history": "$t(empty:no-history-results)",
+      "no-results": "$t(empty:no-results)",
+      "tooltips": {
+        "current": "最新レポート ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "{{timestamp, timestamp_long_no_seconds}} のレポート"
+      },
+      "ticks": {
+        "current": "最新",
+        "history": "{{timestamp, timestamp_date}}"
+      }
+    },
+    "statusAgePyramid": {
+      "title": "ステータス年齢ピラミッド",
+      "status": {
+        "passed": "$t(statuses:passed, capitalize)",
+        "failed": "$t(statuses:failed, capitalize)",
+        "broken": "$t(statuses:broken, capitalize)",
+        "skipped": "$t(statuses:skipped, capitalize)",
+        "unknown": "$t(statuses:unknown, capitalize)"
+      },
+      "no-history": "$t(empty:no-history-results)",
+      "no-results": "$t(empty:no-results)",
+      "tooltips": {
+        "current": "最新レポート ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "{{timestamp, timestamp_long_no_seconds}} のレポート"
+      },
+      "ticks": {
+        "current": "最新",
+        "history": "{{timestamp, timestamp_date}}"
+      }
+    },
+    "trSeverities": {
+      "title": "重要度別テスト結果",
+      "no-results": "$t(empty:no-results)",
+      "status": {
+        "passed": "$t(statuses:passed, capitalize)",
+        "failed": "$t(statuses:failed, capitalize)",
+        "broken": "$t(statuses:broken, capitalize)",
+        "skipped": "$t(statuses:skipped, capitalize)",
+        "unknown": "$t(statuses:unknown, capitalize)"
+      },
+      "severity": {
+        "blocker": "$t(severity:blocker, capitalize)",
+        "critical": "$t(severity:critical, capitalize)",
+        "normal": "$t(severity:normal, capitalize)",
+        "minor": "$t(severity:minor, capitalize)",
+        "trivial": "$t(severity:trivial, capitalize)",
+        "unset": "重要度なし"
+      }
+    },
+    "durationDynamics": {
+      "title": "継続時間の動態",
+      "durations": {
+        "sequential": "順次継続時間",
+        "duration": "テスト継続時間",
+        "speedup": "高速化"
+      },
+      "no-results": "$t(empty:no-results)",
+      "tooltips": {
+        "current": "最新レポート ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "{{timestamp, timestamp_long_no_seconds}} のレポート"
+      },
+      "ticks": {
+        "current": "最新",
+        "history": "{{timestamp, timestamp_date}}"
+      },
+      "legend": {
+        "duration": "{{duration, format_duration}}",
+        "speedup": "{{speedup}}x"
+      }
+    },
     "successRate": {
       "successRate": "成功率: {{rate}}",
       "successRateDescription": "成功、失敗、異常終了のテストから算出します。スキップされたテストとステータス不明のテストは除外します。",
-      "noResults": "テスト結果はありません。",
       "noEligibleResults": "成功、失敗、異常終了のテストはありません。スキップされたテストとステータス不明のテストは成功率から除外します。",
+      "noResults": "テスト結果はありません。",
+      "notAvailable": "該当なし",
       "slice_one": "{{count}} 件のテスト（全テストの {{percent}}%）",
       "slice_other": "{{count}} 件のテスト（全テストの {{percent}}%）",
       "layer": "レイヤー: {{layer}}",
       "statusSlice": "{{count}} {{status}} （全テストの {{percent}}%）",
       "slice": "{{count}} 件のテスト（全テストの {{percent}}%）"
+    },
+    "durationTrend": {
+      "title": "期間の傾向",
+      "duration": "所要時間",
+      "value": "{{duration, format_duration}}"
+    },
+    "retriesTrend": {
+      "title": "再実行の傾向",
+      "retry": "再試行",
+      "run": "テスト"
+    },
+    "categoriesTrend": {
+      "title": "カテゴリーの傾向"
+    },
+    "runTrend": {
+      "empty": "何も表示するものがありません",
+      "ticks": {
+        "current": "最新",
+        "history": "{{timestamp, timestamp_date}}"
+      },
+      "tooltips": {
+        "current": "最新レポート ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "{{timestamp, timestamp_long_no_seconds}} のレポート"
+      }
     }
+  },
+  "transitions": {
+    "new": "新規",
+    "fixed": "修正済み",
+    "regressed": "退行",
+    "malfunctioned": "破損"
+  },
+  "timeline": {
+    "empty": "データなし",
+    "selected_one": "{{ count }} 件のテスト（{{ percentage }}%）が選択されました。期間は {{ minDuration }} より長く、{{ maxDuration }} より短い",
+    "selected_other": "{{ count }} 件のテスト（{{ percentage }}%）が選択されました。期間は {{ minDuration }} より長く、{{ maxDuration }} より短い",
+    "host": "ホスト: {{ host }}"
+  },
+  "overview": {
+    "summary": "サマリー",
+    "successRateDescription": "全テストに占める成功したテストの割合です。",
+    "dates": "{{start, timestamp_long}} – {{stop, timestamp_long}}",
+    "duration": "所要時間: {{duration, format_duration}}",
+    "testCases_other": "{{count}} 件のテストケース",
+    "suites": "スイート",
+    "features": "ストーリー別の機能",
+    "categories": "カテゴリ",
+    "environment": "環境",
+    "executors": "実行者",
+    "itemsTotal_other": "合計 {{count}} 件",
+    "showAll": "すべて表示",
+    "noItems": "項目がありません",
+    "noEnvironment": "環境変数がありません",
+    "noExecutors": "テスト実行者に関する情報がありません",
+    "build": "ビルド",
+    "ciBuild": "CI ビルド",
+    "pullRequest": "プルリクエスト",
+    "branch": "ブランチ",
+    "commit": "コミット"
+  },
+  "attachments": {
+    "imageDiff": {
+      "mode": {
+        "diff": "差分",
+        "actual": "実際",
+        "expected": "期待値",
+        "side-by-side": "並列",
+        "overlay": "オーバーレイ"
+      },
+      "empty": {
+        "failed-to-load": "画像比較の読み込みに失敗しました"
+      },
+      "image": {
+        "diff": "差分",
+        "actual": "実際",
+        "expected": "期待値"
+      }
+    }
+  },
+  "tree": {
+    "collapse-all": "すべてのグループを折りたたむ",
+    "expand-all": "すべてのグループを展開",
+    "show-groups-info": "グループ情報を表示",
+    "hide-groups-info": "グループ情報を非表示",
+    "download-csv": "CSVをダウンロード",
+    "flaky": "不安定",
+    "retries": "再試行: {{count}}"
   }
 }

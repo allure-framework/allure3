@@ -60,7 +60,8 @@
     "collapse": "Reduzir",
     "expand": "Expandir",
     "fullscreen": "Tela cheia",
-    "language": "Mudar a linguagem"
+    "language": "Mudar a linguagem",
+    "theme": "Alterar tema"
   },
   "errors": {
     "missedAttachment": "Anexo não encontrado",
@@ -215,6 +216,18 @@
   },
   "charts": {
     "retry": "Tentar novamente",
-    "loadError": "Não foi possível carregar o gráfico"
+    "loadError": "Não foi possível carregar o gráfico",
+    "durationTrend": {
+      "title": "Tendência das durações"
+    },
+    "retriesTrend": {
+      "title": "Tendência das tentativas"
+    },
+    "categoriesTrend": {
+      "title": "Tendência das categorias"
+    },
+    "runTrend": {
+      "empty": "Não há nada para mostrar"
+    }
   }
 }

@@ -127,7 +127,7 @@ for (const singleFile of [false, true]) {
     } else {
       await page.goto(report.url);
     }
-    await page.goto(new URL("#overview", report.url).href);
+    await page.goto(new URL("#graphs", report.url).href);
     for (const title of [
       "Current status",
       "Status dynamics",

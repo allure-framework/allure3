@@ -115,11 +115,29 @@ for (const frontend of ["awesome", "dashboard"] as const) {
       });
     }
     await trigger.hover();
+    await page.waitForTimeout(300);
     await expect(tooltip).toBeHidden();
     await trigger.click();
     await expect(menu).toBeVisible();
     await menu.getByRole("button", { name: /^all$/i }).click();
     await expect(trigger).toHaveText(/^all$/i);
+    // Hold the chevron midway through its rotation so the regression does not
+    // depend on whether truncation is measured during the brief transition.
+    await page.addStyleTag({
+      content:
+        '[data-testid="environment-picker-button"] svg { transform: rotate(45deg) !important; transition: none !important; }',
+    });
+    for (const name of [/^short$/i, /^all$/i]) {
+      await trigger.press("Enter");
+      await expect(menu).toBeVisible();
+      await menu.getByRole("button", { name, exact: true }).click();
+      await expect(trigger).toHaveText(name);
+      await expect(menu).toBeHidden();
+      await trigger.hover();
+      // Negative visibility assertions must outlast TooltipWrapper's 200ms delay.
+      await page.waitForTimeout(300);
+      await expect(tooltip).toBeHidden();
+    }
     expect(errors).toEqual([]);
   });
 }
