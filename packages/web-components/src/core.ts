@@ -20,6 +20,8 @@ export { ArrowButton } from "./components/ArrowButton";
 export * from "./components/Modal";
 export * from "./components/Tree";
 export { Counter } from "./components/Counter";
+export { ReportFailureSummary } from "./components/ReportFailureSummary";
+export type { ReportFailureSummaryItem, ReportFailureSummaryProps } from "./components/ReportFailureSummary";
 export { Toggle } from "./components/Toggle";
 export { Link } from "./components/Link";
 export { Label } from "./components/Label";
