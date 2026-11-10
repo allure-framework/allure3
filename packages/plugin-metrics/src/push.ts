@@ -5,6 +5,18 @@ type Fetch = typeof fetch;
 
 export const DEFAULT_PUSH_TIMEOUT = 10_000;
 
+// `fetch` rejects with a bare "fetch failed" and keeps the reason (e.g. ECONNREFUSED) in the cause
+const send = async (doFetch: Fetch, target: string, init: RequestInit): Promise<Response> => {
+  try {
+    return await doFetch(target, init);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    const cause = err instanceof Error && err.cause instanceof Error ? ` (${err.cause.message})` : "";
+
+    throw new Error(`Failed to push metrics to ${redactUrl(target)}: ${message}${cause}`, { cause: err });
+  }
+};
+
 const ensureOk = async (response: Response, target: string): Promise<void> => {
   if (response.ok) {
     return;
@@ -45,7 +57,7 @@ export const pushToPushgateway = async (
   const authorization = options.authorization ?? (options.authorizationEnv ? env[options.authorizationEnv] : undefined);
   const target = pushgatewayUrl(options);
   // PUT replaces the whole group, so stale series from previous runs do not stay in the Pushgateway
-  const response = await doFetch(target, {
+  const response = await send(doFetch, target, {
     method: "PUT",
     headers: {
       "Content-Type": "text/plain; version=0.0.4",
@@ -93,7 +105,7 @@ export const pushToInfluxDb = async (
     : options.username
       ? `Basic ${Buffer.from(`${options.username}:${password ?? ""}`).toString("base64")}`
       : undefined;
-  const response = await doFetch(target, {
+  const response = await send(doFetch, target, {
     method: "POST",
     headers: {
       "Content-Type": "text/plain; charset=utf-8",

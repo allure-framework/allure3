@@ -2,7 +2,7 @@ import { mkdir, writeFile } from "node:fs/promises";
 import { dirname, isAbsolute, relative, resolve, sep } from "node:path";
 
 import { extractErrorMatchingData, matchCategory } from "@allurereport/core-api";
-import type { AllureStore, Plugin, PluginContext } from "@allurereport/plugin-api";
+import { type AllureStore, type Plugin, type PluginContext, PluginFatalError } from "@allurereport/plugin-api";
 
 import { collectMetrics } from "./collect.js";
 import { renderInfluxDb } from "./influxdb.js";
@@ -89,11 +89,12 @@ export class MetricsPlugin implements Plugin {
       result.status === "rejected" ? [result.reason as Error] : [],
     );
 
-    for (const err of pushErrors) {
-      if (failOnPushError) {
-        throw err;
-      }
+    if (failOnPushError && pushErrors.length > 0) {
+      // a plain error would only be logged by the report, the fatal one makes the command exit with a non-zero code
+      throw new PluginFatalError(pushErrors.map((err) => err.message).join("\n"), { cause: pushErrors[0] });
+    }
 
+    for (const err of pushErrors) {
       // eslint-disable-next-line no-console
       console.warn(`[plugin-metrics] ${err.message}`);
     }

@@ -4,7 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 import type { CategoryDefinition, MetricSample, TestResult } from "@allurereport/core-api";
-import type { AllureStore, PluginContext } from "@allurereport/plugin-api";
+import { type AllureStore, type PluginContext, PluginFatalError } from "@allurereport/plugin-api";
 import { story } from "allure-js-commons";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
@@ -227,16 +227,39 @@ describe("MetricsPlugin", () => {
       ]);
     });
 
-    it("rethrows a push failure with failOnPushError", async () => {
+    it("rethrows a push failure with failOnPushError as a fatal plugin error", async () => {
       vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("connect ECONNREFUSED")));
       const { context } = createContext();
 
-      await expect(
-        new MetricsPlugin({ prometheus: { pushgateway: { url: "http://pg:9091" } }, failOnPushError: true }).done(
-          context,
-          createStore([tr({})]),
-        ),
-      ).rejects.toThrow("ECONNREFUSED");
+      const error = await new MetricsPlugin({
+        prometheus: { pushgateway: { url: "http://pg:9091" } },
+        failOnPushError: true,
+      })
+        .done(context, createStore([tr({})]))
+        .catch((err: unknown) => err);
+
+      // a plain error is only logged by the report, the fatal one fails the report generation
+      expect(error).toBeInstanceOf(PluginFatalError);
+      expect((error as Error).message).toContain("ECONNREFUSED");
+    });
+
+    it("reports every failed push in one fatal error with failOnPushError", async () => {
+      vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("down")));
+      vi.stubEnv("INFLUX_TOKEN", "influx-secret");
+      const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+      const { context } = createContext();
+
+      const error = await new MetricsPlugin({
+        prometheus: { pushgateway: { url: "http://pg:9091" } },
+        influxdb: { push: { url: "http://influx:8086", bucket: "allure", org: "qa", tokenEnv: "INFLUX_TOKEN" } },
+        failOnPushError: true,
+      })
+        .done(context, createStore([tr({})]))
+        .catch((err: unknown) => err);
+
+      expect(error).toBeInstanceOf(PluginFatalError);
+      expect((error as Error).message.split("\n")).toHaveLength(2);
+      expect(warn).not.toHaveBeenCalled();
     });
 
     it("fails fast on an InfluxDB 2.x push without an organization, even without failOnPushError", async () => {

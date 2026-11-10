@@ -645,7 +645,22 @@ export const executeAllureRun = async (params: {
   allureReport.realtimeDispatcher.sendGlobalExitCode(globalExitCode);
 
   logRunDiagnostic("finalizing report");
-  await allureReport.done();
+
+  try {
+    await allureReport.done();
+  } catch (error) {
+    // e.g. a plugin failed the report generation on purpose, such as a metrics push with `failOnPushError`
+    globalExitCode.actual = 1;
+
+    if (error instanceof KnownError) {
+      runLogger.error(error.message);
+    } else {
+      await logError("Failed to generate report due to unexpected error", error as Error, (message) =>
+        runLogger.error(message),
+      );
+    }
+  }
+
   logRunDiagnostic("report finalization complete");
 
   return {

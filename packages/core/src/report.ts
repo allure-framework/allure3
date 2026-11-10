@@ -35,6 +35,7 @@ import {
   type ReportFiles,
   type ResultFile,
   createTestResultRegistry,
+  isPluginFatalError,
 } from "@allurereport/plugin-api";
 import {
   allure1,
@@ -210,6 +211,7 @@ export class AllureReport {
   #artifactFilesByPath: Map<string, ReportArtifact> = new Map();
   #published = false;
   readonly #failedGenerationPlugins = new Set<string>();
+  readonly #fatalPluginErrors: { pluginId: string; error: Error }[] = [];
   #endGeneratePerfSpan?: () => void;
   #resolvedReportUrl?: string;
   #reportUrl?: string;
@@ -1292,6 +1294,25 @@ export class AllureReport {
   };
 
   done = async (): Promise<void> => {
+    await this.#finish();
+
+    // the report is finished anyway, then a fatal plugin error makes the caller fail (e.g. the CLI exits with 1)
+    this.#throwFatalPluginErrors();
+  };
+
+  #throwFatalPluginErrors = (): void => {
+    if (this.#fatalPluginErrors.length === 0) {
+      return;
+    }
+
+    const message = this.#fatalPluginErrors
+      .map(({ pluginId, error }) => `Plugin "${pluginId}" failed the report generation: ${error.message}`)
+      .join("\n");
+
+    throw new KnownError(message, undefined, { cause: this.#fatalPluginErrors[0].error });
+  };
+
+  #finish = async (): Promise<void> => {
     const summaries: PluginSummary[] = [];
 
     if (this.#executionStage !== "running") {
@@ -1537,6 +1558,10 @@ export class AllureReport {
       } catch (e) {
         failed.add(id);
         console.error(`plugin ${id} error`, e);
+
+        if (isPluginFatalError(e)) {
+          this.#fatalPluginErrors.push({ pluginId: id, error: e });
+        }
       }
     }
 
