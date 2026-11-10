@@ -3,7 +3,7 @@ export type DefaultLabelsConfig = Record<string, string | string[]>;
 export type FlakyDetectionConfig = {
   /** History classifier. Defaults to the status-change heuristic. */
   algorithm?: "status-changes" | "retry-failure-rate";
-  /** Pooled retry failure rate must strictly exceed this value. Range [0, 1], default 0.1. */
+  /** Pooled retry failure rate must strictly exceed this value for test to be marked as flaky. Range [0, 1], default 0.1. */
   retryFailureThreshold?: number;
   /**
    * Maximum number of previous history entries selected before classification.
