@@ -8,6 +8,7 @@ import {
   environmentNameById as resolveEnvironmentNameById,
   errorMessageFromUnknown,
   fetchReportJsonData,
+  getReportStorageKey,
   loadFromLocalStorage,
   migrateStoredEnvironmentSelection,
   normalizeEnvironmentsWidget,
@@ -30,9 +31,13 @@ export const testEnvGroupsStore = signal<
   data: {},
 });
 
-export const collapsedEnvironments = signal<string[]>(loadFromLocalStorage<string[]>("collapsedEnvironments", []));
+export const collapsedEnvironments = signal<string[]>(
+  loadFromLocalStorage<string[]>(getReportStorageKey("collapsedEnvironments"), []),
+);
 
-export const currentEnvironment = signal<string>(loadFromLocalStorage<string>("currentEnvironment", ""));
+export const currentEnvironment = signal<string>(
+  loadFromLocalStorage<string>(getReportStorageKey("currentEnvironment"), ""),
+);
 
 export const setCurrentEnvironment = (env: string) => {
   currentEnvironment.value = env;
@@ -107,9 +112,9 @@ export const fetchTestEnvGroup = async (id: string) => {
 };
 
 effect(() => {
-  localStorage.setItem("currentEnvironment", JSON.stringify(currentEnvironment.value));
+  localStorage.setItem(getReportStorageKey("currentEnvironment"), JSON.stringify(currentEnvironment.value));
 });
 
 effect(() => {
-  localStorage.setItem("collapsedEnvironments", JSON.stringify([...collapsedEnvironments.value]));
+  localStorage.setItem(getReportStorageKey("collapsedEnvironments"), JSON.stringify([...collapsedEnvironments.value]));
 });

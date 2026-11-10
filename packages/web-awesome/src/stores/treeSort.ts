@@ -1,4 +1,4 @@
-import { getParamValue, getReportOptions, hasParam, setParams } from "@allurereport/web-commons";
+import { getParamValue, getReportOptions, getReportStorageKey, hasParam, setParams } from "@allurereport/web-commons";
 import { computed, effect, signal } from "@preact/signals";
 
 import type { ReportOptions } from "../../types.js";
@@ -32,7 +32,7 @@ const getInitialSortBy = (): SortBy => {
   if (typeof window === "undefined") {
     return DEFAULT_SORT_BY;
   }
-  const stored = localStorage.getItem(SORT_BY_STORAGE_KEY);
+  const stored = localStorage.getItem(getReportStorageKey(SORT_BY_STORAGE_KEY));
   if (stored && validateSortBy(stored.toLowerCase())) {
     return stored.toLowerCase() as SortBy;
   }
@@ -76,5 +76,5 @@ effect(() => {
     return;
   }
 
-  localStorage.setItem(SORT_BY_STORAGE_KEY, sortBy.value);
+  localStorage.setItem(getReportStorageKey(SORT_BY_STORAGE_KEY), sortBy.value);
 });
