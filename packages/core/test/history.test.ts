@@ -262,12 +262,18 @@ describe("AllureLocalHistory", () => {
           const entryLength = line.length - 1;
           const entriesToPrepare = Math.floor(constants.MAX_STRING_LENGTH / entryLength) + 1;
           historyPath = join(tmpdir(), randomUUID());
+          // Write the lines in large chunks: one write per line takes too long on Windows runners
+          const lineBytes = Buffer.from(`${JSON.stringify(entry)}\n`, "utf-8");
+          const linesPerChunk = 8192;
+          const chunk = Buffer.concat(Array.from({ length: linesPerChunk }, () => lineBytes));
           const historyFile = await open(historyPath, "wx");
           try {
-            for (let i = 1; i <= entriesToPrepare; i++) {
+            for (let written = 0; written < entriesToPrepare; written += linesPerChunk) {
+              const lines = Math.min(linesPerChunk, entriesToPrepare - written);
+              await historyFile.write(chunk, 0, lines * lineBytes.length);
+            }
+            for (let i = 0; i < entriesToPrepare; i++) {
               entries.push({ ...entry });
-              const json = JSON.stringify(entry);
-              await historyFile.writeFile(`${json}\n`, { encoding: "utf-8" });
             }
           } finally {
             await historyFile.close();
