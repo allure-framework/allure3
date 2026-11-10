@@ -78,7 +78,7 @@ export const collectMailData = async (
     status: getWorstStatus(testResults.map(({ status }) => status)) ?? "passed",
     stats,
     passRate: getPassRate(stats),
-    duration: formatRunDuration(calculateRunDuration(testResults)),
+    duration: formatRunDuration(calculateRunDuration(await store.allTestResults({ includeRetries: true }))),
     reportUrl: reportUrl || context.reportUrl,
     ci: getCiInfo(context.ci),
     failed: failedResults.slice(0, limit).map((tr) => ({
