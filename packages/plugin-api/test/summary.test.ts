@@ -168,6 +168,34 @@ describe("summary utils", () => {
     ).toEqual(100);
   });
 
+  it("calculateRunDuration keeps pauses up to an hour as part of the run", () => {
+    const hour = 60 * 60 * 1000;
+
+    expect(
+      calculateRunDuration([
+        testResult({ duration: 100, start: 1000, stop: 1100 }),
+        testResult({ duration: 100, start: 1100 + hour, stop: 1200 + hour }),
+      ]),
+    ).toEqual(hour + 200);
+  });
+
+  it("calculateRunDuration does not count the time between runs made more than an hour apart", () => {
+    const day = 24 * 60 * 60 * 1000;
+
+    expect(
+      calculateRunDuration([
+        testResult({ duration: 200, start: day + 50, stop: day + 250 }),
+        testResult({ duration: 100, start: 1000, stop: 1100 }),
+        testResult({ duration: 90, start: 1010, stop: 1150 }),
+        testResult({ duration: 100, start: day, stop: day + 100 }),
+      ]),
+    ).toEqual(150 + 250);
+  });
+
+  it("calculateRunDuration treats a stop before the start as an empty interval", () => {
+    expect(calculateRunDuration([testResult({ duration: 100, start: 1000, stop: 900 })])).toEqual(0);
+  });
+
   it("calculateRunDuration ignores test results with invalid time bounds", () => {
     expect(
       calculateRunDuration([
@@ -219,6 +247,33 @@ describe("summary utils", () => {
 
     expect(summary.newTests).toEqual(["current"]);
     expect(summary.retryTests).toEqual(["current"]);
+  });
+
+  it("createPluginSummary counts the retried attempts as test activity", async () => {
+    const minute = 60 * 1000;
+    const first = testResult({ id: "a", start: 0, stop: minute });
+    const retried = testResult({ id: "b-1", start: minute, stop: 121 * minute, isRetry: true });
+    const last = testResult({ id: "b-2", start: 121 * minute, stop: 122 * minute });
+    const filter = (tr: TestResult) => tr.id !== "hidden";
+    const store = {
+      allCheckResults: vi.fn().mockResolvedValue([]),
+      allTestResults: vi.fn(({ includeRetries } = {}) =>
+        Promise.resolve(includeRetries ? [first, retried, last] : [first, last]),
+      ),
+      allNewTestResults: vi.fn().mockResolvedValue([]),
+      testsStatistic: vi.fn().mockResolvedValue({ total: 2 }),
+      ...emptyStoreGlobals(),
+    };
+    const summary = await createPluginSummary({
+      name: "summary-name",
+      plugin: "summary-plugin",
+      store: store as any,
+      filter,
+      meta: {},
+    });
+
+    expect(summary.duration).toBe(122 * minute);
+    expect(store.allTestResults).toHaveBeenCalledWith({ includeRetries: true, filter });
   });
 
   it("createPluginSummary falls back to passed when status is empty", async () => {
@@ -441,6 +496,17 @@ describe("summary utils", () => {
 });
 
 describe("getRunSummary", () => {
+  it("should keep the whole span as start and stop but leave the time between distant runs out of the duration", () => {
+    const day = 24 * 60 * 60 * 1000;
+
+    expect(
+      getRunSummary([
+        { start: day, stop: day + 500 },
+        { start: 1000, stop: 2000 },
+      ]),
+    ).toEqual({ start: 1000, stop: day + 500, duration: 1500 });
+  });
+
   it("spans from the earliest start to the latest stop", () => {
     expect(
       getRunSummary([
