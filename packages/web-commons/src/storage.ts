@@ -20,7 +20,7 @@ const REPORT_STORAGE_KEY_PREFIX = "allure-report";
  * regenerated in place, so a project published to a stable URL keeps its state across runs.
  */
 export const getReportStorageScope = (pathname: string = globalThis.location?.pathname ?? "/"): string => {
-  const directory = pathname.replace(/[^/]*$/, "");
+  const directory = pathname.slice(0, pathname.lastIndexOf("/") + 1);
 
   return directory.startsWith("/") ? directory : `/${directory}`;
 };
