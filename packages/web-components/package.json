@@ -288,7 +288,7 @@
     "postcss": "^8.5.25",
     "postcss-import": "^17.0.1",
     "rimraf": "^6.1.3",
-    "rollup": "^4.67.4",
+    "rollup": "^4.68.0",
     "rollup-plugin-copy": "^3.5.0",
     "rollup-plugin-dts": "^6.5.1",
     "rollup-plugin-postcss": "^4.0.2",
