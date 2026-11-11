@@ -252,6 +252,13 @@ export interface Plugin {
 
   update?(context: PluginContext, store: AllureStore): Promise<void>;
 
+  /**
+   * Runs for every plugin once all the results are collected, before any plugin `done`. Throw `PluginFatalError` here
+   * to fail the report generation: the error is recorded as a global error and the exit code before the reports and
+   * summaries are written, published or added to history, so they show the failure too
+   */
+  prepare?(context: PluginContext, store: AllureStore): Promise<void>;
+
   done?(context: PluginContext, store: AllureStore): Promise<void>;
 
   info?(context: PluginContext, store: AllureStore): Promise<PluginSummary | undefined>;

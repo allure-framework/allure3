@@ -5,8 +5,8 @@ import { join, relative, sep } from "node:path";
 import { setTimeout } from "node:timers/promises";
 
 import { detect } from "@allurereport/ci";
-import type { TestResult } from "@allurereport/core-api";
-import { type Plugin, PluginFatalError, type QualityGateRule, md5 } from "@allurereport/plugin-api";
+import type { TestError, TestResult } from "@allurereport/core-api";
+import { type ExitCode, type Plugin, PluginFatalError, type QualityGateRule, md5 } from "@allurereport/plugin-api";
 import AwesomePlugin from "@allurereport/plugin-awesome";
 import MetricsPlugin from "@allurereport/plugin-metrics";
 import { BufferResultFile, type ResultsReader } from "@allurereport/reader-api";
@@ -62,6 +62,7 @@ const createPlugin = (id: string, enabled: boolean = true, options: Record<strin
   const plugin: Mocked<Required<Plugin>> = {
     start: vi.fn<Required<Plugin>["start"]>(),
     update: vi.fn<Required<Plugin>["update"]>(),
+    prepare: vi.fn<Required<Plugin>["prepare"]>(),
     done: vi.fn<Required<Plugin>["done"]>(),
     info: vi.fn<Required<Plugin>["info"]>(),
   };
@@ -476,6 +477,33 @@ describe("report", () => {
 
       expect(other.plugin.done).toHaveBeenCalledTimes(1);
       expect(consoleError).toHaveBeenCalledWith("plugin failing error", expect.any(Error));
+    });
+
+    it("should record a fatal prepare error in the store before any plugin renders its report", async () => {
+      const output = await mkdtemp(join(tmpdir(), "allure3-plugin-fatal-prepare-"));
+      const config = await resolveConfig({ name: "Allure Report", output });
+      const other = createPlugin("other");
+      const failing = createPlugin("failing");
+      let globalsSeenByOther: { exitCode?: ExitCode; errors: TestError[] } | undefined;
+
+      vi.spyOn(console, "error").mockImplementation(() => {});
+      // the failing plugin goes last, the other one still has to see the failure when it renders its report
+      failing.plugin.prepare.mockRejectedValue(new PluginFatalError("push failed"));
+      other.plugin.done.mockImplementation(async (_context, store) => {
+        globalsSeenByOther = { exitCode: await store.globalExitCode(), errors: await store.allGlobalErrors() };
+      });
+      config.plugins = [other, failing];
+
+      const allureReport = new AllureReport(config);
+
+      await allureReport.start();
+      allureReport.realtimeDispatcher.sendGlobalExitCode({ original: 0, actual: 0 });
+
+      await expect(allureReport.done()).rejects.toThrow('Plugin "failing" failed the report generation: push failed');
+      expect(globalsSeenByOther).toEqual({
+        exitCode: { original: 0, actual: 1 },
+        errors: [expect.objectContaining({ message: 'Plugin "failing" failed the report generation: push failed' })],
+      });
     });
 
     it("should reject done() with a known error after the report is finished when a plugin throws a fatal error", async () => {

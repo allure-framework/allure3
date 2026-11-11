@@ -959,6 +959,18 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     return this.#globalExitCode;
   }
 
+  /**
+   * Records an error that fails the report generation, e.g. a fatal plugin error: it becomes a global error and makes
+   * the stored exit code non-zero, so every report and summary written afterwards shows the failure
+   */
+  addFatalError(error: PluginGlobalError): void {
+    this.#addGlobalError(error);
+
+    if (this.#globalExitCode && !this.#globalExitCode.actual) {
+      this.#globalExitCode = { ...this.#globalExitCode, actual: 1 };
+    }
+  }
+
   async allGlobalErrors(): Promise<TestError[]> {
     return [...this.#globalErrors, ...this.#processGlobalErrors];
   }

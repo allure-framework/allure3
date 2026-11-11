@@ -24,7 +24,8 @@ const section = <T extends object>(value: boolean | T | undefined): T | undefine
 export class MetricsPlugin implements Plugin {
   constructor(readonly options: MetricsPluginOptions = {}) {}
 
-  done = async (context: PluginContext, store: AllureStore): Promise<void> => {
+  // the pushes run before the reports are rendered, so a fatal push error is shown in them and in the summaries
+  prepare = async (context: PluginContext, store: AllureStore): Promise<void> => {
     const {
       prometheus: prometheusOption,
       influxdb: influxdbOption,

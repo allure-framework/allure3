@@ -122,6 +122,9 @@ const readConcurrency = () => {
   return Math.min(MAX_READ_CONCURRENCY, Math.max(1, parsed));
 };
 
+const fatalPluginErrorMessage = (pluginId: string, error: Error) =>
+  `Plugin "${pluginId}" failed the report generation: ${error.message}`;
+
 const clonePluginSummary = (summary: PluginSummary): PluginSummary => structuredClone(summary);
 
 type RemoteBranchParams = { repo?: string; branch?: string };
@@ -1306,7 +1309,7 @@ export class AllureReport {
     }
 
     const message = this.#fatalPluginErrors
-      .map(({ pluginId, error }) => `Plugin "${pluginId}" failed the report generation: ${error.message}`)
+      .map(({ pluginId, error }) => fatalPluginErrorMessage(pluginId, error))
       .join("\n");
 
     throw new KnownError(message, undefined, { cause: this.#fatalPluginErrors[0].error });
@@ -1341,6 +1344,14 @@ export class AllureReport {
       await this.#resolveReportUrl();
 
       this.#overviewHref = await this.#resolveOverviewHref();
+
+      // fatal plugin errors have to be in the store before any report, summary or history entry is written
+      await this.#eachPlugin(false, async (plugin, context) => {
+        await plugin.prepare?.(context, this.#store);
+      });
+      this.#fatalPluginErrors.forEach(({ pluginId, error }) => {
+        this.#store.addFatalError({ message: fatalPluginErrorMessage(pluginId, error) });
+      });
 
       // isolate logs of different reports dumps: done and summary
       const failedPlugins = await measurePerf(PERF_METRIC_NAMES.generatePluginsDone, () =>
