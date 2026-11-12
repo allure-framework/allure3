@@ -29,12 +29,10 @@ const setupQualityGateComponent = async (
       default: [
         ...precedingResults,
         {
-          success: false,
-          expected: 0,
-          actual: testResults.length,
-          rule: "maxFailures",
-          message: "Too many failures",
-          testResults,
+          status: "failed",
+          key: "maxFailures",
+          source: { type: "rule" },
+          details: { expected: 0, actual: testResults.length, message: "Too many failures", testResults },
           testResultsTree:
             testResults.length > 0
               ? {
@@ -184,12 +182,10 @@ describe("components > Report quality gate results", () => {
       [],
       [
         {
-          success: true,
-          expected: 1,
-          actual: 2,
-          rule: "minTestsCount",
-          message: "Enough tests have been run",
-          testResults: [],
+          status: "passed",
+          key: "minTestsCount",
+          source: { type: "rule" },
+          details: { expected: 1, actual: 2, message: "Enough tests have been run", testResults: [] },
         },
       ],
     );
@@ -214,12 +210,10 @@ describe("components > Report quality gate results", () => {
       [],
       [
         {
-          success: true,
-          expected: 1,
-          actual: 2,
-          rule: "minTestsCount",
-          message: "Enough tests have been run",
-          testResults: [],
+          status: "passed",
+          key: "minTestsCount",
+          source: { type: "rule" },
+          details: { expected: 1, actual: 2, message: "Enough tests have been run", testResults: [] },
         },
       ],
     );
@@ -234,6 +228,52 @@ describe("components > Report quality gate results", () => {
     expect(results[0].querySelector("[data-testid='quality-gate-result-rule']")).toHaveTextContent("maxFailures");
     expect(results[1]).toHaveAttribute("data-success", "true");
     expect(results[1].querySelector("[data-testid='quality-gate-result-rule']")).toHaveTextContent("minTestsCount");
+  }, 15000);
+
+  it("should render repeated results with the same source and key", async () => {
+    await setupQualityGateComponent(
+      [],
+      [
+        {
+          status: "failed",
+          key: "maxFailures",
+          source: { type: "rule" },
+          details: { message: "Second evaluation failed" },
+        },
+      ],
+    );
+    const { ReportQualityGateResults } = await import("@/components/ReportQualityGateResults");
+
+    render(<ReportQualityGateResults />);
+
+    expect(screen.getAllByTestId("quality-gate-result")).toHaveLength(2);
+    expect(screen.getByText("Too many failures")).toBeInTheDocument();
+    expect(screen.getByText("Second evaluation failed")).toBeInTheDocument();
+  }, 15000);
+
+  it("should render a command separately without using it as the message", async () => {
+    await setupQualityGateComponent(
+      [],
+      [
+        {
+          status: "failed",
+          key: "lint",
+          source: { type: "command", command: "npm run lint" },
+        },
+      ],
+    );
+    const { ReportQualityGateResults } = await import("@/components/ReportQualityGateResults");
+
+    render(<ReportQualityGateResults />);
+
+    const commandResult = screen
+      .getAllByTestId("quality-gate-result")
+      .find((result) => result.querySelector("[data-testid='quality-gate-result-rule']")?.textContent === "lint");
+
+    expect(commandResult?.querySelector("[data-testid='quality-gate-result-command']")).toHaveTextContent(
+      "npm run lint",
+    );
+    expect(commandResult?.querySelector("[data-testid='quality-gate-result-message']")).not.toBeInTheDocument();
   }, 15000);
 
   it("should not render related test results section when ids are absent", async () => {
