@@ -1459,7 +1459,7 @@ describe("with skipping muted tests", () => {
   const accessToken = `ato1.${Buffer.from(JSON.stringify({ accessToken: "api-token", url: "https://testops.example.com", projectId: 42 })).toString("base64url")}.signature`;
   const ownedDir = resolve("/tmp/run-muted");
   const planPath = resolve(ownedDir, "testplan.json");
-  const execute = (options: string[] = []) =>
+  const execute = (options: string[] = ["--skip-muted-tests"]) =>
     Cli.from([RunCommand])
       .process(["run", ...options, "--", "npm", "test"])
       .execute();
@@ -1481,7 +1481,7 @@ describe("with skipping muted tests", () => {
       .mockResolvedValue({
         output: "./allure-report",
         open: false,
-        plugins: [{ id: "testops", enabled: true, options: { skipMutedTests: true } }],
+        plugins: [],
       } as never);
     vi.mocked(mkdtemp).mockReset().mockResolvedValue(ownedDir);
     vi.mocked(writeFile).mockReset().mockResolvedValue(undefined);
@@ -1501,13 +1501,8 @@ describe("with skipping muted tests", () => {
     AllureReportMock.prototype.done.mockReset().mockResolvedValue(undefined);
   });
 
-  it("does not prepare a muted plan with skipMutedTests=false", async () => {
-    vi.mocked(readConfig).mockResolvedValueOnce({
-      output: "./allure-report",
-      plugins: [{ id: "testops", enabled: true, options: { skipMutedTests: false } }],
-    } as never);
-
-    await execute();
+  it("does not prepare a muted plan by default", async () => {
+    await execute([]);
 
     expect(testOpsConstructorMock).not.toHaveBeenCalled();
     expect(mkdtemp).not.toHaveBeenCalled();
@@ -1569,27 +1564,12 @@ describe("with skipping muted tests", () => {
     expect(childEnvironment()).toEqual({ ALLURE_CLI_ACTIVE_COMMAND: "run" });
     expect(console.warn).toHaveBeenCalledWith(
       expect.stringContaining(
-        "TestOps skipMutedTests requires a functional Allure TestOps instance: set the TestOps plugin accessToken or ALLURE_TOKEN. Continuing without a muted test plan.",
+        "--skip-muted-tests requires a functional Allure TestOps instance: set ALLURE_TOKEN and, for a user token, ALLURE_ENDPOINT and ALLURE_PROJECT_ID. Continuing without a muted test plan.",
       ),
     );
   });
 
-  it.each(["testops", "plugin-testops"])("prefers %s plugin configuration over environment values", async (id) => {
-    vi.mocked(readConfig).mockResolvedValueOnce({
-      output: "./allure-report",
-      plugins: [
-        {
-          id,
-          enabled: true,
-          options: {
-            skipMutedTests: true,
-            accessToken: "plugin-token",
-            endpoint: "https://plugin.example.com",
-            projectId: 123,
-          },
-        },
-      ],
-    } as never);
+  it("uses user-token connection settings from the environment", async () => {
     vi.stubEnv("ALLURE_TOKEN", "environment-token");
     vi.stubEnv("ALLURE_ENDPOINT", "https://environment.example.com");
     vi.stubEnv("ALLURE_PROJECT_ID", "456");
@@ -1597,45 +1577,11 @@ describe("with skipping muted tests", () => {
     await execute();
 
     expect(testOpsConstructorMock).toHaveBeenCalledWith(
-      { accessToken: "plugin-token", url: "https://plugin.example.com", projectId: 123 },
+      { accessToken: "environment-token", url: "https://environment.example.com", projectId: "456" },
       expect.any(Logger),
     );
     expect(childEnvironment().ALLURE_TESTPLAN_PATH).toBe(planPath);
   });
-
-  it.each([
-    {
-      options: { accessToken: "plugin-token" },
-      expectedToken: "plugin-token",
-      expectedUrl: "https://environment.example.com",
-      expectedProjectId: "456",
-    },
-    {
-      options: { endpoint: "https://plugin.example.com", projectId: 123 },
-      expectedToken: "environment-token",
-      expectedUrl: "https://plugin.example.com",
-      expectedProjectId: 123,
-    },
-  ])(
-    "falls back to environment values independently for omitted plugin options $options",
-    async ({ options, expectedToken, expectedUrl, expectedProjectId }) => {
-      vi.mocked(readConfig).mockResolvedValueOnce({
-        output: "./allure-report",
-        plugins: [{ id: "testops", enabled: true, options: { ...options, skipMutedTests: true } }],
-      } as never);
-      vi.stubEnv("ALLURE_TOKEN", "environment-token");
-      vi.stubEnv("ALLURE_ENDPOINT", "https://environment.example.com");
-      vi.stubEnv("ALLURE_PROJECT_ID", "456");
-
-      await execute();
-
-      expect(testOpsConstructorMock).toHaveBeenCalledWith(
-        { accessToken: expectedToken, url: expectedUrl, projectId: expectedProjectId },
-        expect.any(Logger),
-      );
-      expect(childEnvironment().ALLURE_TESTPLAN_PATH).toBe(planPath);
-    },
-  );
 
   it("uses the token decoded from the CI environment", async () => {
     vi.stubEnv("ALLURE_TOKEN", undefined);
@@ -1744,7 +1690,7 @@ describe("with skipping muted tests", () => {
     vi.mocked(readConfig).mockResolvedValueOnce({
       output: "./allure-report",
       open: true,
-      plugins: [{ id: "testops", enabled: true, options: { skipMutedTests: true } }],
+      plugins: [],
     } as never);
     vi.mocked(serve).mockImplementationOnce(async () => {
       expect(rm).toHaveBeenCalledWith(ownedDir, { recursive: true, force: true });
@@ -1762,7 +1708,7 @@ describe("with skipping muted tests", () => {
     AllureReportMock.prototype.store.blockingFailedTestResults.mockResolvedValue([failedTest]);
     vi.mocked(mkdtemp).mockResolvedValueOnce(ownedDir).mockResolvedValueOnce("/tmp/rerun");
 
-    await execute(["--rerun", "1"]);
+    await execute(["--skip-muted-tests", "--rerun", "1"]);
 
     expect(childEnvironment()).toEqual({ ALLURE_CLI_ACTIVE_COMMAND: "run", ALLURE_TESTPLAN_PATH: planPath });
     expect(childEnvironment(1)).toEqual({
@@ -1787,7 +1733,7 @@ describe("with skipping muted tests", () => {
     vi.mocked(readConfig).mockResolvedValueOnce({
       output: "./allure-report",
       qualityGate: { rules: [] },
-      plugins: [{ id: "testops", enabled: true, options: { skipMutedTests: true } }],
+      plugins: [],
     } as never);
     let notify!: (callback: (ids: string[]) => Promise<void>) => void;
     const callbackReady = new Promise<(ids: string[]) => Promise<void>>((resolve) => {
@@ -1817,7 +1763,7 @@ describe("with skipping muted tests", () => {
       .mockResolvedValue({ results: [], fastFailed: false });
     supervisorExitCodeMock.mockReturnValueOnce(processDone).mockResolvedValueOnce(0);
 
-    const completion = execute(["--rerun", "1"]);
+    const completion = execute(["--skip-muted-tests", "--rerun", "1"]);
     const callback = await callbackReady;
     await callback(["failed"]);
     finish(1);

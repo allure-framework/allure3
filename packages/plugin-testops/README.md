@@ -77,7 +77,6 @@ The plugin accepts the following options:
 | `accessToken`      | Access token for Allure TestOps API                                        | `string`  | `undefined`     |
 | `endpoint`         | Allure TestOps API endpoint                                                | `string`  | `undefined`     |
 | `projectId`        | Allure TestOps project ID                                                  | `string`  | `undefined`     |
-| `skipMutedTests`  | When `true`, `allure run` skips tests muted in TestOps through an adapter-supported test plan | `boolean` | `false` |
 | `autocloseLaunch`  | When `true` (default), the launch is closed automatically when the plugin finishes, unless some uploads failed; set to `false` to keep the launch open | `boolean` | `true`          |
 | `gitFlow`          | When `true`, collect Git metadata for Allure TestOps Git Flow on CI uploads (opt-in) | `boolean` | `false`         |
 | `ancestorLimit`    | How many ancestor commits to attach to the launch for history linking in Allure TestOps | `number`  | `100`           |

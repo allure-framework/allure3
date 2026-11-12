@@ -5,7 +5,7 @@ import process from "node:process";
 
 import { applyAllureCiEnv } from "@allurereport/ci";
 import { Logger } from "@allurereport/cli-commons";
-import { AllureReport, type FullConfig, isFileNotFoundError, readConfig } from "@allurereport/core";
+import { AllureReport, isFileNotFoundError, readConfig } from "@allurereport/core";
 import { formatDuration, type TestPlan } from "@allurereport/core-api";
 import Awesome from "@allurereport/plugin-awesome";
 import { AllureTestOpsClient } from "@allurereport/service";
@@ -93,6 +93,10 @@ export class RunCommand extends Command {
     description: "The maximum number of reruns for failed tests and Quality Gate fast-fails (default: 0)",
   });
 
+  skipMutedTests = Option.Boolean("--skip-muted-tests", false, {
+    description: "Skip TestOps-muted tests through an adapter-supported test plan (default: false)",
+  });
+
   silent = Option.Boolean("--silent", {
     description: "Don't pipe the process output logs to console (default: 0)",
   });
@@ -159,7 +163,7 @@ export class RunCommand extends Command {
     return this.ignoreLogs ? "inherit" : "pipe";
   }
 
-  private async fetchMutedTests(config: FullConfig) {
+  private async fetchMutedTests() {
     let testPlanPath: string | undefined;
     let mutedPlanDirectory: string | undefined;
 
@@ -174,13 +178,12 @@ export class RunCommand extends Command {
       }
     };
 
-    const testOpsOptions = config.plugins?.find(({ id }) => id === "testops" || id === "plugin-testops")?.options;
-    if (testOpsOptions?.skipMutedTests && process.env.ALLURE_TESTPLAN_PATH === undefined) {
+    if (this.skipMutedTests && process.env.ALLURE_TESTPLAN_PATH === undefined) {
       try {
         applyAllureCiEnv();
-        const accessToken = testOpsOptions?.accessToken ?? process.env.ALLURE_TOKEN;
-        const projectId = testOpsOptions?.projectId ?? process.env.ALLURE_PROJECT_ID;
-        const url = testOpsOptions?.endpoint ?? process.env.ALLURE_ENDPOINT;
+        const accessToken = process.env.ALLURE_TOKEN;
+        const projectId = process.env.ALLURE_PROJECT_ID;
+        const url = process.env.ALLURE_ENDPOINT;
         // rerun check in case test plan is set via allure ci env file
         const testPlanNotSet = process.env.ALLURE_TESTPLAN_PATH === undefined;
         if (testPlanNotSet && accessToken) {
@@ -196,7 +199,7 @@ export class RunCommand extends Command {
           }
         } else if (testPlanNotSet) {
           runLogger.warn(
-            "TestOps skipMutedTests requires a functional Allure TestOps instance: set the TestOps plugin accessToken or ALLURE_TOKEN. Continuing without a muted test plan.",
+            "--skip-muted-tests requires a functional Allure TestOps instance: set ALLURE_TOKEN and, for a user token, ALLURE_ENDPOINT and ALLURE_PROJECT_ID. Continuing without a muted test plan.",
           );
         }
       } catch (error) {
@@ -288,7 +291,7 @@ export class RunCommand extends Command {
       ],
     });
     const environmentVariables = createChildAllureCliEnvironment("run");
-    const { testPlanPath, cleanupMutedPlan } = await this.fetchMutedTests(config);
+    const { testPlanPath, cleanupMutedPlan } = await this.fetchMutedTests();
     if (testPlanPath) {
       environmentVariables.ALLURE_TESTPLAN_PATH = testPlanPath;
     }
