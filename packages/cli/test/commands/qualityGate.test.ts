@@ -23,11 +23,10 @@ const fixtures = {
   },
   qualityGateValidationResults: [
     {
-      success: false,
-      rule: "maxFailures",
-      message: "Max failures exceeded: 0 < 1",
-      actual: 0,
-      expected: 1,
+      status: "failed",
+      key: "maxFailures",
+      source: { type: "rule" },
+      details: { message: "Max failures exceeded: 0 < 1", actual: 0, expected: 1 },
     },
   ],
 };
@@ -81,8 +80,8 @@ vi.mock("@allurereport/core", async () => {
   return {
     readConfig: vi.fn(),
     stringifyQualityGateResults: vi.fn(),
-    filterFailedQualityGateResults: vi.fn((results: { success: boolean }[]) =>
-      results.filter(({ success }) => !success),
+    filterFailedQualityGateResults: vi.fn((results: { status: string }[]) =>
+      results.filter(({ status }) => status === "failed"),
     ),
     AllureReport: utils.AllureReportMock,
     QualityGateState: class {
@@ -147,7 +146,7 @@ describe("quality-gate command", () => {
       testResultById: vi.fn(),
     };
     (AllureReportMock.prototype.validate as unknown as Mock).mockResolvedValueOnce({
-      results: [{ success: true, rule: "maxFailures" }],
+      results: [{ status: "passed", key: "maxFailures", source: { type: "rule" } }],
     });
 
     await run(QualityGateCommand, [
@@ -177,8 +176,8 @@ describe("quality-gate command", () => {
     (stringifyQualityGateResults as Mock).mockReturnValue("quality gate failed");
     (AllureReportMock.prototype.validate as unknown as Mock).mockResolvedValueOnce({
       results: [
-        { success: true, rule: "minTestsCount" },
-        { success: false, rule: "maxFailures" },
+        { status: "passed", key: "minTestsCount", source: { type: "rule" } },
+        { status: "failed", key: "maxFailures", source: { type: "rule" } },
       ],
     });
 
@@ -214,8 +213,13 @@ describe("quality-gate command", () => {
 
     const validateMock = AllureReportMock.prototype.validate as unknown as Mock;
 
-    validateMock.mockResolvedValueOnce({ results: [{ success: false }], fastFailed: true });
-    validateMock.mockResolvedValueOnce({ results: [{ success: false }] });
+    validateMock.mockResolvedValueOnce({
+      results: [{ status: "failed", key: "maxFailures", source: { type: "rule" } }],
+      fastFailed: true,
+    });
+    validateMock.mockResolvedValueOnce({
+      results: [{ status: "failed", key: "maxFailures", source: { type: "rule" } }],
+    });
 
     const commandPromise = run(QualityGateCommand, [
       "quality-gate",

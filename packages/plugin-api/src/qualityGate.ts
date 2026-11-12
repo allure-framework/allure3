@@ -1,15 +1,5 @@
 import type { MetricSample, TestResult } from "@allurereport/core-api";
 
-export type QualityGateValidationResult = {
-  success: boolean;
-  expected: any;
-  actual: any;
-  rule: string;
-  message: string;
-  environment?: string;
-  testResults: string[];
-};
-
 export type QualityGateRules = Record<string, any> & {
   /**
    * Ruleset identifier to make it possible to visually divide same rules

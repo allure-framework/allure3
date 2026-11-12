@@ -1,8 +1,14 @@
 import console from "node:console";
 
-import type { DefaultTestStepResult, TestError, TestResult, TestStatus, TestStepResult } from "@allurereport/core-api";
+import type {
+  AllureQualityGateResult,
+  DefaultTestStepResult,
+  TestError,
+  TestResult,
+  TestStatus,
+  TestStepResult,
+} from "@allurereport/core-api";
 import { isStep } from "@allurereport/core-api";
-import type { QualityGateValidationResult } from "@allurereport/plugin-api";
 import { gray, green, red, yellow } from "yoctocolors";
 
 import type { LogPluginOptions } from "./model.js";
@@ -65,11 +71,11 @@ export const stringifyStepResultTitle = (result: DefaultTestStepResult) => {
   return [status, result.name, duration].filter(Boolean).join(" ");
 };
 
-export const stringifyQualityGateResultTitle = (result: QualityGateValidationResult) => {
-  const status = result.success ? green("✓") : red("⨯");
+export const stringifyQualityGateResultTitle = (result: AllureQualityGateResult) => {
+  const status = result.status === "passed" ? green("✓") : red("⨯");
   const environment = result.environment ? gray(`[${result.environment}]`) : "";
 
-  return [status, result.rule, environment].filter(Boolean).join(" ");
+  return [status, result.key, environment].filter(Boolean).join(" ");
 };
 
 export const printTest = (test: TestResult, options?: PrintFunctionOptions, indent: number = 0) => {
@@ -189,15 +195,22 @@ export const printSummary = (results: TestResult[], options: { total: number; fi
   console.info(`Duration: ${yellow((totalDuration / 1000).toString())}s`);
 };
 
-export const printQualityGateResult = (result: QualityGateValidationResult, indent: number = 0) => {
+export const printQualityGateResult = (result: AllureQualityGateResult, indent: number = 0) => {
   const indentSpaces = "  ".repeat(indent);
-  const message = result.success ? green(result.message) : red(result.message);
+  const rawMessage =
+    result.details?.message ?? result.details?.stderr ?? result.details?.stdout ?? "No details provided";
+  const message = result.status === "passed" ? green(rawMessage) : red(rawMessage);
 
   console.info(`${indentSpaces}${stringifyQualityGateResultTitle(result)}`);
+
+  if (result.source.type === "command" && result.source.command) {
+    console.info(`${indentSpaces}  ${gray(`Command: ${result.source.command}`)}`);
+  }
+
   console.info(`${indentSpaces}  ${message}`);
 };
 
-export const printQualityGateResults = (results: QualityGateValidationResult[]) => {
+export const printQualityGateResults = (results: AllureQualityGateResult[]) => {
   if (results.length === 0) {
     return;
   }
@@ -205,13 +218,16 @@ export const printQualityGateResults = (results: QualityGateValidationResult[]) 
   console.log("");
   console.info("Quality gates");
 
-  const orderedResults = [...results.filter(({ success }) => !success), ...results.filter(({ success }) => success)];
+  const orderedResults = [
+    ...results.filter(({ status }) => status === "failed"),
+    ...results.filter(({ status }) => status === "passed"),
+  ];
 
   orderedResults.forEach((result) => {
     printQualityGateResult(result, 1);
   });
 
-  const passed = results.filter(({ success }) => success).length;
+  const passed = results.filter(({ status }) => status === "passed").length;
   const failed = results.length - passed;
   const stats: string[] = [];
 

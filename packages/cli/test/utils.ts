@@ -11,8 +11,8 @@ AllureReportMock.prototype.store = {
   allTestResults: vi.fn().mockResolvedValue([]),
   allNewTestResults: vi.fn().mockResolvedValue([]),
   testsStatistic: vi.fn().mockResolvedValue({ total: 0, passed: 0, failed: 0, broken: 0, skipped: 0, unknown: 0 }),
-  addCheckResult: vi.fn().mockResolvedValue(undefined),
-  allCheckResults: vi.fn().mockResolvedValue([]),
+  addQualityGateResult: vi.fn().mockResolvedValue(undefined),
+  qualityGateResults: vi.fn().mockResolvedValue([]),
 };
 
 AllureReportMock.prototype.realtimeSubscriber = {

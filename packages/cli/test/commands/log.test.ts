@@ -2,7 +2,7 @@ import * as console from "node:console";
 import { exit } from "node:process";
 
 import { AllureReport, readConfig } from "@allurereport/core";
-import type { QualityGateValidationResult } from "@allurereport/plugin-api";
+import type { AllureQualityGateResult } from "@allurereport/core-api";
 import LogPlugin, { type LogPluginOptions } from "@allurereport/plugin-log";
 import { epic, feature, label, story } from "allure-js-commons";
 import { run } from "clipanion";
@@ -19,22 +19,28 @@ const fixtures = {
   config: "./custom/allurerc.mjs",
   qualityGateValidationResults: [
     {
-      success: false,
-      rule: "maxFailures",
-      message: "The number of failed tests 1 exceeds the allowed threshold value 0",
-      actual: 1,
-      expected: 0,
-      testResults: ["failed-1"],
+      status: "failed",
+      key: "maxFailures",
+      source: { type: "rule" },
+      details: {
+        message: "The number of failed tests 1 exceeds the allowed threshold value 0",
+        actual: 1,
+        expected: 0,
+        testResults: ["failed-1"],
+      },
     },
     {
-      success: true,
-      rule: "minTestsCount",
-      message: "The total number of tests 1 meets the expected threshold value 1",
-      actual: 1,
-      expected: 1,
-      testResults: ["failed-1"],
+      status: "passed",
+      key: "minTestsCount",
+      source: { type: "rule" },
+      details: {
+        message: "The total number of tests 1 meets the expected threshold value 1",
+        actual: 1,
+        expected: 1,
+        testResults: ["failed-1"],
+      },
     },
-  ] as QualityGateValidationResult[],
+  ] as AllureQualityGateResult[],
 };
 
 vi.mock("node:console", async (importOriginal) => ({

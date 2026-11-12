@@ -1,5 +1,5 @@
 import type {
-  AllureCheckResult,
+  AllureQualityGateResult,
   AttachmentLink,
   EnvironmentIdentity,
   GlobalAttachmentLink,
@@ -17,7 +17,6 @@ import type {
 } from "@allurereport/core-api";
 
 import type { ExitCode, PluginGlobalError } from "./plugin.js";
-import type { QualityGateValidationResult } from "./qualityGate.js";
 import type { ResultFile } from "./resultFile.js";
 
 export type TestResultFilter = (testResult: TestResult) => boolean;
@@ -45,13 +44,11 @@ export interface AllureStore {
   testResultsByResolutionIssueId: (resolutionIssueId: string) => Promise<TestResult[]>;
   allMetrics: () => Promise<MetricSample[]>;
   allNewTestResults: (filter?: TestResultFilter, history?: HistoryDataPoint[]) => Promise<TestResult[]>;
-  // check data
-  addCheckResult: (result: AllureCheckResult) => Promise<void>;
-  allCheckResults: () => Promise<AllureCheckResult[]>;
   // quality gate data
-  qualityGateResults: () => Promise<QualityGateValidationResult[]>;
-  qualityGateResultsByEnv: () => Promise<Record<string, QualityGateValidationResult[]>>;
-  qualityGateResultsByEnvironmentId: () => Promise<Record<string, QualityGateValidationResult[]>>;
+  addQualityGateResult: (result: AllureQualityGateResult) => Promise<void>;
+  qualityGateResults: () => Promise<AllureQualityGateResult[]>;
+  qualityGateResultsByEnv: () => Promise<Record<string, AllureQualityGateResult[]>>;
+  qualityGateResultsByEnvironmentId: () => Promise<Record<string, AllureQualityGateResult[]>>;
   // global data
   globalExitCode: () => Promise<ExitCode | undefined>;
   allGlobalErrors: () => Promise<TestError[]>;
@@ -98,14 +95,13 @@ export interface AllureStoreDump {
   attachments: Record<string, AttachmentLink>;
   globalAttachmentIds: string[];
   globalErrors: PluginGlobalError[];
-  checkResults: Record<string, AllureCheckResult>;
   testCases: Record<string, TestCase>;
   fixtures: Record<string, TestFixtureResult>;
   environments: Array<string | EnvironmentIdentity>;
   reportVariables: ReportVariables;
   metadata?: Record<string, any>;
   resolutionIssues: Record<string, ResolutionIssue>;
-  qualityGateResults: QualityGateValidationResult[];
+  qualityGateResults: AllureQualityGateResult[];
   metrics?: MetricSample[];
   indexAttachmentByTestResult: Record<string, string[]>;
   indexTestResultByRetryHash: Record<string, string[]>;
@@ -125,6 +121,7 @@ export enum AllureStoreDumpFiles {
   GlobalErrors = "global-errors.json",
   GlobalAttachments = "global-attachments.json",
   Attachments = "attachments.json",
+  /** @deprecated Kept for restoring dumps created before Quality Gate results were unified. */
   CheckResults = "check-results.json",
   Environments = "environments.json",
   ReportVariables = "report-variables.json",

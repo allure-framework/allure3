@@ -2,7 +2,7 @@ import * as console from "node:console";
 import { resolve } from "node:path";
 
 import { readConfig } from "@allurereport/core";
-import { ExpressionError } from "@allurereport/core-api";
+import { type AllureQualityGateResult, ExpressionError } from "@allurereport/core-api";
 import AwesomePlugin from "@allurereport/plugin-awesome";
 import { KnownError } from "@allurereport/service";
 import { allureId, epic, feature, label, story } from "allure-js-commons";
@@ -13,6 +13,20 @@ import { executeAllureRun, runTests } from "../../src/commands/commons/run.js";
 import { RunCommand } from "../../src/commands/run.js";
 import { ALLURE_CLI_ACTIVE_COMMAND_ENV } from "../../src/utils/execution-context.js";
 import { applyVerbosity } from "../../src/utils/verbosity.js";
+
+const qualityGateResult = (
+  status: AllureQualityGateResult["status"],
+  key: string,
+  expected: number,
+  actual: number,
+  message: string,
+  testResults: string[],
+): AllureQualityGateResult => ({
+  status,
+  key,
+  source: { type: "rule" },
+  details: { expected, actual, message, testResults },
+});
 
 const {
   exitMock,
@@ -96,8 +110,8 @@ vi.mock("@allurereport/core", async () => {
     },
     readConfig: vi.fn(),
     stringifyQualityGateResults: vi.fn(),
-    filterFailedQualityGateResults: vi.fn((results: { success: boolean }[]) =>
-      results.filter(({ success }) => !success),
+    filterFailedQualityGateResults: vi.fn((results: { status: string }[]) =>
+      results.filter(({ status }) => status === "failed"),
     ),
     isFileNotFoundError: vi.fn().mockReturnValue(false),
   };
@@ -536,16 +550,7 @@ describe("run command", () => {
       plugins: [],
     });
     AllureReportMock.prototype.validate.mockResolvedValueOnce({
-      results: [
-        {
-          success: true,
-          expected: 0,
-          actual: 0,
-          rule: "maxFailures",
-          message: "No failed tests",
-          testResults: [],
-        },
-      ],
+      results: [qualityGateResult("passed", "maxFailures", 0, 0, "No failed tests", [])],
     });
 
     await run(RunCommand, ["run", "--", "npm", "test"]);
@@ -852,14 +857,10 @@ describe("run command", () => {
       status: "passed",
       labels: [],
     };
-    const failedQualityGateResult = {
-      success: false,
-      expected: 100,
-      actual: 200,
-      rule: "maxDuration",
-      message: "Some tests are too slow",
-      testResults: [blockingFailure.id, relatedPassedTest.id],
-    };
+    const failedQualityGateResult = qualityGateResult("failed", "maxDuration", 100, 200, "Some tests are too slow", [
+      blockingFailure.id,
+      relatedPassedTest.id,
+    ]);
     const testPlanPath = resolve("/tmp/run", "0-testplan.json");
 
     AllureReportMock.prototype.store = {
@@ -926,25 +927,17 @@ describe("run command", () => {
     const testProcessTermination = new Promise<number | null>((resolve) => {
       finishTestProcess = resolve;
     });
-    const firstResult = {
-      success: false,
-      expected: 0,
-      actual: 1,
-      rule: "maxFailures",
-      message: "Too many failures",
-      testResults: ["tr-1", "tr-1"],
-    };
+    const firstResult = qualityGateResult("failed", "maxFailures", 0, 1, "Too many failures", ["tr-1", "tr-1"]);
     const passedResult = {
       ...firstResult,
-      success: true,
-      rule: "maxDuration",
-      testResults: ["tr-passed"],
+      status: "passed" as const,
+      key: "maxDuration",
+      details: { ...firstResult.details, testResults: ["tr-passed"] },
     };
     const recoveredResult = {
       ...firstResult,
-      success: true,
-      actual: 0,
-      testResults: [],
+      status: "passed" as const,
+      details: { ...firstResult.details, actual: 0, testResults: [] },
     };
     const relatedTestResult = {
       id: "tr-1",
@@ -1028,14 +1021,7 @@ describe("run command", () => {
     const testProcessTermination = new Promise<number | null>((resolve) => {
       finishTestProcess = resolve;
     });
-    const fastFailResult = {
-      success: false,
-      expected: 10,
-      actual: 1,
-      rule: "minTestsCount",
-      message: "Not enough tests",
-      testResults: [],
-    };
+    const fastFailResult = qualityGateResult("failed", "minTestsCount", 10, 1, "Not enough tests", []);
 
     AllureReportMock.prototype.realtimeSubscriber = {
       onTestResults: vi.fn((callback: (ids: string[]) => Promise<void>) => {
@@ -1119,14 +1105,7 @@ describe("run command", () => {
           processFinisherWaiters.push(resolve);
         }
       });
-    const fastFailResult = {
-      success: false,
-      expected: 10,
-      actual: 1,
-      rule: "minTestsCount",
-      message: "Not enough tests",
-      testResults: [],
-    };
+    const fastFailResult = qualityGateResult("failed", "minTestsCount", 10, 1, "Not enough tests", []);
 
     AllureReportMock.prototype.realtimeSubscriber = {
       onTestResults: vi.fn((callback: TestResultsCallback) => {
@@ -1214,14 +1193,7 @@ describe("run command", () => {
     const testProcessTermination = new Promise<number | null>((resolve) => {
       finishTestProcess = resolve;
     });
-    const fastFailResult = {
-      success: false,
-      expected: 0,
-      actual: 1,
-      rule: "maxFailures",
-      message: "Too many failures",
-      testResults: ["tr-1"],
-    };
+    const fastFailResult = qualityGateResult("failed", "maxFailures", 0, 1, "Too many failures", ["tr-1"]);
 
     AllureReportMock.prototype.realtimeSubscriber = {
       onTestResults: vi.fn((callback: (ids: string[]) => Promise<void>) => {
@@ -1278,14 +1250,7 @@ describe("run command", () => {
     "should prioritize interruption over quality gate ($interrupted, code=$code, qualityGate=$withQualityGate, muted=$muted)",
     async ({ interrupted, code, withQualityGate, muted }) => {
       const { AllureReportMock } = await import("../utils.js");
-      const passingRule = {
-        success: true,
-        expected: 0,
-        actual: 0,
-        rule: "maxFailures",
-        message: "No blocking failures",
-        testResults: [],
-      };
+      const passingRule = qualityGateResult("passed", "maxFailures", 0, 0, "No blocking failures", []);
 
       (readConfig as Mock).mockResolvedValueOnce({
         output: "./allure-report",

@@ -22,6 +22,7 @@ import {
   ExpressionError,
   buildMetricHierarchy,
   normalizeCategoriesConfig,
+  normalizeQualityGateResults,
   parseIntegerConfigValue,
 } from "@allurereport/core-api";
 import {
@@ -395,9 +396,7 @@ export class AllureReport {
 
   #prepareReportFiles = async (): Promise<void> => {
     await this.#writeTestResultRegistry();
-    if (this.#qualityGate) {
-      await this.#writeQualityGateFiles();
-    }
+    await this.#writeQualityGateFiles();
     await this.#writeSummaryFiles();
     await this.#generateRootSummary();
   };
@@ -800,7 +799,6 @@ export class AllureReport {
       environments,
       reportVariables,
       metadata = {},
-      checkResults = {},
       globalAttachmentIds = [],
       globalErrors = [],
       indexAttachmentByTestResult = {},
@@ -818,7 +816,6 @@ export class AllureReport {
       [AllureStoreDumpFiles.TestCases, testCases],
       [AllureStoreDumpFiles.Fixtures, fixtures],
       [AllureStoreDumpFiles.Attachments, attachments],
-      [AllureStoreDumpFiles.CheckResults, checkResults],
       [AllureStoreDumpFiles.Environments, environments],
       [AllureStoreDumpFiles.ReportVariables, reportVariables],
       [AllureStoreDumpFiles.Metadata, metadata],
@@ -1065,7 +1062,6 @@ export class AllureReport {
                 testCases: JSON.parse(testCasesEntry.toString("utf8")),
                 fixtures: JSON.parse(fixturesEntry.toString("utf8")),
                 attachments: attachmentsLinks,
-                checkResults: checkResultsEntry ? JSON.parse(checkResultsEntry.toString("utf8")) : [],
                 environments: JSON.parse(environmentsEntry.toString("utf8")),
                 reportVariables: JSON.parse(reportVariablesEntry.toString("utf8")),
                 metadata: metadataEntry ? JSON.parse(metadataEntry.toString("utf8")) : {},
@@ -1080,7 +1076,12 @@ export class AllureReport {
                 indexAttachmentByFixture: JSON.parse(indexAttachmentsByFixtureEntry.toString("utf8")),
                 indexFixturesByTestResult: JSON.parse(indexFixturesByTestResultEntry.toString("utf8")),
                 resolutionIssues: resolutionIssuesEntry ? JSON.parse(resolutionIssuesEntry.toString("utf8")) : {},
-                qualityGateResults: JSON.parse(qualityGateResultsEntry.toString("utf8")),
+                qualityGateResults: [
+                  ...normalizeQualityGateResults(JSON.parse(qualityGateResultsEntry.toString("utf8"))),
+                  ...normalizeQualityGateResults(
+                    checkResultsEntry ? JSON.parse(checkResultsEntry.toString("utf8")) : undefined,
+                  ),
+                ],
                 testResultIdsIngestOrder: testResultIngestOrderEntry
                   ? JSON.parse(testResultIngestOrderEntry.toString("utf8"))
                   : [],
@@ -1261,6 +1262,10 @@ export class AllureReport {
 
   #writeQualityGateFiles = async (): Promise<void> => {
     const qualityGateResults = await this.#store.qualityGateResults();
+
+    if (!this.#qualityGate && qualityGateResults.length === 0) {
+      return;
+    }
 
     await this.#reportFiles.addFile(QUALITY_GATE_RESULTS_FILENAME, Buffer.from(JSON.stringify(qualityGateResults)));
   };

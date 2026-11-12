@@ -58,16 +58,16 @@ describe("plugin option expressions", () => {
 
   it("filters Log quality-gate outcomes with a distinct result context", async () => {
     const plugin = await resolvePlugin("log", {
-      qualityGateFilter: "${{ !result.success && result.rule == 'maxFailures' }}",
+      qualityGateFilter: "${{ result.status == 'failed' && result.key == 'maxFailures' }}",
     });
 
     const outcomes = [
-      { success: true, rule: "maxFailures" },
-      { success: false, rule: "maxFailures" },
-      { success: false, rule: "minTestsCount" },
+      { status: "passed", key: "maxFailures" },
+      { status: "failed", key: "maxFailures" },
+      { status: "failed", key: "minTestsCount" },
     ].filter(plugin.options.qualityGateFilter);
 
-    expect(outcomes).toEqual([{ success: false, rule: "maxFailures" }]);
+    expect(outcomes).toEqual([{ status: "failed", key: "maxFailures" }]);
   });
 
   it("preserves native callback and option identity", async () => {

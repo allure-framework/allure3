@@ -113,8 +113,8 @@ beforeEach(async () => {
   AllureReportMock.prototype.store = {
     failedTestResults: vi.fn().mockResolvedValue([]),
     allTestResults: vi.fn().mockResolvedValue([]),
-    addCheckResult: vi.fn().mockResolvedValue(undefined),
-    allCheckResults: vi.fn().mockResolvedValue([]),
+    addQualityGateResult: vi.fn().mockResolvedValue(undefined),
+    qualityGateResults: vi.fn().mockResolvedValue([]),
   };
 });
 
@@ -136,12 +136,12 @@ describe("check command", () => {
     const writtenCheckResult = readWrittenCheckResult();
 
     expect(mkdir).toHaveBeenCalledWith("/report-output", { recursive: true });
-    expect(vi.mocked(writeFile).mock.calls[0][0]).toContain(`${writtenCheckResult.id}-check.json`);
+    expect(vi.mocked(writeFile).mock.calls[0][0]).toMatch(/-quality-gate\.json$/);
     expect(writtenCheckResult).toEqual({
-      id: expect.any(String),
-      name: "Lint",
       status: "passed",
-      details: {
+      key: "Lint",
+      source: {
+        type: "command",
         command: "npm run lint",
       },
     });
@@ -159,10 +159,10 @@ describe("check command", () => {
       shell: true,
     });
     expect(readWrittenCheckResult()).toEqual({
-      id: expect.any(String),
-      name: "List",
       status: "passed",
-      details: {
+      key: "List",
+      source: {
+        type: "command",
         command: "ls .",
       },
     });
@@ -177,16 +177,34 @@ describe("check command", () => {
       return 2;
     });
 
-    await run(CheckCommand, ["check", "--name", "Lint", "--", "npm", "run", "lint"]);
+    await run(CheckCommand, [
+      "check",
+      "--name",
+      "Lint",
+      "--message",
+      "Run configured lint policy",
+      "--tag",
+      "ci",
+      "--tag",
+      "lint",
+      "--",
+      "npm",
+      "run",
+      "lint",
+    ]);
 
     expect(readWrittenCheckResult()).toEqual({
-      id: expect.any(String),
-      name: "Lint",
       status: "failed",
-      details: {
+      key: "Lint",
+      tags: ["ci", "lint"],
+      source: {
+        type: "command",
         command: "npm run lint",
-        message: "running lint",
-        error: "lint failed",
+      },
+      details: {
+        message: "Run configured lint policy",
+        stdout: "running lint\n",
+        stderr: "lint failed\n",
       },
     });
     expect(stdoutWriteMock).toHaveBeenCalledWith("running lint\n");
@@ -194,29 +212,15 @@ describe("check command", () => {
     expect(exitMock).toHaveBeenCalledWith(2);
   });
 
-  it("should write a manual result with tags", async () => {
-    await run(CheckCommand, [
-      "check",
-      "--name",
-      "Manual approval",
-      "--status",
-      "passed",
-      "--message",
-      "approved",
-      "--tag",
-      "release",
-      "--tag",
-      "linux",
-    ]);
+  it("should write a manual result", async () => {
+    await run(CheckCommand, ["check", "--name", "Manual approval", "--status", "passed", "--message", "approved"]);
 
     expect(runProcess).not.toHaveBeenCalled();
     expect(readWrittenCheckResult()).toEqual({
-      id: expect.any(String),
-      name: "Manual approval",
       status: "passed",
-      tags: ["release", "linux"],
+      key: "Manual approval",
+      source: { type: "manual" },
       details: {
-        command: "",
         message: "approved",
       },
     });
@@ -237,13 +241,10 @@ describe("check command", () => {
       }),
     );
     expect(AllureReportMock.prototype.start).toHaveBeenCalled();
-    expect(AllureReportMock.prototype.store.addCheckResult).toHaveBeenCalledWith({
-      id: expect.any(String),
-      name: "Manual approval",
+    expect(AllureReportMock.prototype.store.addQualityGateResult).toHaveBeenCalledWith({
       status: "passed",
-      details: {
-        command: "",
-      },
+      key: "Manual approval",
+      source: { type: "manual" },
     });
     expect(AllureReportMock.prototype.done).toHaveBeenCalled();
     expect(mkdir).not.toHaveBeenCalled();

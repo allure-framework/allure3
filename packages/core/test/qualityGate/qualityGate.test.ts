@@ -1,5 +1,5 @@
-import type { TestResult, TestStatus } from "@allurereport/core-api";
-import type { QualityGateConfig, QualityGateRule, QualityGateValidationResult } from "@allurereport/plugin-api";
+import type { AllureQualityGateResult, TestResult, TestStatus } from "@allurereport/core-api";
+import type { QualityGateConfig, QualityGateRule } from "@allurereport/plugin-api";
 import { epic, feature, label, story } from "allure-js-commons";
 import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
@@ -29,13 +29,16 @@ const createValidationResult = (
   actual: any,
   expected: any,
   message: string,
-): QualityGateValidationResult => ({
-  success,
-  rule,
-  actual,
-  expected,
-  message,
-  testResults: [],
+): AllureQualityGateResult => ({
+  status: success ? "passed" : "failed",
+  key: rule,
+  source: { type: "rule" },
+  details: {
+    actual,
+    expected,
+    message,
+    testResults: [],
+  },
 });
 
 beforeEach(async () => {
@@ -60,14 +63,14 @@ describe("filterFailedQualityGateResults", () => {
 
 describe("stringifyQualityGateResults", () => {
   it("should return empty string for empty results", () => {
-    const results: QualityGateValidationResult[] = [];
+    const results: AllureQualityGateResult[] = [];
     const result = stringifyQualityGateResults(results);
 
     expect(result).toBe("");
   });
 
   it("should format single validation result", () => {
-    const results: QualityGateValidationResult[] = [
+    const results: AllureQualityGateResult[] = [
       createValidationResult(false, "maxFailures", 2, 1, "Maximum number of failed tests 2 is more, than expected 1"),
     ];
     const result = stringifyQualityGateResults(results);
@@ -75,11 +78,11 @@ describe("stringifyQualityGateResults", () => {
     expect(result).toContain("Quality Gate failed with following issues:");
     expect(result).toContain("Maximum number of failed tests 2 is more, than expected 1");
     expect(result).toContain("maxFailures");
-    expect(result).toContain("1 quality gate rules have been failed.");
+    expect(result).toContain("1 quality gate checks have failed.");
   });
 
   it("should return empty string when every rule has been passed", () => {
-    const results: QualityGateValidationResult[] = [
+    const results: AllureQualityGateResult[] = [
       createValidationResult(true, "maxFailures", 0, 1, "The number of failed tests 0 is within the threshold 1"),
     ];
 
@@ -87,7 +90,7 @@ describe("stringifyQualityGateResults", () => {
   });
 
   it("should omit passed rules from the formatted output", () => {
-    const results: QualityGateValidationResult[] = [
+    const results: AllureQualityGateResult[] = [
       createValidationResult(true, "minTestsCount", 2, 1, "The total number of tests 2 meets the threshold 1"),
       createValidationResult(false, "maxFailures", 2, 1, "Maximum number of failed tests 2 is more, than expected 1"),
     ];
@@ -96,11 +99,11 @@ describe("stringifyQualityGateResults", () => {
     expect(result).toContain("Maximum number of failed tests 2 is more, than expected 1");
     expect(result).not.toContain("The total number of tests 2 meets the threshold 1");
     expect(result).not.toContain("minTestsCount");
-    expect(result).toContain("1 quality gate rules have been failed.");
+    expect(result).toContain("1 quality gate checks have failed.");
   });
 
   it("should format multiple validation results", () => {
-    const results: QualityGateValidationResult[] = [
+    const results: AllureQualityGateResult[] = [
       createValidationResult(false, "maxFailures", 2, 1, "Maximum number of failed tests 2 is more, than expected 1"),
       createValidationResult(false, "minTestsCount", 1, 2, "Minimum number of tests 1 is less, than expected 2"),
     ];
@@ -111,20 +114,40 @@ describe("stringifyQualityGateResults", () => {
     expect(result).toContain("Minimum number of tests 1 is less, than expected 2");
     expect(result).toContain("maxFailures");
     expect(result).toContain("minTestsCount");
-    expect(result).toContain("2 quality gate rules have been failed.");
+    expect(result).toContain("2 quality gate checks have failed.");
+  });
+
+  it("should describe command failures using captured output without treating the command as a message", () => {
+    const withStderr: AllureQualityGateResult = {
+      status: "failed",
+      key: "lint",
+      source: { type: "command", command: "npm run lint" },
+      details: { stdout: "checking", stderr: "lint failed" },
+    };
+    const withoutOutput: AllureQualityGateResult = {
+      status: "failed",
+      key: "types",
+      source: { type: "command", command: "npm run typecheck" },
+    };
+
+    const result = stringifyQualityGateResults([withStderr, withoutOutput]);
+
+    expect(result).toContain("lint failed");
+    expect(result).toContain("No message provided");
+    expect(result).not.toContain("npm run typecheck");
   });
 });
 
 describe("convertQualityGateResultsToTestErrors", () => {
   it("should return empty array for empty results", () => {
-    const results: QualityGateValidationResult[] = [];
+    const results: AllureQualityGateResult[] = [];
     const errors = convertQualityGateResultsToTestErrors(results);
 
     expect(errors).toEqual([]);
   });
 
   it("should convert single validation result to test error", () => {
-    const results: QualityGateValidationResult[] = [
+    const results: AllureQualityGateResult[] = [
       createValidationResult(false, "maxFailures", 2, 1, "Maximum number of failed tests 2 is more, than expected 1"),
     ];
     const errors = convertQualityGateResultsToTestErrors(results);
@@ -138,7 +161,7 @@ describe("convertQualityGateResultsToTestErrors", () => {
   });
 
   it("should not convert passed validation results", () => {
-    const results: QualityGateValidationResult[] = [
+    const results: AllureQualityGateResult[] = [
       createValidationResult(true, "maxFailures", 0, 1, "The number of failed tests 0 is within the threshold 1"),
     ];
 
@@ -146,7 +169,7 @@ describe("convertQualityGateResultsToTestErrors", () => {
   });
 
   it("should convert multiple validation results to test errors", () => {
-    const results: QualityGateValidationResult[] = [
+    const results: AllureQualityGateResult[] = [
       createValidationResult(false, "maxFailures", 2, 1, "Maximum number of failed tests 2 is more, than expected 1"),
       createValidationResult(false, "minTestsCount", 1, 2, "Minimum number of tests 1 is less, than expected 2"),
     ];
@@ -163,6 +186,23 @@ describe("convertQualityGateResultsToTestErrors", () => {
       actual: 1,
       expected: 2,
     });
+  });
+
+  it("should describe command failures using captured output", () => {
+    const result: AllureQualityGateResult = {
+      status: "failed",
+      key: "lint",
+      source: { type: "command", command: "npm run lint" },
+      details: { stdout: "checking", stderr: "lint failed" },
+    };
+
+    expect(convertQualityGateResultsToTestErrors([result])).toEqual([
+      {
+        message: "Quality Gate (lint): lint failed",
+        actual: undefined,
+        expected: undefined,
+      },
+    ]);
   });
 });
 
@@ -222,12 +262,12 @@ describe("QualityGate", () => {
       });
 
       expect(results).toHaveLength(1);
-      expect(results[0].success).toBe(false);
-      expect(results[0].rule).toBe("mockRule");
-      expect(results[0].actual).toBe(5);
-      expect(results[0].expected).toBe(3);
-      expect(results[0].message).toBe("Mock rule failed with 5 vs 3");
-      expect(results[0].testResults).toEqual([]);
+      expect(results[0].status).toBe("failed");
+      expect(results[0].key).toBe("mockRule");
+      expect(results[0].details?.actual).toBe(5);
+      expect(results[0].details?.expected).toBe(3);
+      expect(results[0].details?.message).toBe("Mock rule failed with 5 vs 3");
+      expect(results[0].details?.testResults).toEqual([]);
       expect(fastFailed).toBe(false);
     });
 
@@ -248,8 +288,8 @@ describe("QualityGate", () => {
       });
 
       expect(results).toHaveLength(1);
-      expect(results[0].rule).toBe("maxFailures");
-      expect(results[0].testResults).toEqual(["2", "3"]);
+      expect(results[0].key).toBe("maxFailures");
+      expect(results[0].details?.testResults).toEqual(["2", "3"]);
     });
 
     it("should populate evidence ids for maxDuration default rule", async () => {
@@ -267,8 +307,8 @@ describe("QualityGate", () => {
       });
 
       expect(results).toHaveLength(1);
-      expect(results[0].rule).toBe("maxDuration");
-      expect(results[0].testResults).toEqual(["2", "3"]);
+      expect(results[0].key).toBe("maxDuration");
+      expect(results[0].details?.testResults).toEqual(["2", "3"]);
     });
 
     it("should return empty evidence ids for default rules without direct evidence", async () => {
@@ -281,8 +321,8 @@ describe("QualityGate", () => {
       });
 
       expect(results).toHaveLength(1);
-      expect(results[0].rule).toBe("minTestsCount");
-      expect(results[0].testResults).toEqual([]);
+      expect(results[0].key).toBe("minTestsCount");
+      expect(results[0].details?.testResults).toEqual([]);
     });
 
     it("should preserve passed environment values in failed results", async () => {
@@ -341,11 +381,11 @@ describe("QualityGate", () => {
       });
 
       expect(results).toHaveLength(1);
-      expect(results[0].success).toBe(true);
-      expect(results[0].rule).toBe("mockRule");
-      expect(results[0].actual).toBe(2);
-      expect(results[0].expected).toBe(3);
-      expect(results[0].message).toBe("Mock rule passed with 2 vs 3");
+      expect(results[0].status).toBe("passed");
+      expect(results[0].key).toBe("mockRule");
+      expect(results[0].details?.actual).toBe(2);
+      expect(results[0].details?.expected).toBe(3);
+      expect(results[0].details?.message).toBe("Mock rule passed with 2 vs 3");
       expect(fastFailed).toBe(false);
     });
 
@@ -369,7 +409,7 @@ describe("QualityGate", () => {
       });
 
       expect(results).toHaveLength(1);
-      expect(stripAnsi(results[0].message)).toBe("The rule has been passed; actual 2, expected 3");
+      expect(stripAnsi(results[0].details?.message ?? "")).toBe("The rule has been passed; actual 2, expected 3");
     });
 
     it("should report both passed and failed rules of the same config", async () => {
@@ -382,9 +422,9 @@ describe("QualityGate", () => {
       });
 
       expect(results).toHaveLength(2);
-      expect(results.map(({ rule, success }) => ({ rule, success }))).toEqual([
-        { rule: "maxFailures", success: false },
-        { rule: "minTestsCount", success: true },
+      expect(results.map(({ key, status }) => ({ key, status }))).toEqual([
+        { key: "maxFailures", status: "failed" },
+        { key: "minTestsCount", status: "passed" },
       ]);
       expect(fastFailed).toBe(false);
     });
@@ -409,7 +449,7 @@ describe("QualityGate", () => {
       });
 
       expect(fastFailed).toBe(false);
-      expect(results.map(({ rule }) => rule)).toEqual(["mockRule", "minTestsCount"]);
+      expect(results.map(({ key }) => key)).toEqual(["mockRule", "minTestsCount"]);
     });
 
     it("shouldn't call subsequent rulesets when a rule with fastFail: true fails", async () => {
@@ -444,7 +484,7 @@ describe("QualityGate", () => {
       });
 
       expect(results).toHaveLength(1);
-      expect(results[0].rule).toBe("customId/mockRule1");
+      expect(results[0].key).toBe("customId/mockRule1");
       expect(fastFailed).toBe(false);
     });
 
@@ -459,7 +499,7 @@ describe("QualityGate", () => {
       });
 
       expect(results).toHaveLength(1);
-      expect(results[0].rule).toBe("maxFailures");
+      expect(results[0].key).toBe("maxFailures");
       expect(fastFailed).toBe(false);
     });
 
@@ -476,7 +516,13 @@ describe("QualityGate", () => {
         trs: testResults,
       });
 
-      expect(results).toEqual([expect.objectContaining({ rule: "maxFailures", success: true, actual: 0 })]);
+      expect(results).toEqual([
+        expect.objectContaining({
+          key: "maxFailures",
+          status: "passed",
+          details: expect.objectContaining({ actual: 0 }),
+        }),
+      ]);
       expect(fastFailed).toBe(false);
     });
 
@@ -490,10 +536,10 @@ describe("QualityGate", () => {
       const first = await qualityGate.validate({ state, trs: testResults });
       const second = await qualityGate.validate({ state, trs: testResults });
 
-      expect(first.results[0].actual).toBe(1);
-      expect(first.results[0].testResults).toEqual(["1"]);
-      expect(second.results[0].actual).toBe(1);
-      expect(second.results[0].testResults).toEqual(["1"]);
+      expect(first.results[0].details?.actual).toBe(1);
+      expect(first.results[0].details?.testResults).toEqual(["1"]);
+      expect(second.results[0].details?.actual).toBe(1);
+      expect(second.results[0].details?.testResults).toEqual(["1"]);
     });
 
     it("should consume only new ids from overlapping batches with the same gate", async () => {
@@ -511,7 +557,7 @@ describe("QualityGate", () => {
         trs: [createTestResult("2", "passed"), createTestResult("3", "passed")],
       });
 
-      expect(results).toEqual([expect.objectContaining({ rule: "minTestsCount", success: true })]);
+      expect(results).toEqual([expect.objectContaining({ key: "minTestsCount", status: "passed" })]);
       expect(state.getResult("minTestsCount")).toBe(3);
     });
 
@@ -528,8 +574,8 @@ describe("QualityGate", () => {
       });
 
       expect(results).toHaveLength(1);
-      expect(results[0].actual).toBe(1);
-      expect(results[0].testResults).toEqual(["1"]);
+      expect(results[0].details?.actual).toBe(1);
+      expect(results[0].details?.testResults).toEqual(["1"]);
     });
 
     it("should accumulate evidence ids across multiple validate calls", async () => {
@@ -544,8 +590,8 @@ describe("QualityGate", () => {
         trs: [createTestResult("2", "broken")],
       });
 
-      expect(results[0].actual).toBe(2);
-      expect(results[0].testResults).toEqual(["1", "2"]);
+      expect(results[0].details?.actual).toBe(2);
+      expect(results[0].details?.testResults).toEqual(["1", "2"]);
     });
 
     it("should include accumulated evidence when fast fail stops validation", async () => {
@@ -562,7 +608,7 @@ describe("QualityGate", () => {
 
       expect(fastFailed).toBe(true);
       expect(results).toHaveLength(1);
-      expect(results[0].testResults).toEqual(["1", "2"]);
+      expect(results[0].details?.testResults).toEqual(["1", "2"]);
     });
 
     it("should reset dedupe for a new gate instance", async () => {
@@ -574,8 +620,8 @@ describe("QualityGate", () => {
       await new QualityGate(config).validate({ trs: testResults });
       const { results } = await new QualityGate(config).validate({ trs: testResults });
 
-      expect(results[0].actual).toBe(1);
-      expect(results[0].testResults).toEqual(["1"]);
+      expect(results[0].details?.actual).toBe(1);
+      expect(results[0].details?.testResults).toEqual(["1"]);
     });
 
     it("should keep seen-id dedupe in shared state across gate instances", async () => {
@@ -787,8 +833,8 @@ describe("QualityGate", () => {
         trs: [createTestResult("2", "failed")],
       });
 
-      expect(results[0].actual).toBe(2);
-      expect(results[0].testResults).toEqual(["1", "2"]);
+      expect(results[0].details?.actual).toBe(2);
+      expect(results[0].details?.testResults).toEqual(["1", "2"]);
     });
 
     it("should fast fail when any rules set has fastFail flag", async () => {
@@ -813,8 +859,8 @@ describe("QualityGate", () => {
       });
 
       expect(results).toHaveLength(1);
-      expect(results[0].success).toBe(false);
-      expect(results[0].rule).toBe("mockRule1");
+      expect(results[0].status).toBe("failed");
+      expect(results[0].key).toBe("mockRule1");
       expect(fastFailed).toBe(true);
     });
 
@@ -859,7 +905,7 @@ describe("QualityGate", () => {
 
       expect(validateSpy1).toHaveBeenCalled();
       expect(results).toHaveLength(1);
-      expect(results[0].rule).toBe("mockRule1");
+      expect(results[0].key).toBe("mockRule1");
       expect(fastFailed).toBe(true);
       expect(validateSpy2).not.toHaveBeenCalled();
     });
@@ -926,7 +972,7 @@ describe("QualityGate", () => {
         trs: testResults,
       });
 
-      expect(result.results).toEqual([expect.objectContaining({ rule: "mockRuleNoState", success: true })]);
+      expect(result.results).toEqual([expect.objectContaining({ key: "mockRuleNoState", status: "passed" })]);
     });
 
     it("should throw error for unknown rule", async () => {
@@ -968,7 +1014,7 @@ describe("QualityGate", () => {
       });
 
       expect(results).toHaveLength(1);
-      expect(results[0].rule).toBe("customId/mockRule");
+      expect(results[0].key).toBe("customId/mockRule");
       expect(fastFailed).toBe(false);
     });
 
@@ -983,7 +1029,7 @@ describe("QualityGate", () => {
       });
 
       expect(results).toHaveLength(1);
-      expect(results[0].rule).toBe("maxFailures");
+      expect(results[0].key).toBe("maxFailures");
       expect(fastFailed).toBe(false);
     });
 

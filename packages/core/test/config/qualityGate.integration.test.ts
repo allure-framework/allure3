@@ -163,20 +163,20 @@ qualityGate:
     const rerun = await gate.validate({ trs: [first, failed], state: new QualityGateState() });
 
     expect(initial.results).toMatchObject([
-      { actual: 1, success: true, message: "No unexpected failures" },
-      { actual: 2, success: false },
+      { status: "passed", details: { actual: 1, message: "No unexpected failures" } },
+      { status: "failed", details: { actual: 2 } },
     ]);
     expect(live.results).toMatchObject([
-      { actual: 2, success: false, testResults: ["2", "3"], message: "Failures: 2" },
-      { actual: 3, success: true },
+      { status: "failed", details: { actual: 2, testResults: ["2", "3"], message: "Failures: 2" } },
+      { status: "passed", details: { actual: 3 } },
     ]);
     expect(final.results).toMatchObject([
-      { actual: 2, success: false, testResults: ["2", "3"] },
-      { actual: 3, success: true },
+      { status: "failed", details: { actual: 2, testResults: ["2", "3"] } },
+      { status: "passed", details: { actual: 3 } },
     ]);
     expect(rerun.results).toMatchObject([
-      { actual: 1, success: true },
-      { actual: 2, success: false },
+      { status: "passed", details: { actual: 1 } },
+      { status: "failed", details: { actual: 2 } },
     ]);
   });
 
@@ -201,7 +201,13 @@ qualityGate:
     });
 
     expect(result.fastFailed).toBe(true);
-    expect(result.results).toMatchObject([{ rule: "critical/maxFailures", actual: 1, testResults: ["critical"] }]);
+    expect(result.results).toMatchObject([
+      {
+        key: "critical/maxFailures",
+        source: { type: "rule" },
+        details: { actual: 1, testResults: ["critical"] },
+      },
+    ]);
     expect(result.results).toHaveLength(1);
   });
 
@@ -231,9 +237,11 @@ export default {
     });
 
     expect(result.results[0]).toMatchObject({
-      success: true,
-      actual: { delta: 3, environment: "qa" },
-      message: "qa: 3",
+      status: "passed",
+      details: {
+        actual: { delta: 3, environment: "qa" },
+        message: "qa: 3",
+      },
     });
   });
 });

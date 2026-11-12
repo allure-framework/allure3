@@ -3,21 +3,8 @@ import type { ResolutionCategory } from "./resolutions.js";
 import type { TestCase } from "./testCase.js";
 
 export type TestStatus = "failed" | "broken" | "passed" | "skipped" | "unknown";
-export type AllureCheckStatus = "passed" | "failed";
 export type TestStatusTransition = "regressed" | "fixed" | "malfunctioned" | "new";
 export type SeverityLevel = "blocker" | "critical" | "normal" | "minor" | "trivial";
-
-export interface AllureCheckResult {
-  id: string;
-  name: string;
-  status: AllureCheckStatus;
-  tags?: string[];
-  details: {
-    message?: string;
-    error?: string;
-    command: string;
-  };
-}
 
 export type AllureQualityGateResult = {
   status: "passed" | "failed";
@@ -27,21 +14,25 @@ export type AllureQualityGateResult = {
    */
   key: string;
   environment?: string;
-  source: {
-    /**
-     * Describes the result's origin:
-     * `rule` - result of a Quality Gate rule
-     * `command` - result of an external command
-     * `manual` - externally supplied status without a command
-     */
-    type: "rule" | "command" | "manual";
-
-    /**
-     * Exact executed command.
-     * Present when `type` is `command`.
-     */
-    command?: string;
-  };
+  tags?: string[];
+  source:
+    | {
+        /**
+         * Result of a Quality Gate rule or an externally supplied status without a command.
+         */
+        type: "rule" | "manual";
+        command?: never;
+      }
+    | {
+        /**
+         * Result of an external command.
+         */
+        type: "command";
+        /**
+         * Exact executed command.
+         */
+        command: string;
+      };
   details?: {
     message?: string;
     expected?: any;

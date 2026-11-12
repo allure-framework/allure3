@@ -2715,7 +2715,19 @@ describe("testops http client", () => {
       await client.createSession();
       await client.createNamedEnvs([{ id: "chrome", name: "Chrome" }]);
       await client.uploadQualityGateResults([
-        { rule: "maxFailures", message: "too many failures", success: false, environment: "Chrome" } as any,
+        {
+          key: "maxFailures",
+          status: "failed",
+          source: { type: "rule" },
+          details: { message: "too many failures" },
+          environment: "Chrome",
+        } as any,
+        {
+          key: "lint",
+          status: "failed",
+          source: { type: "command", command: "npm run lint" },
+          environment: "Chrome",
+        } as any,
       ]);
 
       const qualityGateCall = AxiosMock.post.mock.calls.find(
@@ -2724,6 +2736,7 @@ describe("testops http client", () => {
 
       expect((qualityGateCall![1] as any).items).toEqual([
         { name: "maxFailures", message: "too many failures", namedEnvId: 7 },
+        { name: "lint", namedEnvId: 7 },
       ]);
     });
   });

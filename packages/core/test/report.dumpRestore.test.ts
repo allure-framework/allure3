@@ -403,6 +403,13 @@ describe("AllureReport.restoreState (dump zip)", () => {
         },
       },
     ];
+    const expectedQualityGateResults = [
+      {
+        status: "passed",
+        key: "Lint",
+        source: { type: "command", command: "npm run lint" },
+      },
+    ];
 
     await writeZip(brokenZipPath, [
       {
@@ -422,7 +429,7 @@ describe("AllureReport.restoreState (dump zip)", () => {
     await step("restore valid dumps after a broken dump", async () => {
       await expect(report.restoreState([brokenZipPath, validZipPath])).resolves.toBeUndefined();
 
-      await expect(report.store.allCheckResults()).resolves.toEqual(checkResults);
+      await expect(report.store.qualityGateResults()).resolves.toEqual(expectedQualityGateResults);
       expect(consoleErrorSpy).toHaveBeenCalledWith(
         expect.stringContaining(`Failed to restore state from "${brokenZipPath}", continuing without it`),
       );
@@ -447,6 +454,14 @@ describe("AllureReport.restoreState (dump zip)", () => {
         },
       },
     ];
+    const expectedQualityGateResults = [
+      {
+        status: "passed",
+        key: "Lint",
+        source: { type: "command", command: "npm run lint" },
+        details: { stdout: "lint ok" },
+      },
+    ];
 
     await writeDumpZip(zipPath, [], {
       [AllureStoreDumpFiles.CheckResults]: JSON.stringify({
@@ -460,14 +475,13 @@ describe("AllureReport.restoreState (dump zip)", () => {
     await step("restore check results from a dump archive", async () => {
       await report.restoreState([zipPath]);
 
-      const [restoredResult] = await report.store.allCheckResults();
+      const [restoredResult] = await report.store.qualityGateResults();
 
-      expect(restoredResult).toEqual(checkResults[0]);
+      expect(restoredResult).toEqual(expectedQualityGateResults[0]);
 
-      restoredResult.tags?.push("mutated");
-      restoredResult.details.message = "changed";
+      restoredResult.details!.stdout = "changed";
 
-      await expect(report.store.allCheckResults()).resolves.toEqual(checkResults);
+      await expect(report.store.qualityGateResults()).resolves.toEqual(expectedQualityGateResults);
     });
   });
 
@@ -484,7 +498,7 @@ describe("AllureReport.restoreState (dump zip)", () => {
     await step("restore a dump archive without check-results.json", async () => {
       await report.restoreState([zipPath]);
 
-      await expect(report.store.allCheckResults()).resolves.toEqual([]);
+      await expect(report.store.qualityGateResults()).resolves.toEqual([]);
     });
   });
 
@@ -508,7 +522,7 @@ describe("AllureReport.restoreState (dump zip)", () => {
     await step("restore a dump from a nested artifact zip", async () => {
       await report.restoreState([outerZipPath]);
 
-      await expect(report.store.allCheckResults()).resolves.toEqual([]);
+      await expect(report.store.qualityGateResults()).resolves.toEqual([]);
     });
   });
 
@@ -794,16 +808,14 @@ describe("AllureReport.restoreState (dump zip)", () => {
     });
   });
 
-  it("writes check results to a dump", async () => {
+  it("writes external check results to the unified quality gate dump entry", async () => {
     const dumpPath = join(tmpdir(), `allure-check-dump-${randomBytes(8).toString("hex")}`);
     const zipPath = `${dumpPath}.zip`;
     const checkResult = {
-      id: "check-result-id-3",
-      name: "Lint",
+      key: "Lint",
       status: "passed" as const,
-      tags: ["ci"],
+      source: { type: "command" as const, command: "npm run lint" },
       details: {
-        command: "npm run lint",
         message: "lint ok",
       },
     };
@@ -818,7 +830,7 @@ describe("AllureReport.restoreState (dump zip)", () => {
     });
 
     await report.start();
-    await report.store.addCheckResult(checkResult);
+    await report.store.addQualityGateResult(checkResult);
     await report.done();
 
     const archive = new ZipReadStream.async({
@@ -826,12 +838,10 @@ describe("AllureReport.restoreState (dump zip)", () => {
     });
 
     try {
-      const checkResultsEntry = await archive.entryData(AllureStoreDumpFiles.CheckResults);
+      const qualityGateResultsEntry = await archive.entryData(AllureStoreDumpFiles.QualityGateResults);
       const resolutionIssueIndexEntry = await archive.entryData(AllureStoreDumpFiles.IndexTestResultsByResolutionIssue);
 
-      expect(JSON.parse(checkResultsEntry.toString("utf8"))).toEqual({
-        [checkResult.id]: checkResult,
-      });
+      expect(JSON.parse(qualityGateResultsEntry.toString("utf8"))).toEqual([checkResult]);
       expect(JSON.parse(resolutionIssueIndexEntry.toString("utf8"))).toEqual({});
     } finally {
       await archive.close();
