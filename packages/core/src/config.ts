@@ -15,6 +15,11 @@ import type { FullConfig, PluginInstance } from "./api.js";
 import { resolveAllureService } from "./config/allureService.js";
 import { resolveCategories } from "./config/categories.js";
 import { resolveEnvironments } from "./config/environments.js";
+import {
+  findUnsupportedCoreExpressions,
+  findUnsupportedExpressions,
+  supportsPluginExpression,
+} from "./config/expressionWarnings.js";
 import { resolveHideLabels } from "./config/hideLabels.js";
 import { resolvePluginOptions } from "./config/pluginOptions.js";
 import { resolveQualityGate } from "./config/qualityGate.js";
@@ -340,6 +345,10 @@ export const resolveConfig = async (config: Config, override: ConfigOverride = {
     throw new Error(`The provided Allure config contains unsupported fields: ${validationResult.fields.join(", ")}`);
   }
 
+  for (const path of findUnsupportedCoreExpressions(config, override)) {
+    console.warn(`Dynamic expressions are not supported at ${path}; the value will not be evaluated.`);
+  }
+
   validateResolutionsConfig(config.resolutions);
   validateFlakyDetectionConfig(config.flakyDetection);
   validatePerformanceConfig(config.performance);
@@ -545,7 +554,18 @@ const resolvePlugins = async (plugins: Record<string, PluginDescriptor>, context
   for (const id in plugins) {
     const pluginConfig = plugins[id];
     const pluginId = getPluginId(id);
+    const { options: rawOptions, ...descriptor } = pluginConfig;
+    for (const path of findUnsupportedExpressions(descriptor, () => false, ["plugins", id])) {
+      console.warn(`Dynamic expressions are not supported at ${path}; the value will not be evaluated.`);
+    }
     const Plugin = await resolvePlugin(pluginConfig.import ?? id);
+    for (const path of findUnsupportedExpressions(
+      rawOptions,
+      (segments) => supportsPluginExpression(Plugin.configExpressions, segments.slice(3)),
+      ["plugins", id, "options"],
+    )) {
+      console.warn(`Dynamic expressions are not supported at ${path}; the value will not be evaluated.`);
+    }
     const options = resolvePluginOptions(
       pluginConfig.options,
       Plugin.configExpressions,
