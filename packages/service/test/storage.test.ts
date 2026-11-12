@@ -73,17 +73,18 @@ describe("storage upload paths", () => {
 });
 
 describe("uploadStorageReport", () => {
-  it("uses a bounded worker pool for report files", async () => {
+  it("uses a bounded worker pool for report files", async ({ signal, onTestFinished }) => {
     const filepath = await createTempFile("content");
     let active = 0;
     let maximumActive = 0;
-    let release!: () => void;
-    const gate = new Promise<void>((resolve) => {
-      release = resolve;
-    });
+    const { promise: gate, resolve: release } = Promise.withResolvers<void>();
+    const { promise: poolStarted, resolve: markPoolStarted } = Promise.withResolvers<void>();
     const upload = vi.fn(async () => {
       active++;
       maximumActive = Math.max(maximumActive, active);
+      if (active === uploadConfig.uploadConcurrency) {
+        markPoolStarted();
+      }
       await gate;
       active--;
 
@@ -96,9 +97,16 @@ describe("uploadStorageReport", () => {
       files,
       uploadedAssets: new Set(),
       upload,
+      signal,
     });
 
-    await vi.waitFor(() => expect(maximumActive).toBe(10));
+    // A timeout can leave uploads waiting on the gate even after the pool is aborted.
+    onTestFinished(async () => {
+      release();
+      await Promise.allSettled([resultPromise]);
+    });
+
+    await Promise.race([poolStarted, resultPromise]);
     release();
     await resultPromise;
 
