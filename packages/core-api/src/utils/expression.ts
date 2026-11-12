@@ -30,6 +30,7 @@ export const compileExpression = (
     const source = wrapped.slice(3, -2).trim();
     const environment = new Environment({
       unlistedVariablesAreDyn: false,
+      enableOptionalTypes: true,
     });
     for (const [name, type] of Object.entries(variables)) {
       environment.registerVariable(name, type);
