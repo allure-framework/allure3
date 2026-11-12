@@ -23,6 +23,37 @@ const overrideStatistics = async (page: Page, counts: Counts) => {
 };
 
 for (const mode of Object.values(REPORT_MODES)) {
+  test(`Escape stays dismissed under a stationary pointer after redraw (${mode})`, async ({ page }) => {
+    await openReport(page, { fixture: "success-rate", mode });
+    const caption = page.locator('.chart__caption[data-tooltip-key="caption"]');
+    const tooltip = page.getByRole("tooltip");
+    await caption.focus();
+    await caption.hover();
+    await expect(tooltip).toHaveText("Success rate: 91.63%");
+
+    await page.keyboard.press("Escape");
+    await expect(tooltip).toHaveCount(0);
+
+    const description = (await caption.getAttribute("aria-describedby"))!;
+    const viewport = page.viewportSize()!;
+    await page.setViewportSize({ ...viewport, height: viewport.height + 1 });
+
+    await expect(caption).not.toHaveAttribute("aria-describedby", description);
+    await expect(caption).toBeFocused();
+    // Let the browser dispatch hover boundary events for the replacement caption.
+    await page.evaluate(async () => {
+      await new Promise(requestAnimationFrame);
+      await new Promise(requestAnimationFrame);
+    });
+    expect(await caption.evaluate((element) => element.matches(":hover"))).toBe(true);
+    await expect(tooltip).toHaveCount(0);
+
+    await page.mouse.move(0, 0);
+    await caption.hover();
+    await expect(caption).toBeFocused();
+    await expect(tooltip).toHaveText("Success rate: 91.63%");
+  });
+
   test(`pie explanation and interaction in both chart locations (${mode})`, async ({ page }, testInfo) => {
     await openReport(page, { fixture: "success-rate", mode });
 
@@ -40,7 +71,7 @@ for (const mode of Object.values(REPORT_MODES)) {
       await expect(caption).toHaveAccessibleName("Success rate: 91.63%");
       await expect(caption).toHaveAccessibleDescription(/Skipped and unknown tests are excluded/);
 
-      await test.step("Focus explanation; Escape dismisses without moving focus", async () => {
+      await test.step("Escape keeps the focused explanation dismissed through a redraw", async () => {
         await caption.focus();
 
         await expect(page.getByRole("tooltip")).toHaveText("Success rate: 91.63%");
@@ -49,6 +80,19 @@ for (const mode of Object.values(REPORT_MODES)) {
 
         await expect(page.getByRole("tooltip")).toHaveCount(0);
         await expect(caption).toBeFocused();
+
+        const description = (await caption.getAttribute("aria-describedby"))!;
+        const viewport = page.viewportSize()!;
+        await page.setViewportSize({ ...viewport, width: viewport.width - 80 });
+
+        await expect(caption).not.toHaveAttribute("aria-describedby", description);
+        await expect(caption).toBeFocused();
+        await expect(page.getByRole("tooltip")).toHaveCount(0);
+
+        await suitesLink.focus();
+        await caption.focus();
+        await expect(page.getByRole("tooltip")).toHaveText("Success rate: 91.63%");
+        await page.keyboard.press("Escape");
       });
       await test.step("Pointer can enter explanation, and leaving both targets closes it", async () => {
         // Redraws replace the caption and restore focus, so move focus outside the chart.
@@ -93,8 +137,10 @@ for (const mode of Object.values(REPORT_MODES)) {
       });
 
       await caption.focus();
+      const description = (await caption.getAttribute("aria-describedby"))!;
       await page.setViewportSize({ width: route ? 1300 : 1200, height: 900 });
 
+      await expect(caption).not.toHaveAttribute("aria-describedby", description);
       await expect(caption).toBeFocused();
       await expect(page.getByRole("tooltip")).toContainText("91.63%");
 
@@ -102,15 +148,17 @@ for (const mode of Object.values(REPORT_MODES)) {
         body: await page.screenshot(),
         contentType: "image/png",
       });
-      await page.keyboard.press("Escape");
-      await suitesLink.focus();
     }
 
     await testInfo.attach("input and expectations", {
       body: JSON.stringify({ passed: 493, failed: 45, skipped: 95, success: "91.63%", passedSlice: "77.88%" }),
       contentType: "application/json",
     });
-    await suitesLink.click();
+    await expect(page.getByRole("tooltip")).toHaveText("Success rate: 91.63%");
+    // Navigate without first blurring the caption so view teardown must remove the open tooltip.
+    await page.evaluate(() => {
+      location.hash = "suites";
+    });
 
     await expect(page.getByRole("tooltip")).toHaveCount(0);
     await expect(page.locator('[id*="-description-"]')).toHaveCount(0);

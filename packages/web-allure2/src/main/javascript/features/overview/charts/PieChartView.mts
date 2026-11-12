@@ -43,6 +43,7 @@ class PieChartView extends BaseChartView {
 
   private releaseTooltips: (() => void)[] = [];
   private descriptionIndex = 0;
+  private dismissedFocusKey?: string;
 
   constructor(options: PieChartOptions = {}) {
     super(options);
@@ -79,6 +80,9 @@ class PieChartView extends BaseChartView {
     const focusedKey = this.el.contains(document.activeElement)
       ? (document.activeElement as HTMLElement).dataset.tooltipKey
       : undefined;
+    if (focusedKey !== this.dismissedFocusKey) {
+      this.dismissedFocusKey = undefined;
+    }
     this.clearTooltips();
     const data = this.data;
     const arcGenerator = this.arc as unknown as (datum: import("d3-shape").PieArcDatum<PieChartDatum>) => string | null;
@@ -204,6 +208,7 @@ class PieChartView extends BaseChartView {
     let focused = false;
     let hovered = false;
     let tooltipHovered = false;
+    let waitingForPointerMove = false;
     let timer: ReturnType<typeof setTimeout> | undefined;
     const hide = () => {
       tooltip.hide();
@@ -211,12 +216,18 @@ class PieChartView extends BaseChartView {
     };
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
+        if (focused) {
+          this.dismissedFocusKey = key;
+        }
         tooltipHovered = false;
         clearTimeout(timer);
         hide();
       }
     };
     const show = () => {
+      if (focused) {
+        this.dismissedFocusKey = undefined;
+      }
       clearTimeout(timer);
       tooltip.show(createFragment(tooltipText), anchor);
       document.addEventListener("keydown", onKeyDown);
@@ -231,18 +242,34 @@ class PieChartView extends BaseChartView {
     };
     const onEnter = () => {
       hovered = true;
-      show();
+      // Replacing the anchor under a stationary pointer can dispatch mouseenter.
+      waitingForPointerMove = this.dismissedFocusKey === key;
+      if (!waitingForPointerMove) {
+        show();
+      }
+    };
+    const onPointerMove = () => {
+      if (waitingForPointerMove) {
+        waitingForPointerMove = false;
+        show();
+      }
     };
     const onLeave = () => {
       hovered = false;
+      waitingForPointerMove = false;
       leave();
     };
     const onFocus = () => {
       focused = true;
-      show();
+      if (this.dismissedFocusKey !== key) {
+        show();
+      }
     };
     const onBlur = () => {
       focused = false;
+      if (this.dismissedFocusKey === key) {
+        this.dismissedFocusKey = undefined;
+      }
       leave();
     };
     const onTooltipEnter = () => {
@@ -255,6 +282,7 @@ class PieChartView extends BaseChartView {
     };
 
     anchor.addEventListener("mouseenter", onEnter);
+    anchor.addEventListener("pointermove", onPointerMove);
     anchor.addEventListener("mouseleave", onLeave);
     anchor.addEventListener("focus", onFocus);
     anchor.addEventListener("blur", onBlur);
@@ -266,6 +294,7 @@ class PieChartView extends BaseChartView {
       tooltip.destroy();
       description.remove();
       anchor.removeEventListener("mouseenter", onEnter);
+      anchor.removeEventListener("pointermove", onPointerMove);
       anchor.removeEventListener("mouseleave", onLeave);
       anchor.removeEventListener("focus", onFocus);
       anchor.removeEventListener("blur", onBlur);
@@ -275,6 +304,7 @@ class PieChartView extends BaseChartView {
   }
 
   detachFromDom() {
+    this.dismissedFocusKey = undefined;
     this.clearTooltips();
     super.detachFromDom();
   }
