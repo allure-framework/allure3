@@ -137,6 +137,7 @@ for (const layout of ["default layout", "narrow scroll pane"]) {
   test(`should keep the body toggle in place when its tooltip appears (${layout})`, async ({ page }) => {
     const toggle = testResultPage.stepsSubtreeToggleLocator;
     const label = "Expand first level";
+    const paneWidth = 240;
 
     if (layout === "narrow scroll pane") {
       const header = page.locator("[data-tr-focus-id]").filter({ has: toggle });
@@ -148,7 +149,7 @@ for (const layout of ["default layout", "narrow scroll pane"]) {
             display: block;
             flex: none;
             overflow: auto;
-            width: 240px;
+            width: ${paneWidth}px;
             height: 120px;
             padding: 0;
           }
@@ -201,6 +202,9 @@ for (const layout of ["default layout", "narrow scroll pane"]) {
     await expect(tooltip).toBeInViewport();
 
     const { before, atTooltipMount } = await position.jsonValue();
+    if (layout === "narrow scroll pane") {
+      expect(before).toMatchObject({ clientWidth: paneWidth, scrollWidth: paneWidth });
+    }
     expect(atTooltipMount).toEqual(before);
 
     await toggle.click();
