@@ -1,6 +1,6 @@
 import { extname, join as joinPosix } from "node:path/posix";
 
-import { type HistoryDataPoint, type TestPlanTest } from "@allurereport/core-api";
+import { type AllureLogger, type HistoryDataPoint, type TestPlanTest } from "@allurereport/core-api";
 
 import {
   ALLURE_SERVICE_TESTOPS_PREFIX,
@@ -51,17 +51,20 @@ export class AllureTestOpsClient implements AllureServiceApiClient {
   readonly #url: string;
   readonly #accessToken: string;
   readonly #projectId: number;
-  #client?: HttpClient;
+  readonly #logger: AllureLogger;
   readonly config: AllureServiceApiClientConfig;
+  #client?: HttpClient;
 
-  constructor(config: AllureTestOpsClientConfig) {
+  constructor(config: AllureTestOpsClientConfig, logger: AllureLogger = console) {
+    this.#logger = logger;
+
     if (!config?.accessToken) {
       throw new Error("Allure TestOps access token is required");
     }
 
     const isProjectToken = config.accessToken.startsWith(ALLURE_SERVICE_TESTOPS_PREFIX);
     if (isProjectToken && (config.projectId !== undefined || config.url !== undefined)) {
-      console.warn("Allure TestOps project token contains projectId and url; explicit values are ignored.");
+      this.#logger.warn("Allure TestOps project token contains projectId and url; explicit values are ignored.");
     }
     if (!isProjectToken) {
       if (!config.projectId) {

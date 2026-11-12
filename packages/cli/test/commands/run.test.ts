@@ -2,6 +2,7 @@ import * as console from "node:console";
 import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 
+import { Logger } from "@allurereport/cli-commons";
 import { readConfig } from "@allurereport/core";
 import { ExpressionError } from "@allurereport/core-api";
 import AwesomePlugin from "@allurereport/plugin-awesome";
@@ -93,9 +94,9 @@ vi.mock("@allurereport/service", async (importOriginal) => {
   return {
     ...actual,
     AllureTestOpsClient: class extends actual.AllureTestOpsClient {
-      constructor(config: ConstructorParameters<typeof actual.AllureTestOpsClient>[0]) {
-        super(config);
-        testOpsConstructorMock(config);
+      constructor(...args: ConstructorParameters<typeof actual.AllureTestOpsClient>) {
+        super(...args);
+        testOpsConstructorMock(...args);
       }
       getMutedTests = mutedGetMock;
     },
@@ -1595,11 +1596,10 @@ describe("with skipping muted tests", () => {
 
     await execute();
 
-    expect(testOpsConstructorMock).toHaveBeenCalledWith({
-      accessToken: "plugin-token",
-      url: "https://plugin.example.com",
-      projectId: 123,
-    });
+    expect(testOpsConstructorMock).toHaveBeenCalledWith(
+      { accessToken: "plugin-token", url: "https://plugin.example.com", projectId: 123 },
+      expect.any(Logger),
+    );
     expect(childEnvironment().ALLURE_TESTPLAN_PATH).toBe(planPath);
   });
 
@@ -1629,11 +1629,10 @@ describe("with skipping muted tests", () => {
 
       await execute();
 
-      expect(testOpsConstructorMock).toHaveBeenCalledWith({
-        accessToken: expectedToken,
-        url: expectedUrl,
-        projectId: expectedProjectId,
-      });
+      expect(testOpsConstructorMock).toHaveBeenCalledWith(
+        { accessToken: expectedToken, url: expectedUrl, projectId: expectedProjectId },
+        expect.any(Logger),
+      );
       expect(childEnvironment().ALLURE_TESTPLAN_PATH).toBe(planPath);
     },
   );
@@ -1644,7 +1643,7 @@ describe("with skipping muted tests", () => {
 
     await execute();
 
-    expect(testOpsConstructorMock).toHaveBeenCalledWith(expect.objectContaining({ accessToken }));
+    expect(testOpsConstructorMock).toHaveBeenCalledWith(expect.objectContaining({ accessToken }), expect.any(Logger));
     expect(childEnvironment().ALLURE_TESTPLAN_PATH).toBe(planPath);
   });
 
@@ -1656,7 +1655,7 @@ describe("with skipping muted tests", () => {
     await execute();
 
     expect(mutedGetMock).toHaveBeenCalledExactlyOnceWith();
-    expect(testOpsConstructorMock).toHaveBeenCalledWith(expect.objectContaining({ accessToken }));
+    expect(testOpsConstructorMock).toHaveBeenCalledWith(expect.objectContaining({ accessToken }), expect.any(Logger));
     expect(writeFile).toHaveBeenCalledWith(
       planPath,
       JSON.stringify({

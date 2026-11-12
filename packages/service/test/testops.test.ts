@@ -165,6 +165,17 @@ describe("AllureTestOpsClient", () => {
       });
     });
 
+    it("sends project token override warnings to the configured logger instead of console", () => {
+      const logger = { debug: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn() };
+
+      new AllureTestOpsClientClass({ accessToken: validAccessToken, projectId: 456 }, logger);
+
+      expect(logger.warn).toHaveBeenCalledExactlyOnceWith(
+        "Allure TestOps project token contains projectId and url; explicit values are ignored.",
+      );
+      expect(console.warn).not.toHaveBeenCalled();
+    });
+
     it("should throw an error if token payload doesn't contain a project ID", () => {
       expect(
         () =>

@@ -184,7 +184,7 @@ export class RunCommand extends Command {
         // rerun check in case test plan is set via allure ci env file
         const testPlanNotSet = process.env.ALLURE_TESTPLAN_PATH === undefined;
         if (testPlanNotSet && accessToken) {
-          const client = new AllureTestOpsClient({ accessToken, projectId, url });
+          const client = new AllureTestOpsClient({ accessToken, projectId, url }, runLogger);
           const mutedTests = await client.getMutedTests();
           const testPlan: TestPlan = { version: "1.0", tests: [], mutedTests };
 

@@ -2,6 +2,7 @@ import console from "node:console";
 import { env } from "node:process";
 import { inspect as inspectValue } from "node:util";
 
+import type { AllureLogger } from "@allurereport/core-api";
 import { blue, bold, cyan, dim, gray, red, yellow } from "yoctocolors";
 
 export type LogLevel = "silent" | "verbose" | "debug" | "info" | "warn" | "error";
@@ -69,7 +70,7 @@ const stringifyMessage = (message: LogMessage) => {
   }
 };
 
-export class Logger {
+export class Logger implements AllureLogger {
   readonly #prefix: string;
   readonly #continuationPrefix: string;
   #level: LogLevel | undefined;
