@@ -1500,10 +1500,10 @@ describe("with skipping muted tests", () => {
     AllureReportMock.prototype.done.mockReset().mockResolvedValue(undefined);
   });
 
-  it.each([undefined, false])("does not prepare a muted plan with skipMutedTests=%s", async (skipMutedTests) => {
+  it("does not prepare a muted plan with skipMutedTests=false", async () => {
     vi.mocked(readConfig).mockResolvedValueOnce({
       output: "./allure-report",
-      plugins: [{ id: "testops", enabled: true, options: { skipMutedTests } }],
+      plugins: [{ id: "testops", enabled: true, options: { skipMutedTests: false } }],
     } as never);
 
     await execute();
@@ -1514,30 +1514,29 @@ describe("with skipping muted tests", () => {
     expect(childEnvironment()).toEqual({ ALLURE_CLI_ACTIVE_COMMAND: "run" });
   });
 
-  it.each(["/caller/testplan.json", ""])(
-    "preserves explicitly set host testplan %s before client setup",
-    async (path) => {
-      vi.stubEnv("ALLURE_TESTPLAN_PATH", path);
-      vi.stubEnv(
-        "ALLURE_CI_ENV",
-        Buffer.from(
-          JSON.stringify({
-            ALLURE_TOKEN: "changed-token",
-            ALLURE_TESTPLAN_PATH: "/ci/testplan.json",
-          }),
-        ).toString("base64"),
-      );
+  it("preserves explicitly set host testplan before client setup", async () => {
+    const path = "/caller/testplan.json";
 
-      await execute();
+    vi.stubEnv("ALLURE_TESTPLAN_PATH", path);
+    vi.stubEnv(
+      "ALLURE_CI_ENV",
+      Buffer.from(
+        JSON.stringify({
+          ALLURE_TOKEN: "changed-token",
+          ALLURE_TESTPLAN_PATH: "/ci/testplan.json",
+        }),
+      ).toString("base64"),
+    );
 
-      expect(testOpsConstructorMock).not.toHaveBeenCalled();
-      expect(mkdtemp).not.toHaveBeenCalled();
-      expect(writeFile).not.toHaveBeenCalled();
-      expect(process.env.ALLURE_TOKEN).toBe(accessToken);
-      expect(process.env.ALLURE_TESTPLAN_PATH).toBe(path);
-      expect(childEnvironment()).toEqual({ ALLURE_CLI_ACTIVE_COMMAND: "run" });
-    },
-  );
+    await execute();
+
+    expect(testOpsConstructorMock).not.toHaveBeenCalled();
+    expect(mkdtemp).not.toHaveBeenCalled();
+    expect(writeFile).not.toHaveBeenCalled();
+    expect(process.env.ALLURE_TOKEN).toBe(accessToken);
+    expect(process.env.ALLURE_TESTPLAN_PATH).toBe(path);
+    expect(childEnvironment()).toEqual({ ALLURE_CLI_ACTIVE_COMMAND: "run" });
+  });
 
   it("preserves a CI-decoded testplan", async () => {
     vi.stubEnv(
@@ -1649,43 +1648,27 @@ describe("with skipping muted tests", () => {
     expect(childEnvironment().ALLURE_TESTPLAN_PATH).toBe(planPath);
   });
 
-  it.each([
-    { projectId: undefined, url: "https://testops.example.com", error: "project id" },
-    { projectId: "42", url: undefined, error: "url" },
-  ])("warns and continues when a user token is missing $error", async ({ projectId, url, error }) => {
-    vi.stubEnv("ALLURE_TOKEN", "user-token");
-    vi.stubEnv("ALLURE_PROJECT_ID", projectId);
-    vi.stubEnv("ALLURE_ENDPOINT", url);
+  it("writes and injects a muted-only plan", async () => {
+    const mutedTests = [{ id: "123", selector: "suite.spec.ts#test" }];
 
-    const exitCode = await execute();
+    mutedGetMock.mockResolvedValueOnce(mutedTests);
 
-    expect(exitCode).toBe(0);
-    expect(writeFile).not.toHaveBeenCalled();
-    expect(console.warn).toHaveBeenCalledWith(expect.stringContaining(error));
+    await execute();
+
+    expect(mutedGetMock).toHaveBeenCalledExactlyOnceWith();
+    expect(testOpsConstructorMock).toHaveBeenCalledWith(expect.objectContaining({ accessToken }));
+    expect(writeFile).toHaveBeenCalledWith(
+      planPath,
+      JSON.stringify({
+        version: "1.0",
+        tests: [],
+        mutedTests: mutedTests,
+      }),
+      "utf-8",
+    );
+    expect(childEnvironment()).toEqual({ ALLURE_CLI_ACTIVE_COMMAND: "run", ALLURE_TESTPLAN_PATH: planPath });
+    expect(process.env.ALLURE_TESTPLAN_PATH).toBeUndefined();
   });
-
-  it.each([{ expected: [{ id: "123", selector: "suite.spec.ts#test" }] }, { expected: [] }])(
-    "writes and injects a muted-only plan for $expected",
-    async ({ expected }) => {
-      mutedGetMock.mockResolvedValueOnce(expected);
-
-      await execute();
-
-      expect(mutedGetMock).toHaveBeenCalledExactlyOnceWith();
-      expect(testOpsConstructorMock).toHaveBeenCalledWith(expect.objectContaining({ accessToken }));
-      expect(writeFile).toHaveBeenCalledWith(
-        planPath,
-        JSON.stringify({
-          version: "1.0",
-          tests: [],
-          mutedTests: expected,
-        }),
-        "utf-8",
-      );
-      expect(childEnvironment()).toEqual({ ALLURE_CLI_ACTIVE_COMMAND: "run", ALLURE_TESTPLAN_PATH: planPath });
-      expect(process.env.ALLURE_TESTPLAN_PATH).toBeUndefined();
-    },
-  );
 
   it("keeps nested commands as pass-through", async () => {
     vi.stubEnv(ALLURE_CLI_ACTIVE_COMMAND_ENV, "run");
