@@ -33,7 +33,9 @@ export class LaunchGitFlow {
     }
 
     const gitAvailable = isGitAvailable();
-    const collected = gitAvailable ? collectGitFacts({ ancestorLimit: this.#ancestorLimit }) : undefined;
+    const collected = gitAvailable
+      ? collectGitFacts({ ancestorLimit: this.#ancestorLimit, sourceCommit: this.#ci.commitSha })
+      : undefined;
     const facts = applyGitFactsOverrides(collected);
 
     if (!facts?.commit) {
