@@ -1,7 +1,8 @@
 import { execFileSync } from "node:child_process";
-import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { pathToFileURL } from "node:url";
 
 import { afterEach, beforeEach, describe, expect, it } from "vite-plus/test";
 
@@ -39,7 +40,7 @@ describe("collectGitFacts on a pull request merge checkout", () => {
   /** Checks the merge out the way `actions/checkout` does on a `pull_request` run. */
   const checkoutMergeRef = (depth?: number) => {
     git(checkout, "init", "-q");
-    git(checkout, "remote", "add", "origin", `file://${join(root, "origin")}`);
+    git(checkout, "remote", "add", "origin", pathToFileURL(join(root, "origin")).href);
     git(
       checkout,
       "fetch",
@@ -56,7 +57,8 @@ describe("collectGitFacts on a pull request merge checkout", () => {
     checkout = join(root, "checkout");
     const origin = join(root, "origin");
 
-    execFileSync("mkdir", ["-p", origin, checkout]);
+    mkdirSync(origin, { recursive: true });
+    mkdirSync(checkout, { recursive: true });
     git(origin, "init", "-q", "-b", "main");
     const firstBase = commitFile(origin, "base1");
 
@@ -76,7 +78,7 @@ describe("collectGitFacts on a pull request merge checkout", () => {
   });
 
   afterEach(() => {
-    rmSync(root, { recursive: true, force: true });
+    rmSync(root, { recursive: true, force: true, maxRetries: 3 });
   });
 
   it("reports the pull request head and its history for a full checkout", () => {
