@@ -181,7 +181,9 @@ export class RunCommand extends Command {
         const accessToken = testOpsOptions?.accessToken ?? process.env.ALLURE_TOKEN;
         const projectId = testOpsOptions?.projectId ?? process.env.ALLURE_PROJECT_ID;
         const url = testOpsOptions?.endpoint ?? process.env.ALLURE_ENDPOINT;
-        if (process.env.ALLURE_TESTPLAN_PATH === undefined && accessToken) {
+        // rerun check in case test plan is set via allure ci env file
+        const testPlanNotSet = process.env.ALLURE_TESTPLAN_PATH === undefined;
+        if (testPlanNotSet && accessToken) {
           const client = new AllureTestOpsClient({ accessToken, projectId, url });
           const mutedTests = await client.getMutedTests();
           const testPlan: TestPlan = { version: "1.0", tests: [], mutedTests };
@@ -192,7 +194,7 @@ export class RunCommand extends Command {
             await writeFile(path, JSON.stringify(testPlan), "utf-8");
             testPlanPath = path;
           }
-        } else if (process.env.ALLURE_TESTPLAN_PATH === undefined) {
+        } else if (testPlanNotSet) {
           runLogger.warn(
             "TestOps skipMutedTests requires a functional Allure TestOps instance: set the TestOps plugin accessToken or ALLURE_TOKEN. Continuing without a muted test plan.",
           );
