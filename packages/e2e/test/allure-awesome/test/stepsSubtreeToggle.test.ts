@@ -133,6 +133,81 @@ test("should collapse setup, body and teardown sections by default", async () =>
   await expect(level1Step.locator).toHaveCount(0);
 });
 
+for (const layout of ["default layout", "narrow scroll pane"]) {
+  test(`should keep the body toggle in place when its tooltip appears (${layout})`, async ({ page }) => {
+    const toggle = testResultPage.stepsSubtreeToggleLocator;
+    const label = "Expand first level";
+
+    if (layout === "narrow scroll pane") {
+      const header = page.locator("[data-tr-focus-id]").filter({ has: toggle });
+      await header.evaluate((pane) => pane.setAttribute("data-tooltip-scroll-pane", ""));
+      await page.addStyleTag({
+        content: `
+          [data-tooltip-scroll-pane] {
+            position: relative;
+            display: block;
+            flex: none;
+            overflow: auto;
+            width: 240px;
+            height: 120px;
+            padding: 0;
+          }
+          [data-tooltip-scroll-pane] > div {
+            position: relative;
+            width: auto;
+            margin-inline-start: 160px;
+            height: 120px;
+            padding: 0;
+          }
+          [data-tooltip-scroll-pane] > button,
+          [data-tooltip-scroll-pane] > div > :not(:has([data-testid="test-result-steps-subtree-toggle"])) {
+            display: none;
+          }
+        `,
+      });
+    }
+
+    const position = await toggle.evaluateHandle((button, tooltipText) => {
+      const pane = button.closest("[data-tooltip-scroll-pane]");
+      const read = () => {
+        const { x, y } = button.getBoundingClientRect();
+        return {
+          x,
+          y,
+          clientWidth: pane?.clientWidth,
+          clientHeight: pane?.clientHeight,
+          scrollWidth: pane?.scrollWidth,
+          scrollHeight: pane?.scrollHeight,
+        };
+      };
+      const sample = { before: read(), atTooltipMount: undefined as ReturnType<typeof read> | undefined };
+      // Sample the first layout with the tooltip, before asynchronous positioning can move it.
+      const observer = new MutationObserver((records) => {
+        const tooltipMounted = records.some(({ addedNodes }) =>
+          Array.from(addedNodes).some((node) => node.textContent === tooltipText),
+        );
+        if (tooltipMounted) {
+          sample.atTooltipMount = read();
+          observer.disconnect();
+        }
+      });
+      observer.observe(document.body, { childList: true, subtree: true });
+      return sample;
+    }, label);
+
+    await toggle.hover();
+    const tooltip = page.getByText(label, { exact: true });
+    await expect(tooltip).toBeVisible();
+    await expect(tooltip).toBeInViewport();
+
+    const { before, atTooltipMount } = await position.jsonValue();
+    expect(atTooltipMount).toEqual(before);
+
+    await toggle.click();
+    await expect(testResultPage.getStepByName("level 1").locator).toHaveCount(1);
+  });
+}
+
 test("should cycle body subtree toggle state like categories", async () => {
   const level1Step = testResultPage.getStepByName("level 1");
   const level2Step = level1Step.getSubstepByName("level 2");
