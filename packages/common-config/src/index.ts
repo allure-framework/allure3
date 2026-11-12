@@ -45,8 +45,18 @@ export const defaultTasksConfig = (
   const packageJson = JSON.parse(readFileSync(join(packageRoot, "package.json"), "utf8"));
   const tasks: NonNullable<NonNullable<ViteUserConfig["run"]>["tasks"]> = {};
 
-  const buildScript = loadScript(packageJson, "build");
+  let buildScript = loadScript(packageJson, "build")
+    ?.split("&&")
+    ?.map((s) => s.trim());
   if (buildScript) {
+    if (env.BUILD_ADD_DECLARATION_MAPS === "true" && buildScript.some((s) => s.includes("tsc"))) {
+      buildScript = buildScript.map((s) => {
+        if (!s.includes("tsc")) return s;
+
+        return `${s} --declarationMap`;
+      });
+    }
+
     tasks["vp:build"] = {
       command: buildScript,
       dependsOn: [{ task: "vp:build", from: ["dependencies", "devDependencies"] }],
