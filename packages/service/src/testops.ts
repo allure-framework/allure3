@@ -4,7 +4,7 @@ import { type AllureLogger, type HistoryDataPoint, type TestPlanTest } from "@al
 
 import {
   ALLURE_SERVICE_TESTOPS_PREFIX,
-  type AllureServiceApiClient,
+  AllureServiceApiClient,
   type AllureServiceApiClientConfig,
   type UploadReportPayload,
 } from "./model.js";
@@ -41,22 +41,19 @@ const createUploadBlob = (content: Buffer, filename: string) =>
 const createReportFileUrl = (baseUrl: string, reportUuid: string, reportFilename: string) =>
   `${baseUrl}/api/test-report/view/${joinPosix(reportUuid, reportFilename)}`;
 
-export type AllureTestOpsClientConfig = Pick<AllureServiceApiClientConfig, "accessToken"> &
-  Partial<AllureServiceApiClientConfig> & {
-    projectId?: number | string;
-    url?: string;
-  };
+export type AllureTestOpsClientConfig = AllureServiceApiClientConfig & {
+  projectId?: number | string;
+  url?: string;
+};
 
-export class AllureTestOpsClient implements AllureServiceApiClient {
+export class AllureTestOpsClient extends AllureServiceApiClient {
   readonly #url: string;
   readonly #accessToken: string;
   readonly #projectId: number;
-  readonly #logger: AllureLogger;
-  readonly config: AllureServiceApiClientConfig;
   #client?: HttpClient;
 
-  constructor(config: AllureTestOpsClientConfig, logger: AllureLogger = console) {
-    this.#logger = logger;
+  constructor(config: AllureTestOpsClientConfig, logger?: AllureLogger) {
+    super(config, logger);
 
     if (!config?.accessToken) {
       throw new Error("Allure TestOps access token is required");
@@ -64,7 +61,7 @@ export class AllureTestOpsClient implements AllureServiceApiClient {
 
     const isProjectToken = config.accessToken.startsWith(ALLURE_SERVICE_TESTOPS_PREFIX);
     if (isProjectToken && (config.projectId !== undefined || config.url !== undefined)) {
-      this.#logger.warn("Allure TestOps project token contains projectId and url; explicit values are ignored.");
+      this.logger.warn("Allure TestOps project token contains projectId and url; explicit values are ignored.");
     }
     if (!isProjectToken) {
       if (!config.projectId) {
@@ -88,12 +85,6 @@ export class AllureTestOpsClient implements AllureServiceApiClient {
       throw new Error("Given access token doesn't contain url");
     }
 
-    this.config = {
-      ...config,
-      uploadConcurrency: config.uploadConcurrency ?? 10,
-      uploadMaxAttempts: config.uploadMaxAttempts ?? 5,
-      uploadMaxSimultaneousFailures: config.uploadMaxSimultaneousFailures ?? 5,
-    };
     this.#accessToken = accessTokenPayload.accessToken;
     this.#projectId = projectId;
     this.#url = accessTokenPayload.url.replace(/\/$/, "");

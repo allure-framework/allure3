@@ -48,5 +48,4 @@ export type AllureServiceConfig = {
   uploadMaxSimultaneousFailures?: number;
 };
 
-export type ResolvedAllureServiceConfig = AllureServiceConfig &
-  Required<Pick<AllureServiceConfig, "uploadMaxAttempts" | "uploadMaxSimultaneousFailures">>;
+export type ResolvedAllureServiceConfig = AllureServiceConfig;

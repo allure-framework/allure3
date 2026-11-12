@@ -1603,7 +1603,7 @@ describe("report", () => {
 
     expect(AllureServiceClientMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        uploadConcurrency: uploadConcurrency ?? 10,
+        uploadConcurrency,
       }),
     );
     expect(AllureServiceClientMock.prototype.completeReport).toHaveBeenCalledTimes(1);
@@ -1613,7 +1613,7 @@ describe("report", () => {
     await verifyUploadOptionsForwarding(75);
   });
 
-  it("should use default uploadConcurrency in service client config", async () => {
+  it("should forward optional uploadConcurrency to service client", async () => {
     await verifyUploadOptionsForwarding();
   });
 
@@ -1631,12 +1631,17 @@ describe("report", () => {
 
     new AllureReport(config);
 
-    expect(config.allureService).toEqual({ accessToken: "", private: undefined, ...defaultUploadConfig });
+    expect(config.allureService).toEqual({
+      accessToken: "",
+      private: undefined,
+      uploadMaxAttempts: undefined,
+      uploadMaxSimultaneousFailures: undefined,
+    });
     expect(AllureServiceClientMock).not.toHaveBeenCalled();
     expect(AllureTestOpsClientMock).not.toHaveBeenCalled();
   });
 
-  it("should use TestOps default uploadConcurrency in client config", async () => {
+  it("should forward optional uploadConcurrency to TestOps client", async () => {
     const config = await resolveConfig({
       allureService: {
         accessToken: "ato1.token",
@@ -1647,12 +1652,12 @@ describe("report", () => {
 
     expect(AllureTestOpsClientMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        uploadConcurrency: 10,
+        uploadConcurrency: undefined,
       }),
     );
   });
 
-  it("should default invalid uploadConcurrency for each client", async () => {
+  it("should normalize invalid uploadConcurrency for each client", async () => {
     const storageConfig = await resolveConfig({
       allureService: {
         accessToken: validAccessToken,
@@ -1681,12 +1686,12 @@ describe("report", () => {
 
     expect(AllureServiceClientMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        uploadConcurrency: 10,
+        uploadConcurrency: undefined,
       }),
     );
     expect(AllureTestOpsClientMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        uploadConcurrency: 10,
+        uploadConcurrency: undefined,
       }),
     );
   });

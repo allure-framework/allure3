@@ -25,7 +25,7 @@ describe("Allure Service configuration", () => {
       private: true,
       uploadConcurrency: 2,
       uploadMaxAttempts: 3,
-      uploadMaxSimultaneousFailures: 5,
+      uploadMaxSimultaneousFailures: undefined,
     });
   });
 
@@ -40,7 +40,11 @@ describe("Allure Service configuration", () => {
   it.each(["literal-token", "", undefined])("preserves literal access token %j", async (accessToken) => {
     const config = await resolve({ accessToken });
 
-    expect(config.allureService).toMatchObject({ accessToken, uploadMaxAttempts: 5, uploadMaxSimultaneousFailures: 5 });
+    expect(config.allureService).toMatchObject({
+      accessToken,
+      uploadMaxAttempts: undefined,
+      uploadMaxSimultaneousFailures: undefined,
+    });
   });
 
   it.each(["${{ unknown }}", "${{ true }}"])("reports invalid token expression %s at its path", async (accessToken) => {

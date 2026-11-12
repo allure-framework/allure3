@@ -1,4 +1,5 @@
 export type * from "./model.js";
+export { AllureServiceApiClient } from "./model.js";
 export * from "./service.js";
 export * from "./testops.js";
 export * from "./history.js";
