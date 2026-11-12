@@ -185,10 +185,13 @@ export class RunCommand extends Command {
           const client = new AllureTestOpsClient({ accessToken, projectId, url });
           const mutedTests = await client.getMutedTests();
           const testPlan: TestPlan = { version: "1.0", tests: [], mutedTests };
-          mutedPlanDirectory = await mkdtemp(join(tmpdir(), "allure-run-muted-"));
-          const path = join(mutedPlanDirectory, "testplan.json");
-          await writeFile(path, JSON.stringify(testPlan), "utf-8");
-          testPlanPath = path;
+
+          if (mutedTests.length > 0) {
+            mutedPlanDirectory = await mkdtemp(join(tmpdir(), "allure-run-muted-"));
+            const path = join(mutedPlanDirectory, "testplan.json");
+            await writeFile(path, JSON.stringify(testPlan), "utf-8");
+            testPlanPath = path;
+          }
         } else if (process.env.ALLURE_TESTPLAN_PATH === undefined) {
           runLogger.warn(
             "TestOps skipMutedTests requires a functional Allure TestOps instance: set the TestOps plugin accessToken or ALLURE_TOKEN. Continuing without a muted test plan.",

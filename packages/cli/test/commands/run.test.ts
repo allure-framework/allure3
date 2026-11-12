@@ -1670,6 +1670,18 @@ describe("with skipping muted tests", () => {
     expect(process.env.ALLURE_TESTPLAN_PATH).toBeUndefined();
   });
 
+  it("does not create or inject a test plan when no muted tests are returned", async () => {
+    mutedGetMock.mockResolvedValueOnce([]);
+
+    const exitCode = await execute();
+
+    expect(exitCode).toBe(0);
+    expect(mutedGetMock).toHaveBeenCalledExactlyOnceWith();
+    expect(mkdtemp).not.toHaveBeenCalled();
+    expect(writeFile).not.toHaveBeenCalled();
+    expect(childEnvironment()).toEqual({ ALLURE_CLI_ACTIVE_COMMAND: "run" });
+  });
+
   it("keeps nested commands as pass-through", async () => {
     vi.stubEnv(ALLURE_CLI_ACTIVE_COMMAND_ENV, "run");
 
