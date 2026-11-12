@@ -77,6 +77,7 @@ The plugin accepts the following options:
 | `accessToken`      | Access token for Allure TestOps API                                        | `string`  | `undefined`     |
 | `endpoint`         | Allure TestOps API endpoint                                                | `string`  | `undefined`     |
 | `projectId`        | Allure TestOps project ID                                                  | `string`  | `undefined`     |
+| `skipMutedTests`  | When `true`, `allure run` skips tests muted in TestOps through an adapter-supported test plan | `boolean` | `false` |
 | `autocloseLaunch`  | When `true` (default), the launch is closed automatically when the plugin finishes, unless some uploads failed; set to `false` to keep the launch open | `boolean` | `true`          |
 | `gitFlow`          | When `true`, collect Git metadata for Allure TestOps Git Flow on CI uploads (opt-in) | `boolean` | `false`         |
 | `ancestorLimit`    | How many ancestor commits to attach to the launch for history linking in Allure TestOps | `number`  | `100`           |
@@ -98,6 +99,42 @@ The plugin automatically reads the following environment variables and uses them
 | `ALLURE_GIT_ANCESTOR_LIMIT` | `ancestorLimit` |
 
 `ALLURE_TESTOPS_ENABLED` and `CI` are not configuration options: they only control whether upload runs when no CI is detected. See [CI and local runs](#ci-and-local-runs).
+
+## Skipping muted tests
+
+Set `skipMutedTests: true` in the TestOps plugin options to exclude tests marked as muted in Allure TestOps when using `allure run`:
+
+```js
+import { defineConfig } from "allure";
+
+export default defineConfig({
+  plugins: {
+    testops: {
+      options: {
+        skipMutedTests: true,
+        // accessToken, endpoint, and projectId can also be supplied here.
+      },
+    },
+  },
+});
+```
+
+Then run your tests normally:
+
+```shell
+ALLURE_TOKEN=your-user-token \
+ALLURE_ENDPOINT=https://testops.example.com \
+ALLURE_PROJECT_ID=123 \
+allure run -- npm test
+```
+
+The option defaults to `false`. It requires an available TestOps instance and a test framework integration that supports muted tests in Allure testplans. Each connection setting comes from the plugin options first, then its corresponding environment variable.
+
+For muted-test lookup, a user token requires `endpoint` and `projectId`. An encoded project token (`ato1.`) supplies both values itself; explicit endpoint or project values are ignored with a warning.
+
+An existing `ALLURE_TESTPLAN_PATH` takes precedence: Allure leaves that plan untouched and does not fetch muted tests. If credentials are missing or the lookup fails, Allure warns and continues without muted-test filtering.
+
+Muted-test filtering works for local runs as well as CI runs. Upload activation remains separate; see [CI and local runs](#ci-and-local-runs). This option affects `allure run`, not report generation from existing results.
 
 ## Environment variables
 

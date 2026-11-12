@@ -258,7 +258,10 @@ export interface TestOpsFixtureResult extends Omit<TestFixtureResult, "type"> {
   type: "BEFORE" | "AFTER";
 }
 
-export type TestOpsPluginOptions = TestOpsUploaderOptions;
+export type TestOpsPluginOptions = TestOpsUploaderOptions & {
+  /** Skip TestOps-muted tests during allure run through adapter-supported testplans. Default: false. */
+  skipMutedTests?: boolean;
+};
 
 export type TestOpsSession = {
   id: number;

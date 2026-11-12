@@ -1458,7 +1458,7 @@ describe("with skipping muted tests", () => {
   const accessToken = `ato1.${Buffer.from(JSON.stringify({ accessToken: "api-token", url: "https://testops.example.com", projectId: 42 })).toString("base64url")}.signature`;
   const ownedDir = resolve("/tmp/run-muted");
   const planPath = resolve(ownedDir, "testplan.json");
-  const execute = (options: string[] = ["--skip-muted-tests"]) =>
+  const execute = (options: string[] = []) =>
     Cli.from([RunCommand])
       .process(["run", ...options, "--", "npm", "test"])
       .execute();
@@ -1477,7 +1477,11 @@ describe("with skipping muted tests", () => {
     vi.stubEnv("ALLURE_TOKEN", accessToken);
     vi.mocked(readConfig)
       .mockReset()
-      .mockResolvedValue({ output: "./allure-report", open: false, plugins: [] } as never);
+      .mockResolvedValue({
+        output: "./allure-report",
+        open: false,
+        plugins: [{ id: "testops", enabled: true, options: { skipMutedTests: true } }],
+      } as never);
     vi.mocked(mkdtemp).mockReset().mockResolvedValue(ownedDir);
     vi.mocked(writeFile).mockReset().mockResolvedValue(undefined);
     vi.mocked(rm).mockReset().mockResolvedValue(undefined);
@@ -1496,8 +1500,13 @@ describe("with skipping muted tests", () => {
     AllureReportMock.prototype.done.mockReset().mockResolvedValue(undefined);
   });
 
-  it("does not prepare a muted plan unless opted in", async () => {
-    await execute([]);
+  it.each([undefined, false])("does not prepare a muted plan with skipMutedTests=%s", async (skipMutedTests) => {
+    vi.mocked(readConfig).mockResolvedValueOnce({
+      output: "./allure-report",
+      plugins: [{ id: "testops", enabled: true, options: { skipMutedTests } }],
+    } as never);
+
+    await execute();
 
     expect(testOpsConstructorMock).not.toHaveBeenCalled();
     expect(mkdtemp).not.toHaveBeenCalled();
@@ -1560,7 +1569,7 @@ describe("with skipping muted tests", () => {
     expect(childEnvironment()).toEqual({ ALLURE_CLI_ACTIVE_COMMAND: "run" });
     expect(console.warn).toHaveBeenCalledWith(
       expect.stringContaining(
-        "--skip-muted-tests requires a functional Allure TestOps instance: set the TestOps plugin accessToken or ALLURE_TOKEN. Continuing without a muted test plan.",
+        "TestOps skipMutedTests requires a functional Allure TestOps instance: set the TestOps plugin accessToken or ALLURE_TOKEN. Continuing without a muted test plan.",
       ),
     );
   });
@@ -1572,7 +1581,12 @@ describe("with skipping muted tests", () => {
         {
           id,
           enabled: true,
-          options: { accessToken: "plugin-token", endpoint: "https://plugin.example.com", projectId: 123 },
+          options: {
+            skipMutedTests: true,
+            accessToken: "plugin-token",
+            endpoint: "https://plugin.example.com",
+            projectId: 123,
+          },
         },
       ],
     } as never);
@@ -1608,7 +1622,7 @@ describe("with skipping muted tests", () => {
     async ({ options, expectedToken, expectedUrl, expectedProjectId }) => {
       vi.mocked(readConfig).mockResolvedValueOnce({
         output: "./allure-report",
-        plugins: [{ id: "testops", enabled: true, options }],
+        plugins: [{ id: "testops", enabled: true, options: { ...options, skipMutedTests: true } }],
       } as never);
       vi.stubEnv("ALLURE_TOKEN", "environment-token");
       vi.stubEnv("ALLURE_ENDPOINT", "https://environment.example.com");
@@ -1733,7 +1747,11 @@ describe("with skipping muted tests", () => {
   });
 
   it("cleans the plan before starting the report server", async () => {
-    vi.mocked(readConfig).mockResolvedValueOnce({ output: "./allure-report", open: true, plugins: [] } as never);
+    vi.mocked(readConfig).mockResolvedValueOnce({
+      output: "./allure-report",
+      open: true,
+      plugins: [{ id: "testops", enabled: true, options: { skipMutedTests: true } }],
+    } as never);
     vi.mocked(serve).mockImplementationOnce(async () => {
       expect(rm).toHaveBeenCalledWith(ownedDir, { recursive: true, force: true });
       return { url: "http://localhost:8080", port: 8080, stop: vi.fn(), reload: vi.fn(), open: vi.fn() };
@@ -1750,7 +1768,7 @@ describe("with skipping muted tests", () => {
     AllureReportMock.prototype.store.blockingFailedTestResults.mockResolvedValue([failedTest]);
     vi.mocked(mkdtemp).mockResolvedValueOnce(ownedDir).mockResolvedValueOnce("/tmp/rerun");
 
-    await execute(["--skip-muted-tests", "--rerun", "1"]);
+    await execute(["--rerun", "1"]);
 
     expect(childEnvironment()).toEqual({ ALLURE_CLI_ACTIVE_COMMAND: "run", ALLURE_TESTPLAN_PATH: planPath });
     expect(childEnvironment(1)).toEqual({
@@ -1775,7 +1793,7 @@ describe("with skipping muted tests", () => {
     vi.mocked(readConfig).mockResolvedValueOnce({
       output: "./allure-report",
       qualityGate: { rules: [] },
-      plugins: [],
+      plugins: [{ id: "testops", enabled: true, options: { skipMutedTests: true } }],
     } as never);
     let notify!: (callback: (ids: string[]) => Promise<void>) => void;
     const callbackReady = new Promise<(ids: string[]) => Promise<void>>((resolve) => {
@@ -1805,7 +1823,7 @@ describe("with skipping muted tests", () => {
       .mockResolvedValue({ results: [], fastFailed: false });
     supervisorExitCodeMock.mockReturnValueOnce(processDone).mockResolvedValueOnce(0);
 
-    const completion = execute(["--skip-muted-tests", "--rerun", "1"]);
+    const completion = execute(["--rerun", "1"]);
     const callback = await callbackReady;
     await callback(["failed"]);
     finish(1);

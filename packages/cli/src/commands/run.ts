@@ -93,10 +93,6 @@ export class RunCommand extends Command {
     description: "The maximum number of reruns for failed tests and Quality Gate fast-fails (default: 0)",
   });
 
-  skipMutedTests = Option.Boolean("--skip-muted-tests", false, {
-    description: "Exclude muted tests from test run, requires functional TestOps instance (default: false)",
-  });
-
   silent = Option.Boolean("--silent", {
     description: "Don't pipe the process output logs to console (default: 0)",
   });
@@ -178,10 +174,10 @@ export class RunCommand extends Command {
       }
     };
 
-    if (this.skipMutedTests && process.env.ALLURE_TESTPLAN_PATH === undefined) {
+    const testOpsOptions = config.plugins?.find(({ id }) => id === "testops" || id === "plugin-testops")?.options;
+    if (testOpsOptions?.skipMutedTests && process.env.ALLURE_TESTPLAN_PATH === undefined) {
       try {
         applyAllureCiEnv();
-        const testOpsOptions = config.plugins?.find(({ id }) => id === "testops" || id === "plugin-testops")?.options;
         const accessToken = testOpsOptions?.accessToken ?? process.env.ALLURE_TOKEN;
         const projectId = testOpsOptions?.projectId ?? process.env.ALLURE_PROJECT_ID;
         const url = testOpsOptions?.endpoint ?? process.env.ALLURE_ENDPOINT;
@@ -195,7 +191,7 @@ export class RunCommand extends Command {
           testPlanPath = path;
         } else if (process.env.ALLURE_TESTPLAN_PATH === undefined) {
           runLogger.warn(
-            "--skip-muted-tests requires a functional Allure TestOps instance: set the TestOps plugin accessToken or ALLURE_TOKEN. Continuing without a muted test plan.",
+            "TestOps skipMutedTests requires a functional Allure TestOps instance: set the TestOps plugin accessToken or ALLURE_TOKEN. Continuing without a muted test plan.",
           );
         }
       } catch (error) {
