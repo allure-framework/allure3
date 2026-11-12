@@ -2,10 +2,15 @@ import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
-import { afterEach, describe, expect, it, vi } from "vite-plus/test";
+import { afterEach, describe, expect, it, type TestContext, vi } from "vite-plus/test";
 
 import { KnownError } from "../src/utils/http.js";
-import { encodeUploadPath, normalizeUploadPath, uploadStorageReport } from "../src/utils/storage.js";
+import {
+  encodeUploadPath,
+  normalizeUploadPath,
+  type StorageUploadFile,
+  uploadStorageReport,
+} from "../src/utils/storage.js";
 
 const uploadConfig = {
   uploadConcurrency: 10,
@@ -31,23 +36,29 @@ const uploadError = (
     },
   });
 
-const tempDirectories: string[] = [];
+const createTempFile = (content: string, { signal, onTestFinished }: TestContext) => {
+  let directory: string | undefined;
+  const file = mkdtemp(join(tmpdir(), "allure-service-upload-")).then(async (path) => {
+    directory = path;
+    signal.throwIfAborted();
+    const filepath = join(path, "file");
+    await writeFile(filepath, content, { signal });
+    return filepath;
+  });
 
-const createTempFile = async (content: string) => {
-  const directory = await mkdtemp(join(tmpdir(), "allure-service-upload-"));
-  const filepath = join(directory, "file");
+  onTestFinished(async () => {
+    await Promise.allSettled([file]);
+    if (directory) {
+      await rm(directory, { force: true, recursive: true });
+    }
+  });
 
-  tempDirectories.push(directory);
-  await writeFile(filepath, content);
-
-  return filepath;
+  return file;
 };
 
-afterEach(async () => {
+afterEach(() => {
   vi.restoreAllMocks();
   vi.useRealTimers();
-
-  await Promise.all(tempDirectories.splice(0).map((directory) => rm(directory, { force: true, recursive: true })));
 });
 
 describe("storage upload paths", () => {
@@ -73,13 +84,16 @@ describe("storage upload paths", () => {
 });
 
 describe("uploadStorageReport", () => {
-  it("uses a bounded worker pool for report files", async ({ signal, onTestFinished }) => {
-    const filepath = await createTempFile("content");
+  it("uses a bounded worker pool for report files", async (context) => {
+    const { signal, onTestFinished } = context;
+    const filepath = await createTempFile("content", context);
     let active = 0;
     let maximumActive = 0;
     const { promise: gate, resolve: release } = Promise.withResolvers<void>();
     const { promise: poolStarted, resolve: markPoolStarted } = Promise.withResolvers<void>();
-    const upload = vi.fn(async () => {
+    const releaseOnAbort = () => release();
+    const upload = vi.fn(async (_file: StorageUploadFile, uploadSignal: AbortSignal) => {
+      uploadSignal.addEventListener("abort", releaseOnAbort, { once: true });
       active++;
       maximumActive = Math.max(maximumActive, active);
       if (active === uploadConfig.uploadConcurrency) {
@@ -110,13 +124,13 @@ describe("uploadStorageReport", () => {
     release();
     await resultPromise;
 
-    expect(upload).toHaveBeenCalledTimes(500);
+    expect(upload.mock.calls.map(([file]) => file.remotePath).sort()).toEqual(Object.keys(files).sort());
     expect(maximumActive).toBe(10);
   });
 
-  it("retries transient failures with delay and advances progress once", async () => {
+  it("retries transient failures with delay and advances progress once", async (context) => {
     vi.spyOn(Math, "random").mockReturnValue(0.999);
-    const filepath = await createTempFile("content");
+    const filepath = await createTempFile("content", context);
     const progress = vi.fn();
     const attempts: number[] = [];
     const upload = vi.fn(async () => {
@@ -144,8 +158,8 @@ describe("uploadStorageReport", () => {
     expect(result.hrefs["data/result.json"]).toBe("https://example.org/result.json");
   });
 
-  it("honors Retry-After", async () => {
-    const filepath = await createTempFile("content");
+  it("honors Retry-After", async (context) => {
+    const filepath = await createTempFile("content", context);
     const attempts: number[] = [];
     const upload = vi.fn(async () => {
       attempts.push(Date.now());
@@ -169,8 +183,8 @@ describe("uploadStorageReport", () => {
     expect(attempts[1] - attempts[0]).toBeGreaterThanOrEqual(45);
   });
 
-  it.each([400, 401, 403, 404, 409])("does not retry HTTP %s", async (status) => {
-    const filepath = await createTempFile("content");
+  it.for([400, 401, 403, 404, 409])("does not retry HTTP %s", async (status, context) => {
+    const filepath = await createTempFile("content", context);
     const upload = vi.fn().mockRejectedValue(uploadError(status));
 
     await expect(
@@ -186,8 +200,8 @@ describe("uploadStorageReport", () => {
     expect(upload).toHaveBeenCalledTimes(1);
   });
 
-  it("formats Cloudflare challenge errors without HTML", async () => {
-    const filepath = await createTempFile("content");
+  it("formats Cloudflare challenge errors without HTML", async (context) => {
+    const filepath = await createTempFile("content", context);
     const upload = vi.fn().mockRejectedValue(
       uploadError(403, {
         mitigated: "challenge",
@@ -210,9 +224,9 @@ describe("uploadStorageReport", () => {
     });
   });
 
-  it("uploads repeated shared asset paths once and reports progress once", async () => {
-    const first = await createTempFile("first");
-    const second = await createTempFile("second");
+  it("uploads repeated shared asset paths once and reports progress once", async (context) => {
+    const first = await createTempFile("first", context);
+    const second = await createTempFile("second", context);
     const progress = vi.fn();
     const upload = vi.fn().mockResolvedValue(undefined);
 
@@ -229,9 +243,9 @@ describe("uploadStorageReport", () => {
     expect(progress).toHaveBeenCalledTimes(1);
   });
 
-  it("deduplicates assets across upload calls for one publication", async () => {
-    const first = await createTempFile("first");
-    const second = await createTempFile("second");
+  it("deduplicates assets across upload calls for one publication", async (context) => {
+    const first = await createTempFile("first", context);
+    const second = await createTempFile("second", context);
     const uploadedAssets = new Set<string>();
     const upload = vi.fn().mockResolvedValue(undefined);
 
@@ -253,8 +267,8 @@ describe("uploadStorageReport", () => {
     expect(upload).toHaveBeenCalledTimes(1);
   });
 
-  it("aborts active uploads and waits for them to settle", async () => {
-    const filepath = await createTempFile("content");
+  it("aborts active uploads and waits for them to settle", async (context) => {
+    const filepath = await createTempFile("content", context);
     const controller = new AbortController();
     let active = 0;
     let settled = 0;
