@@ -1,6 +1,7 @@
 name: Update web screenshots
 
 on:
+  pull_request:
   workflow_dispatch:
     inputs:
       linux:
@@ -37,7 +38,7 @@ jobs:
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
-          LINUX: ${{ inputs.linux }}
+          LINUX: "true"
           MACOS: ${{ inputs.macos }}
           BASE_BRANCH: ${{ github.event.repository.default_branch }}
           RUN_ID: ${{ github.run_id }}
