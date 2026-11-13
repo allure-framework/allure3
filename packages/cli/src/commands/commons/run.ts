@@ -10,7 +10,13 @@ import {
   filterFailedQualityGateResults,
   stringifyQualityGateResults,
 } from "@allurereport/core";
-import { ExpressionError, createTestPlan, formatDuration, type TestResult } from "@allurereport/core-api";
+import {
+  ExpressionError,
+  createTestPlan,
+  formatDuration,
+  type AllureQualityGateResult,
+  type TestResult,
+} from "@allurereport/core-api";
 import type { Watcher } from "@allurereport/directory-watcher";
 import {
   allureResultsDirectoriesWatcher,
@@ -18,7 +24,7 @@ import {
   newFilesInDirectoryWatcher,
 } from "@allurereport/directory-watcher";
 import { formatProcessLogAttachmentName } from "@allurereport/plugin-agent";
-import type { ExitCode, QualityGateValidationResult } from "@allurereport/plugin-api";
+import type { ExitCode } from "@allurereport/plugin-api";
 import { BufferResultFile, PathResultFile } from "@allurereport/reader-api";
 import { KnownError } from "@allurereport/service";
 
@@ -33,7 +39,7 @@ export type TestProcessResult = {
   code: number | null;
   stdout: string;
   stderr: string;
-  qualityGateResults: QualityGateValidationResult[];
+  qualityGateResults: AllureQualityGateResult[];
   fastFailed: boolean;
   interrupted?: boolean;
 };
@@ -118,7 +124,7 @@ export const runTests = async (params: {
   const failureHandler = createLiveIngestionFailureHandler();
   let testProcessStarted = false;
   let qualityGateUnsub: ReturnType<typeof allureReport.realtimeSubscriber.onTestResults> | undefined;
-  let qualityGateResults: QualityGateValidationResult[] = [];
+  let qualityGateResults: AllureQualityGateResult[] = [];
   let fastFailTriggered = false;
   let supervisor!: ProcessSupervisor;
   let code!: number | null;
@@ -236,7 +242,7 @@ export const runTests = async (params: {
         qualityGateResults = results;
         qualityGateUnsub = undefined;
 
-        const failedRules = filterFailedQualityGateResults(results).map(({ rule }) => rule);
+        const failedRules = filterFailedQualityGateResults(results).map(({ key }) => key);
         const failedRulesMessage = failedRules.length > 0 ? `: ${failedRules.join(", ")}` : "";
         const stopTarget = rerunsEnabled ? `attempt ${attempt.current}/${attempt.total}` : "test process";
 
@@ -330,10 +336,10 @@ export const runTests = async (params: {
 
 const relatedQualityGateTestResults = async (
   allureReport: AllureReport,
-  qualityGateResults: QualityGateValidationResult[],
+  qualityGateResults: AllureQualityGateResult[],
 ): Promise<TestResult[]> => {
   const testResultIds = new Set(
-    filterFailedQualityGateResults(qualityGateResults).flatMap(({ testResults }) => testResults),
+    filterFailedQualityGateResults(qualityGateResults).flatMap(({ details }) => details?.testResults ?? []),
   );
   const testResults = await Promise.all([...testResultIds].map((id) => allureReport.store.testResultById(id)));
 
@@ -423,7 +429,7 @@ export const executeAllureRun = async (params: {
     original: 0,
     actual: undefined,
   };
-  let qualityGateResults: QualityGateValidationResult[] = [];
+  let qualityGateResults: AllureQualityGateResult[] = [];
   let testProcessResult: TestProcessResult | null = null;
 
   try {

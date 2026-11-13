@@ -191,8 +191,9 @@ Built-in plugin callback options accept CEL expressions wrapped in `${{ ... }}`:
 | CSV | `fields[].accessor` | `test`, `env` | String or `null` |
 | CSV | `sort` | `a`, `b`, `env` | Finite number |
 
-`test`, `a`, and `b` are test-result data. `result` is a quality-gate validation result,
-including fields such as `rule`, `success`, `actual`, and `message`. `env` contains defined
+`test`, `a`, and `b` are test-result data. `result` is a quality-gate result with fields such as
+`key`, `status`, `source`, and `details`; values such as `actual` and `message` are nested under
+`details`. `env` contains defined
 process environment variables captured during configuration resolution; later environment changes
 do not affect these expressions. Optional fields should be guarded with `has(...)`. Expressions
 read the supplied test and quality-gate data directly.
@@ -217,7 +218,7 @@ plugins:
   log:
     options:
       filter: "${{ test.status == 'failed' }}"
-      qualityGateFilter: '${{ !result.success }}'
+      qualityGateFilter: '${{ result.status == "failed" }}'
 ```
 
 CSV property-name accessors such as `name` stay literal. Use CEL for nested paths or computed

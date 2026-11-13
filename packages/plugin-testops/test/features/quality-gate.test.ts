@@ -1,6 +1,6 @@
-import type { CiDescriptor } from "@allurereport/core-api";
+import type { AllureQualityGateResult, CiDescriptor } from "@allurereport/core-api";
 import { TestResult } from "@allurereport/core-api";
-import type { AllureStore, PluginState, QualityGateValidationResult } from "@allurereport/plugin-api";
+import type { AllureStore, PluginState } from "@allurereport/plugin-api";
 import { epic, feature, label, story } from "allure-js-commons";
 import { beforeEach, describe, expect, test, vi } from "vite-plus/test";
 
@@ -61,20 +61,23 @@ describe("Quality Gate upload", () => {
     store.fixturesByTrId.mockResolvedValue([]);
     store.qualityGateResults.mockResolvedValue([
       {
-        rule: "coverage",
-        message: "Coverage below threshold (duplicate)",
-        success: false,
-      } as QualityGateValidationResult,
+        key: "coverage",
+        status: "failed",
+        source: { type: "rule" },
+        details: { message: "Coverage below threshold (duplicate)" },
+      } as AllureQualityGateResult,
       {
-        rule: "critical-tests",
-        message: "Critical tests failed",
-        success: false,
-      } as QualityGateValidationResult,
+        key: "critical-tests",
+        status: "failed",
+        source: { type: "rule" },
+        details: { message: "Critical tests failed" },
+      } as AllureQualityGateResult,
       {
-        rule: "flake-rate",
-        message: "Flake rate is acceptable",
-        success: true,
-      } as QualityGateValidationResult,
+        key: "flake-rate",
+        status: "passed",
+        source: { type: "rule" },
+        details: { message: "Flake rate is acceptable" },
+      } as AllureQualityGateResult,
     ]);
 
     await plugin.start(
@@ -141,10 +144,11 @@ describe("Quality Gate upload", () => {
     ]);
     store.qualityGateResults.mockResolvedValue([
       {
-        rule: "coverage",
-        message: "Coverage is OK",
-        success: true,
-      } as QualityGateValidationResult,
+        key: "coverage",
+        status: "passed",
+        source: { type: "rule" },
+        details: { message: "Coverage is OK" },
+      } as AllureQualityGateResult,
     ]);
 
     await plugin.start(
@@ -200,10 +204,11 @@ describe("Quality Gate upload", () => {
     ]);
     store.qualityGateResults.mockResolvedValue([
       {
-        rule: "coverage",
-        message: "Coverage below threshold",
-        success: false,
-      } as QualityGateValidationResult,
+        key: "coverage",
+        status: "failed",
+        source: { type: "rule" },
+        details: { message: "Coverage below threshold" },
+      } as AllureQualityGateResult,
     ]);
 
     await plugin.start(

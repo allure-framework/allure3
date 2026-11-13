@@ -1,5 +1,4 @@
 import {
-  AllureCheckResult,
   type AllureHistory,
   type CiDescriptor,
   type TestResult,
@@ -7,7 +6,7 @@ import {
   getWorstStatus,
 } from "@allurereport/core-api";
 
-import type { ExitCode, PluginSummary, SummaryCheckResult, TestResultRegistry, TestResultSummary } from "../plugin.js";
+import type { ExitCode, PluginSummary, TestResultRegistry, TestResultSummary } from "../plugin.js";
 import type { ReportRunSummary } from "../report.js";
 import type { AllureStore } from "../store.js";
 
@@ -52,12 +51,6 @@ export const convertToTestResultSummary = (tr: TestResult): TestResultSummary =>
 
 export const createTestResultRegistry = (testResults: TestResult[]): TestResultRegistry => ({
   byId: Object.fromEntries(testResults.map((testResult) => [testResult.id, convertToTestResultSummary(testResult)])),
-});
-
-export const convertToSummaryCheckResult = (check: AllureCheckResult): SummaryCheckResult => ({
-  id: check.id,
-  name: check.name,
-  status: check.status,
 });
 
 /**
@@ -122,7 +115,6 @@ export const createPluginSummary = async (params: {
   meta: Record<string, any>;
 }): Promise<PluginSummary> => {
   const { name, filter, plugin, store, history, meta } = params;
-  const allChecks = await store.allCheckResults();
   const allTrs = await store.allTestResults({ filter });
   const allTrsWithRetries = await store.allTestResults({ includeRetries: true });
   const currentIds = new Set(allTrs.map(({ id }) => id));
@@ -137,6 +129,12 @@ export const createPluginSummary = async (params: {
   const duration = calculateRunDuration(await store.allTestResults({ includeRetries: true, filter }));
   const exitCode = await store.globalExitCode();
   const globalErrors = await store.allGlobalErrors();
+  const qualityGateResults = (await store.qualityGateResults()).map(({ status, key, environment, source }) => ({
+    status,
+    key,
+    ...(environment !== undefined ? { environment } : {}),
+    source,
+  }));
   const status = resolveReportStatus({
     globalErrorsCount: globalErrors.length,
     exitCode,
@@ -150,7 +148,7 @@ export const createPluginSummary = async (params: {
     newTests: newTrs.filter(({ id }) => currentIds.has(id)).map(({ id }) => id),
     flakyTests: flakyTrs.map(({ id }) => id),
     retryTests: retryTrs.map(({ id }) => id),
-    checks: allChecks.map(convertToSummaryCheckResult),
+    ...(qualityGateResults.length > 0 ? { qualityGateResults } : {}),
     name,
     duration,
     createdAt,

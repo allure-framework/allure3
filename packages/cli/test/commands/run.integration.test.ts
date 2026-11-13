@@ -489,6 +489,7 @@ ${environmentsSource}
 export default {
   name: "Combined report",
   output: ${JSON.stringify(outputDir)},
+  qualityGate: { enabled: false },
 ${environmentsSource}
 };
 `.trimStart();
@@ -572,18 +573,18 @@ ${environmentsSource}
     await step("verify restored quality gates keep environment attribution", async () => {
       const qualityGateWidget = JSON.parse(
         await readFile(join(outputDir, "widgets", "quality-gate.json"), "utf-8"),
-      ) as Record<string, { success: boolean; environment?: string }[]>;
+      ) as Record<string, { status: "passed" | "failed"; environment?: string }[]>;
 
       expect(Object.keys(qualityGateWidget).sort()).toEqual(["linux", "windows"]);
       expect(qualityGateWidget.linux).toEqual([
         expect.objectContaining({
-          success: true,
+          status: "passed",
           environment: "Linux",
         }),
       ]);
       expect(qualityGateWidget.windows).toEqual([
         expect.objectContaining({
-          success: false,
+          status: "failed",
           environment: "Windows",
         }),
       ]);
@@ -1996,7 +1997,7 @@ console.log(\`selected selectors: \${Array.from(selectors).join(",")}\`);
       await mkdir(results);
       await writeFile(
         configPath,
-        `export default { appendHistory: false, plugins: { awesome: { options: { charts: [], sections: ["default"] } } } };`,
+        `export default { appendHistory: false, qualityGate: { enabled: false }, plugins: { awesome: { options: { charts: [], sections: ["default"] } } } };`,
       );
       await writeFile(
         runner,

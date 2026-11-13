@@ -2,9 +2,9 @@ import { extname } from "node:path";
 
 /* eslint max-lines: off */
 import {
-  type AllureCheckResult,
   type AllureHistory,
   type AllurePerformanceResult,
+  type AllureQualityGateResult,
   type AttachmentLink,
   type AttachmentLinkLinked,
   type DefaultLabelsConfig,
@@ -54,7 +54,6 @@ import {
   type AllureStoreDump,
   type ExitCode,
   type PluginGlobalError,
-  type QualityGateValidationResult,
   type RealtimeEventsDispatcher,
   type RealtimeSubscriber,
   type ResultFile,
@@ -180,8 +179,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   #processGlobalErrors: PluginGlobalError[] = [];
   #processGlobalErrorsByEnv: Map<string, PluginGlobalError[]> = new Map();
   #globalExitCode: ExitCode | undefined;
-  #checkResultsById: Map<string, AllureCheckResult> = new Map();
-  #qualityGateResults: QualityGateValidationResult[] = [];
+  #qualityGateResults: AllureQualityGateResult[] = [];
   #metrics: MetricSample[] = [];
   #performance: PerformanceConfig = {};
   #historyPoints: HistoryDataPoint[] = [];
@@ -281,37 +279,11 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
 
     this.#addEnvironments(environments);
 
-    this.#realtimeSubscriber?.onQualityGateResults((results: QualityGateValidationResult[]) => {
-      this.#qualityGateResults.push(...results);
-      this.#addEnvironments(
-        results
-          .map((result) => {
-            const aliasedEnvironmentId =
-              typeof result.environment === "string" ? this.#environmentIdByName(result.environment) : undefined;
+    this.#realtimeSubscriber?.onQualityGateResults((results: AllureQualityGateResult[]) => {
+      const normalizedResults = results.map((result) => this.#normalizeQualityGateResult(result));
 
-            if (aliasedEnvironmentId) {
-              const aliasedEnvironment =
-                this.#environments.find(({ id }) => id === aliasedEnvironmentId)?.name ?? aliasedEnvironmentId;
-
-              return {
-                id: aliasedEnvironmentId,
-                name: aliasedEnvironment,
-              };
-            }
-
-            return resolveStoredEnvironmentIdentity(
-              {
-                environmentName: result.environment,
-                labels: [],
-              },
-              this.#environmentsConfig,
-              {
-                forcedEnvironment: this.#environment,
-              },
-            );
-          })
-          .filter(Boolean) as EnvironmentIdentity[],
-      );
+      this.#qualityGateResults.push(...normalizedResults);
+      this.#addQualityGateEnvironments(normalizedResults);
     });
     this.#realtimeSubscriber?.onGlobalExitCode((exitCode: ExitCode) => {
       this.#globalExitCode = exitCode;
@@ -871,41 +843,67 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     await this.#history.appendHistory(history);
   }
 
-  // check data
-
-  async addCheckResult(result: AllureCheckResult): Promise<void> {
-    this.#checkResultsById.set(result.id, {
-      ...result,
-      ...(result.tags?.length ? { tags: [...result.tags] } : {}),
-      details: {
-        command: result.details.command,
-        ...(result.details.message ? { message: result.details.message } : {}),
-        ...(result.details.error ? { error: result.details.error } : {}),
-      },
-    });
-  }
-
-  async allCheckResults(): Promise<AllureCheckResult[]> {
-    return Array.from(this.#checkResultsById.values()).map((result) => ({
-      ...result,
-      ...(result.tags ? { tags: [...result.tags] } : {}),
-      details: {
-        command: result.details.command,
-        ...(result.details.message ? { message: result.details.message } : {}),
-        ...(result.details.error ? { error: result.details.error } : {}),
-      },
-    }));
-  }
-
   // quality gate data
 
-  async qualityGateResults(): Promise<QualityGateValidationResult[]> {
-    return [...this.#qualityGateResults];
+  #resolveQualityGateEnvironment(result: AllureQualityGateResult): EnvironmentIdentity | undefined {
+    const aliasedEnvironmentId =
+      typeof result.environment === "string" ? this.#environmentIdByName(result.environment) : undefined;
+
+    if (aliasedEnvironmentId) {
+      return {
+        id: aliasedEnvironmentId,
+        name: this.#environments.find(({ id }) => id === aliasedEnvironmentId)?.name ?? aliasedEnvironmentId,
+      };
+    }
+
+    return resolveStoredEnvironmentIdentity(
+      {
+        environmentName: result.environment,
+        labels: [],
+      },
+      this.#environmentsConfig,
+      {
+        forcedEnvironment: this.#environment,
+      },
+    );
   }
 
-  async qualityGateResultsByEnv(): Promise<Record<string, QualityGateValidationResult[]>> {
+  #normalizeQualityGateResult(result: AllureQualityGateResult): AllureQualityGateResult {
+    const normalizedResult = structuredClone(result);
+
+    if (normalizedResult.environment !== undefined) {
+      return normalizedResult;
+    }
+
+    const environment = this.#resolveQualityGateEnvironment(normalizedResult);
+
+    if (environment && environment.id !== DEFAULT_ENVIRONMENT) {
+      normalizedResult.environment = environment.name;
+    }
+
+    return normalizedResult;
+  }
+
+  #addQualityGateEnvironments(results: AllureQualityGateResult[]) {
+    this.#addEnvironments(
+      results.map((result) => this.#resolveQualityGateEnvironment(result)).filter(Boolean) as EnvironmentIdentity[],
+    );
+  }
+
+  async addQualityGateResult(result: AllureQualityGateResult): Promise<void> {
+    const normalizedResult = this.#normalizeQualityGateResult(result);
+
+    this.#qualityGateResults.push(normalizedResult);
+    this.#addQualityGateEnvironments([normalizedResult]);
+  }
+
+  async qualityGateResults(): Promise<AllureQualityGateResult[]> {
+    return this.#qualityGateResults.map((result) => structuredClone(result));
+  }
+
+  async qualityGateResultsByEnv(): Promise<Record<string, AllureQualityGateResult[]>> {
     const resultsById = await this.qualityGateResultsByEnvironmentId();
-    const resultsByEnv = createDictionary<QualityGateValidationResult[]>();
+    const resultsByEnv = createDictionary<AllureQualityGateResult[]>();
 
     Object.entries(resultsById).forEach(([environmentId, results]) => {
       const environmentName = this.#environments.find(({ id }) => id === environmentId)?.name ?? environmentId;
@@ -916,10 +914,10 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     return resultsByEnv;
   }
 
-  async qualityGateResultsByEnvironmentId(): Promise<Record<string, QualityGateValidationResult[]>> {
-    const resultsById = createDictionary<QualityGateValidationResult[]>();
+  async qualityGateResultsByEnvironmentId(): Promise<Record<string, AllureQualityGateResult[]>> {
+    const resultsById = createDictionary<AllureQualityGateResult[]>();
 
-    for (const result of this.#qualityGateResults) {
+    for (const result of await this.qualityGateResults()) {
       const aliasedEnvironmentId =
         typeof result.environment === "string" ? this.#environmentIdByName(result.environment) : undefined;
       const envIdentity =
@@ -1017,8 +1015,8 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
 
   // visitor API
 
-  async visitCheckResult(result: AllureCheckResult): Promise<void> {
-    await this.addCheckResult(result);
+  async visitQualityGateResult(result: AllureQualityGateResult): Promise<void> {
+    await this.addQualityGateResult(result);
   }
 
   async visitMetrics(metrics: AllurePerformanceResult[], context: ReaderContext = { readerId: "api" }): Promise<void> {
@@ -1855,7 +1853,6 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       metadata: mapToObject(this.#metadata),
       globalAttachmentIds: [...this.#globalAttachmentIds, ...this.#processGlobalAttachmentIds],
       globalErrors: [...this.#globalErrors, ...this.#processGlobalErrors],
-      checkResults: mapToObject(this.#checkResultsById),
       indexAttachmentByTestResult: {},
       indexTestResultByRetryHash: {},
       indexTestResultByTestCase: {},
@@ -1901,7 +1898,6 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       environments,
       globalAttachmentIds = [],
       globalErrors = [],
-      checkResults,
       indexAttachmentByTestResult = {},
       indexAttachmentByFixture = {},
       indexFixturesByTestResult = {},
@@ -2011,7 +2007,6 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
 
     this.#retrySubstore.restoreIngestOrder(testResultIdsIngestOrder, (id) => this.#testResults.has(id));
 
-    updateMapWithRecord(this.#checkResultsById, checkResults);
     updateMapWithRecord(this.#attachments, attachments);
     updateMapWithRecord(this.#fixtures, fixtures);
 
@@ -2125,7 +2120,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
           fallbackToMatch: false,
         },
       );
-      this.#qualityGateResults.push(result);
+      this.#qualityGateResults.push(structuredClone(result));
     });
     this.#metrics.push(...metrics);
   }

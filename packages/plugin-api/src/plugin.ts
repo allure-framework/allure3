@@ -1,6 +1,6 @@
 import type {
   AllureHistory,
-  AllureCheckResult,
+  AllureQualityGateResult,
   CategoryDefinition,
   CiDescriptor,
   GlobalAttachmentLink,
@@ -14,7 +14,6 @@ import type {
 } from "@allurereport/core-api";
 import type { NameContext } from "@allurereport/core-api/expression";
 
-import type { QualityGateValidationResult } from "./qualityGate.js";
 import type { ResultFile } from "./resultFile.js";
 import type { AllureStore } from "./store.js";
 
@@ -94,11 +93,6 @@ export interface TestResultRegistry {
   byId: Record<string, TestResultSummary>;
 }
 
-/**
- * Reduced check result information that can be used in the summary
- */
-export type SummaryCheckResult = Pick<AllureCheckResult, "id" | "name" | "status">;
-
 export type { GlobalAttachmentLink } from "@allurereport/core-api";
 
 export interface PluginSummary {
@@ -123,7 +117,7 @@ export interface PluginSummary {
   newTests?: string[];
   flakyTests?: string[];
   retryTests?: string[];
-  checks?: SummaryCheckResult[];
+  qualityGateResults?: Array<Pick<AllureQualityGateResult, "status" | "key" | "environment" | "source">>;
   createdAt?: number;
   /**
    * Process exit code for the run. Omitted when the store has no exit code.
@@ -216,7 +210,7 @@ export interface RealtimeSubscriber {
 
   onProcessGlobalsReset(listener: () => RealtimeListenerResult): () => void;
 
-  onQualityGateResults(listener: (payload: QualityGateValidationResult[]) => RealtimeListenerResult): () => void;
+  onQualityGateResults(listener: (payload: AllureQualityGateResult[]) => RealtimeListenerResult): () => void;
 
   onTestResults(listener: (trIds: string[]) => RealtimeListenerResult, options?: BatchOptions): () => void;
 
@@ -238,7 +232,7 @@ export interface RealtimeEventsDispatcher {
 
   sendProcessGlobalsReset(): void;
 
-  sendQualityGateResults(payload: QualityGateValidationResult[]): void;
+  sendQualityGateResults(payload: AllureQualityGateResult[]): void;
 
   sendTestResult(trId: string): void;
 

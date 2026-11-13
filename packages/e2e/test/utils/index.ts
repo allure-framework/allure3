@@ -5,8 +5,8 @@ import { tmpdir } from "node:os";
 import { resolve, sep } from "node:path";
 
 import { AllureReport, FileSystemReportFiles, type FullConfig } from "@allurereport/core";
-import type { HistoryDataPoint } from "@allurereport/core-api";
-import type { ExitCode, Plugin, PluginGlobalError, QualityGateValidationResult } from "@allurereport/plugin-api";
+import type { AllureQualityGateResult, HistoryDataPoint } from "@allurereport/core-api";
+import type { ExitCode, Plugin, PluginGlobalError } from "@allurereport/plugin-api";
 import AwesomePlugin from "@allurereport/plugin-awesome";
 import { BufferResultFile } from "@allurereport/reader-api";
 import type { RawTestAttachment } from "@allurereport/reader-api";
@@ -45,7 +45,7 @@ export type GeneratorParams = {
     attachments?: Record<string, Buffer>;
     attachmentsByEnv?: Record<string, Record<string, Buffer>>;
   };
-  qualityGateResults?: QualityGateValidationResult[];
+  qualityGateResults?: AllureQualityGateResult[];
 };
 
 export interface ReportBootstrap {

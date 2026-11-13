@@ -2,8 +2,8 @@ import { existsSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import { dirname, join, relative, resolve, sep } from "node:path";
 
-import type { TestStatus } from "@allurereport/core-api";
-import type { PluginSummary, QualityGateValidationResult, TestResultRegistry } from "@allurereport/plugin-api";
+import { type AllureQualityGateResult, type TestStatus, normalizeQualityGateResults } from "@allurereport/core-api";
+import type { PluginSummary, TestResultRegistry } from "@allurereport/plugin-api";
 import { glob } from "glob";
 
 const TEST_RESULTS_REGISTRY_FILENAME = "test-results.json";
@@ -69,7 +69,7 @@ export type ReportContextTotals = {
  * Allure 3 writes a flat array today. CI integrations may still pass environment-keyed results
  * when building context from in-memory data.
  */
-export type ReportContextQualityGate = QualityGateValidationResult[] | Record<string, QualityGateValidationResult[]>;
+export type ReportContextQualityGate = AllureQualityGateResult[] | Record<string, AllureQualityGateResult[]>;
 
 export type ReportContext = {
   reports: ReportContextTestReport[];
@@ -272,20 +272,13 @@ const normalizeArtifacts = (value: unknown, onError?: (message: string) => void)
   );
 };
 
-const isQualityGateResult = (value: unknown): value is QualityGateValidationResult => {
-  if (!isRecord(value)) {
-    return false;
-  }
-
-  return typeof value.success === "boolean" && typeof value.rule === "string" && typeof value.message === "string";
-};
-
 const normalizeQualityGate = (
   value: unknown,
   onError?: (message: string) => void,
 ): ReportContextQualityGate | undefined => {
   if (Array.isArray(value)) {
-    return value.filter(isQualityGateResult);
+    // Route persisted data through the shared compatibility layer so legacy rule results are converted once.
+    return normalizeQualityGateResults(value);
   }
 
   if (!isRecord(value)) {
@@ -297,7 +290,7 @@ const normalizeQualityGate = (
   }
 
   const entries = Object.entries(value).flatMap(([environment, results]) =>
-    Array.isArray(results) ? [[environment, results.filter(isQualityGateResult)] as const] : [],
+    Array.isArray(results) ? [[environment, normalizeQualityGateResults(results)] as const] : [],
   );
 
   if (!entries.length) {

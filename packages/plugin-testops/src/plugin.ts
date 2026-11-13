@@ -224,9 +224,9 @@ export class TestOpsPlugin implements Plugin {
     const results = await store.qualityGateResults();
     const uniqueResults = uniqBy(
       // Leave only failed ones
-      results.filter(({ success }) => !success),
-      // TestOps is against duplicates, uniqueness is by rule and environment and launch id
-      ({ rule, environment }) => `${rule}-${environment}`,
+      results.filter(({ status }) => status === "failed"),
+      // TestOps is against duplicates, uniqueness is by key and environment and launch id
+      ({ key, environment }) => `${key}-${environment}`,
     );
 
     if (uniqueResults.length === 0) {

@@ -114,7 +114,9 @@ export const runProcess = (params: {
 
 export const terminationOf = (testProcess: ChildProcess): Promise<number | null> =>
   new Promise((resolve) => {
-    testProcess.on("exit", (code) => resolve(code));
+    // `close` fires after the process has exited and its stdio streams have closed,
+    // so callers can safely consume all piped output once this promise resolves.
+    testProcess.on("close", (code) => resolve(code));
     // a spawn failure (e.g. ENOENT) emits 'error' instead of 'exit'; without this listener
     // it's unhandled and crashes the whole process (watch mode included)
     testProcess.on("error", () => resolve(null));

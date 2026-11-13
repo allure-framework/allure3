@@ -466,26 +466,26 @@ describe("report", () => {
     expect(report.hasQualityGate).toBe(false);
   });
 
-  it("should write quality gate results with related test ids", async () => {
+  it("should write stored quality gate results without a configured rule set", async () => {
     const output = await mkdtemp(join(tmpdir(), "allure3-quality-gate-resolved-"));
     const config = await resolveConfig({
       name: "Allure Report",
       output,
-      qualityGate: {
-        rules: [],
-      },
     });
     const allureReport = new AllureReport(config);
 
     await allureReport.start();
     const testResultId = "result-1";
     const qualityGateResult = {
-      success: false,
-      expected: 0,
-      actual: 1,
-      rule: "maxFailures",
-      message: "Failed tests exceed threshold",
-      testResults: [testResultId],
+      status: "failed" as const,
+      key: "maxFailures",
+      source: { type: "rule" as const },
+      details: {
+        expected: 0,
+        actual: 1,
+        message: "Failed tests exceed threshold",
+        testResults: [testResultId],
+      },
     };
 
     allureReport.realtimeDispatcher.sendQualityGateResults([qualityGateResult]);
@@ -1491,12 +1491,15 @@ describe("report", () => {
     await allureReport.start();
     allureReport.realtimeDispatcher.sendQualityGateResults([
       {
-        success: false,
-        expected: 0,
-        actual: 1,
-        rule: "maxFailures",
-        message: "Failed tests exceed threshold",
-        testResults: [],
+        status: "failed",
+        key: "maxFailures",
+        source: { type: "rule" },
+        details: {
+          expected: 0,
+          actual: 1,
+          message: "Failed tests exceed threshold",
+          testResults: [],
+        },
       },
     ]);
     await allureReport.done();
@@ -1509,12 +1512,15 @@ describe("report", () => {
 
     expect(qualityGateResults).toEqual([
       {
-        success: false,
-        expected: 0,
-        actual: 1,
-        rule: "maxFailures",
-        message: "Failed tests exceed threshold",
-        testResults: [],
+        status: "failed",
+        key: "maxFailures",
+        source: { type: "rule" },
+        details: {
+          expected: 0,
+          actual: 1,
+          message: "Failed tests exceed threshold",
+          testResults: [],
+        },
       },
     ]);
     expect(AllureServiceClientMock.prototype.uploadReport).toHaveBeenCalledWith(

@@ -59,6 +59,15 @@
   margin-top: 8px;
 }
 
+.report-quality-gate-result-command {
+  color: var(--color-text-secondary);
+  overflow-wrap: anywhere;
+
+  code {
+    font-family: var(--font-family-mono);
+  }
+}
+
 .report-quality-gate-result-test-results {
   margin-top: 12px;
   min-width: 0;

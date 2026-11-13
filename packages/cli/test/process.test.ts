@@ -248,6 +248,25 @@ describe("runProcess", () => {
 
     await expect(termination).resolves.toBeNull();
   });
+
+  it("waits for stdio to close after the process exits", async () => {
+    const fakeProcess = new EventEmitter() as unknown as ChildProcess;
+    const termination = terminationOf(fakeProcess);
+    let settled = false;
+
+    void termination.then(() => {
+      settled = true;
+    });
+
+    fakeProcess.emit("exit", 0);
+    await Promise.resolve();
+
+    expect(settled).toBe(false);
+
+    fakeProcess.emit("close", 0);
+
+    await expect(termination).resolves.toBe(0);
+  });
 });
 
 describe("stopProcessTree", () => {

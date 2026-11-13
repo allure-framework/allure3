@@ -4,6 +4,7 @@ import process from "node:process";
 
 import {
   type AttachmentLink,
+  type AllureQualityGateResult,
   type Statistic,
   type TestError,
   type TestFixtureResult,
@@ -17,14 +18,7 @@ import {
   isAttachment,
   isStep,
 } from "@allurereport/core-api";
-import type {
-  AllureStore,
-  Plugin,
-  PluginContext,
-  QualityGateValidationResult,
-  RealtimeSubscriber,
-  ResultFile,
-} from "@allurereport/plugin-api";
+import type { AllureStore, Plugin, PluginContext, RealtimeSubscriber, ResultFile } from "@allurereport/plugin-api";
 
 import { renderAgentsGuide } from "./guidance.js";
 import type {
@@ -174,7 +168,7 @@ type AgentSnapshot = {
   globalArtifacts: MaterializedArtifact[];
   globalErrors: TestError[];
   globalExitCode?: { actual?: number; original: number };
-  qualityGateResults: QualityGateValidationResult[];
+  qualityGateResults: AllureQualityGateResult[];
   modelingSummary: ModelingSummary;
   durationSummary: {
     total: number;
@@ -1185,12 +1179,12 @@ const renderAttemptSection = (attempt: AttemptRecord) => {
   ].join("\n");
 };
 
-const renderQualityGateSection = (results: QualityGateValidationResult[]) => {
+const renderQualityGateSection = (results: AllureQualityGateResult[]) => {
   if (!results.length) {
     return undefined;
   }
 
-  const failed = results.filter(({ success }) => !success);
+  const failed = results.filter(({ status }) => status === "failed");
   const lines = ["## Quality Gate", "", `- Rules evaluated: ${results.length}`, `- Failed rules: ${failed.length}`];
 
   if (failed.length) {
@@ -1201,8 +1195,15 @@ const renderQualityGateSection = (results: QualityGateValidationResult[]) => {
       failed
         .map((result) => {
           const environmentPrefix = result.environment ? `[${result.environment}] ` : "";
+          const message =
+            result.details?.message ?? result.details?.stderr ?? result.details?.stdout ?? "No details provided";
+          const lines = [`- ${environmentPrefix}${escapeInlineMarkdown(result.key)}: ${escapeInlineMarkdown(message)}`];
 
-          return `- ${environmentPrefix}${escapeInlineMarkdown(result.rule)}: ${escapeInlineMarkdown(result.message)}`;
+          if (result.source.type === "command") {
+            lines.push(`  - Command: ${escapeInlineMarkdown(result.source.command)}`);
+          }
+
+          return lines.join("\n");
         })
         .join("\n"),
     );
@@ -1981,7 +1982,7 @@ const renderIndex = (params: {
   globalArtifacts: MaterializedArtifact[];
   globalErrors: TestError[];
   globalExitCode?: { actual?: number; original: number };
-  qualityGateResults: QualityGateValidationResult[];
+  qualityGateResults: AllureQualityGateResult[];
   findings: AgentFinding[];
   humanReport?: AgentHumanReportStatus;
 }) => {
@@ -4038,15 +4039,15 @@ export class AgentPlugin implements Plugin {
     runtime.unsubscribers.push(
       realtime.onQualityGateResults(async (results) => {
         await queueRuntimeTask(runtime, async () => {
-          if (results.some(({ success }) => !success)) {
+          if (results.some(({ status }) => status === "failed")) {
             await appendRuntimeEvent(runtime, "run_warning", {
               message: "Quality gate reported failing rules during the run.",
               failed_rules: results
-                .filter(({ success }) => !success)
-                .map(({ rule, environment, message }) => ({
-                  rule,
+                .filter(({ status }) => status === "failed")
+                .map(({ key, environment, details }) => ({
+                  rule: key,
                   environment,
-                  message,
+                  message: details?.message ?? details?.stderr ?? details?.stdout,
                 })),
             });
           }
