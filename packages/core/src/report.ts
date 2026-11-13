@@ -9,7 +9,7 @@ import { promisify } from "node:util";
 
 import { createReportCiContext, detect } from "@allurereport/ci";
 /* eslint max-lines: 0 */
-import { createProgressLogger } from "@allurereport/cli-commons";
+import { Logger, createProgressLogger } from "@allurereport/cli-commons";
 import type {
   AllureHistory,
   CategoryDefinition,
@@ -173,6 +173,8 @@ const closeReadStream = async (stream: ReadStream): Promise<void> => {
 
   await closed.catch(() => undefined);
 };
+
+const dumpLogger = new Logger("AllureDump");
 
 export class AllureReport {
   readonly #ci: CiDescriptor | undefined;
@@ -841,12 +843,15 @@ export class AllureReport {
     try {
       const allAttachments = await this.#store.allAttachments();
 
+      let skippedAttachments = 0;
+
       for (const attachment of allAttachments) {
         const skipAttachment = (message: string) => {
           const originalFileName = attachment.originalFileName ? ` (${attachment.originalFileName})` : "";
 
           this.#store.markAttachmentMissed(attachment.id);
-          console.warn(`Skipping attachment while writing dump: ${attachment.id}${originalFileName}. ${message}`);
+          skippedAttachments++;
+          dumpLogger.debug(`Skipping attachment while writing dump: ${attachment.id}${originalFileName}. ${message}`);
         };
 
         try {
@@ -884,6 +889,12 @@ export class AllureReport {
         } catch (err) {
           skipAttachment(errMessage(err));
         }
+      }
+
+      if (skippedAttachments > 0) {
+        dumpLogger.warn(
+          `Skipped ${skippedAttachments} attachment${skippedAttachments === 1 ? "" : "s"} while writing dump. Run with --verbose for details.`,
+        );
       }
 
       for (const [entryName, value] of dumpJsonEntries(this.#store.dumpState())) {

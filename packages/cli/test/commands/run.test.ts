@@ -207,6 +207,7 @@ beforeEach(async () => {
 
   AllureReportMock.prototype.readResult.mockReset().mockResolvedValue(undefined);
   AllureReportMock.prototype.store = {
+    allAttachments: vi.fn().mockResolvedValue([]),
     blockingFailedTestResults: vi.fn().mockResolvedValue([]),
     failedTestResults: vi.fn().mockResolvedValue([]),
     allTestResults: vi.fn().mockResolvedValue([]),
@@ -632,6 +633,7 @@ describe("run command", () => {
     };
 
     AllureReportMock.prototype.store = {
+      allAttachments: vi.fn().mockResolvedValue([]),
       blockingFailedTestResults: vi
         .fn()
         .mockResolvedValue([])
@@ -686,6 +688,7 @@ describe("run command", () => {
     };
 
     AllureReportMock.prototype.store = {
+      allAttachments: vi.fn().mockResolvedValue([]),
       blockingFailedTestResults: vi.fn().mockResolvedValue([failed]),
       failedTestResults: vi.fn().mockResolvedValue([failed]),
       allTestResults: vi.fn().mockResolvedValue([]),
@@ -883,6 +886,7 @@ describe("run command", () => {
     const testPlanPath = resolve("/tmp/run", "0-testplan.json");
 
     AllureReportMock.prototype.store = {
+      allAttachments: vi.fn().mockResolvedValue([]),
       blockingFailedTestResults: vi.fn().mockResolvedValue([blockingFailure]),
       failedTestResults: vi.fn().mockResolvedValue([blockingFailure]),
       allTestResults: vi.fn().mockResolvedValue([blockingFailure, relatedPassedTest]),
@@ -934,6 +938,28 @@ describe("run command", () => {
     expect(AllureReportMock.prototype.store.testResultById).toHaveBeenCalledTimes(2);
   });
 
+  it("removes preserved attachment files when report finalization fails", async () => {
+    const { AllureReportMock } = await import("../utils.js");
+    const { rm } = await import("node:fs/promises");
+    const failure = { fullName: "suite.failed", status: "failed", labels: [] };
+    const finalizationError = new Error("report finalization failed");
+    AllureReportMock.prototype.store.blockingFailedTestResults.mockResolvedValue([failure]);
+    AllureReportMock.prototype.done.mockRejectedValueOnce(finalizationError);
+
+    await expect(
+      executeAllureRun({
+        allureReport: new AllureReportMock() as never,
+        cwd: "/cwd",
+        command: "npm",
+        commandArgs: ["test"],
+        withQualityGate: false,
+        maxRerun: 1,
+      }),
+    ).rejects.toBe(finalizationError);
+
+    expect(rm).toHaveBeenCalledWith("/tmp/run", { recursive: true, force: true });
+  });
+
   it("should restart the full process after Quality Gate fast-fail even when related tests exist", async () => {
     const { AllureReportMock } = await import("../utils.js");
     const { mkdtemp, writeFile } = await import("node:fs/promises");
@@ -981,6 +1007,7 @@ describe("run command", () => {
       }),
     };
     AllureReportMock.prototype.store = {
+      allAttachments: vi.fn().mockResolvedValue([]),
       blockingFailedTestResults: vi.fn().mockResolvedValue([]),
       failedTestResults: vi.fn().mockResolvedValue([]),
       allTestResults: vi.fn().mockResolvedValue([]),
@@ -1018,7 +1045,8 @@ describe("run command", () => {
         },
       }),
     );
-    expect(mkdtemp).not.toHaveBeenCalled();
+    expect(mkdtemp).toHaveBeenCalledTimes(1);
+    expect(mkdtemp).toHaveBeenCalledWith(expect.stringMatching(/allure-run-attachments-$/u));
     expect(writeFile).not.toHaveBeenCalled();
     expect(AllureReportMock.prototype.store.testResultById).not.toHaveBeenCalledWith("tr-passed");
     expect(console.info).toHaveBeenCalledWith(
@@ -1064,6 +1092,7 @@ describe("run command", () => {
       }),
     };
     AllureReportMock.prototype.store = {
+      allAttachments: vi.fn().mockResolvedValue([]),
       blockingFailedTestResults: vi.fn().mockResolvedValue([]),
       failedTestResults: vi.fn().mockResolvedValue([]),
       allTestResults: vi.fn().mockResolvedValue([]),
@@ -1099,7 +1128,8 @@ describe("run command", () => {
         },
       }),
     );
-    expect(mkdtemp).not.toHaveBeenCalled();
+    expect(mkdtemp).toHaveBeenCalledTimes(1);
+    expect(mkdtemp).toHaveBeenCalledWith(expect.stringMatching(/allure-run-attachments-$/u));
     expect(writeFile).not.toHaveBeenCalled();
     expect(console.info).toHaveBeenCalledWith(
       expect.stringMatching(/\[QualityGate\]:.*Fast-fail triggered: minTestsCount; stopping attempt 1\/2/u),
@@ -1162,6 +1192,7 @@ describe("run command", () => {
       }),
     };
     AllureReportMock.prototype.store = {
+      allAttachments: vi.fn().mockResolvedValue([]),
       blockingFailedTestResults: vi.fn().mockResolvedValue([]),
       failedTestResults: vi.fn().mockResolvedValue([]),
       allTestResults: vi.fn().mockResolvedValue([]),
@@ -1250,6 +1281,7 @@ describe("run command", () => {
       }),
     };
     AllureReportMock.prototype.store = {
+      allAttachments: vi.fn().mockResolvedValue([]),
       blockingFailedTestResults: vi.fn().mockResolvedValue([]),
       failedTestResults: vi.fn().mockResolvedValue([]),
       allTestResults: vi.fn().mockResolvedValue([]),
@@ -1361,6 +1393,7 @@ describe("run command", () => {
     };
 
     AllureReportMock.prototype.store = {
+      allAttachments: vi.fn().mockResolvedValue([]),
       blockingFailedTestResults: vi.fn().mockResolvedValue([]),
       failedTestResults: vi.fn().mockResolvedValue([mutedFailure]),
       allTestResults: vi.fn().mockResolvedValue([]),
