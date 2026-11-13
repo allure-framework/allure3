@@ -186,7 +186,7 @@ describe("plugin", () => {
       });
     });
 
-    it("should return unified quality gate results in the summary", async () => {
+    it("should return compact unified quality gate results in the summary", async () => {
       const plugin = new AwesomePlugin({ reportName: "Sample report" });
       const info = await plugin.info(fixtures.context, {
         ...fixtures.store,
@@ -195,7 +195,18 @@ describe("plugin", () => {
 
       expect(info).toEqual(
         expect.objectContaining({
-          qualityGateResults: fixtures.qualityGateResults,
+          qualityGateResults: [
+            {
+              status: "passed",
+              key: "approval",
+              source: { type: "manual" },
+            },
+            {
+              status: "failed",
+              key: "lint",
+              source: { type: "command", command: "npm run lint" },
+            },
+          ],
         }),
       );
     });
