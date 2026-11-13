@@ -192,7 +192,47 @@ jobs:
       - name: Summarize flaky test recoveries
         if: ${{ !cancelled() }}
         continue-on-error: true
-        run: node scripts/ci-flake-recoveries.mjs summary ./allure-recovery-data ./allure-report/awesome/summary.json
+        id: recovery-summary
+        run: |
+          summary_path="$RUNNER_TEMP/allure-flake-recoveries.md"
+          GITHUB_STEP_SUMMARY="$summary_path" node scripts/ci-flake-recoveries.mjs summary ./allure-recovery-data ./allure-report/awesome/summary.json
+          cat "$summary_path" >> "$GITHUB_STEP_SUMMARY"
+      - name: Comment flaky test recoveries on pull request
+        if: ${{ !cancelled() && github.event_name == 'pull_request' && steps.recovery-summary.outcome == 'success' }}
+        continue-on-error: true
+        uses: actions/github-script@v9
+        with:
+          script: |
+            const { readFile } = require("node:fs/promises");
+            const { join } = require("node:path");
+            const summary = await readFile(join(process.env.RUNNER_TEMP, "allure-flake-recoveries.md"), "utf8");
+            const marker = "<!-- allure-flake-recoveries -->";
+            const run = `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${context.runId}/attempts/${process.env.GITHUB_RUN_ATTEMPT}`;
+            const footer = `[Build project summary](${run})`;
+            let body = `${marker}\n${summary}\n${footer}`;
+            if (Buffer.byteLength(body, "utf8") > 65_536) {
+              const counts = summary.split("\n").slice(0, 4).join("\n");
+              body = `${marker}\n${counts}\n\n${footer}`;
+            }
+
+            const { owner, repo } = context.repo;
+            const issue_number = context.issue.number;
+            const { data: pull } = await github.rest.pulls.get({ owner, repo, pull_number: issue_number });
+            if (pull.head.sha !== context.payload.pull_request.head.sha) {
+              return;
+            }
+            for await (const { data: comments } of github.paginate.iterator(github.rest.issues.listComments, {
+              owner, repo, issue_number, per_page: 100,
+            })) {
+              const existing = comments.find(({ user, body }) =>
+                user?.login === "github-actions[bot]" && body?.startsWith(marker),
+              );
+              if (existing) {
+                await github.rest.issues.updateComment({ owner, repo, comment_id: existing.id, body });
+                return;
+              }
+            }
+            await github.rest.issues.createComment({ owner, repo, issue_number, body });
       - name: Allure Report Official
         if: ${{ !cancelled() }}
         uses: allure-framework/allure-action@v0
