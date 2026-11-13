@@ -4,7 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 import type { CategoryDefinition, MetricSample, TestResult } from "@allurereport/core-api";
-import type { AllureStore, PluginContext } from "@allurereport/plugin-api";
+import { type AllureStore, type PluginContext, PluginFatalError } from "@allurereport/plugin-api";
 import { story } from "allure-js-commons";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
@@ -82,7 +82,7 @@ describe("MetricsPlugin", () => {
       [tr({ id: "3", status: "failed" })],
     );
 
-    await new MetricsPlugin().done(context, store);
+    await new MetricsPlugin().prepare(context, store);
 
     const prometheus = await written("export/prometheusData.txt");
     const influx = await written("export/influxDbData.txt");
@@ -99,7 +99,7 @@ describe("MetricsPlugin", () => {
   it("writes the files to the report root, not to the plugin directory", async () => {
     const { context, addFile } = createContext();
 
-    await new MetricsPlugin().done(context, createStore([tr({})]));
+    await new MetricsPlugin().prepare(context, createStore([tr({})]));
 
     expect(existsSync(join(output, "export", "prometheusData.txt"))).toBe(true);
     expect(existsSync(join(output, "export", "influxDbData.txt"))).toBe(true);
@@ -110,7 +110,7 @@ describe("MetricsPlugin", () => {
   it("exports only the configured section", async () => {
     const { context } = createContext();
 
-    await new MetricsPlugin({ prometheus: { fileName: "m.prom", labels: { team: "qa" } } }).done(
+    await new MetricsPlugin({ prometheus: { fileName: "m.prom", labels: { team: "qa" } } }).prepare(
       context,
       createStore([tr({})]),
     );
@@ -123,7 +123,7 @@ describe("MetricsPlugin", () => {
     process.env.ALLURE_PROMETHEUS_LABELS = 'env="ci"';
     const { context } = createContext();
 
-    await new MetricsPlugin({ prometheus: true }).done(context, createStore([tr({})]));
+    await new MetricsPlugin({ prometheus: true }).prepare(context, createStore([tr({})]));
 
     expect(await written("export/prometheusData.txt")).toContain('launch_status_passed{env="ci"} 1');
   });
@@ -132,7 +132,7 @@ describe("MetricsPlugin", () => {
     const { context } = createContext();
     const target = join(output, "elsewhere", "influx.txt");
 
-    await new MetricsPlugin({ influxdb: { fileName: target } }).done(context, createStore([tr({})]));
+    await new MetricsPlugin({ influxdb: { fileName: target } }).prepare(context, createStore([tr({})]));
 
     expect(await readFile(target, "utf-8")).toContain("launch_status passed=1");
   });
@@ -141,7 +141,7 @@ describe("MetricsPlugin", () => {
     const { context } = createContext();
 
     await expect(
-      new MetricsPlugin({ prometheus: { fileName: "../outside.txt" } }).done(context, createStore([tr({})])),
+      new MetricsPlugin({ prometheus: { fileName: "../outside.txt" } }).prepare(context, createStore([tr({})])),
     ).rejects.toThrow(/outside of the report directory/);
   });
 
@@ -149,7 +149,7 @@ describe("MetricsPlugin", () => {
     const { context } = createContext();
     const store = createStore([tr({})]);
 
-    await new MetricsPlugin({ prometheus: false, influxdb: false }).done(context, store);
+    await new MetricsPlugin({ prometheus: false, influxdb: false }).prepare(context, store);
 
     expect(existsSync(join(output, "export"))).toBe(false);
     expect(store.testsStatistic).not.toHaveBeenCalled();
@@ -159,7 +159,7 @@ describe("MetricsPlugin", () => {
     const samples = [{ id: "1", key: "ttfb", value: 10, start: 0, stop: 1 }] as MetricSample[];
     const off = createContext();
 
-    await new MetricsPlugin({ prometheus: { fileName: "off.txt" } }).done(
+    await new MetricsPlugin({ prometheus: { fileName: "off.txt" } }).prepare(
       off.context,
       createStore([tr({})], [], samples),
     );
@@ -167,7 +167,7 @@ describe("MetricsPlugin", () => {
       prometheus: { fileName: "on.txt" },
       influxdb: { fileName: "on.influx" },
       performanceMetrics: true,
-    }).done(off.context, createStore([tr({})], [], samples));
+    }).prepare(off.context, createStore([tr({})], [], samples));
 
     expect(await written("off.txt")).not.toContain("launch_metric_ttfb");
     expect(await written("on.txt")).toContain("launch_metric_ttfb 10\n");
@@ -183,7 +183,7 @@ describe("MetricsPlugin", () => {
       await new MetricsPlugin({
         prometheus: { pushgateway: { url: "http://pg:9091", job: "ci" } },
         influxdb: { push: { url: "http://influx:8086", db: "allure" } },
-      }).done(context, createStore([tr({})]));
+      }).prepare(context, createStore([tr({})]));
 
       expect(fetchMock.mock.calls.map(([url, init]) => [url, init.method])).toEqual([
         ["http://pg:9091/metrics/job/ci", "PUT"],
@@ -196,7 +196,7 @@ describe("MetricsPlugin", () => {
       const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
       const { context } = createContext();
 
-      await new MetricsPlugin({ prometheus: { pushgateway: { url: "http://pg:9091" } } }).done(
+      await new MetricsPlugin({ prometheus: { pushgateway: { url: "http://pg:9091" } } }).prepare(
         context,
         createStore([tr({})]),
       );
@@ -217,7 +217,7 @@ describe("MetricsPlugin", () => {
         prometheus: { pushgateway: { url: "http://pg:9091", authorizationEnv: "PG_AUTH" } },
         influxdb: { push: { url: "http://influx:8086", bucket: "allure", org: "qa", tokenEnv: "INFLUX_TOKEN" } },
         pushTimeout: 500,
-      }).done(context, createStore([tr({})]));
+      }).prepare(context, createStore([tr({})]));
 
       expect(warn).toHaveBeenCalledTimes(2);
       expect(fetchMock.mock.calls.every(([, init]) => init.signal instanceof AbortSignal)).toBe(true);
@@ -227,16 +227,39 @@ describe("MetricsPlugin", () => {
       ]);
     });
 
-    it("rethrows a push failure with failOnPushError", async () => {
+    it("rethrows a push failure with failOnPushError as a fatal plugin error", async () => {
       vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("connect ECONNREFUSED")));
       const { context } = createContext();
 
-      await expect(
-        new MetricsPlugin({ prometheus: { pushgateway: { url: "http://pg:9091" } }, failOnPushError: true }).done(
-          context,
-          createStore([tr({})]),
-        ),
-      ).rejects.toThrow("ECONNREFUSED");
+      const error = await new MetricsPlugin({
+        prometheus: { pushgateway: { url: "http://pg:9091" } },
+        failOnPushError: true,
+      })
+        .prepare(context, createStore([tr({})]))
+        .catch((err: unknown) => err);
+
+      // a plain error is only logged by the report, the fatal one fails the report generation
+      expect(error).toBeInstanceOf(PluginFatalError);
+      expect((error as Error).message).toContain("ECONNREFUSED");
+    });
+
+    it("reports every failed push in one fatal error with failOnPushError", async () => {
+      vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("down")));
+      vi.stubEnv("INFLUX_TOKEN", "influx-secret");
+      const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+      const { context } = createContext();
+
+      const error = await new MetricsPlugin({
+        prometheus: { pushgateway: { url: "http://pg:9091" } },
+        influxdb: { push: { url: "http://influx:8086", bucket: "allure", org: "qa", tokenEnv: "INFLUX_TOKEN" } },
+        failOnPushError: true,
+      })
+        .prepare(context, createStore([tr({})]))
+        .catch((err: unknown) => err);
+
+      expect(error).toBeInstanceOf(PluginFatalError);
+      expect((error as Error).message.split("\n")).toHaveLength(2);
+      expect(warn).not.toHaveBeenCalled();
     });
 
     it("fails fast on an InfluxDB 2.x push without an organization, even without failOnPushError", async () => {
@@ -245,7 +268,7 @@ describe("MetricsPlugin", () => {
       const { context } = createContext();
 
       await expect(
-        new MetricsPlugin({ influxdb: { push: { url: "http://influx:8086", bucket: "allure" } } }).done(
+        new MetricsPlugin({ influxdb: { push: { url: "http://influx:8086", bucket: "allure" } } }).prepare(
           context,
           createStore([tr({})]),
         ),

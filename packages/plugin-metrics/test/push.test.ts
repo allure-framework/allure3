@@ -135,3 +135,15 @@ describe("influxdb", () => {
     });
   });
 });
+
+describe("push network errors", () => {
+  it("names the target and the reason when the request itself fails", async () => {
+    const doFetch = vi
+      .fn()
+      .mockRejectedValue(new TypeError("fetch failed", { cause: new Error("connect ECONNREFUSED 127.0.0.1:9091") }));
+
+    await expect(pushToPushgateway({ url: "http://user:secret@pg:9091" }, "x", {}, doFetch)).rejects.toThrow(
+      "Failed to push metrics to http://pg:9091/metrics/job/allure: fetch failed (connect ECONNREFUSED 127.0.0.1:9091)",
+    );
+  });
+});
