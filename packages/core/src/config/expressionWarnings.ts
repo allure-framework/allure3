@@ -6,6 +6,8 @@ import type { ConfigOverride } from "../config.js";
 export type ConfigExpressionPath = readonly (string | number)[];
 
 // Override precedence only; expression support is defined by supportsCoreExpression.
+// Keep this list and findUnsupportedCoreExpressions in sync with resolveConfig in ../config.ts:
+// scalar values use override.x ?? config.x; resolutions merge separately and plugins replace the map.
 const CORE_CONFIG_NULLISH_OVERRIDE_KEYS = [
   "name",
   "output",
@@ -93,6 +95,9 @@ export const findUnsupportedCoreExpressions = (config: Config, override: ConfigO
   );
 };
 
+// Keep this capability map in sync with resolveName in ../config.ts and the evaluators in
+// hideLabels.ts, environments.ts, categories.ts, allureService.ts, qualityGate.ts, and qualityGateValues.ts.
+// New expression-enabled fields in those resolvers must also be classified here.
 export const supportsCoreExpression = (path: ConfigExpressionPath): boolean => {
   const [root, field, index, key] = path;
   if (root === "name") {
