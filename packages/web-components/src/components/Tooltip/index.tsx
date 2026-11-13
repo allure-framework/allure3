@@ -105,36 +105,41 @@ export const TooltipWrapper: FunctionalComponent<TooltipWrapperProps> = ({
   const [currentText, setCurrentText] = useState(tooltipText);
   const hideTimer = useRef<number | null>(null);
   const showTimer = useRef<number | null>(null);
+  const showTooltip = isVisible && isTriggerActive;
 
   useEffect(() => {
     setCurrentText(tooltipText);
   }, [tooltipText]);
 
-  useEffect(() => {
-    if (!isVisible || !triggerRef.current || !tooltipRef.current) {
+  useLayoutEffect(() => {
+    if (!showTooltip || !triggerRef.current || !tooltipRef.current) {
       return;
     }
 
     const trigger = triggerRef.current;
     const tooltip = tooltipRef.current;
+    let active = true;
     const updatePosition = () => {
       computePosition(trigger, tooltip, {
         placement,
         middleware: [offset(6), flip(), shift({ padding: 5 })],
       }).then(({ x, y }) => {
+        if (!active) {
+          return;
+        }
         Object.assign(tooltip.style, {
-          "left": `${x}px`,
-          "top": `${y}px`,
-          "position": "absolute",
-          "z-index": 100,
+          inset: `${y}px auto auto ${x}px`,
+          visibility: "visible",
         });
       });
     };
 
-    updatePosition();
-
-    return autoUpdate(trigger, tooltip, updatePosition);
-  }, [isVisible, placement, tooltipText]);
+    const release = autoUpdate(trigger, tooltip, updatePosition);
+    return () => {
+      active = false;
+      release();
+    };
+  }, [showTooltip, placement, tooltipText]);
 
   const onMouseEnter = () => {
     if (triggerMode === "hover" && isTriggerActive) {
@@ -198,7 +203,11 @@ export const TooltipWrapper: FunctionalComponent<TooltipWrapperProps> = ({
       <div ref={triggerRef} className={triggerClassName}>
         {children}
       </div>
-      <div ref={tooltipRef}>{isVisible && isTriggerActive && tooltipContent}</div>
+      {showTooltip && (
+        <div ref={tooltipRef} className={styles["tooltip-positioner"]}>
+          {tooltipContent}
+        </div>
+      )}
     </div>
   );
 };
