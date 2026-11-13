@@ -91,7 +91,7 @@ export const findRecoveries = (jobs, current) => {
       }
       seen.add(result.id);
       const pass = { job, result };
-      if (job.attempt === current.attempt && result.status === "passed" && result.retryFailure) {
+      if (result.status === "passed" && result.retryFailure) {
         recoveries.push({ kind: "Playwright retry", fail: { job, result: result.retryFailure }, pass });
       }
       if (!comparable) {
@@ -108,7 +108,6 @@ export const findRecoveries = (jobs, current) => {
       ]);
       const last = previous.get(key);
       if (
-        job.attempt === current.attempt &&
         result.status === "passed" &&
         last &&
         isFailure(last.result.status) &&
@@ -123,6 +122,7 @@ export const findRecoveries = (jobs, current) => {
   }
   return recoveries.sort(
     (a, b) =>
+      b.pass.job.attempt - a.pass.job.attempt ||
       a.kind.localeCompare(b.kind) ||
       a.pass.job.environment.localeCompare(b.pass.job.environment) ||
       a.pass.result.name.localeCompare(b.pass.result.name),
@@ -141,26 +141,36 @@ export const formatSummary = (recoveries, baseUrl, reportUrl, publishedIds = new
     reportUrl && job === currentJob && /^[\da-f]{32}$/i.test(result.id) && publishedIds.has(result.id)
       ? new URL(`#${result.id}`, reportUrl).href
       : jobLink(job, baseUrl);
+  const affected = new Set(recoveries.map(({ pass }) => JSON.stringify([pass.result.key, pass.job.environment])));
   const lines = [
-    "## Flaky test recoveries",
+    "## Flaky test recoveries across workflow attempts",
     "",
     `Playwright retries: ${recoveries.filter(({ kind }) => kind === "Playwright retry").length}  `,
-    `GitHub job reruns: ${recoveries.filter(({ kind }) => kind === "GitHub job rerun").length}`,
+    `GitHub job reruns: ${recoveries.filter(({ kind }) => kind === "GitHub job rerun").length}  `,
+    `Affected test and environment combinations: ${affected.size}`,
   ];
   if (recoveries.length === 0) {
     return lines.join("\n") + "\n";
   }
 
-  lines.push("", "| Recovery | Test | Environment | Failed | Passed |", "| --- | --- | --- | --- | --- |");
+  lines.push(
+    "",
+    "| Recovery | Workflow attempt | Test | Environment | Failed | Passed |",
+    "| --- | --- | --- | --- | --- | --- |",
+  );
   for (const { kind, fail, pass } of recoveries.slice(0, 100)) {
+    const attempt =
+      fail.job.attempt === pass.job.attempt ? pass.job.attempt : `${fail.job.attempt} → ${pass.job.attempt}`;
     const test = escapeCell(pass.result.name);
     const environment = escapeCell([pass.job.environment, pass.result.project].filter(Boolean).join(" / "));
     const failed = link(fail, pass.job);
     const passed = link(pass, pass.job);
-    lines.push(`| ${kind} | ${test} | ${environment} | [${fail.result.status}](${failed}) | [passed](${passed}) |`);
+    lines.push(
+      `| ${kind} | ${attempt} | ${test} | ${environment} | [${fail.result.status}](${failed}) | [passed](${passed}) |`,
+    );
   }
   if (recoveries.length > 100) {
-    lines.push("", "The table shows the first 100 recoveries.");
+    lines.push("", "The table shows up to 100 recoveries, with the latest workflow attempts first.");
   }
   return lines.join("\n") + "\n";
 };
@@ -228,8 +238,8 @@ const summarize = async (directory, reportSummary) => {
   const fresh = jobs.filter((job) => job.runId === current.runId && job.attempt === current.attempt);
   const note =
     fresh.length === 0
-      ? "\nNo results were collected by test jobs in this workflow attempt.\n"
-      : `\nFresh results from: ${fresh
+      ? `\nNo test results were collected for attempt ${current.attempt}.\n`
+      : `\nTest results collected in attempt ${current.attempt}: ${fresh
           .map((job) => escapeCell(job.environment))
           .sort()
           .join(", ")}.\n`;

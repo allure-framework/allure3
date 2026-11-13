@@ -211,7 +211,7 @@ jobs:
             const footer = `[Build project summary](${run})`;
             let body = `${marker}\n${summary}\n${footer}`;
             if (Buffer.byteLength(body, "utf8") > 65_536) {
-              const counts = summary.split("\n").slice(0, 4).join("\n");
+              const counts = summary.split("\n\n", 2).join("\n\n");
               body = `${marker}\n${counts}\n\n${footer}`;
             }
 

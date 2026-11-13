@@ -48,6 +48,9 @@ describe("CI flaky test recoveries", () => {
     const [retry, pass] = passedJob.results;
     expect(recoveries.map(({ kind }) => kind)).toEqual(["GitHub job rerun", "Playwright retry"]);
     const summary = formatSummary(recoveries, baseUrl, "https://example.org/awesome/index.html", new Set([pass.id]));
+    expect(summary).toContain("Affected test and environment combinations: 1");
+    expect(summary).toContain("| GitHub job rerun | 1 → 2 |");
+    expect(summary).toContain("| Playwright retry | 2 |");
     expect(summary).toContain(`[failed](${baseUrl}/41031107948/job/123982009898)`);
     expect(summary).toContain("[passed](https://example.org/awesome/index.html#" + pass.id + ")");
     expect(summary).toContain(`[failed](${baseUrl}/41031107948/job/124049992134)`);
@@ -62,11 +65,27 @@ describe("CI flaky test recoveries", () => {
     );
   });
 
-  it("ignores retained artifacts and reused result IDs on a partial rerun", () => {
+  it("keeps earlier recoveries without recounting results reused by a partial rerun", () => {
     const { current } = fixture.reusedJob;
     const [job] = collect(fixture.reusedJob);
-    expect(findRecoveries([job], current)).toEqual([]);
-    expect(findRecoveries([job, { ...job, attempt: 2, jobId: "127796970370" }], current)).toEqual([]);
+    const [failed, passed] = collect(fixture.githubRerun);
+    const original = { ...job, runId: failed.runId };
+    const rerun = { ...original, attempt: 2, jobId: "127796970370" };
+    const otherRun = { ...job, executions: [{ ...job.executions[0], id: "other-run" }] };
+    const summary = formatSummary(
+      findRecoveries([rerun, failed, passed, otherRun, original], { ...current, runId: failed.runId }),
+      baseUrl,
+    );
+
+    expect(summary).toContain("Playwright retries: 2");
+    expect(summary).toContain("GitHub job reruns: 1");
+    expect(summary).toContain("Affected test and environment combinations: 2");
+    expect(summary).toContain("| Playwright retry | 1 |");
+    expect(summary).toContain(`[passed](${baseUrl}/${failed.runId}/job/${original.jobId})`);
+    expect(summary).not.toContain(rerun.jobId);
+    expect(findRecoveries([original, failed, passed], { runId: failed.runId, attempt: 3 })).toEqual(
+      findRecoveries([original, failed, passed], { runId: failed.runId, attempt: 2 }),
+    );
   });
 
   it("requires a fresh test on the same checkout and runner image", () => {
