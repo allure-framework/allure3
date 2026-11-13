@@ -126,7 +126,7 @@ describe("unsupported core expressions", () => {
     expect(shouldHideLabel("owner", evaluated.hideLabels)).toBe(true);
     expect(literal.name).toBe("${{ 'Override' }}");
     expect(warn.mock.calls).toEqual([
-      ["Dynamic expressions are not supported at config.name; the value will not be evaluated."],
+      ["Dynamic expressions are not supported at config.name (report-name override); the value will not be evaluated."],
     ]);
   });
 

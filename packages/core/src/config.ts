@@ -346,7 +346,8 @@ export const resolveConfig = async (config: Config, override: ConfigOverride = {
   }
 
   for (const path of findUnsupportedCoreExpressions(config, override)) {
-    console.warn(`Dynamic expressions are not supported at ${path}; the value will not be evaluated.`);
+    const source = path === "config.name" && override.name != null ? " (report-name override)" : "";
+    console.warn(`Dynamic expressions are not supported at ${path}${source}; the value will not be evaluated.`);
   }
 
   validateResolutionsConfig(config.resolutions);
@@ -356,6 +357,8 @@ export const resolveConfig = async (config: Config, override: ConfigOverride = {
   const nameContext = createNameContext();
   const { environments, environment, allowedEnvironments } = resolveConfigEnvironments(config, nameContext);
 
+  // Keep override precedence in sync with CORE_CONFIG_NULLISH_OVERRIDE_KEYS and
+  // findUnsupportedCoreExpressions in config/expressionWarnings.ts.
   const name = override.name ?? resolveName(config.name ?? "Allure Report", "name", nameContext)!;
   const open = override.open ?? config.open ?? false;
   const port = override.port ?? config.port ?? undefined;
