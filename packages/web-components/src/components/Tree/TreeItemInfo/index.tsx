@@ -40,6 +40,13 @@ export const TreeItemInfo: FunctionComponent<TreeItemInfoProps> = ({
   hideUnknownDuration = false,
 }) => {
   const formattedDuration = typeof duration !== "number" && hideUnknownDuration ? undefined : formatDuration(duration);
+  // Rendered only when the report carries the timestamps the duration was calculated from.
+  const durationTooltip = tooltips?.duration;
+  const durationText = (
+    <Text data-testid="tree-leaf-duration" type="ui" size={"m"} className={styles["item-info-time"]}>
+      {formattedDuration}
+    </Text>
+  );
 
   return (
     <div className={styles["item-info"]}>
@@ -75,11 +82,14 @@ export const TreeItemInfo: FunctionComponent<TreeItemInfoProps> = ({
           />
         </TooltipWrapper>
       )}
-      {formattedDuration !== undefined && (
-        <Text data-testid="tree-leaf-duration" type="ui" size={"m"} className={styles["item-info-time"]}>
-          {formattedDuration}
-        </Text>
-      )}
+      {formattedDuration !== undefined &&
+        (durationTooltip ? (
+          <TooltipWrapper data-testid="tree-leaf-duration-tooltip" tooltipText={durationTooltip}>
+            {durationText}
+          </TooltipWrapper>
+        ) : (
+          durationText
+        ))}
     </div>
   );
 };

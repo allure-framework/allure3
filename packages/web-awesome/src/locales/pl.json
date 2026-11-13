@@ -157,6 +157,8 @@
     "all": "Wszystkie"
   },
   "ui": {
+    "start": "Początek",
+    "stop": "Koniec",
     "labels": "Labelki",
     "metadata": "Metadane",
     "parameters": "Parametry",
