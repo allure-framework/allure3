@@ -23,36 +23,53 @@ const overrideStatistics = async (page: Page, counts: Counts) => {
 };
 
 for (const mode of Object.values(REPORT_MODES)) {
-  test(`Escape stays dismissed under a stationary pointer after redraw (${mode})`, async ({ page }) => {
-    await openReport(page, { fixture: "success-rate", mode });
-    const caption = page.locator('.chart__caption[data-tooltip-key="caption"]');
-    const tooltip = page.getByRole("tooltip");
-    await caption.focus();
-    await caption.hover();
-    await expect(tooltip).toHaveText("Success rate: 91.63%");
+  for (const focused of [true, false]) {
+    test(`Escape stays dismissed after redraw with ${focused ? "focus and hover" : "hover alone"} (${mode})`, async ({
+      page,
+    }) => {
+      await openReport(page, { fixture: "success-rate", mode });
+      const caption = page.locator('.chart__caption[data-tooltip-key="caption"]');
+      const tooltip = page.getByRole("tooltip");
+      if (focused) {
+        await caption.focus();
+      }
+      const bounds = (await caption.boundingBox())!;
+      const clientX = Math.round(bounds.x + bounds.width / 2);
+      const clientY = Math.round(bounds.y + bounds.height / 2);
+      await page.mouse.move(clientX, clientY);
+      await expect(tooltip).toHaveText("Success rate: 91.63%");
+      if (!focused) {
+        await expect(caption).not.toBeFocused();
+      }
 
-    await page.keyboard.press("Escape");
-    await expect(tooltip).toHaveCount(0);
+      await page.keyboard.press("Escape");
+      await expect(tooltip).toHaveCount(0);
 
-    const description = (await caption.getAttribute("aria-describedby"))!;
-    const viewport = page.viewportSize()!;
-    await page.setViewportSize({ ...viewport, height: viewport.height + 1 });
+      const description = (await caption.getAttribute("aria-describedby"))!;
+      const viewport = page.viewportSize()!;
+      await page.setViewportSize({ ...viewport, height: viewport.height + 1 });
 
-    await expect(caption).not.toHaveAttribute("aria-describedby", description);
-    await expect(caption).toBeFocused();
-    // Let the browser dispatch hover boundary events for the replacement caption.
-    await page.evaluate(async () => {
-      await new Promise(requestAnimationFrame);
-      await new Promise(requestAnimationFrame);
+      await expect(caption).not.toHaveAttribute("aria-describedby", description);
+      if (focused) {
+        await expect(caption).toBeFocused();
+      } else {
+        await expect(caption).not.toBeFocused();
+      }
+      // Wait for hover boundary events on the replacement caption.
+      await expect.poll(() => caption.evaluate((element) => element.matches(":hover"))).toBe(true);
+      await expect(tooltip).toHaveCount(0);
+      await caption.dispatchEvent("pointermove", { clientX, clientY, bubbles: true });
+      await expect(tooltip).toHaveCount(0);
+
+      await page.mouse.move(clientX + 1, clientY);
+      await expect(tooltip).toHaveText("Success rate: 91.63%");
+
+      await page.keyboard.press("Escape");
+      await page.mouse.move(0, 0);
+      await page.mouse.move(clientX, clientY);
+      await expect(tooltip).toHaveText("Success rate: 91.63%");
     });
-    expect(await caption.evaluate((element) => element.matches(":hover"))).toBe(true);
-    await expect(tooltip).toHaveCount(0);
-
-    await page.mouse.move(0, 0);
-    await caption.hover();
-    await expect(caption).toBeFocused();
-    await expect(tooltip).toHaveText("Success rate: 91.63%");
-  });
+  }
 
   test(`pie explanation and interaction in both chart locations (${mode})`, async ({ page }, testInfo) => {
     await openReport(page, { fixture: "success-rate", mode });
