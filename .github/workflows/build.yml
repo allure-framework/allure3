@@ -57,10 +57,19 @@ jobs:
           - name: Install playwright dependencies for e2e
             timeout-minutes: 5
             run: yarn workspace @allurereport/common-config playwright install-deps
+      - name: Record test start for the recovery summary
+        id: recovery-start
+        shell: bash
+        run: node -e 'require("node:fs").appendFileSync(process.env.GITHUB_OUTPUT, "time=" + Date.now() + "\n")'
       - name: Test Project
         env:
           ENABLE_COVERAGE: ${{ matrix.os == 'ubuntu-latest' && 'true' || 'false' }}
         run: yarn allure run --config=./allurerc.mjs --environment=${{ matrix.os }} --dump=allure-results-${{ matrix.os }} -- yarn test
+      - name: Record test end for the recovery summary
+        id: recovery-end
+        if: ${{ !cancelled() && steps.recovery-start.outputs.time != '' }}
+        shell: bash
+        run: node -e 'require("node:fs").appendFileSync(process.env.GITHUB_OUTPUT, "time=" + Date.now() + "\n")'
       - name: Upload test results
         timeout-minutes: 10
         uses: actions/upload-artifact@v7
@@ -68,6 +77,24 @@ jobs:
         with:
           name: allure-results-${{ matrix.os }}
           path: ./allure-results-${{ matrix.os }}.zip
+      - name: Collect test executions for the recovery summary
+        id: collect-recoveries
+        if: ${{ !cancelled() && steps.recovery-end.outputs.time != '' }}
+        continue-on-error: true
+        env:
+          CI_CHECK_RUN_ID: ${{ job.check_run_id }}
+          TEST_ENVIRONMENT: ${{ matrix.os }}
+          TEST_STARTED_AT: ${{ steps.recovery-start.outputs.time }}
+          TEST_FINISHED_AT: ${{ steps.recovery-end.outputs.time }}
+        shell: bash
+        run: node scripts/ci-flake-recoveries.mjs collect "allure-results-$TEST_ENVIRONMENT.zip" ci-recovery.json "$TEST_ENVIRONMENT" "$TEST_STARTED_AT" "$TEST_FINISHED_AT"
+      - name: Upload test executions for this workflow attempt
+        if: ${{ !cancelled() && steps.collect-recoveries.outcome == 'success' }}
+        continue-on-error: true
+        uses: actions/upload-artifact@v7
+        with:
+          name: allure-recovery-${{ github.run_attempt }}-${{ matrix.os }}
+          path: ./ci-recovery.json
       - name: Upload blob reports
         uses: actions/upload-artifact@v7
         if: ${{ matrix.os == 'ubuntu-latest' && !cancelled() }}
@@ -153,6 +180,59 @@ jobs:
           cp ./allure-perf-probe-results/*-perf.json ./allure-perf-results/
       - name: Generate report
         run: yarn allure generate --config=./allurerc.mjs --dump="allure-results-*/*.zip" ./allure-perf-results --output=./allure-report
+      - name: Download test executions across workflow attempts
+        if: ${{ !cancelled() }}
+        continue-on-error: true
+        uses: actions/download-artifact@v8
+        with:
+          pattern: allure-recovery-*
+          path: ./allure-recovery-data
+          github-token: ${{ github.token }}
+          run-id: ${{ github.run_id }}
+      - name: Summarize flaky test recoveries
+        if: ${{ !cancelled() }}
+        continue-on-error: true
+        id: recovery-summary
+        run: |
+          summary_path="$RUNNER_TEMP/allure-flake-recoveries.md"
+          GITHUB_STEP_SUMMARY="$summary_path" node scripts/ci-flake-recoveries.mjs summary ./allure-recovery-data ./allure-report/awesome/summary.json
+          cat "$summary_path" >> "$GITHUB_STEP_SUMMARY"
+      - name: Comment flaky test recoveries on pull request
+        if: ${{ !cancelled() && github.event_name == 'pull_request' && steps.recovery-summary.outcome == 'success' }}
+        continue-on-error: true
+        uses: actions/github-script@v9
+        with:
+          script: |
+            const { readFile } = require("node:fs/promises");
+            const { join } = require("node:path");
+            const summary = await readFile(join(process.env.RUNNER_TEMP, "allure-flake-recoveries.md"), "utf8");
+            const marker = "<!-- allure-flake-recoveries -->";
+            const run = `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${context.runId}/attempts/${process.env.GITHUB_RUN_ATTEMPT}`;
+            const footer = `[Build project summary](${run})`;
+            let body = `${marker}\n${summary}\n${footer}`;
+            if (Buffer.byteLength(body, "utf8") > 65_536) {
+              const counts = summary.split("\n\n", 2).join("\n\n");
+              body = `${marker}\n${counts}\n\n${footer}`;
+            }
+
+            const { owner, repo } = context.repo;
+            const issue_number = context.issue.number;
+            const { data: pull } = await github.rest.pulls.get({ owner, repo, pull_number: issue_number });
+            if (pull.head.sha !== context.payload.pull_request.head.sha) {
+              return;
+            }
+            for await (const { data: comments } of github.paginate.iterator(github.rest.issues.listComments, {
+              owner, repo, issue_number, per_page: 100,
+            })) {
+              const existing = comments.find(({ user, body }) =>
+                user?.login === "github-actions[bot]" && body?.startsWith(marker),
+              );
+              if (existing) {
+                await github.rest.issues.updateComment({ owner, repo, comment_id: existing.id, body });
+                return;
+              }
+            }
+            await github.rest.issues.createComment({ owner, repo, issue_number, body });
       - name: Allure Report Official
         if: ${{ !cancelled() }}
         uses: allure-framework/allure-action@v0
