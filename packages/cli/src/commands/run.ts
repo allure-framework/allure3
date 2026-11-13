@@ -28,6 +28,7 @@ const missingRunCommandUsageError = () =>
   new UsageError("expecting command to be specified after --, e.g. allure run -- npm run test");
 
 const runLogger = new Logger("AllureRun");
+const env = process.env;
 
 export class RunCommand extends Command {
   static paths = [["run"]];
@@ -93,7 +94,7 @@ export class RunCommand extends Command {
     description: "The maximum number of reruns for failed tests and Quality Gate fast-fails (default: 0)",
   });
 
-  skipMutedTests = Option.Boolean("--skip-muted-tests", false, {
+  skipMutedTests = Option.Boolean("--skip-muted-tests", {
     description: "Skip TestOps-muted tests through an adapter-supported test plan (default: false)",
   });
 
@@ -178,14 +179,17 @@ export class RunCommand extends Command {
       }
     };
 
-    if (this.skipMutedTests && process.env.ALLURE_TESTPLAN_PATH === undefined) {
+    const skipEnabled =
+      this.skipMutedTests || (this.skipMutedTests === undefined && env.ALLURE_SKIP_MUTED_TESTS === "true");
+
+    if (skipEnabled && env.ALLURE_TESTPLAN_PATH === undefined) {
       try {
         applyAllureCiEnv();
-        const accessToken = process.env.ALLURE_TOKEN;
-        const projectId = process.env.ALLURE_PROJECT_ID;
-        const url = process.env.ALLURE_ENDPOINT;
+        const accessToken = env.ALLURE_TOKEN;
+        const projectId = env.ALLURE_PROJECT_ID;
+        const url = env.ALLURE_ENDPOINT;
         // rerun check in case test plan is set via allure ci env file
-        const testPlanNotSet = process.env.ALLURE_TESTPLAN_PATH === undefined;
+        const testPlanNotSet = env.ALLURE_TESTPLAN_PATH === undefined;
         if (testPlanNotSet && accessToken) {
           const client = new AllureTestOpsClient({ accessToken, projectId, url }, runLogger);
           const mutedTests = await client.getMutedTests();
