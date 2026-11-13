@@ -454,7 +454,7 @@ describe("junit xml reader", () => {
         expect(trs).toMatchObject([{ status: "failed", message: "foo", trace: "bar" }]);
       });
 
-      it("should ignore a missing message", async () => {
+      it("should parse an element with no message attribute", async () => {
         const visitor = await readResults(junitXml, {
           "junitxmldata/statuses/failure/messageMissing.xml": randomTestsuiteFileName(),
         });
@@ -463,6 +463,7 @@ describe("junit xml reader", () => {
 
         const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
 
+        expect(trs).toMatchObject([{ status: "failed", trace: "foo" }]);
         expect(trs[0].message).toBeUndefined();
       });
 
@@ -516,7 +517,7 @@ describe("junit xml reader", () => {
         expect(trs).toMatchObject([{ status: "skipped", message: "foo", trace: "bar" }]);
       });
 
-      it("should ignore a missing message", async () => {
+      it("should parse an element with no message attribute", async () => {
         const visitor = await readResults(junitXml, {
           "junitxmldata/statuses/skipped/messageMissing.xml": randomTestsuiteFileName(),
         });
@@ -525,6 +526,7 @@ describe("junit xml reader", () => {
 
         const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
 
+        expect(trs).toMatchObject([{ status: "skipped", trace: "foo" }]);
         expect(trs[0].message).toBeUndefined();
       });
 
@@ -578,7 +580,7 @@ describe("junit xml reader", () => {
         expect(trs).toMatchObject([{ status: "broken", message: "foo", trace: "bar" }]);
       });
 
-      it("should ignore a missing message", async () => {
+      it("should parse an element with no message attribute", async () => {
         const visitor = await readResults(junitXml, {
           "junitxmldata/statuses/error/messageMissing.xml": randomTestsuiteFileName(),
         });
@@ -587,6 +589,7 @@ describe("junit xml reader", () => {
 
         const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
 
+        expect(trs).toMatchObject([{ status: "broken", trace: "foo" }]);
         expect(trs[0].message).toBeUndefined();
       });
 
