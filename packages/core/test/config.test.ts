@@ -51,11 +51,14 @@ describe("plugin descriptor expression warnings", () => {
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
     const enabled = "${{ env.ENABLED }}";
 
-    const config = await resolveConfig({
+    const input = {
       plugins: {
         custom: { import: "${{ env.IMPORT }}", enabled: enabled as unknown as boolean },
       },
-    });
+    };
+
+    const config = await resolveConfig(input);
+    await resolveConfig(input);
 
     expect(importWrapper).toHaveBeenCalledWith("@allurereport/plugin-${{ env.IMPORT }}");
     expect(warn.mock.invocationCallOrder[0]).toBeLessThan(vi.mocked(importWrapper).mock.invocationCallOrder[0]);
@@ -68,6 +71,12 @@ describe("plugin descriptor expression warnings", () => {
 });
 
 describe("unsupported core expressions", () => {
+  let resolveConfig: typeof import("../src/config.js").resolveConfig;
+
+  beforeEach(async () => {
+    vi.resetModules();
+    ({ resolveConfig } = await import("../src/config.js"));
+  });
   afterEach(() => vi.restoreAllMocks());
 
   it("does not read config getters discarded by overrides", async () => {
@@ -92,6 +101,7 @@ describe("unsupported core expressions", () => {
     const output = "${{ env.SECRET }}";
 
     const config = await resolveConfig({ output }, { plugins: {} });
+    await resolveConfig({ output: "${{ env.OTHER }}" }, { plugins: {} });
 
     expect(config.output).toBe(resolve(output));
     expect(warn.mock.calls).toEqual([
