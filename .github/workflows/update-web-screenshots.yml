@@ -84,39 +84,19 @@ jobs:
           ref: ${{ github.sha }}
           persist-credentials: false
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v6
-        with:
-          node-version: "24.14.x"
-
-      - name: Install dependencies
-        timeout-minutes: 10
-        run: yarn install --immutable --immutable-cache --check-cache
-
-      - name: Install Chromium for web screenshot suites
-        timeout-minutes: 10
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          suite_count=0
-          while IFS= read -r config; do
-            package_dir="$(dirname "${config}")"
-            workspace="$(node -e 'process.stdout.write(require(`./${process.argv[1]}/package.json`).name)' "${package_dir}")"
-            yarn workspace "${workspace}" playwright install chromium
-            if [[ "${RUNNER_OS}" == "Linux" ]]; then
-              yarn workspace "${workspace}" playwright install-deps chromium
-            fi
-            suite_count=$((suite_count + 1))
-          done < <(find packages -mindepth 2 -maxdepth 2 -type f -path 'packages/web-*/playwright.config.*' -print | sort)
-
-          if [[ "${suite_count}" == "0" ]]; then
-            echo "::error::No Playwright suites were found under packages/web-*."
-            exit 1
-          fi
-
       - name: Build project
-        run: yarn build
+        uses: ./.github/actions/build
+        id: build
+        with:
+          yarn-hardened-mode: "0"
+
+      - parallel:
+          - name: Install Playwright browsers
+            timeout-minutes: 5
+            run: yarn workspace @allurereport/common-config playwright install chromium
+          - name: Install playwright dependencies for e2e
+            timeout-minutes: 5
+            run: yarn workspace @allurereport/common-config playwright install-deps
 
       - name: Update screenshots
         env:
