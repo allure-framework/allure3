@@ -218,8 +218,8 @@ describe("AllureTestOpsClient", () => {
   describe("getMutedTests", () => {
     it("fetches every page with the decoded project and API token and maps plan identities", async () => {
       HttpClientMock.prototype.get
-        .mockResolvedValueOnce({ content: [{ id: 7, selector: "suite#test" }, { id: 9 }], last: false })
-        .mockResolvedValueOnce({ content: [{ selector: "suite#other" }, { id: 0, selector: "" }], last: true });
+        .mockResolvedValueOnce({ content: [{ id: 7, fullName: "suite#test" }, { id: 9 }], last: false })
+        .mockResolvedValueOnce({ content: [{ fullName: "suite#other" }, { id: 0, fullName: "" }], last: true });
 
       const result = await testOpsClient.getMutedTests();
 

@@ -116,12 +116,12 @@ export class AllureTestOpsClient extends AllureServiceApiClient {
   }
 
   async getMutedTests(): Promise<TestPlanTest[]> {
-    const tests = await this.#getAll<{ id?: number; selector?: string }>("/api/rs/testcase/muted", {
+    const tests = await this.#getAll<{ id?: number; fullName?: string }>("/api/rs/testcase/muted", {
       params: { projectId: this.#projectId, view: "plan" },
     });
-    return tests.map(({ id, selector }) => ({
+    return tests.map(({ id, fullName }) => ({
       ...(id !== undefined ? { id: String(id) } : {}),
-      ...(selector !== undefined ? { selector } : {}),
+      ...(fullName !== undefined ? { selector: fullName } : {}),
     }));
   }
 
