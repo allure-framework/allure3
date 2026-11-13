@@ -94,7 +94,7 @@ jobs:
       - parallel:
           - name: Install Playwright browsers
             timeout-minutes: 5
-            run: yarn workspace @allurereport/common-config playwright install chromium
+            run: yarn workspace @allurereport/common-config playwright install chromium firefox webkit
           - name: Install playwright dependencies for e2e
             timeout-minutes: 5
             run: yarn workspace @allurereport/common-config playwright install-deps
