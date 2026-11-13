@@ -25,6 +25,10 @@ type PieChartDatum = {
   value: number;
 };
 
+type PointerPosition = Pick<MouseEvent, "clientX" | "clientY">;
+
+const samePosition = (a: PointerPosition, b: PointerPosition) => a.clientX === b.clientX && a.clientY === b.clientY;
+
 type PieChartOptions = {
   showLegend?: boolean;
   statistic?: PieChartStatistic;
@@ -44,6 +48,7 @@ class PieChartView extends BaseChartView {
   private releaseTooltips: (() => void)[] = [];
   private descriptionIndex = 0;
   private dismissedFocusKey?: string;
+  private dismissedHover?: { key: string; position: PointerPosition };
 
   constructor(options: PieChartOptions = {}) {
     super(options);
@@ -191,6 +196,17 @@ class PieChartView extends BaseChartView {
     this.releaseTooltips.splice(0).forEach((release) => release());
   }
 
+  private clearHoverDismissal = () => {
+    this.dismissedHover = undefined;
+    document.removeEventListener("pointermove", this.onDismissedPointerMove);
+  };
+
+  private onDismissedPointerMove = (event: PointerEvent) => {
+    if (this.dismissedHover && !samePosition(this.dismissedHover.position, event)) {
+      this.clearHoverDismissal();
+    }
+  };
+
   private bindExplanation(anchor: Element, text: string, key: string, label = text, tooltipText = text) {
     const tooltip = new TooltipView({ position: "top" });
     tooltip.className = "tooltip pie-chart-tooltip";
@@ -208,7 +224,7 @@ class PieChartView extends BaseChartView {
     let focused = false;
     let hovered = false;
     let tooltipHovered = false;
-    let waitingForPointerMove = false;
+    let pointerPosition: PointerPosition | undefined;
     let timer: ReturnType<typeof setTimeout> | undefined;
     const hide = () => {
       tooltip.hide();
@@ -219,6 +235,10 @@ class PieChartView extends BaseChartView {
         if (focused) {
           this.dismissedFocusKey = key;
         }
+        if ((hovered || tooltipHovered) && pointerPosition) {
+          this.dismissedHover = { key, position: pointerPosition };
+          document.addEventListener("pointermove", this.onDismissedPointerMove);
+        }
         tooltipHovered = false;
         clearTimeout(timer);
         hide();
@@ -227,6 +247,9 @@ class PieChartView extends BaseChartView {
     const show = () => {
       if (focused) {
         this.dismissedFocusKey = undefined;
+      }
+      if (this.dismissedHover?.key === key) {
+        this.clearHoverDismissal();
       }
       clearTimeout(timer);
       tooltip.show(createFragment(tooltipText), anchor);
@@ -240,23 +263,30 @@ class PieChartView extends BaseChartView {
         }
       }, 100);
     };
-    const onEnter = () => {
+    const onEnter = (event: Event) => {
+      if (!(event instanceof MouseEvent)) {
+        return;
+      }
       hovered = true;
-      // Replacing the anchor under a stationary pointer can dispatch mouseenter.
-      waitingForPointerMove = this.dismissedFocusKey === key;
-      if (!waitingForPointerMove) {
+      pointerPosition = { clientX: event.clientX, clientY: event.clientY };
+      // Redraw can send a mouseenter at the same coordinates on the replacement anchor.
+      const dismissal = this.dismissedHover;
+      if (dismissal?.key !== key || !samePosition(dismissal.position, event)) {
         show();
       }
     };
-    const onPointerMove = () => {
-      if (waitingForPointerMove) {
-        waitingForPointerMove = false;
+    const onPointerMove = (event: Event) => {
+      if (!(event instanceof MouseEvent)) {
+        return;
+      }
+      pointerPosition = { clientX: event.clientX, clientY: event.clientY };
+      const dismissal = this.dismissedHover;
+      if (hovered && dismissal?.key === key && !samePosition(dismissal.position, event)) {
         show();
       }
     };
     const onLeave = () => {
       hovered = false;
-      waitingForPointerMove = false;
       leave();
     };
     const onFocus = () => {
@@ -272,8 +302,9 @@ class PieChartView extends BaseChartView {
       }
       leave();
     };
-    const onTooltipEnter = () => {
+    const onTooltipEnter = (event: MouseEvent) => {
       tooltipHovered = true;
+      pointerPosition = { clientX: event.clientX, clientY: event.clientY };
       clearTimeout(timer);
     };
     const onTooltipLeave = () => {
@@ -287,6 +318,7 @@ class PieChartView extends BaseChartView {
     anchor.addEventListener("focus", onFocus);
     anchor.addEventListener("blur", onBlur);
     tooltip.el.addEventListener("mouseenter", onTooltipEnter);
+    tooltip.el.addEventListener("pointermove", onPointerMove);
     tooltip.el.addEventListener("mouseleave", onTooltipLeave);
     this.releaseTooltips.push(() => {
       clearTimeout(timer);
@@ -299,17 +331,20 @@ class PieChartView extends BaseChartView {
       anchor.removeEventListener("focus", onFocus);
       anchor.removeEventListener("blur", onBlur);
       tooltip.el.removeEventListener("mouseenter", onTooltipEnter);
+      tooltip.el.removeEventListener("pointermove", onPointerMove);
       tooltip.el.removeEventListener("mouseleave", onTooltipLeave);
     });
   }
 
   detachFromDom() {
     this.dismissedFocusKey = undefined;
+    this.clearHoverDismissal();
     this.clearTooltips();
     super.detachFromDom();
   }
 
   destroy() {
+    this.clearHoverDismissal();
     this.clearTooltips();
     super.destroy();
   }
