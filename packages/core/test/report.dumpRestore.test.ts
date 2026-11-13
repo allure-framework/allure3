@@ -458,6 +458,7 @@ describe("AllureReport.restoreState (dump zip)", () => {
       {
         status: "passed",
         key: "Lint",
+        tags: ["ci"],
         source: { type: "command", command: "npm run lint" },
         details: { stdout: "lint ok" },
       },
