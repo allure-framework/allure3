@@ -37,14 +37,14 @@
     "@allurereport/plugin-api": "workspace:*",
     "@allurereport/plugin-csv": "workspace:*",
     "@allurereport/web-commons": "workspace:*",
-    "d3-shape": "^3.2.0",
+    "d3-shape": "^3.2.1",
     "handlebars": "^4.7.10",
     "markdown-it": "^15.0.3"
   },
   "devDependencies": {
     "@allurereport/common-config": "workspace:*",
     "@allurereport/web-classic": "workspace:*",
-    "@types/d3-shape": "^3.1.8",
+    "@types/d3-shape": "^3.2.0",
     "@types/markdown-it": "^14.2.0",
     "@types/node": "^20.19.43",
     "@vitest/coverage-istanbul": "^5.0.5",
