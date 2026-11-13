@@ -354,6 +354,55 @@ describe("github", () => {
 
       expect(github.pullRequestUrl).toBe("https://github.com/myorg/myrepo/pull/123");
     });
+
+    it("should prefer html_url from GITHUB_EVENT_PATH when present", () => {
+      (getEnv as Mock).mockImplementation((key: string) => {
+        const env: Record<string, string> = {
+          GITHUB_HEAD_REF: "feature/foo",
+          GITHUB_BASE_REF: "main",
+          GITHUB_REF: "refs/heads/main",
+          GITHUB_REF_NAME: "main",
+          GITHUB_EVENT_PATH: "/tmp/event.json",
+          GITHUB_SERVER_URL: "https://github.com",
+          GITHUB_REPOSITORY: "myorg/myrepo",
+        };
+
+        return env[key] ?? "";
+      });
+      (readFileSync as Mock).mockReturnValue(
+        JSON.stringify({
+          pull_request: {
+            number: 123,
+            html_url: "https://github.com/myorg/myrepo/pull/123",
+          },
+        }),
+      );
+
+      expect(github.pullRequestUrl).toBe("https://github.com/myorg/myrepo/pull/123");
+    });
+
+    it("should use event html_url when ref-based detection also succeeds", () => {
+      (getEnv as Mock).mockImplementation((key: string) => {
+        const env: Record<string, string> = {
+          GITHUB_REF_NAME: "123/merge",
+          GITHUB_SERVER_URL: "https://github.example.com",
+          GITHUB_REPOSITORY: "myorg/myrepo",
+          GITHUB_EVENT_PATH: "/tmp/event.json",
+        };
+
+        return env[key] ?? "";
+      });
+      (readFileSync as Mock).mockReturnValue(
+        JSON.stringify({
+          pull_request: {
+            number: 123,
+            html_url: "https://github.com/myorg/myrepo/pull/123",
+          },
+        }),
+      );
+
+      expect(github.pullRequestUrl).toBe("https://github.com/myorg/myrepo/pull/123");
+    });
   });
 
   describe("pullRequestName", () => {
@@ -399,9 +448,97 @@ describe("github", () => {
 
         return env[key] ?? "";
       });
+      (readFileSync as Mock).mockReturnValue(JSON.stringify({ pull_request: { number: 123, title: "Fix things" } }));
+
+      expect(github.pullRequestName).toBe("Fix things");
+    });
+
+    it("should fall back to synthetic name when event has number but no title", () => {
+      (getEnv as Mock).mockImplementation((key: string) => {
+        const env: Record<string, string> = {
+          GITHUB_HEAD_REF: "feature/foo",
+          GITHUB_BASE_REF: "main",
+          GITHUB_REF: "refs/heads/main",
+          GITHUB_REF_NAME: "main",
+          GITHUB_EVENT_PATH: "/tmp/event.json",
+        };
+
+        return env[key] ?? "";
+      });
       (readFileSync as Mock).mockReturnValue(JSON.stringify({ pull_request: { number: 123 } }));
 
       expect(github.pullRequestName).toBe("Pull request #123");
+    });
+
+    it("should use event title when ref-based detection also succeeds", () => {
+      (getEnv as Mock).mockImplementation((key: string) => {
+        const env: Record<string, string> = {
+          GITHUB_REF_NAME: "123/merge",
+          GITHUB_HEAD_REF: "feature/foo",
+          GITHUB_BASE_REF: "main",
+          GITHUB_EVENT_PATH: "/tmp/event.json",
+        };
+
+        return env[key] ?? "";
+      });
+      (readFileSync as Mock).mockReturnValue(
+        JSON.stringify({ pull_request: { number: 123, title: "Add new feature" } }),
+      );
+
+      expect(github.pullRequestName).toBe("Add new feature");
+    });
+  });
+
+  describe("merge_group", () => {
+    it("should resolve source and target branches from merge_group event", () => {
+      mockEnv({
+        GITHUB_EVENT_PATH: "/tmp/event.json",
+        GITHUB_REF: "refs/heads/gh-readonly-queue/main/pr-55-dddddddddddddddddddddddddddddddddddddddd",
+        GITHUB_REF_NAME: "gh-readonly-queue/main/pr-55-dddddddddddddddddddddddddddddddddddddddd",
+        GITHUB_SERVER_URL: "https://github.com",
+        GITHUB_REPOSITORY: "myorg/myrepo",
+      });
+      (readFileSync as Mock).mockReturnValue(
+        JSON.stringify({
+          merge_group: {
+            head_ref: "refs/heads/gh-readonly-queue/main/pr-55-dddddddddddddddddddddddddddddddddddddddd",
+            base_ref: "refs/heads/main",
+          },
+        }),
+      );
+
+      expect(github.sourceBranch).toBe("gh-readonly-queue/main/pr-55-dddddddddddddddddddddddddddddddddddddddd");
+      expect(github.targetBranch).toBe("main");
+      expect(github.jobRunBranch).toBe("gh-readonly-queue/main/pr-55-dddddddddddddddddddddddddddddddddddddddd");
+      expect(github.pullRequest).toEqual({
+        id: "55",
+        url: "https://github.com/myorg/myrepo/pull/55",
+        title: "Pull request #55",
+      });
+    });
+
+    it("should expose branches from merge_group without a PR number", () => {
+      mockEnv({
+        GITHUB_EVENT_PATH: "/tmp/event.json",
+        GITHUB_REF: "refs/heads/feature/queued",
+        GITHUB_REF_NAME: "feature/queued",
+        GITHUB_SERVER_URL: "https://github.com",
+        GITHUB_REPOSITORY: "myorg/myrepo",
+      });
+      (readFileSync as Mock).mockReturnValue(
+        JSON.stringify({
+          merge_group: {
+            head_ref: "refs/heads/feature/queued",
+            base_ref: "refs/heads/develop",
+          },
+        }),
+      );
+
+      expect(github.sourceBranch).toBe("feature/queued");
+      expect(github.targetBranch).toBe("develop");
+      expect(github.pullRequest).toBeUndefined();
+      expect(github.pullRequestUrl).toBe("");
+      expect(github.pullRequestName).toBe("");
     });
   });
 });

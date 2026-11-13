@@ -5,6 +5,36 @@ const stripGitSuffix = (url: string): string => url.replace(/\.git\/?$/i, "");
 /** Strips `refs/heads/` from Azure/Git ref strings. */
 export const stripRefsHeads = (ref: string): string => ref.replace(/^refs\/heads\//, "");
 
+const normalizeRepositoryUrl = (url: string): string =>
+  url
+    .trim()
+    .replace(/\.git\/?$/i, "")
+    .replace(/\/+$/, "");
+
+/** Builds a browser PR URL for known git providers from a repository URL + PR id. */
+export const buildPullRequestUrlForProvider = (
+  provider: GitProvider,
+  repositoryUrl: string,
+  pullRequestNumber: string,
+): string => {
+  const normalizedRepositoryUrl = normalizeRepositoryUrl(repositoryUrl);
+
+  if (!normalizedRepositoryUrl || !pullRequestNumber) {
+    return "";
+  }
+
+  switch (provider) {
+    case GitProvider.Github:
+      return `${normalizedRepositoryUrl}/pull/${pullRequestNumber}`;
+    case GitProvider.Gitlab:
+      return `${normalizedRepositoryUrl}/-/merge_requests/${pullRequestNumber}`;
+    case GitProvider.Bitbucket:
+      return `${normalizedRepositoryUrl}/pull-requests/${pullRequestNumber}`;
+    default:
+      return "";
+  }
+};
+
 /** Extracts PR number from GitHub/GitLab/Bitbucket pull-request URLs (e.g. CircleCI `CIRCLE_PULL_REQUEST`). */
 export const parsePullRequestNumberFromUrl = (pullRequestUrl: string): string | undefined => {
   const trimmed = pullRequestUrl.trim();

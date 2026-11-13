@@ -1,6 +1,10 @@
-import { type CiDescriptor, CiType, GitProvider } from "@allurereport/core-api";
+import { type CiDescriptor, CiType } from "@allurereport/core-api";
 
-import { resolveRepositoryFromGitUrl } from "../helpers/gitProvider.js";
+import {
+  buildPullRequestUrlForProvider,
+  parsePullRequestNumberFromUrl,
+  resolveRepositoryFromGitUrl,
+} from "../helpers/gitProvider.js";
 import { getEnv } from "../utils.js";
 
 export const getJobRunUID = (): string => getEnv("DRONE_BUILD_NUMBER");
@@ -30,25 +34,6 @@ const getPullRequestNumber = (): string | undefined => {
   const pullRequestNumber = getEnv("DRONE_PULL_REQUEST").trim();
 
   return pullRequestNumber && pullRequestNumber !== "0" ? pullRequestNumber : undefined;
-};
-
-const getPullRequestUrlForProvider = (
-  provider: GitProvider,
-  repositoryUrl: string,
-  pullRequestNumber: string,
-): string => {
-  const normalizedRepositoryUrl = normalizeRepositoryUrl(repositoryUrl);
-
-  switch (provider) {
-    case GitProvider.Github:
-      return `${normalizedRepositoryUrl}/pull/${pullRequestNumber}`;
-    case GitProvider.Gitlab:
-      return `${normalizedRepositoryUrl}/-/merge_requests/${pullRequestNumber}`;
-    case GitProvider.Bitbucket:
-      return `${normalizedRepositoryUrl}/pull-requests/${pullRequestNumber}`;
-    default:
-      return "";
-  }
 };
 
 const getSourceBranch = (): string | undefined => {
@@ -130,7 +115,7 @@ export const drone: CiDescriptor = {
     const repository = getRepository();
 
     if (repository) {
-      return getPullRequestUrlForProvider(repository.provider, repository.url, pullRequestNumber);
+      return buildPullRequestUrlForProvider(repository.provider, repository.url, pullRequestNumber);
     }
 
     const githubServer = normalizeRepositoryUrl(getEnv("DRONE_GITHUB_SERVER") || "");
@@ -145,11 +130,25 @@ export const drone: CiDescriptor = {
       return `${repoLink}/-/merge_requests/${pullRequestNumber}`;
     }
 
+    const commitLink = (getEnv("DRONE_COMMIT_LINK") || "").trim();
+
+    if (commitLink && parsePullRequestNumberFromUrl(commitLink)) {
+      return commitLink;
+    }
+
     return "";
   },
 
   get pullRequestName(): string {
-    return getEnv("DRONE_PULL_REQUEST_TITLE");
+    const title = getEnv("DRONE_PULL_REQUEST_TITLE");
+
+    if (title) {
+      return title;
+    }
+
+    const pullRequestNumber = getPullRequestNumber();
+
+    return pullRequestNumber ? `Pull request #${pullRequestNumber}` : "";
   },
 
   get commitSha() {

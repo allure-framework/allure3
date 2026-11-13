@@ -250,6 +250,26 @@ describe("drone", () => {
 
       expect(drone.pullRequestUrl).toBe("");
     });
+
+    it("should fall back to DRONE_COMMIT_LINK when it looks like a pull request URL", () => {
+      mockEnv({
+        DRONE_REPO_LINK: "https://example.com/owner/repo",
+        DRONE_PULL_REQUEST: "55",
+        DRONE_COMMIT_LINK: "https://github.com/owner/repo/pull/55",
+      });
+
+      expect(drone.pullRequestUrl).toBe("https://github.com/owner/repo/pull/55");
+    });
+
+    it("should ignore DRONE_COMMIT_LINK when it is not a pull request URL", () => {
+      mockEnv({
+        DRONE_REPO_LINK: "https://example.com/owner/repo",
+        DRONE_PULL_REQUEST: "55",
+        DRONE_COMMIT_LINK: "https://github.com/owner/repo/commit/abc123",
+      });
+
+      expect(drone.pullRequestUrl).toBe("");
+    });
   });
 
   describe("sourceBranch", () => {
@@ -332,12 +352,16 @@ describe("drone", () => {
       expect(drone.pullRequestName).toBe("Add new feature");
     });
 
-    it("should return empty string when environment variable is not set", () => {
-      (getEnv as Mock).mockImplementation((key: string) => {
-        if (key === "DRONE_PULL_REQUEST_TITLE") {
-          return "";
-        }
+    it("should synthesize a pull request name when title is missing", () => {
+      mockEnv({
+        DRONE_PULL_REQUEST: "123",
       });
+
+      expect(drone.pullRequestName).toBe("Pull request #123");
+    });
+
+    it("should return empty string when pull request id and title are missing", () => {
+      mockEnv({});
 
       expect(drone.pullRequestName).toBe("");
     });

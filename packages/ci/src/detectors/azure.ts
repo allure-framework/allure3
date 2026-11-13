@@ -1,6 +1,6 @@
 import { type CiDescriptor, CiType, GitProvider } from "@allurereport/core-api";
 
-import { resolveRepositoryFromGitUrl } from "../helpers/gitProvider.js";
+import { buildPullRequestUrlForProvider, resolveRepositoryFromGitUrl } from "../helpers/gitProvider.js";
 import { getEnv } from "../utils.js";
 
 const REF_PREFIX = "refs/";
@@ -20,6 +20,7 @@ export const isClassicRelease = (): boolean => !!getEnv("RELEASE_RELEASEID");
 const mapAzureRepositoryProvider = (provider: string): GitProvider | undefined => {
   switch (provider) {
     case "GitHub":
+    case "GitHubEnterprise":
       return GitProvider.Github;
     case "Bitbucket":
       return GitProvider.Bitbucket;
@@ -145,11 +146,10 @@ export const azure: CiDescriptor = {
   },
 
   get jobRunBranch(): string {
-    return getSourceBranch() ?? "";
+    return normalizeBranchRef(getEnv("SYSTEM_PULLREQUEST_SOURCEBRANCH")) || getSourceBranch() || "";
   },
 
   get pullRequestUrl(): string {
-    const repositoryProvider = getEnv("BUILD_REPOSITORY_PROVIDER");
     const repositoryUrl = getEnv("SYSTEM_PULLREQUEST_SOURCEREPOSITORYURI") || getEnv("BUILD_REPOSITORY_URI");
     const pullRequestId = getPullRequestId();
 
@@ -157,19 +157,35 @@ export const azure: CiDescriptor = {
       return "";
     }
 
-    if (repositoryProvider === "GitHub") {
-      return `${repositoryUrl}/pull/${pullRequestId}`;
+    const browserRepositoryUrl = getBrowserRepositoryUrl(repositoryUrl);
+    const providerFromUrl = resolveRepositoryFromGitUrl(repositoryUrl)?.provider;
+
+    if (providerFromUrl) {
+      const pullRequestUrl = buildPullRequestUrlForProvider(providerFromUrl, browserRepositoryUrl, pullRequestId);
+
+      if (pullRequestUrl) {
+        return pullRequestUrl;
+      }
+    }
+
+    const repositoryProvider = getEnv("BUILD_REPOSITORY_PROVIDER");
+    const mappedProvider = mapAzureRepositoryProvider(repositoryProvider);
+
+    if (mappedProvider) {
+      return buildPullRequestUrlForProvider(mappedProvider, browserRepositoryUrl, pullRequestId);
     }
 
     if (repositoryProvider === "TfsGit" || repositoryProvider === "TfsVersionControl") {
-      return `${getBrowserRepositoryUrl(repositoryUrl)}/pullrequest/${pullRequestId}`;
+      return `${browserRepositoryUrl}/pullrequest/${pullRequestId}`;
     }
 
     return "";
   },
 
   get pullRequestName(): string {
-    return "";
+    const pullRequestId = getPullRequestId();
+
+    return pullRequestId ? `Pull request #${pullRequestId}` : "";
   },
 
   get commitSha() {
