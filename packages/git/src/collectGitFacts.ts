@@ -7,6 +7,8 @@ export const DEFAULT_ANCESTOR_LIMIT = 100;
 export type CollectGitFactsOptions = {
   cwd?: string;
   ancestorLimit?: number;
+  /** The commit CI reports for this run; replaces HEAD only when HEAD is the pull request merge of this commit. */
+  sourceCommit?: string;
 };
 
 const normalizeAncestorLimit = (value: unknown): number => {
@@ -88,6 +90,20 @@ const ensureAncestorHistory = (ancestorLimit: number, cwd?: string): void => {
   deepenFetch(deepenBy, cwd);
 };
 
+/**
+ * Whether `commit` merges `source` into its first parent, the shape of the temporary commit CI builds a pull request on.
+ * Reads the raw commit, because a shallow checkout hides the parents from `rev-parse` and `rev-list`.
+ */
+const isMergeOf = (commit: string, source: string, cwd?: string): boolean => {
+  const [headers = ""] = (runGit(["cat-file", "commit", commit], cwd) ?? "").split("\n\n");
+  const parents = headers
+    .split("\n")
+    .filter((line) => line.startsWith("parent "))
+    .map((line) => line.slice("parent ".length));
+
+  return parents.length === 2 && parents[1] === source;
+};
+
 const collectLocalState = (cwd?: string): GitLocalState => {
   const statusPorcelain = runGit(["status", "--porcelain"], cwd) ?? "";
   const branchRaw = runGit(["rev-parse", "--abbrev-ref", "HEAD"], cwd);
@@ -105,30 +121,34 @@ const collectLocalState = (cwd?: string): GitLocalState => {
 };
 
 export const collectGitFacts = (options: CollectGitFactsOptions = {}): GitFacts | undefined => {
-  const { cwd } = options;
+  const { cwd, sourceCommit } = options;
   const ancestorLimit = normalizeAncestorLimit(options.ancestorLimit);
 
   if (runGit(["rev-parse", "--is-inside-work-tree"], cwd) !== "true") {
     return undefined;
   }
 
-  const commit = runGit(["rev-parse", "HEAD"], cwd);
+  const head = runGit(["rev-parse", "HEAD"], cwd);
 
-  if (!commit) {
+  if (!head) {
     return undefined;
   }
 
+  // The merge exists only for this run, and its first parents are the target branch, not the pull request.
+  const isPullRequestMerge = Boolean(sourceCommit) && isMergeOf(head, sourceCommit!, cwd);
+  const commit = isPullRequestMerge ? sourceCommit! : head;
   const branch = resolveBranch(cwd);
 
   ensureAncestorHistory(ancestorLimit, cwd);
 
   const revList = runGit(["rev-list", "--first-parent", commit, `--max-count=${ancestorLimit + 1}`], cwd);
 
-  if (!revList) {
+  // A depth 1 checkout of a fork's pull request does not have the head, which origin cannot serve by branch.
+  if (!revList && !isPullRequestMerge) {
     return undefined;
   }
 
-  const firstParentAncestors = revList
+  const firstParentAncestors = (revList ?? "")
     .split("\n")
     .map((line) => line.trim())
     .filter(Boolean)

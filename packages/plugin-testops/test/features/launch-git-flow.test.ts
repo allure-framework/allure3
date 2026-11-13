@@ -297,6 +297,17 @@ describe("Launch git flow", () => {
     });
   });
 
+  it("passes the CI commit so a pull request merge checkout reports the head", async () => {
+    const commitSha = "e".repeat(40);
+
+    (detect as Mock).mockReturnValue({ ...githubCi, commitSha });
+    vi.mocked(collectGitFacts).mockReturnValue({ commit: commitSha, firstParentAncestors: [] });
+
+    await startPlugin({ gitFlow: true } as TestOpsPluginOptions);
+
+    expect(collectGitFacts).toHaveBeenCalledWith(expect.objectContaining({ sourceCommit: commitSha }));
+  });
+
   it("omits git context when pull request branches are incomplete", async () => {
     const ci = {
       ...githubCi,
