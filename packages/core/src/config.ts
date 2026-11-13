@@ -338,6 +338,16 @@ const validateFlakyDetectionConfig = (config: Config["flakyDetection"]) => {
   validateFlakinessScoringOptions(config, "flakyDetection");
 };
 
+const printedExpressionWarnings = new Set<string>();
+
+const warnUnsupportedExpression = (path: string, source = ""): void => {
+  const message = `Dynamic expressions are not supported at ${path}${source}; the value will not be evaluated.`;
+  if (!printedExpressionWarnings.has(message)) {
+    printedExpressionWarnings.add(message);
+    console.warn(message);
+  }
+};
+
 export const resolveConfig = async (config: Config, override: ConfigOverride = {}): Promise<FullConfig> => {
   const validationResult = validateConfig(config);
 
@@ -347,7 +357,7 @@ export const resolveConfig = async (config: Config, override: ConfigOverride = {
 
   for (const path of findUnsupportedCoreExpressions(config, override)) {
     const source = path === "config.name" && override.name != null ? " (report-name override)" : "";
-    console.warn(`Dynamic expressions are not supported at ${path}${source}; the value will not be evaluated.`);
+    warnUnsupportedExpression(path, source);
   }
 
   validateResolutionsConfig(config.resolutions);
@@ -559,7 +569,7 @@ const resolvePlugins = async (plugins: Record<string, PluginDescriptor>, context
     const pluginId = getPluginId(id);
     const { options: rawOptions, ...descriptor } = pluginConfig;
     for (const path of findUnsupportedExpressions(descriptor, () => false, ["plugins", id])) {
-      console.warn(`Dynamic expressions are not supported at ${path}; the value will not be evaluated.`);
+      warnUnsupportedExpression(path);
     }
     const Plugin = await resolvePlugin(pluginConfig.import ?? id);
     for (const path of findUnsupportedExpressions(
@@ -567,7 +577,7 @@ const resolvePlugins = async (plugins: Record<string, PluginDescriptor>, context
       (segments) => supportsPluginExpression(Plugin.configExpressions, segments.slice(3)),
       ["plugins", id, "options"],
     )) {
-      console.warn(`Dynamic expressions are not supported at ${path}; the value will not be evaluated.`);
+      warnUnsupportedExpression(path);
     }
     const options = resolvePluginOptions(
       pluginConfig.options,

@@ -42,6 +42,7 @@ describe("plugin expression warnings", () => {
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
 
     const plugin = await resolvePlugin("csv", { filter: "${{ literal }}" }, "@allurereport/plugin-progress");
+    await resolvePlugin("csv", { filter: "${{ another }}" }, "@allurereport/plugin-progress");
 
     expect(plugin.options.filter).toBe("${{ literal }}");
     expect(warn.mock.calls).toEqual([
