@@ -86,6 +86,7 @@ __metadata:
   resolution: "@allurereport/cli-commons@workspace:packages/cli-commons"
   dependencies:
     "@allurereport/common-config": "workspace:*"
+    "@allurereport/core-api": "workspace:*"
     "@types/lodash.debounce": "npm:^4.0.9"
     "@types/node": "npm:^20.19.43"
     "@vitest/coverage-istanbul": "npm:^5.0.5"

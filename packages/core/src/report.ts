@@ -92,7 +92,6 @@ const { version } = JSON.parse(readFileSync(new URL("../package.json", import.me
 const INIT_REQUIRED_ERROR_MESSAGE = "report is not initialised. Call the start() method first.";
 const DEFAULT_READ_CONCURRENCY = 64;
 const MAX_READ_CONCURRENCY = 256;
-const DEFAULT_UPLOAD_CONCURRENCY = 10;
 const TEST_RESULTS_REGISTRY_FILENAME = "test-results.json";
 const QUALITY_GATE_RESULTS_FILENAME = "quality-gate.json";
 // directories next to the report ones that are not reports on their own, for example the `export` one with the
@@ -252,7 +251,7 @@ export class AllureReport {
       const allureServiceClientConfig = {
         ...allureService,
         accessToken: allureServiceAccessToken,
-        uploadConcurrency: parseIntegerConfigValue(allureService.uploadConcurrency, 1) ?? DEFAULT_UPLOAD_CONCURRENCY,
+        uploadConcurrency: parseIntegerConfigValue(allureService.uploadConcurrency, 1),
       };
 
       this.#allureServiceClient = allureServiceAccessToken.startsWith("ato1.")

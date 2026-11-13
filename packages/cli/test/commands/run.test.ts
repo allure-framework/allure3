@@ -1,12 +1,15 @@
 import * as console from "node:console";
+import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 
+import { Logger } from "@allurereport/cli-commons";
 import { readConfig } from "@allurereport/core";
 import { ExpressionError } from "@allurereport/core-api";
 import AwesomePlugin from "@allurereport/plugin-awesome";
 import { KnownError } from "@allurereport/service";
+import { serve } from "@allurereport/static-server";
 import { allureId, epic, feature, label, story } from "allure-js-commons";
-import { run, UsageError } from "clipanion";
+import { Cli, run, UsageError } from "clipanion";
 import { type Mock, afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 import { executeAllureRun, runTests } from "../../src/commands/commons/run.js";
@@ -82,6 +85,23 @@ vi.mock("node:fs/promises", async (importOriginal) => ({
   mkdtemp: vi.fn().mockResolvedValue("/tmp/run"),
   writeFile: vi.fn().mockResolvedValue(undefined),
 }));
+const { mutedGetMock, testOpsConstructorMock } = vi.hoisted(() => ({
+  mutedGetMock: vi.fn(),
+  testOpsConstructorMock: vi.fn(),
+}));
+vi.mock("@allurereport/service", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@allurereport/service")>();
+  return {
+    ...actual,
+    AllureTestOpsClient: class extends actual.AllureTestOpsClient {
+      constructor(...args: ConstructorParameters<typeof actual.AllureTestOpsClient>) {
+        super(...args);
+        testOpsConstructorMock(...args);
+      }
+      getMutedTests = mutedGetMock;
+    },
+  };
+});
 vi.mock("@allurereport/core", async () => {
   const { AllureReportMock } = await import("../utils.js");
 
@@ -1432,5 +1452,332 @@ describe("run command", () => {
 
       expect(createCommand(false, true).silentOutput).toBe(true);
     });
+  });
+});
+
+describe("with skipping muted tests", () => {
+  const accessToken = `ato1.${Buffer.from(JSON.stringify({ accessToken: "api-token", url: "https://testops.example.com", projectId: 42 })).toString("base64url")}.signature`;
+  const ownedDir = resolve("/tmp/run-muted");
+  const planPath = resolve(ownedDir, "testplan.json");
+  const execute = (options: string[] = ["--skip-muted-tests"]) =>
+    Cli.from([RunCommand])
+      .process(["run", ...options, "--", "npm", "test"])
+      .execute();
+  const childEnvironment = (attempt = 0) => supervisorConstructorMock.mock.calls[attempt]?.[1].environmentVariables;
+
+  beforeEach(async () => {
+    for (const key of [
+      "ALLURE_ENDPOINT",
+      "ALLURE_TOKEN",
+      "ALLURE_PROJECT_ID",
+      "ALLURE_CI_ENV",
+      "ALLURE_TESTPLAN_PATH",
+    ]) {
+      vi.stubEnv(key, undefined);
+    }
+    vi.stubEnv("ALLURE_TOKEN", accessToken);
+    vi.mocked(readConfig)
+      .mockReset()
+      .mockResolvedValue({
+        output: "./allure-report",
+        open: false,
+        plugins: [],
+      } as never);
+    vi.mocked(mkdtemp).mockReset().mockResolvedValue(ownedDir);
+    vi.mocked(writeFile).mockReset().mockResolvedValue(undefined);
+    vi.mocked(rm).mockReset().mockResolvedValue(undefined);
+    vi.mocked(serve).mockReset();
+    mutedGetMock.mockReset().mockResolvedValue([{ id: "123", selector: "suite.spec.ts#test" }]);
+    const { AllureReportMock } = await import("../utils.js");
+    AllureReportMock.prototype.done.mockReset().mockResolvedValue(undefined);
+  });
+
+  afterEach(async () => {
+    vi.unstubAllEnvs();
+    vi.mocked(mkdtemp).mockReset().mockResolvedValue("/tmp/run");
+    vi.mocked(writeFile).mockReset().mockResolvedValue(undefined);
+    vi.mocked(rm).mockReset().mockResolvedValue(undefined);
+    const { AllureReportMock } = await import("../utils.js");
+    AllureReportMock.prototype.done.mockReset().mockResolvedValue(undefined);
+  });
+
+  it("does not prepare a muted plan by default", async () => {
+    await execute([]);
+
+    expect(testOpsConstructorMock).not.toHaveBeenCalled();
+    expect(mkdtemp).not.toHaveBeenCalled();
+    expect(writeFile).not.toHaveBeenCalled();
+    expect(childEnvironment()).toEqual({ ALLURE_CLI_ACTIVE_COMMAND: "run" });
+  });
+
+  it("preserves explicitly set host testplan before client setup", async () => {
+    const path = "/caller/testplan.json";
+
+    vi.stubEnv("ALLURE_TESTPLAN_PATH", path);
+    vi.stubEnv(
+      "ALLURE_CI_ENV",
+      Buffer.from(
+        JSON.stringify({
+          ALLURE_TOKEN: "changed-token",
+          ALLURE_TESTPLAN_PATH: "/ci/testplan.json",
+        }),
+      ).toString("base64"),
+    );
+
+    await execute();
+
+    expect(testOpsConstructorMock).not.toHaveBeenCalled();
+    expect(mkdtemp).not.toHaveBeenCalled();
+    expect(writeFile).not.toHaveBeenCalled();
+    expect(process.env.ALLURE_TOKEN).toBe(accessToken);
+    expect(process.env.ALLURE_TESTPLAN_PATH).toBe(path);
+    expect(childEnvironment()).toEqual({ ALLURE_CLI_ACTIVE_COMMAND: "run" });
+  });
+
+  it("preserves a CI-decoded testplan", async () => {
+    vi.stubEnv(
+      "ALLURE_CI_ENV",
+      Buffer.from(
+        JSON.stringify({
+          ALLURE_TESTPLAN_PATH: "/ci/testplan.json",
+          ALLURE_TOKEN: accessToken,
+        }),
+      ).toString("base64"),
+    );
+
+    await execute();
+
+    expect(mutedGetMock).not.toHaveBeenCalled();
+    expect(writeFile).not.toHaveBeenCalled();
+    expect(process.env.ALLURE_TESTPLAN_PATH).toBe("/ci/testplan.json");
+    expect(childEnvironment()).toEqual({ ALLURE_CLI_ACTIVE_COMMAND: "run" });
+  });
+
+  it("warns and skips when no TestOps token is configured", async () => {
+    vi.stubEnv("ALLURE_TOKEN", undefined);
+
+    const exitCode = await execute();
+
+    expect(exitCode).toBe(0);
+    expect(mutedGetMock).not.toHaveBeenCalled();
+    expect(mkdtemp).not.toHaveBeenCalled();
+    expect(childEnvironment()).toEqual({ ALLURE_CLI_ACTIVE_COMMAND: "run" });
+    expect(console.warn).toHaveBeenCalledWith(
+      expect.stringContaining(
+        "--skip-muted-tests requires a functional Allure TestOps instance: set ALLURE_TOKEN and, for a user token, ALLURE_ENDPOINT and ALLURE_PROJECT_ID. Continuing without a muted test plan.",
+      ),
+    );
+  });
+
+  it("uses user-token connection settings from the environment", async () => {
+    vi.stubEnv("ALLURE_TOKEN", "environment-token");
+    vi.stubEnv("ALLURE_ENDPOINT", "https://environment.example.com");
+    vi.stubEnv("ALLURE_PROJECT_ID", "456");
+
+    await execute();
+
+    expect(testOpsConstructorMock).toHaveBeenCalledWith(
+      { accessToken: "environment-token", url: "https://environment.example.com", projectId: "456" },
+      expect.any(Logger),
+    );
+    expect(childEnvironment().ALLURE_TESTPLAN_PATH).toBe(planPath);
+  });
+
+  it("uses the token decoded from the CI environment", async () => {
+    vi.stubEnv("ALLURE_TOKEN", undefined);
+    vi.stubEnv("ALLURE_CI_ENV", Buffer.from(JSON.stringify({ ALLURE_TOKEN: accessToken })).toString("base64"));
+
+    await execute();
+
+    expect(testOpsConstructorMock).toHaveBeenCalledWith(expect.objectContaining({ accessToken }), expect.any(Logger));
+    expect(childEnvironment().ALLURE_TESTPLAN_PATH).toBe(planPath);
+  });
+
+  it("writes and injects a muted-only plan", async () => {
+    const mutedTests = [{ id: "123", selector: "suite.spec.ts#test" }];
+
+    mutedGetMock.mockResolvedValueOnce(mutedTests);
+
+    await execute();
+
+    expect(mutedGetMock).toHaveBeenCalledExactlyOnceWith();
+    expect(testOpsConstructorMock).toHaveBeenCalledWith(expect.objectContaining({ accessToken }), expect.any(Logger));
+    expect(writeFile).toHaveBeenCalledWith(
+      planPath,
+      JSON.stringify({
+        version: "1.0",
+        tests: [],
+        mutedTests: mutedTests,
+      }),
+      "utf-8",
+    );
+    expect(childEnvironment()).toEqual({ ALLURE_CLI_ACTIVE_COMMAND: "run", ALLURE_TESTPLAN_PATH: planPath });
+    expect(process.env.ALLURE_TESTPLAN_PATH).toBeUndefined();
+  });
+
+  it("does not create or inject a test plan when no muted tests are returned", async () => {
+    mutedGetMock.mockResolvedValueOnce([]);
+
+    const exitCode = await execute();
+
+    expect(exitCode).toBe(0);
+    expect(mutedGetMock).toHaveBeenCalledExactlyOnceWith();
+    expect(mkdtemp).not.toHaveBeenCalled();
+    expect(writeFile).not.toHaveBeenCalled();
+    expect(childEnvironment()).toEqual({ ALLURE_CLI_ACTIVE_COMMAND: "run" });
+  });
+
+  it("keeps nested commands as pass-through", async () => {
+    vi.stubEnv(ALLURE_CLI_ACTIVE_COMMAND_ENV, "run");
+
+    const exitCode = await execute();
+
+    expect(exitCode).toBe(0);
+    expect(mutedGetMock).not.toHaveBeenCalled();
+    expect(mkdtemp).not.toHaveBeenCalled();
+  });
+
+  it.each(["request", "directory", "write"])("warns and continues after a muted %s failure", async (phase) => {
+    if (phase === "request") mutedGetMock.mockRejectedValueOnce(new Error("404 Not Found"));
+    if (phase === "directory") vi.mocked(mkdtemp).mockRejectedValueOnce(new Error("mkdir failed"));
+    if (phase === "write") vi.mocked(writeFile).mockRejectedValueOnce(new Error("write failed"));
+    supervisorExitCodeMock.mockResolvedValueOnce(7);
+
+    const exitCode = await execute();
+
+    expect(exitCode).toBe(7);
+    expect(console.warn).toHaveBeenCalledWith(expect.stringContaining("muted"));
+    expect(childEnvironment()).toEqual({ ALLURE_CLI_ACTIVE_COMMAND: "run" });
+    if (phase === "write") expect(rm).toHaveBeenCalledWith(ownedDir, { recursive: true, force: true });
+    else expect(writeFile).not.toHaveBeenCalled();
+  });
+
+  it("keeps the plan until report finalization", async () => {
+    const { AllureReportMock } = await import("../utils.js");
+    AllureReportMock.prototype.done.mockImplementationOnce(async () => {
+      expect(rm).not.toHaveBeenCalledWith(ownedDir, expect.anything());
+    });
+
+    await execute();
+
+    expect(AllureReportMock.prototype.done).toHaveBeenCalledOnce();
+    expect(rm).toHaveBeenCalledWith(ownedDir, { recursive: true, force: true });
+  });
+
+  it("cleans up when report finalization rejects", async () => {
+    const { AllureReportMock } = await import("../utils.js");
+    const error = new Error("finalization failed");
+    AllureReportMock.prototype.done.mockRejectedValueOnce(error);
+
+    await expect(execute()).rejects.toBe(error);
+
+    expect(rm).toHaveBeenCalledWith(ownedDir, { recursive: true, force: true });
+  });
+
+  it("warns on cleanup failure without changing the child exit code", async () => {
+    vi.mocked(rm).mockImplementation(async (path) => {
+      if (path === ownedDir) throw new Error("cleanup failed");
+    });
+    supervisorExitCodeMock.mockResolvedValueOnce(7);
+
+    const exitCode = await execute();
+
+    expect(exitCode).toBe(7);
+    expect(console.warn).toHaveBeenCalledWith(expect.stringContaining("cleanup failed"));
+  });
+
+  it("cleans the plan before starting the report server", async () => {
+    vi.mocked(readConfig).mockResolvedValueOnce({
+      output: "./allure-report",
+      open: true,
+      plugins: [],
+    } as never);
+    vi.mocked(serve).mockImplementationOnce(async () => {
+      expect(rm).toHaveBeenCalledWith(ownedDir, { recursive: true, force: true });
+      return { url: "http://localhost:8080", port: 8080, stop: vi.fn(), reload: vi.fn(), open: vi.fn() };
+    });
+
+    await execute();
+
+    expect(serve).toHaveBeenCalledOnce();
+  });
+
+  it("uses the positive plan for a targeted rerun with one muted fetch", async () => {
+    const { AllureReportMock } = await import("../utils.js");
+    const failedTest = { id: "failed", fullName: "suite#failed", status: "failed", labels: [] };
+    AllureReportMock.prototype.store.blockingFailedTestResults.mockResolvedValue([failedTest]);
+    vi.mocked(mkdtemp).mockResolvedValueOnce(ownedDir).mockResolvedValueOnce("/tmp/rerun");
+
+    await execute(["--skip-muted-tests", "--rerun", "1"]);
+
+    expect(childEnvironment()).toEqual({ ALLURE_CLI_ACTIVE_COMMAND: "run", ALLURE_TESTPLAN_PATH: planPath });
+    expect(childEnvironment(1)).toEqual({
+      ALLURE_CLI_ACTIVE_COMMAND: "run",
+      ALLURE_TESTPLAN_PATH: resolve("/tmp/rerun", "0-testplan.json"),
+      ALLURE_RERUN: "0",
+    });
+    expect(writeFile).toHaveBeenCalledWith(
+      resolve("/tmp/rerun", "0-testplan.json"),
+      JSON.stringify({
+        version: "1.0",
+        tests: [{ selector: "suite#failed" }],
+        mutedTests: [],
+      }),
+    );
+    expect(mutedGetMock).toHaveBeenCalledTimes(1);
+    expect(rm).toHaveBeenCalledWith(ownedDir, { recursive: true, force: true });
+  });
+
+  it("retains the initial plan across a full fast-fail restart with one muted fetch", async () => {
+    const { AllureReportMock } = await import("../utils.js");
+    vi.mocked(readConfig).mockResolvedValueOnce({
+      output: "./allure-report",
+      qualityGate: { rules: [] },
+      plugins: [],
+    } as never);
+    let notify!: (callback: (ids: string[]) => Promise<void>) => void;
+    const callbackReady = new Promise<(ids: string[]) => Promise<void>>((resolve) => {
+      notify = resolve;
+    });
+    let finish!: (code: number) => void;
+    const processDone = new Promise<number>((resolve) => {
+      finish = resolve;
+    });
+    AllureReportMock.prototype.store = {
+      ...AllureReportMock.prototype.store,
+      testResultById: vi
+        .fn()
+        .mockResolvedValue({ id: "failed", fullName: "suite#failed", status: "failed", labels: [] }),
+    };
+    AllureReportMock.prototype.realtimeSubscriber.onTestResults.mockImplementation(
+      (callback: (ids: string[]) => Promise<void>) => {
+        notify(callback);
+        return vi.fn();
+      },
+    );
+    AllureReportMock.prototype.validate
+      .mockResolvedValueOnce({
+        results: [{ success: false, rule: "maxFailures", expected: 0, actual: 1, testResults: [] }],
+        fastFailed: true,
+      })
+      .mockResolvedValue({ results: [], fastFailed: false });
+    supervisorExitCodeMock.mockReturnValueOnce(processDone).mockResolvedValueOnce(0);
+
+    const completion = execute(["--skip-muted-tests", "--rerun", "1"]);
+    const callback = await callbackReady;
+    await callback(["failed"]);
+    finish(1);
+    await completion;
+
+    expect(supervisorConstructorMock).toHaveBeenCalledTimes(2);
+    expect(childEnvironment()).toEqual({ ALLURE_CLI_ACTIVE_COMMAND: "run", ALLURE_TESTPLAN_PATH: planPath });
+    expect(childEnvironment(1)).toEqual({
+      ALLURE_CLI_ACTIVE_COMMAND: "run",
+      ALLURE_TESTPLAN_PATH: planPath,
+      ALLURE_RERUN: "0",
+    });
+    expect(mutedGetMock).toHaveBeenCalledTimes(1);
+    expect(mkdtemp).toHaveBeenCalledOnce();
+    expect(rm).toHaveBeenCalledWith(ownedDir, { recursive: true, force: true });
   });
 });
