@@ -46,6 +46,26 @@ afterEach(async () => {
 });
 
 describe("quality-gate configuration lifecycle", () => {
+  it("defaults to maxFailures without fast fail when qualityGate is not configured", async () => {
+    const config = await load("");
+
+    expect(config.qualityGate?.rules).toEqual([{ maxFailures: 0 }]);
+    expect(config.qualityGate?.rules?.[0]).not.toHaveProperty("fastFail");
+
+    const result = await new QualityGate(config.qualityGate!).validate({
+      trs: [testResult("failed", "failed")],
+    });
+
+    expect(result.fastFailed).toBe(false);
+    expect(result.results).toMatchObject([
+      {
+        status: "failed",
+        key: "maxFailures",
+        details: { expected: 0, actual: 1, testResults: ["failed"] },
+      },
+    ]);
+  });
+
   it.each([
     {
       field: "id",

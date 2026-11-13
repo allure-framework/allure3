@@ -9,6 +9,10 @@ import type {
 import { qualityGateDefaultRules } from "../qualityGate/rules.js";
 import { evaluateGateValue, resolveExpected, validateExpected } from "./qualityGateValues.js";
 
+const defaultQualityGate: QualityGateConfigInput = {
+  rules: [{ maxFailures: 0 }],
+};
+
 const invalid = (path: string, message: string): never => {
   throw new Error(`Invalid configuration at ${path}: ${message}`);
 };
@@ -74,34 +78,32 @@ const resolveRule = (input: QualityGateRuleInput, path: string): QualityGateRule
 };
 
 export const resolveQualityGate = (input: QualityGateConfigInput | undefined): QualityGateConfig | undefined => {
-  if (!input) {
-    return undefined;
-  }
+  const config = input === undefined ? defaultQualityGate : input;
   const env = Object.fromEntries(
     Object.entries(process.env).filter((entry): entry is [string, string] => typeof entry[1] === "string"),
   );
   const enabled =
-    typeof input.enabled === "string"
-      ? evaluateGateValue(input.enabled, "qualityGate.enabled", env)
-      : input.enabled === undefined
+    typeof config.enabled === "string"
+      ? evaluateGateValue(config.enabled, "qualityGate.enabled", env)
+      : config.enabled === undefined
         ? true
-        : input.enabled;
+        : config.enabled;
   if (typeof enabled !== "boolean") {
     return invalid("qualityGate.enabled", "expected a boolean");
   }
   if (!enabled) {
     return { enabled: false };
   }
-  if (input.use !== undefined && !Array.isArray(input.use)) {
+  if (config.use !== undefined && !Array.isArray(config.use)) {
     return invalid("qualityGate.use", "expected a list of rule definitions");
   }
-  if (input.rules !== undefined && !Array.isArray(input.rules)) {
+  if (config.rules !== undefined && !Array.isArray(config.rules)) {
     return invalid("qualityGate.rules", "expected a list of rulesets");
   }
-  const use = input.use?.map((rule, index) => resolveRule(rule, `qualityGate.use[${index}]`));
+  const use = config.use?.map((rule, index) => resolveRule(rule, `qualityGate.use[${index}]`));
   const ruleNames = new Set((use ?? qualityGateDefaultRules).map((rule) => rule.rule));
   return {
-    rules: input.rules?.map((ruleset, index) => {
+    rules: config.rules?.map((ruleset, index) => {
       const path = `qualityGate.rules[${index}]`;
       if (typeof ruleset !== "object" || ruleset === null || Array.isArray(ruleset)) {
         return invalid(path, "expected a ruleset object");

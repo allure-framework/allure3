@@ -566,6 +566,28 @@ describe("run command", () => {
     expect(AllureReportMock.prototype.done).toHaveBeenCalled();
   });
 
+  it("should not evaluate an explicitly disabled quality gate", async () => {
+    const { AllureReportMock } = await import("../utils.js");
+
+    (readConfig as Mock).mockResolvedValueOnce({
+      output: "./allure-report",
+      open: false,
+      qualityGate: { enabled: false },
+      plugins: [],
+    });
+
+    const exitCode = await run(RunCommand, ["run", "--", "npm", "test"]);
+
+    expect(AllureReportMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        qualityGate: undefined,
+      }),
+    );
+    expect(AllureReportMock.prototype.realtimeSubscriber.onTestResults).not.toHaveBeenCalled();
+    expect(AllureReportMock.prototype.validate).not.toHaveBeenCalled();
+    expect(exitCode).toBe(0);
+  });
+
   it("should keep configured quality gate when rerun is enabled", async () => {
     const { AllureReportMock } = await import("../utils.js");
     const qualityGate = {

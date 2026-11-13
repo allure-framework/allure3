@@ -202,7 +202,7 @@ export class RunCommand extends Command {
     const resultsPatterns = resolveResultsPatterns(this.resultsDir ?? [], config.resultsDir);
 
     const resolvedEnvironment = resolveCommandEnvironment(config, environmentOptions);
-    const withQualityGate = !!config.qualityGate;
+    const withQualityGate = !!config.qualityGate && config.qualityGate.enabled !== false;
 
     try {
       await rm(config.output, { recursive: true });
