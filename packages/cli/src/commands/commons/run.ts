@@ -649,17 +649,15 @@ export const executeAllureRun = async (params: {
   try {
     await allureReport.done();
   } catch (error) {
+    // an unexpected failure keeps propagating, so the command cleans up and fails as before
+    if (!(error instanceof KnownError)) {
+      throw error;
+    }
+
     // e.g. a plugin failed the report generation on purpose, such as a metrics push with `failOnPushError`;
     // the same precedence as the store uses for the report: a non-zero code (e.g. 130 on interruption) is kept
     globalExitCode.actual ||= 1;
-
-    if (error instanceof KnownError) {
-      runLogger.error(error.message);
-    } else {
-      await logError("Failed to generate report due to unexpected error", error as Error, (message) =>
-        runLogger.error(message),
-      );
-    }
+    runLogger.error(error.message);
   }
 
   logRunDiagnostic("report finalization complete");
