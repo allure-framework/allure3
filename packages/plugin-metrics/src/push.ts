@@ -34,7 +34,8 @@ const send = async (doFetch: Fetch, target: string, init: RequestInit): Promise<
   try {
     return await doFetch(target, init);
   } catch (err) {
-    throw new Error(`Failed to push metrics to ${redactUrl(target)}: ${failureReason(err, target)}`, { cause: err });
+    // the raw error is not kept as the cause: Node prints the cause chain, and it may repeat the original url
+    throw new Error(`Failed to push metrics to ${redactUrl(target)}: ${failureReason(err, target)}`);
   }
 };
 

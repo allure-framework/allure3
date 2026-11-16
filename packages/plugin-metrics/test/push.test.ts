@@ -60,7 +60,8 @@ describe("pushgateway", () => {
 describe("redactUrl", () => {
   it("removes credentials from a url", () => {
     expect(redactUrl("http://user:secret@pg:9091/metrics/job/allure")).toBe("http://pg:9091/metrics/job/allure");
-    expect(redactUrl("not a url")).toBe("not a url");
+    expect(redactUrl("not a url")).toBe("<invalid url>");
+    expect(redactUrl("http://user:secret@pg:99999")).toBe("<invalid url>");
   });
 
   it("does not leak credentials into push errors", async () => {
@@ -160,6 +161,16 @@ describe("push network errors", () => {
     expect((error as Error).message).toBe(
       "Failed to push metrics to http://pg:9091/metrics/job/allure: URLs with credentials are not supported, use the authorization options instead",
     );
+  });
+
+  it("keeps neither the credentials of an unparseable url nor the raw fetch error in the thrown error", async () => {
+    const doFetch = vi.fn().mockRejectedValue(new TypeError("Failed to parse URL from http://user:secret@pg:99999"));
+    const error = await pushToPushgateway({ url: "http://user:secret@pg:99999" }, "x", {}, doFetch).catch(
+      (err: Error) => err,
+    );
+
+    expect((error as Error).message).toBe("Failed to push metrics to <invalid url>: request failed");
+    expect((error as Error).cause).toBeUndefined();
   });
 
   it("reports a timeout without the raw abort message", async () => {
