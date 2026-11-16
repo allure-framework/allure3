@@ -1,7 +1,10 @@
 /** Allure 2 normalization: lower case and whitespaces replaced with underscores */
 export const normalize = (value: string): string => value.toLowerCase().replace(/\s+/g, "_");
 
-/** Removes credentials from a url, so it is safe to put into logs and error messages */
+/**
+ * Removes credentials from a url, so it is safe to put into logs and error messages.
+ * A url that cannot be parsed may still contain credentials, so it is replaced with a placeholder
+ */
 export const redactUrl = (url: string): string => {
   try {
     const parsed = new URL(url);
@@ -11,6 +14,6 @@ export const redactUrl = (url: string): string => {
 
     return parsed.toString();
   } catch {
-    return url;
+    return "<invalid url>";
   }
 };

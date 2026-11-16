@@ -1,4 +1,5 @@
 export * from "./config.js";
+export * from "./errors.js";
 export type * from "./plugin.js";
 export type * from "./qualityGate.js";
 export type * from "./config/qualityGate.js";
