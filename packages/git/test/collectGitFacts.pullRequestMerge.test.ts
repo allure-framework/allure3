@@ -38,7 +38,7 @@ describe("collectGitFacts on a pull request merge checkout", () => {
   };
 
   /** Checks the merge out the way `actions/checkout` does on a `pull_request` run. */
-  const checkoutMergeRef = (depth?: number) => {
+  const checkoutMergeRef = (depth?: number, pullRequest = 3) => {
     git(checkout, "init", "-q");
     git(checkout, "remote", "add", "origin", pathToFileURL(join(root, "origin")).href);
     git(
@@ -47,9 +47,9 @@ describe("collectGitFacts on a pull request merge checkout", () => {
       "-q",
       ...(depth ? [`--depth=${depth}`] : []),
       "origin",
-      "+refs/pull/3/merge:refs/remotes/pull/3/merge",
+      `+refs/pull/${pullRequest}/merge:refs/remotes/pull/${pullRequest}/merge`,
     );
-    git(checkout, "checkout", "-q", "--detach", "refs/remotes/pull/3/merge");
+    git(checkout, "checkout", "-q", "--detach", `refs/remotes/pull/${pullRequest}/merge`);
   };
 
   beforeEach(() => {
@@ -96,6 +96,25 @@ describe("collectGitFacts on a pull request merge checkout", () => {
     expect(collectGitFacts({ cwd: checkout, sourceCommit: pr.head })).toMatchObject({
       commit: pr.head,
       firstParentAncestors: [pr.first, base.first],
+    });
+  });
+
+  it("fetches the head history when the merge history is deep enough but the head's is not", () => {
+    const origin = join(root, "origin");
+
+    git(origin, "checkout", "-q", "-b", "long", base.first);
+    const [first, second, head] = ["long1", "long2", "long3"].map((name) => commitFile(origin, name));
+    git(origin, "checkout", "-q", "main");
+    git(origin, "merge", "-q", "--no-ff", "-m", "Merge long", "long");
+    git(origin, "update-ref", "refs/pull/4/merge", git(origin, "rev-parse", "HEAD"));
+    git(origin, "reset", "-q", "--hard", base.second);
+    git(origin, "branch", "-qD", "long");
+    // Depth 3 shows three first-parent commits of the merge, but only two of the head.
+    checkoutMergeRef(3, 4);
+
+    expect(collectGitFacts({ cwd: checkout, sourceCommit: head, ancestorLimit: 2 })).toMatchObject({
+      commit: head,
+      firstParentAncestors: [second, first],
     });
   });
 

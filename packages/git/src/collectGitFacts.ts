@@ -68,20 +68,43 @@ const deepenFetch = (deepenBy: number, cwd?: string): void => {
   }
 };
 
-const ensureAncestorHistory = (ancestorLimit: number, cwd?: string): void => {
+/** Fetches `commit` with `depth` commits of history; a pull request head may be on no branch the remote advertises. */
+const fetchCommitHistory = (commit: string, depth: number, cwd?: string): boolean => {
+  const strategies: string[][] = [
+    ["fetch", "--depth", String(depth), DEEPEN_FETCH_FILTERS[0], "origin", commit],
+    ["fetch", "--depth", String(depth), DEEPEN_FETCH_FILTERS[1], "origin", commit],
+    ["fetch", "--depth", String(depth), "origin", commit],
+  ];
+
+  return strategies.some((args) => runGit(args, cwd) !== undefined);
+};
+
+/**
+ * Makes sure the reported commit has `ancestorLimit` first-parent ancestors locally.
+ * `pullRequestHead` is set when the reported commit is the head of a merge checkout,
+ * where the depth of `HEAD` says nothing about the depth of the head.
+ */
+const ensureAncestorHistory = (ancestorLimit: number, cwd?: string, pullRequestHead?: string): void => {
   if (runGit(["rev-parse", "--is-shallow-repository"], cwd) !== "true") {
     return;
   }
 
   const needed = ancestorLimit + 1;
-  const availableRaw = runGit(["rev-list", "--first-parent", "--count", "HEAD"], cwd);
+  const availableRaw = runGit(["rev-list", "--first-parent", "--count", pullRequestHead ?? "HEAD"], cwd);
   const available = normalizePositiveInteger(Number(availableRaw)) ?? 0;
 
   if (available >= needed) {
     return;
   }
 
-  const deepenBy = normalizePositiveInteger(available > 0 ? needed - available : ancestorLimit);
+  if (pullRequestHead && fetchCommitHistory(pullRequestHead, needed, cwd)) {
+    return;
+  }
+
+  // Without the head, deepening from the merge reaches it one commit later.
+  const deepenBy = normalizePositiveInteger(
+    available > 0 ? needed - available : pullRequestHead ? needed : ancestorLimit,
+  );
 
   if (!deepenBy) {
     return;
@@ -139,7 +162,7 @@ export const collectGitFacts = (options: CollectGitFactsOptions = {}): GitFacts 
   const commit = isPullRequestMerge ? sourceCommit! : head;
   const branch = resolveBranch(cwd);
 
-  ensureAncestorHistory(ancestorLimit, cwd);
+  ensureAncestorHistory(ancestorLimit, cwd, isPullRequestMerge ? commit : undefined);
 
   const revList = runGit(["rev-list", "--first-parent", commit, `--max-count=${ancestorLimit + 1}`], cwd);
 
