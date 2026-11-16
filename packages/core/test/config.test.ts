@@ -583,7 +583,7 @@ describe("resolveConfig", () => {
     });
   });
 
-  it("fills default allureService upload options", async () => {
+  it("resolves allureService with optional upload settings", async () => {
     const resolved = await resolveConfig({
       allureService: {
         accessToken: "token",
@@ -592,8 +592,8 @@ describe("resolveConfig", () => {
 
     expect(resolved.allureService).toEqual({
       accessToken: "token",
-      uploadMaxAttempts: 5,
-      uploadMaxSimultaneousFailures: 5,
+      uploadMaxAttempts: undefined,
+      uploadMaxSimultaneousFailures: undefined,
     });
   });
 
@@ -609,8 +609,8 @@ describe("resolveConfig", () => {
 
     expect(resolved.allureService).toEqual({
       accessToken: "token",
-      uploadMaxAttempts: 5,
-      uploadMaxSimultaneousFailures: 5,
+      uploadMaxAttempts: undefined,
+      uploadMaxSimultaneousFailures: undefined,
     });
   });
 

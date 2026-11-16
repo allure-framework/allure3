@@ -1,10 +1,14 @@
-import { realpath, rm } from "node:fs/promises";
+import { mkdtemp, realpath, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import process from "node:process";
 
+import { applyAllureCiEnv } from "@allurereport/ci";
 import { Logger } from "@allurereport/cli-commons";
 import { AllureReport, isFileNotFoundError, readConfig } from "@allurereport/core";
-import { formatDuration } from "@allurereport/core-api";
+import { formatDuration, type TestPlan } from "@allurereport/core-api";
 import Awesome from "@allurereport/plugin-awesome";
+import { AllureTestOpsClient } from "@allurereport/service";
 import { serve } from "@allurereport/static-server";
 import { Command, Option, UsageError } from "clipanion";
 
@@ -24,6 +28,7 @@ const missingRunCommandUsageError = () =>
   new UsageError("expecting command to be specified after --, e.g. allure run -- npm run test");
 
 const runLogger = new Logger("AllureRun");
+const env = process.env;
 
 export class RunCommand extends Command {
   static paths = [["run"]];
@@ -87,6 +92,10 @@ export class RunCommand extends Command {
 
   rerun = Option.String("--rerun", {
     description: "The maximum number of reruns for failed tests and Quality Gate fast-fails (default: 0)",
+  });
+
+  skipMutedTests = Option.Boolean("--skip-muted-tests", {
+    description: "Skip TestOps-muted tests through an adapter-supported test plan (default: false)",
   });
 
   silent = Option.Boolean("--silent", {
@@ -153,6 +162,59 @@ export class RunCommand extends Command {
     }
 
     return this.ignoreLogs ? "inherit" : "pipe";
+  }
+
+  private async fetchMutedTests() {
+    let testPlanPath: string | undefined;
+    let mutedPlanDirectory: string | undefined;
+
+    const cleanupMutedPlan = async () => {
+      if (!mutedPlanDirectory) return;
+      const directory = mutedPlanDirectory;
+      mutedPlanDirectory = undefined;
+      try {
+        await rm(directory, { recursive: true, force: true });
+      } catch (error) {
+        runLogger.warn(`Could not clean muted test plan: ${error instanceof Error ? error.message : String(error)}`);
+      }
+    };
+
+    const skipEnabled =
+      this.skipMutedTests || (this.skipMutedTests === undefined && env.ALLURE_SKIP_MUTED_TESTS === "true");
+
+    if (skipEnabled && env.ALLURE_TESTPLAN_PATH === undefined) {
+      try {
+        applyAllureCiEnv();
+        const accessToken = env.ALLURE_TOKEN;
+        const projectId = env.ALLURE_PROJECT_ID;
+        const url = env.ALLURE_ENDPOINT;
+        // rerun check in case test plan is set via allure ci env file
+        const testPlanNotSet = env.ALLURE_TESTPLAN_PATH === undefined;
+        if (testPlanNotSet && accessToken) {
+          const client = new AllureTestOpsClient({ accessToken, projectId, url }, runLogger);
+          const mutedTests = await client.getMutedTests();
+          const testPlan: TestPlan = { version: "1.0", tests: [], mutedTests };
+
+          if (mutedTests.length > 0) {
+            mutedPlanDirectory = await mkdtemp(join(tmpdir(), "allure-run-muted-"));
+            const path = join(mutedPlanDirectory, "testplan.json");
+            await writeFile(path, JSON.stringify(testPlan), "utf-8");
+            testPlanPath = path;
+          }
+        } else if (testPlanNotSet) {
+          runLogger.warn(
+            "--skip-muted-tests requires a functional Allure TestOps instance: set ALLURE_TOKEN and, for a user token, ALLURE_ENDPOINT and ALLURE_PROJECT_ID. Continuing without a muted test plan.",
+          );
+        }
+      } catch (error) {
+        runLogger.warn(
+          `Could not prepare muted test plan, continuing without one: ${error instanceof Error ? error.message : String(error)}`,
+        );
+        await cleanupMutedPlan();
+      }
+    }
+
+    return { testPlanPath, cleanupMutedPlan };
   }
 
   async execute() {
@@ -232,21 +294,32 @@ export class RunCommand extends Command {
             ]),
       ],
     });
-    const { globalExitCode } = await executeAllureRun({
-      allureReport,
-      cwd,
-      command,
-      commandArgs,
-      environmentVariables: createChildAllureCliEnvironment("run"),
-      environment: resolvedEnvironment?.id,
-      withQualityGate,
-      logs: this.logs,
-      silent: this.silentOutput,
-      ignoreLogs: this.ignoreLogs,
-      maxRerun,
-      resultsPatterns,
-    });
-    const finalExitCode = globalExitCode.actual ?? globalExitCode.original;
+    const environmentVariables = createChildAllureCliEnvironment("run");
+    const { testPlanPath, cleanupMutedPlan } = await this.fetchMutedTests();
+    if (testPlanPath) {
+      environmentVariables.ALLURE_TESTPLAN_PATH = testPlanPath;
+    }
+
+    let finalExitCode: number;
+    try {
+      const { globalExitCode } = await executeAllureRun({
+        allureReport,
+        cwd,
+        command,
+        commandArgs,
+        environmentVariables,
+        environment: resolvedEnvironment?.id,
+        withQualityGate,
+        logs: this.logs,
+        silent: this.silentOutput,
+        ignoreLogs: this.ignoreLogs,
+        maxRerun,
+        resultsPatterns,
+      });
+      finalExitCode = globalExitCode.actual ?? globalExitCode.original;
+    } finally {
+      await cleanupMutedPlan();
+    }
 
     runLogger.info(`Completed with exit code ${finalExitCode} after ${formatDuration(Date.now() - before)}`);
 

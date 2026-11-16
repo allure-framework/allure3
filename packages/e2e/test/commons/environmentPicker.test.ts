@@ -46,7 +46,12 @@ for (const frontend of ["awesome", "dashboard"] as const) {
     const errors: string[] = [];
     page.on("pageerror", (error) => errors.push(error.message));
     await page.setViewportSize({ width: 520, height: 850 });
-    await page.addInitScript(() => localStorage.setItem("currentEnvironment", '"long"'));
+    // The selected environment is stored per report directory, see getReportStorageKey in web-commons.
+    await page.addInitScript(() => {
+      const directory = location.pathname.slice(0, location.pathname.lastIndexOf("/") + 1);
+
+      localStorage.setItem(`allure-report:${directory}:currentEnvironment`, '"long"');
+    });
     // Keep Awesome tree-navigation shortcuts outside this picker regression.
     await page.goto(frontend === "awesome" ? new URL("#/charts", report.url).href : report.url);
     const trigger = page.getByTestId("environment-picker-button");

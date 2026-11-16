@@ -9,7 +9,7 @@ import { MetadataList } from "@/components/Metadata";
 import { MetadataButton } from "@/components/MetadataButton";
 import { MetadataSummary } from "@/components/ReportMetadata/MetadataSummary";
 import { reportStatsStore, statsByEnvStore, useI18n } from "@/stores";
-import { currentEnvironment } from "@/stores/env";
+import { currentEnvironment, environmentsStore } from "@/stores/env";
 import { envInfoStore } from "@/stores/envInfo";
 import { getReportEnvSectionId } from "@/stores/reportEnvSections";
 import { collapsedTrees, toggleTree, treeStore } from "@/stores/tree";
@@ -140,7 +140,14 @@ export const ReportMetadata = () => {
   const { executor } = getReportOptions<ReportOptions>();
   const executorMetadata = getExecutorMetadata(executor);
   const stats = envId ? statsByEnvStore.value.data[envId] : reportStatsStore.value.data;
-  const statusCounts = stats && getUnresolvedStatusCounts(stats, treeStore.value.data, envId);
+  const statusCounts =
+    stats &&
+    getUnresolvedStatusCounts(
+      stats,
+      treeStore.value.data,
+      envId,
+      environmentsStore.value.data.map(({ id }) => id),
+    );
 
   useEffect(() => {
     fetchVariables(envId);

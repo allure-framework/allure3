@@ -377,6 +377,35 @@ describe("summary utils", () => {
     expect(summary.globalErrorsCount).toBe(1);
   });
 
+  it("createPluginSummary marks passed when the quality gate passed with failed tests", async () => {
+    const exitCode = { original: 1, actual: 0 };
+    const store = {
+      allCheckResults: vi.fn().mockResolvedValue([]),
+      allTestResults: vi
+        .fn()
+        .mockResolvedValue([
+          testResult({ id: "passed-1", status: "passed" }),
+          testResult({ id: "failed-1", status: "failed" }),
+        ]),
+      allNewTestResults: vi.fn().mockResolvedValue([]),
+      testsStatistic: vi.fn().mockResolvedValue({ total: 2, passed: 1, failed: 1 }),
+      retriesByTr: vi.fn().mockResolvedValue([]),
+      globalExitCode: vi.fn().mockResolvedValue(exitCode),
+      allGlobalErrors: vi.fn().mockResolvedValue([]),
+    };
+    const summary = await createPluginSummary({
+      name: "summary-name",
+      plugin: "summary-plugin",
+      store: store as any,
+      history: { readHistory: vi.fn().mockResolvedValue([]) } as unknown as AllureHistory,
+      meta: {},
+    });
+
+    expect(summary.status).toBe("passed");
+    expect(summary.exitCode).toEqual(exitCode);
+    expect(summary.stats).toEqual({ total: 2, passed: 1, failed: 1 });
+  });
+
   it("createPluginSummary includes exitCode and globalErrorsCount when set", async () => {
     const exitCode = { original: 0, actual: 0 };
     const store = {
@@ -436,6 +465,16 @@ describe("summary utils", () => {
           testStatuses: ["passed", "failed"],
         }),
       ).toBe("failed");
+    });
+
+    it("returns passed when Allure resolved the run exit code to 0 despite failed tests", () => {
+      expect(
+        resolveReportStatus({
+          globalErrorsCount: 0,
+          exitCode: { original: 1, actual: 0 },
+          testStatuses: ["passed", "failed", "broken"],
+        }),
+      ).toBe("passed");
     });
 
     it("returns passed when there are no signals of failure", () => {

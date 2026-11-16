@@ -13,7 +13,12 @@ import type { AllureStore } from "../store.js";
 
 /**
  * Resolves overall report status from global errors, exit code, and test statuses.
- * Precedence: any global error -> failed; nonzero exit -> failed; else worst test status (or passed).
+ * Precedence: any global error -> failed; nonzero exit -> failed; exit code resolved by Allure to 0 -> passed;
+ * else worst test status (or passed).
+ *
+ * `exitCode.actual` is Allure's own verdict on the run: it is set to 0 when the quality gate passes or when only
+ * non-blocking failures remain, even if some tests failed. The report header uses the same verdict, so the
+ * summary must not fall back to the worst test status in that case.
  */
 export const resolveReportStatus = (params: {
   globalErrorsCount: number;
@@ -28,6 +33,10 @@ export const resolveReportStatus = (params: {
 
   if (code !== undefined && code !== 0) {
     return "failed";
+  }
+
+  if (params.exitCode?.actual === 0) {
+    return "passed";
   }
 
   return getWorstStatus(params.testStatuses) ?? "passed";
