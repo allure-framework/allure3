@@ -36,7 +36,7 @@ for (const mode of Object.values(REPORT_MODES)) {
       const bounds = (await caption.boundingBox())!;
       const clientX = Math.round(bounds.x + bounds.width / 2);
       const clientY = Math.round(bounds.y + bounds.height / 2);
-      await page.mouse.move(clientX, clientY);
+      await page.mouse.move(clientX + 0.5, clientY + 0.25);
       await expect(tooltip).toHaveText("Success rate: 91.63%");
       if (!focused) {
         await expect(caption).not.toBeFocused();
@@ -58,15 +58,15 @@ for (const mode of Object.values(REPORT_MODES)) {
       // Wait for hover boundary events on the replacement caption.
       await expect.poll(() => caption.evaluate((element) => element.matches(":hover"))).toBe(true);
       await expect(tooltip).toHaveCount(0);
-      await caption.dispatchEvent("pointermove", { clientX, clientY, bubbles: true });
+      await caption.dispatchEvent("mousemove", { clientX, clientY, bubbles: true });
       await expect(tooltip).toHaveCount(0);
 
-      await page.mouse.move(clientX + 1, clientY);
+      await page.mouse.move(clientX + 1.5, clientY + 0.25);
       await expect(tooltip).toHaveText("Success rate: 91.63%");
 
       await page.keyboard.press("Escape");
       await page.mouse.move(0, 0);
-      await page.mouse.move(clientX, clientY);
+      await page.mouse.move(clientX + 0.5, clientY + 0.25);
       await expect(tooltip).toHaveText("Success rate: 91.63%");
     });
   }

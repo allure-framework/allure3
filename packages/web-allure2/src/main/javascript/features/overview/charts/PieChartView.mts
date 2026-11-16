@@ -198,10 +198,10 @@ class PieChartView extends BaseChartView {
 
   private clearHoverDismissal = () => {
     this.dismissedHover = undefined;
-    document.removeEventListener("pointermove", this.onDismissedPointerMove);
+    document.removeEventListener("mousemove", this.onDismissedMouseMove);
   };
 
-  private onDismissedPointerMove = (event: PointerEvent) => {
+  private onDismissedMouseMove = (event: MouseEvent) => {
     if (this.dismissedHover && !samePosition(this.dismissedHover.position, event)) {
       this.clearHoverDismissal();
     }
@@ -237,7 +237,7 @@ class PieChartView extends BaseChartView {
         }
         if ((hovered || tooltipHovered) && pointerPosition) {
           this.dismissedHover = { key, position: pointerPosition };
-          document.addEventListener("pointermove", this.onDismissedPointerMove);
+          document.addEventListener("mousemove", this.onDismissedMouseMove);
         }
         tooltipHovered = false;
         clearTimeout(timer);
@@ -269,13 +269,13 @@ class PieChartView extends BaseChartView {
       }
       hovered = true;
       pointerPosition = { clientX: event.clientX, clientY: event.clientY };
-      // Redraw can send a mouseenter at the same coordinates on the replacement anchor.
+      // Redraw can send mouseenter on the replacement anchor. Track movement with mousemove to use the same coordinate precision.
       const dismissal = this.dismissedHover;
       if (dismissal?.key !== key || !samePosition(dismissal.position, event)) {
         show();
       }
     };
-    const onPointerMove = (event: Event) => {
+    const onMouseMove = (event: Event) => {
       if (!(event instanceof MouseEvent)) {
         return;
       }
@@ -313,12 +313,12 @@ class PieChartView extends BaseChartView {
     };
 
     anchor.addEventListener("mouseenter", onEnter);
-    anchor.addEventListener("pointermove", onPointerMove);
+    anchor.addEventListener("mousemove", onMouseMove);
     anchor.addEventListener("mouseleave", onLeave);
     anchor.addEventListener("focus", onFocus);
     anchor.addEventListener("blur", onBlur);
     tooltip.el.addEventListener("mouseenter", onTooltipEnter);
-    tooltip.el.addEventListener("pointermove", onPointerMove);
+    tooltip.el.addEventListener("mousemove", onMouseMove);
     tooltip.el.addEventListener("mouseleave", onTooltipLeave);
     this.releaseTooltips.push(() => {
       clearTimeout(timer);
@@ -326,12 +326,12 @@ class PieChartView extends BaseChartView {
       tooltip.destroy();
       description.remove();
       anchor.removeEventListener("mouseenter", onEnter);
-      anchor.removeEventListener("pointermove", onPointerMove);
+      anchor.removeEventListener("mousemove", onMouseMove);
       anchor.removeEventListener("mouseleave", onLeave);
       anchor.removeEventListener("focus", onFocus);
       anchor.removeEventListener("blur", onBlur);
       tooltip.el.removeEventListener("mouseenter", onTooltipEnter);
-      tooltip.el.removeEventListener("pointermove", onPointerMove);
+      tooltip.el.removeEventListener("mousemove", onMouseMove);
       tooltip.el.removeEventListener("mouseleave", onTooltipLeave);
     });
   }
