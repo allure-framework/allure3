@@ -15,6 +15,11 @@ import type { FullConfig, PluginInstance } from "./api.js";
 import { resolveAllureService } from "./config/allureService.js";
 import { resolveCategories } from "./config/categories.js";
 import { resolveEnvironments } from "./config/environments.js";
+import {
+  findUnsupportedCoreExpressions,
+  findUnsupportedExpressions,
+  supportsPluginExpression,
+} from "./config/expressionWarnings.js";
 import { resolveHideLabels } from "./config/hideLabels.js";
 import { resolvePluginOptions } from "./config/pluginOptions.js";
 import { resolveQualityGate } from "./config/qualityGate.js";
@@ -333,11 +338,26 @@ const validateFlakyDetectionConfig = (config: Config["flakyDetection"]) => {
   validateFlakinessScoringOptions(config, "flakyDetection");
 };
 
+const printedExpressionWarnings = new Set<string>();
+
+const warnUnsupportedExpression = (path: string, source = ""): void => {
+  const message = `Dynamic expressions are not supported at ${path}${source}; the value will not be evaluated.`;
+  if (!printedExpressionWarnings.has(message)) {
+    printedExpressionWarnings.add(message);
+    console.warn(message);
+  }
+};
+
 export const resolveConfig = async (config: Config, override: ConfigOverride = {}): Promise<FullConfig> => {
   const validationResult = validateConfig(config);
 
   if (!validationResult.valid) {
     throw new Error(`The provided Allure config contains unsupported fields: ${validationResult.fields.join(", ")}`);
+  }
+
+  for (const path of findUnsupportedCoreExpressions(config, override)) {
+    const source = path === "config.name" && override.name != null ? " (report-name override)" : "";
+    warnUnsupportedExpression(path, source);
   }
 
   validateResolutionsConfig(config.resolutions);
@@ -347,6 +367,8 @@ export const resolveConfig = async (config: Config, override: ConfigOverride = {
   const nameContext = createNameContext();
   const { environments, environment, allowedEnvironments } = resolveConfigEnvironments(config, nameContext);
 
+  // Keep override precedence in sync with CORE_CONFIG_NULLISH_OVERRIDE_KEYS and
+  // findUnsupportedCoreExpressions in config/expressionWarnings.ts.
   const name = override.name ?? resolveName(config.name ?? "Allure Report", "name", nameContext)!;
   const open = override.open ?? config.open ?? false;
   const port = override.port ?? config.port ?? undefined;
@@ -545,7 +567,18 @@ const resolvePlugins = async (plugins: Record<string, PluginDescriptor>, context
   for (const id in plugins) {
     const pluginConfig = plugins[id];
     const pluginId = getPluginId(id);
+    const { options: rawOptions, ...descriptor } = pluginConfig;
+    for (const path of findUnsupportedExpressions(descriptor, () => false, ["plugins", id])) {
+      warnUnsupportedExpression(path);
+    }
     const Plugin = await resolvePlugin(pluginConfig.import ?? id);
+    for (const path of findUnsupportedExpressions(
+      rawOptions,
+      (segments) => supportsPluginExpression(Plugin.configExpressions, segments.slice(3)),
+      ["plugins", id, "options"],
+    )) {
+      warnUnsupportedExpression(path);
+    }
     const options = resolvePluginOptions(
       pluginConfig.options,
       Plugin.configExpressions,
