@@ -506,36 +506,53 @@ describe("report", () => {
       });
     });
 
-    it("should reject done() with a known error after the report is finished when a plugin throws a fatal error", async () => {
-      const output = await mkdtemp(join(tmpdir(), "allure3-plugin-fatal-error-"));
+    it("should keep a non-zero exit code when a fatal prepare error fails the report generation", async () => {
+      const output = await mkdtemp(join(tmpdir(), "allure3-plugin-fatal-interrupted-"));
       const config = await resolveConfig({ name: "Allure Report", output });
       const failing = createPlugin("failing");
-      const other = createPlugin("other");
 
       vi.spyOn(console, "error").mockImplementation(() => {});
-      failing.plugin.done.mockRejectedValue(new PluginFatalError("push failed"));
-      other.plugin.done.mockImplementation(async (context) => {
-        await context.reportFiles.addFile("index.html", Buffer.from("other"));
-      });
-      config.plugins = [failing, other];
+      failing.plugin.prepare.mockRejectedValue(new PluginFatalError("push failed"));
+      config.plugins = [failing];
 
       const allureReport = new AllureReport(config);
 
       await allureReport.start();
+      allureReport.realtimeDispatcher.sendGlobalExitCode({ original: 130, actual: 130 });
 
-      const error = await allureReport.done().catch((err: unknown) => err);
+      await expect(allureReport.done()).rejects.toThrow(KnownError);
+      await expect(allureReport.store.globalExitCode()).resolves.toEqual({ original: 130, actual: 130 });
+    });
 
-      expect(error).toBeInstanceOf(KnownError);
-      expect((error as Error).message).toBe('Plugin "failing" failed the report generation: push failed');
-      expect(other.plugin.done).toHaveBeenCalledTimes(1);
-      // the report of the other plugin is still written and moved to the output root
-      await expect(readFile(join(output, "index.html"), "utf8")).resolves.toBe("other");
+    it("should only log a fatal error thrown after prepare, because the reports may already show success", async () => {
+      const output = await mkdtemp(join(tmpdir(), "allure3-plugin-fatal-done-"));
+      const config = await resolveConfig({ name: "Allure Report", output });
+      const failing = createPlugin("failing");
+      const other = createPlugin("other");
+      const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
+
+      failing.plugin.done.mockRejectedValue(new PluginFatalError("push failed"));
+      config.plugins = [other, failing];
+
+      const allureReport = new AllureReport(config);
+
+      await allureReport.start();
+      allureReport.realtimeDispatcher.sendGlobalExitCode({ original: 0, actual: 0 });
+
+      await expect(allureReport.done()).resolves.toBeUndefined();
+      expect(consoleError).toHaveBeenCalledWith("plugin failing error", expect.any(PluginFatalError));
+      await expect(allureReport.store.globalExitCode()).resolves.toEqual({ original: 0, actual: 0 });
+      await expect(allureReport.store.allGlobalErrors()).resolves.toEqual([]);
     });
 
     it("should fail the report generation when a metrics push fails with failOnPushError", async () => {
       const output = await mkdtemp(join(tmpdir(), "allure3-metrics-fail-on-push-"));
       const config = await resolveConfig({ name: "Allure Report", output });
-      const fetchMock = vi.fn().mockRejectedValue(new Error("connect ECONNREFUSED 127.0.0.1:9091"));
+      const fetchMock = vi.fn().mockRejectedValue(
+        new TypeError("fetch failed", {
+          cause: Object.assign(new Error("connect ECONNREFUSED"), { code: "ECONNREFUSED" }),
+        }),
+      );
 
       vi.stubGlobal("fetch", fetchMock);
       vi.spyOn(console, "error").mockImplementation(() => {});
@@ -557,7 +574,7 @@ describe("report", () => {
         await allureReport.start();
 
         await expect(allureReport.done()).rejects.toThrow(
-          'Plugin "metrics" failed the report generation: Failed to push metrics to http://127.0.0.1:9091/metrics/job/allure: connect ECONNREFUSED 127.0.0.1:9091',
+          'Plugin "metrics" failed the report generation: Failed to push metrics to http://127.0.0.1:9091/metrics/job/allure: request failed (ECONNREFUSED)',
         );
         expect(fetchMock).toHaveBeenCalledTimes(1);
         // the export file is written before the push, so it is kept even though the generation fails
@@ -575,7 +592,14 @@ describe("report", () => {
       // the plugin writes to the global console, while this file and the core use the one from `node:console`
       const consoleWarn = vi.spyOn(globalThis.console, "warn").mockImplementation(() => {});
 
-      vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("connect ECONNREFUSED 127.0.0.1:9091")));
+      vi.stubGlobal(
+        "fetch",
+        vi.fn().mockRejectedValue(
+          new TypeError("fetch failed", {
+            cause: Object.assign(new Error("connect ECONNREFUSED"), { code: "ECONNREFUSED" }),
+          }),
+        ),
+      );
       config.plugins = [
         {
           id: "metrics",

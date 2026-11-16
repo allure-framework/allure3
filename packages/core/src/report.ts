@@ -1347,7 +1347,16 @@ export class AllureReport {
 
       // fatal plugin errors have to be in the store before any report, summary or history entry is written
       await this.#eachPlugin(false, async (plugin, context) => {
-        await plugin.prepare?.(context, this.#store);
+        try {
+          await plugin.prepare?.(context, this.#store);
+        } catch (e) {
+          // only `prepare` can fail the generation: a later fatal error could not reach the reports already rendered
+          if (isPluginFatalError(e)) {
+            this.#fatalPluginErrors.push({ pluginId: context.id, error: e });
+          }
+
+          throw e;
+        }
       });
       this.#fatalPluginErrors.forEach(({ pluginId, error }) => {
         this.#store.addFatalError({ message: fatalPluginErrorMessage(pluginId, error) });
@@ -1569,10 +1578,6 @@ export class AllureReport {
       } catch (e) {
         failed.add(id);
         console.error(`plugin ${id} error`, e);
-
-        if (isPluginFatalError(e)) {
-          this.#fatalPluginErrors.push({ pluginId: id, error: e });
-        }
       }
     }
 

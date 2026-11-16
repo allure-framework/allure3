@@ -1380,6 +1380,31 @@ describe("run command", () => {
     expect(exitCode).toEqual(1);
   });
 
+  it("should keep the interruption exit code when a plugin also fails the report generation", async () => {
+    (readConfig as Mock).mockResolvedValueOnce({
+      output: "./allure-report",
+      open: false,
+      plugins: [],
+    });
+    supervisorExitCodeMock.mockResolvedValueOnce(130);
+    supervisorInterruptedMock.mockReturnValue("stopped");
+
+    const { AllureReportMock } = await import("../utils.js");
+
+    (AllureReportMock.prototype.done as Mock).mockRejectedValueOnce(
+      new KnownError('Plugin "metrics" failed the report generation: Failed to push metrics to http://pg:9091'),
+    );
+
+    const exitCode = await run(RunCommand, ["run", "--", "npm", "test"]);
+
+    // the store keeps a non-zero code too, so the report and the command show the same 130
+    expect(AllureReportMock.prototype.realtimeDispatcher.sendGlobalExitCode).toHaveBeenCalledWith({
+      original: 130,
+      actual: 130,
+    });
+    expect(exitCode).toBe(130);
+  });
+
   it("should bypass nested allure wrappers and execute the child command directly", async () => {
     const { AllureReportMock } = await import("../utils.js");
     const { runProcess } = await import("../../src/utils/index.js");

@@ -1,9 +1,9 @@
 /**
  * An error a plugin throws to fail the whole report generation.
  *
- * Any other error thrown by a plugin is only logged, and the report is generated without that plugin.
- * After a `PluginFatalError` the report is still finished, but `AllureReport.done()` rejects afterwards,
- * so the command exits with a non-zero code.
+ * It is only honoured in the `prepare` hook: the failure is recorded as a global error and a non-zero exit code
+ * before any report is written, the report is still finished, and `AllureReport.done()` rejects afterwards, so the
+ * command exits with a non-zero code. Thrown from any other hook, it is only logged like any other plugin error.
  */
 export class PluginFatalError extends Error {
   constructor(message: string, options?: ErrorOptions) {

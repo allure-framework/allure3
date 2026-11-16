@@ -649,8 +649,9 @@ export const executeAllureRun = async (params: {
   try {
     await allureReport.done();
   } catch (error) {
-    // e.g. a plugin failed the report generation on purpose, such as a metrics push with `failOnPushError`
-    globalExitCode.actual = 1;
+    // e.g. a plugin failed the report generation on purpose, such as a metrics push with `failOnPushError`;
+    // the same precedence as the store uses for the report: a non-zero code (e.g. 130 on interruption) is kept
+    globalExitCode.actual ||= 1;
 
     if (error instanceof KnownError) {
       runLogger.error(error.message);

@@ -192,7 +192,14 @@ describe("MetricsPlugin", () => {
     });
 
     it("only warns when a push fails", async () => {
-      vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("connect ECONNREFUSED")));
+      vi.stubGlobal(
+        "fetch",
+        vi.fn().mockRejectedValue(
+          new TypeError("fetch failed", {
+            cause: Object.assign(new Error("connect ECONNREFUSED"), { code: "ECONNREFUSED" }),
+          }),
+        ),
+      );
       const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
       const { context } = createContext();
 
@@ -228,7 +235,14 @@ describe("MetricsPlugin", () => {
     });
 
     it("rethrows a push failure with failOnPushError as a fatal plugin error", async () => {
-      vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("connect ECONNREFUSED")));
+      vi.stubGlobal(
+        "fetch",
+        vi.fn().mockRejectedValue(
+          new TypeError("fetch failed", {
+            cause: Object.assign(new Error("connect ECONNREFUSED"), { code: "ECONNREFUSED" }),
+          }),
+        ),
+      );
       const { context } = createContext();
 
       const error = await new MetricsPlugin({

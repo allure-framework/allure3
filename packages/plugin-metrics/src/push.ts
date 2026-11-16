@@ -5,15 +5,36 @@ type Fetch = typeof fetch;
 
 export const DEFAULT_PUSH_TIMEOUT = 10_000;
 
-// `fetch` rejects with a bare "fetch failed" and keeps the reason (e.g. ECONNREFUSED) in the cause
+// the message ends up in the report and in TestOps when `failOnPushError` is on, so it never includes raw fetch
+// messages, causes or response bodies: they may repeat the URL with its credentials or echo the request
+const failureReason = (err: unknown, target: string): string => {
+  const url = (() => {
+    try {
+      return new URL(target);
+    } catch {
+      return undefined;
+    }
+  })();
+
+  if (url?.username || url?.password) {
+    return "URLs with credentials are not supported, use the authorization options instead";
+  }
+
+  if (err instanceof Error && (err.name === "TimeoutError" || err.name === "AbortError")) {
+    return "the request timed out";
+  }
+
+  // network failures keep a system error code (e.g. ECONNREFUSED) in the cause
+  const code = err instanceof Error ? (err.cause as { code?: unknown } | undefined)?.code : undefined;
+
+  return typeof code === "string" && /^[A-Z][A-Z0-9_]*$/.test(code) ? `request failed (${code})` : "request failed";
+};
+
 const send = async (doFetch: Fetch, target: string, init: RequestInit): Promise<Response> => {
   try {
     return await doFetch(target, init);
   } catch (err) {
-    const message = err instanceof Error ? err.message : String(err);
-    const cause = err instanceof Error && err.cause instanceof Error ? ` (${err.cause.message})` : "";
-
-    throw new Error(`Failed to push metrics to ${redactUrl(target)}: ${message}${cause}`, { cause: err });
+    throw new Error(`Failed to push metrics to ${redactUrl(target)}: ${failureReason(err, target)}`, { cause: err });
   }
 };
 
@@ -22,11 +43,7 @@ const ensureOk = async (response: Response, target: string): Promise<void> => {
     return;
   }
 
-  const details = await response.text().catch(() => "");
-
-  throw new Error(
-    `Failed to push metrics to ${redactUrl(target)}: ${response.status} ${response.statusText} ${details}`.trim(),
-  );
+  throw new Error(`Failed to push metrics to ${redactUrl(target)}: HTTP ${response.status}`);
 };
 
 // Pushgateway treats even an encoded slash as a path separator, so such values (and empty ones) have to use

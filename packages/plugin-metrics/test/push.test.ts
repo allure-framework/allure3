@@ -47,12 +47,13 @@ describe("pushgateway", () => {
     });
   });
 
-  it("throws with the response details on a non-2xx answer", async () => {
-    const doFetch = vi.fn().mockResolvedValue(new Response("nope", { status: 500, statusText: "Server Error" }));
+  it("throws with the status but without the response body on a non-2xx answer", async () => {
+    const doFetch = vi
+      .fn()
+      .mockResolvedValue(new Response("token=leaked", { status: 500, statusText: "Server Error" }));
+    const error = await pushToPushgateway({ url: "http://pg:9091" }, "x", {}, doFetch).catch((err: Error) => err);
 
-    await expect(pushToPushgateway({ url: "http://pg:9091" }, "x", {}, doFetch)).rejects.toThrow(
-      /500 Server Error nope/,
-    );
+    expect((error as Error).message).toBe("Failed to push metrics to http://pg:9091/metrics/job/allure: HTTP 500");
   });
 });
 
@@ -137,13 +138,37 @@ describe("influxdb", () => {
 });
 
 describe("push network errors", () => {
-  it("names the target and the reason when the request itself fails", async () => {
+  it("names the target and the error code when the request itself fails", async () => {
+    const cause = Object.assign(new Error("connect ECONNREFUSED 127.0.0.1:9091"), { code: "ECONNREFUSED" });
+    const doFetch = vi.fn().mockRejectedValue(new TypeError("fetch failed", { cause }));
+
+    await expect(pushToPushgateway({ url: "http://pg:9091" }, "x", {}, doFetch)).rejects.toThrow(
+      "Failed to push metrics to http://pg:9091/metrics/job/allure: request failed (ECONNREFUSED)",
+    );
+  });
+
+  it("keeps the raw fetch message out of the error, because it may repeat the credentials", async () => {
     const doFetch = vi
       .fn()
-      .mockRejectedValue(new TypeError("fetch failed", { cause: new Error("connect ECONNREFUSED 127.0.0.1:9091") }));
+      .mockRejectedValue(
+        new TypeError("Request cannot be constructed from a URL that includes credentials: http://user:secret@pg:9091"),
+      );
+    const error = await pushToPushgateway({ url: "http://user:secret@pg:9091" }, "x", {}, doFetch).catch(
+      (err: Error) => err,
+    );
 
-    await expect(pushToPushgateway({ url: "http://user:secret@pg:9091" }, "x", {}, doFetch)).rejects.toThrow(
-      "Failed to push metrics to http://pg:9091/metrics/job/allure: fetch failed (connect ECONNREFUSED 127.0.0.1:9091)",
+    expect((error as Error).message).toBe(
+      "Failed to push metrics to http://pg:9091/metrics/job/allure: URLs with credentials are not supported, use the authorization options instead",
+    );
+  });
+
+  it("reports a timeout without the raw abort message", async () => {
+    const doFetch = vi
+      .fn()
+      .mockRejectedValue(new DOMException("The operation was aborted due to timeout", "TimeoutError"));
+
+    await expect(pushToPushgateway({ url: "http://pg:9091" }, "x", {}, doFetch)).rejects.toThrow(
+      "Failed to push metrics to http://pg:9091/metrics/job/allure: the request timed out",
     );
   });
 });
