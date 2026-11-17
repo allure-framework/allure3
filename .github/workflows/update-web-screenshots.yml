@@ -26,8 +26,6 @@ jobs:
     name: Prepare screenshot update
     runs-on: ubuntu-latest
     outputs:
-      base_branch: ${{ steps.prepare.outputs.base_branch }}
-      base_sha: ${{ steps.prepare.outputs.base_sha }}
       environments: ${{ steps.prepare.outputs.environments }}
       matrix: ${{ steps.prepare.outputs.matrix }}
       update_branch: ${{ steps.prepare.outputs.update_branch }}
@@ -36,13 +34,18 @@ jobs:
         id: prepare
         shell: bash
         env:
-          GH_TOKEN: ${{ github.token }}
           LINUX: ${{ inputs.linux }}
           MACOS: ${{ inputs.macos }}
-          BASE_BRANCH: ${{ github.event.repository.default_branch }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          BASE_SHA: ${{ github.sha }}
           RUN_ID: ${{ github.run_id }}
         run: |
           set -euo pipefail
+
+          if [[ "${GITHUB_REF}" != "refs/heads/${DEFAULT_BRANCH}" ]]; then
+            echo "::error::This workflow must be triggered from the default branch (${DEFAULT_BRANCH}); received ${GITHUB_REF}."
+            exit 1
+          fi
 
           matrix='[]'
           if [[ "${LINUX}" == "true" ]]; then
@@ -57,13 +60,10 @@ jobs:
             exit 1
           fi
 
-          base_sha="$(gh api "repos/${GITHUB_REPOSITORY}/commits/${BASE_BRANCH}" --jq '.sha')"
           environments="$(jq -r '[.[].name] | join(", ")' <<< "${matrix}")"
-          update_branch="chore/update-web-screenshots-${base_sha:0:8}-${RUN_ID}"
+          update_branch="chore/update-web-screenshots-${BASE_SHA:0:8}-${RUN_ID}"
 
           {
-            echo "base_branch=${BASE_BRANCH}"
-            echo "base_sha=${base_sha}"
             echo "environments=${environments}"
             echo "matrix={\"include\":${matrix}}"
             echo "update_branch=${update_branch}"
@@ -81,7 +81,6 @@ jobs:
       - name: Checkout base revision
         uses: actions/checkout@v7
         with:
-          ref: ${{ github.sha }}
           persist-credentials: false
 
       - name: Build project
@@ -164,21 +163,7 @@ jobs:
       - name: Checkout base revision
         uses: actions/checkout@v7
         with:
-          ref: ${{ needs.prepare.outputs.base_branch }}
           token: ${{ steps.app-token.outputs.token }}
-
-      - name: Verify base revision is unchanged
-        shell: bash
-        env:
-          EXPECTED_SHA: ${{ needs.prepare.outputs.base_sha }}
-        run: |
-          set -euo pipefail
-
-          actual_sha="$(git rev-parse HEAD)"
-          if [[ "${actual_sha}" != "${EXPECTED_SHA}" ]]; then
-            echo "::error::The base branch moved from ${EXPECTED_SHA} to ${actual_sha}. Re-run the workflow."
-            exit 1
-          fi
 
       - name: Download updated screenshots
         uses: actions/download-artifact@v7
@@ -208,14 +193,13 @@ jobs:
         with:
           token: ${{ steps.app-token.outputs.token }}
           branch: ${{ needs.prepare.outputs.update_branch }}
-          base: ${{ needs.prepare.outputs.base_branch }}
           commit-message: "chore: update web screenshots"
           title: "chore: update web screenshots"
           body: |
             Updates the web visual baselines generated in CI.
 
             Environments: ${{ needs.prepare.outputs.environments }}
-            Source revision: `${{ needs.prepare.outputs.base_sha }}`
+            Source revision: `${{ github.sha }}`
           committer: ${{ vars.ALLURE_CI_APP_SLUG }}[bot] <${{ vars.ALLURE_CI_APP_USER_ID }}+${{ vars.ALLURE_CI_APP_SLUG }}[bot]@users.noreply.github.com>
           author: ${{ vars.ALLURE_CI_APP_SLUG }}[bot] <${{ vars.ALLURE_CI_APP_USER_ID }}+${{ vars.ALLURE_CI_APP_SLUG }}[bot]@users.noreply.github.com>
           add-paths: "**/*.png"
