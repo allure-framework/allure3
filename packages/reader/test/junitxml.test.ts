@@ -391,8 +391,8 @@ describe("junit xml reader", () => {
 
         const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
 
-        expect(trs).toMatchObject([{ status: "failed", trace: "foo" }]);
-        expect(trs[0].message).toBeUndefined();
+        expect(trs).toMatchObject([{ status: "failed", message: "foo" }]);
+        expect(trs[0].trace).toBeUndefined();
       });
 
       it("should ignore an ill-formed message", async () => {
@@ -454,8 +454,8 @@ describe("junit xml reader", () => {
 
         const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
 
-        expect(trs).toMatchObject([{ status: "skipped", trace: "foo" }]);
-        expect(trs[0].message).toBeUndefined();
+        expect(trs).toMatchObject([{ status: "skipped", message: "foo" }]);
+        expect(trs[0].trace).toBeUndefined();
       });
 
       it("should ignore an ill-formed message", async () => {
@@ -517,8 +517,8 @@ describe("junit xml reader", () => {
 
         const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
 
-        expect(trs).toMatchObject([{ status: "broken", trace: "foo" }]);
-        expect(trs[0].message).toBeUndefined();
+        expect(trs).toMatchObject([{ status: "broken", message: "foo" }]);
+        expect(trs[0].trace).toBeUndefined();
       });
 
       it("should ignore an ill-formed message", async () => {
