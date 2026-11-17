@@ -22,42 +22,108 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v7
+        with:
+          fetch-depth: 3
+          persist-credentials: false
 
-      - name: Check baseline exists
+      - name: Check for an approved baseline
+        if: github.event_name == 'pull_request'
+        id: approval
+        env:
+          GH_TOKEN: ${{ github.token }}
+          APP_SLUG: ${{ vars.ALLURE_CI_APP_SLUG }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
-          if [ ! -f ".github/allure-bundle-size.baseline.json" ]; then
-            echo "Missing baseline: .github/allure-bundle-size.baseline.json"
-            echo "Generate it on a known-good commit with:"
-            echo "  bash ./scripts/run-allure-bundle-size-docker.sh --ci --update-baseline .github/allure-bundle-size.baseline.json"
-            exit 1
+          baseline=".github/allure-bundle-size.baseline.json"
+          base_sha="$(git rev-parse HEAD^1)"
+          head_sha="$(git rev-parse HEAD^2)"
+          if [[ -z "$APP_SLUG" ]] || git diff --quiet "$base_sha" HEAD -- "$baseline"; then
+            exit 0
+          fi
+          if [[ "$(git diff --name-only "$head_sha^" "$head_sha")" != "$baseline" ]]; then
+            exit 0
+          fi
+          signature="$(gh api graphql -f query='
+            query($owner: String!, $name: String!, $oid: GitObjectID!) {
+              repository(owner: $owner, name: $name) {
+                object(oid: $oid) {
+                  ... on Commit { author { user { login } } messageBody signature { isValid wasSignedByGitHub } }
+                }
+              }
+            }' -f owner="${GITHUB_REPOSITORY%%/*}" -f name="${GITHUB_REPOSITORY#*/}" -f oid="$head_sha")"
+          if jq -e --arg login "$APP_SLUG[bot]" --arg message "Bundle size baseline for PR #$PR_NUMBER against $base_sha" '
+            .data.repository.object |
+            .author.user.login == $login and .messageBody == $message and
+            .signature.isValid == true and .signature.wasSignedByGitHub == true
+          ' <<< "$signature" >/dev/null; then
+            echo "approved=true" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Build project
         uses: ./.github/actions/build
 
-      - name: Enforce bundle size budgets (Self + Deps)
-        id: budgets
+      - name: Select bundle size baseline
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          APPROVED: ${{ steps.approval.outputs.approved }}
+        run: |
+          checked_in_baseline=".github/allure-bundle-size.baseline.json"
+          baseline="out/bundle-size-baseline.json"
+          mkdir -p out
+
+          if [[ "$EVENT_NAME" != pull_request || "$APPROVED" == true ]]; then
+            cp "$checked_in_baseline" "$baseline"
+            if [[ "$APPROVED" == true ]]; then
+              echo "Using the baseline approved for this PR and base commit." >> "$GITHUB_STEP_SUMMARY"
+            fi
+            exit 0
+          fi
+
+          # The first parent is the base actually used by this merge checkout.
+          base_sha="$(git rev-parse HEAD^1)"
+          worktree_dir="$(mktemp -d "$RUNNER_TEMP/allure-bundle-base.XXXXXX")"
+          base_worktree="$worktree_dir/checkout"
+          git worktree add --detach "$base_worktree" "$base_sha"
+          trap 'git worktree remove --force "$base_worktree"; rmdir "$worktree_dir"' EXIT
+          (
+            cd "$base_worktree"
+            YARN_ENABLE_HARDENED_MODE=1 yarn install --immutable --immutable-cache --check-cache
+            yarn build
+          )
+          node ./scripts/allure-bundle-size.mjs --repo-root "$base_worktree" \
+            --json --update-baseline "$baseline"
+          echo "Bundle size baseline measured from base commit $base_sha." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Measure bundle size
         run: |
           node ./scripts/allure-bundle-size.mjs --ci \
-            --progress \
             --include-closure \
-            --baseline .github/allure-bundle-size.baseline.json \
-            --max-self-delta-mb 0.25 \
-            --max-deps-delta-mb 0.15 \
-            --output .github/allure-bundle-size.report.json
+            --allure-results ./out/bundle-size-results \
+            --output ./out/bundle-size.json
+
+      - name: Enforce bundle size budgets
+        id: budgets
+        env:
+          ALLURE_BUNDLE_BASELINE: ./out/bundle-size-baseline.json
+        run: |
+          yarn allure generate ./out/bundle-size-results --clean \
+            --config .github/allure-bundle-size.config.mjs \
+            --output ./out/bundle-size-report
 
       - name: Hint baseline update command
-        if: failure() && steps.budgets.conclusion == 'failure' && !cancelled()
+        if: >-
+          failure() && !cancelled() && steps.budgets.conclusion == 'failure' &&
+          github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
         run: |
+          if ! jq -e 'any(.[]; .success == false and .actual.value != null)' \
+            ./out/bundle-size-report/quality-gate.json >/dev/null 2>&1; then
+            exit 0
+          fi
           {
             echo ""
             echo "### Accept new baseline"
             echo "Maintainers with write access can comment \`/update-bundle-baseline\` on this PR"
             echo "to measure in CI and commit an updated \`.github/allure-bundle-size.baseline.json\`."
-            echo "Manual alternative:"
-            echo "\`\`\`bash"
-            echo "bash ./scripts/run-allure-bundle-size-docker.sh --ci --update-baseline .github/allure-bundle-size.baseline.json"
-            echo "\`\`\`"
           } >> "${GITHUB_STEP_SUMMARY}"
 
       - name: Upload report
@@ -65,4 +131,8 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: allure-bundle-size-report
-          path: .github/allure-bundle-size.report.json
+          path: |
+            ./out/bundle-size-baseline.json
+            ./out/bundle-size.json
+            ./out/bundle-size-results/
+            ./out/bundle-size-report/

@@ -148,7 +148,7 @@ const config = {
       },
     ],
   },
-  performance: {
+  metrics: {
     groups: {
       aql: {
         title: "AQL",

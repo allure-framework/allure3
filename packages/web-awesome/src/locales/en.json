@@ -526,7 +526,7 @@
       "neutral": "Unchanged / no comparison",
       "interval": "Interval",
       "previousValue": "Previous average",
-      "title": "Performance metrics",
+      "title": "Metrics",
       "phaseSummary": "Metric summary",
       "currentValues": "Current values",
       "historyTitle": "Metric history",

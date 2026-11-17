@@ -3,7 +3,6 @@ import type {
   DynamicEnvironmentResolver,
   EnvironmentsConfig,
   LabelMatcher,
-  PerformanceConfig,
   ResolvedAllureServiceConfig,
 } from "@allurereport/core-api";
 import type { Plugin, ReportFiles, Config, QualityGateConfig } from "@allurereport/plugin-api";
@@ -44,7 +43,6 @@ export interface FullConfig
   plugins?: PluginInstance[];
   realTime?: any;
   qualityGate?: QualityGateConfig;
-  performance?: PerformanceConfig;
   allureService?: ResolvedAllureServiceConfig;
   hideLabels?: LabelMatcher[];
   categories?: CategoriesConfig;

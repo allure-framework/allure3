@@ -176,7 +176,7 @@ export default defineConfig({
   categories: {
     rules: comboRules,
   },
-  performance: {
+  metrics: {
     groups: {
       data: {
         title: "Result data",

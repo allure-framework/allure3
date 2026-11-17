@@ -155,7 +155,7 @@ describe("MetricsPlugin", () => {
     expect(store.testsStatistic).not.toHaveBeenCalled();
   });
 
-  it("includes performance metrics only when requested", async () => {
+  it("includes custom metrics only when requested", async () => {
     const samples = [{ id: "1", key: "ttfb", value: 10, start: 0, stop: 1 }] as MetricSample[];
     const off = createContext();
 
@@ -166,7 +166,7 @@ describe("MetricsPlugin", () => {
     await new MetricsPlugin({
       prometheus: { fileName: "on.txt" },
       influxdb: { fileName: "on.influx" },
-      performanceMetrics: true,
+      customMetrics: true,
     }).prepare(off.context, createStore([tr({})], [], samples));
 
     expect(await written("off.txt")).not.toContain("launch_metric_ttfb");

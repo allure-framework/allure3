@@ -90,19 +90,22 @@ describe("collectMetrics", () => {
     expect(value(lines, "launch_retries", "run")).toBe(3);
   });
 
-  it("averages performance metrics per key and skips invalid samples", () => {
-    const lines = collectMetrics(
-      input({
-        performanceMetrics: [
-          { id: "1", key: "ttfb", value: 10, start: 0, stop: 1 },
-          { id: "2", key: "ttfb", value: 20, start: 0, stop: 1 },
-          { id: "3", key: "lcp", value: Number.NaN, start: 0, stop: 1 },
-        ],
-      }),
-    );
+  it.each(["customMetrics", "performanceMetrics"] as const)(
+    "averages %s per key and skips invalid samples",
+    (field) => {
+      const lines = collectMetrics(
+        input({
+          [field]: [
+            { id: "1", key: "ttfb", value: 10, start: 0, stop: 1 },
+            { id: "2", key: "ttfb", value: 20, start: 0, stop: 1 },
+            { id: "3", key: "lcp", value: Number.NaN, start: 0, stop: 1 },
+          ],
+        }),
+      );
 
-    expect(lines.filter((line) => line.name === "launch_metric")).toEqual([
-      { name: "launch_metric", key: "ttfb", value: 15 },
-    ]);
-  });
+      expect(lines.filter((line) => line.name === "launch_metric")).toEqual([
+        { name: "launch_metric", key: "ttfb", value: 15 },
+      ]);
+    },
+  );
 });

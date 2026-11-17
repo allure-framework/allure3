@@ -3,7 +3,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { buildMetricHierarchy, type PerformanceConfig } from "@allurereport/core-api";
+import { buildMetricHierarchy, type MetricsConfig } from "@allurereport/core-api";
 import AwesomePlugin from "@allurereport/plugin-awesome";
 import { afterEach, describe, expect, it } from "vite-plus/test";
 
@@ -16,7 +16,7 @@ afterEach(async () => {
   await Promise.all(directories.splice(0).map((path) => rm(path, { recursive: true, force: true })));
 });
 
-const performance: PerformanceConfig = {
+const performance: MetricsConfig = {
   metrics: {
     run: { title: "Generate report", unit: "ms", better: "lower" },
     read: { title: "Read", unit: "ms", better: "lower", parent: "run" },
@@ -25,6 +25,17 @@ const performance: PerformanceConfig = {
 };
 
 describe("configured performance hierarchy", () => {
+  it("resolves the deprecated performance config and gives metrics precedence", async () => {
+    const legacy = await resolveConfig({ performance, plugins: {} });
+    expect(legacy.metrics).toEqual(performance);
+    expect(legacy.performance).toEqual(performance);
+
+    const metrics = { metrics: { size: { title: "Bundle size", unit: "bytes", better: "lower" as const } } };
+    const current = await resolveConfig({ metrics, performance, plugins: {} });
+    expect(current.metrics).toEqual(metrics);
+    expect(current.performance).toEqual(performance);
+  });
+
   it("rejects invalid hierarchy during config resolution and direct report construction", async () => {
     const invalid = { metrics: { read: { ...performance.metrics!.read, parent: "missing" } } };
     await expect(resolveConfig({ performance: invalid })).rejects.toThrow('Unknown parent "missing"');
@@ -43,7 +54,7 @@ describe("configured performance hierarchy", () => {
       { id: "parse-two", key: "parse", value: 4, start: 1, stop: 5 },
       { id: "run", key: "run", value: 10, start: 0, stop: 10 },
     ];
-    const config = await resolveConfig({ name: "Hierarchy", output, historyPath, performance, plugins: {} });
+    const config = await resolveConfig({ name: "Hierarchy", output, historyPath, metrics: performance, plugins: {} });
     config.plugins = [{ id: "awesome", enabled: true, options: {}, plugin: new AwesomePlugin({}) }];
     const report = new AllureReport(config);
     await writeFile(historyPath, "");
@@ -55,8 +66,8 @@ describe("configured performance hierarchy", () => {
     await report.done();
 
     const widget = JSON.parse(await readFile(join(output, "widgets", "metrics.json"), "utf8"));
-    expect(widget.hierarchy).toEqual(buildMetricHierarchy(config.performance));
-    expect(buildMetricHierarchy(config.performance)).toEqual([
+    expect(widget.hierarchy).toEqual(buildMetricHierarchy(config.metrics));
+    expect(buildMetricHierarchy(config.metrics)).toEqual([
       { key: "run", children: [{ key: "read", children: [{ key: "parse", children: [] }] }] },
     ]);
     expect(
@@ -74,7 +85,7 @@ describe("configured performance hierarchy", () => {
   });
 
   it("restores the existing flat metadata snapshot independently of destination hierarchy", async () => {
-    const source = new DefaultAllureStore({ performance });
+    const source = new DefaultAllureStore({ metrics: performance });
     const results = [
       { id: "read", key: "read", value: 8, start: 0, stop: 8 },
       { id: "run", key: "run", value: 10, start: 0, stop: 10 },
@@ -91,14 +102,14 @@ describe("configured performance hierarchy", () => {
         better: "lower",
       })),
     );
-    const destinationPerformance: PerformanceConfig = {
+    const destinationPerformance: MetricsConfig = {
       metrics: {
         ...performance.metrics,
         other: { title: "Other root", unit: "ms", better: "lower" },
         read: { ...performance.metrics!.read, title: "New display title", parent: "other" },
       },
     };
-    const reparented = new DefaultAllureStore({ performance: destinationPerformance });
+    const reparented = new DefaultAllureStore({ metrics: destinationPerformance });
     await reparented.restoreState(dump);
     expect(await reparented.allMetrics()).toEqual(await source.allMetrics());
     expect(buildMetricHierarchy(destinationPerformance)).toEqual([
@@ -111,9 +122,9 @@ describe("configured performance hierarchy", () => {
   it("uses explicit parents in the real report config without nesting independent AQL benchmarks", async () => {
     const root = fileURLToPath(new URL("../../../", import.meta.url));
     const config = await readConfig(root, "allurerc.mjs");
-    const performance = config.performance;
+    const performance = config.metrics;
     if (!performance) {
-      throw new Error("Expected the report configuration to define performance metrics");
+      throw new Error("Expected the report configuration to define metrics");
     }
     const tree = buildMetricHierarchy(performance);
     const run = tree.find(({ key }) => key === "allure.total")!;
@@ -132,7 +143,7 @@ describe("configured performance hierarchy", () => {
   it("keeps the shipped performance metric inventory stable", async () => {
     const root = fileURLToPath(new URL("../../../", import.meta.url));
     const config = await readConfig(root, "allurerc.mjs");
-    const metricKeys = Object.keys(config.performance?.metrics ?? {});
+    const metricKeys = Object.keys(config.metrics?.metrics ?? {});
 
     expect(metricKeys.filter((key) => key.startsWith("aql.parse."))).toHaveLength(5);
     expect(metricKeys.filter((key) => key.startsWith("aql.filter."))).toHaveLength(8);

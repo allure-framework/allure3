@@ -708,6 +708,14 @@ describe("metric quality gate rules", () => {
     });
   });
 
+  it("reports a missing measurement for a maximum threshold", async () => {
+    const expected = { key: "bundle.size", title: "Bundle size", value: 10 };
+    const result = await metricMaxRule.validate({ ...basePayload, expected });
+
+    expect(result.success).toBe(false);
+    expect(metricMaxRule.message({ actual: result.actual, expected })).toContain("No measurement available for");
+  });
+
   it("should validate minimum metric threshold against the current average", async () => {
     const passing = await metricMinRule.validate({
       ...basePayload,
@@ -928,5 +936,13 @@ describe("metric quality gate rules", () => {
 
     expect(message).toContain("Bundle size");
     expect(message).toContain("12 MB");
+
+    const successMessage = metricMaxRule.successMessage!({
+      actual: result.actual,
+      expected: { key: "bundle.size", value: 15 },
+    });
+    expect(successMessage).toContain("Bundle size");
+    expect(successMessage).toContain("12 MB");
+    expect(successMessage).toContain("15 MB");
   });
 });
