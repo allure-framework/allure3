@@ -157,6 +157,8 @@
     "all": "Alle"
   },
   "ui": {
+    "start": "Start",
+    "stop": "Einde",
     "labels": "Labels",
     "metadata": "Metadata",
     "parameters": "Parameters",

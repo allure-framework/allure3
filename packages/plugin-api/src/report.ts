@@ -125,6 +125,7 @@ export type ReportTreeLeaf = Pick<
   | "duration"
   | "name"
   | "start"
+  | "stop"
   | "status"
   | "groupOrder"
   | "flaky"

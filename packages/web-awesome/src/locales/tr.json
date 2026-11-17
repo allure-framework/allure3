@@ -157,6 +157,8 @@
     "all": "Tümü"
   },
   "ui": {
+    "start": "Başlangıç",
+    "stop": "Bitiş",
     "labels": "Etiketler",
     "metadata": "Meta Veriler",
     "parameters": "Parametreler",

@@ -67,4 +67,29 @@ describe("TreeItemInfo", () => {
     expect(screen.queryByTestId("tree-leaf-retries")).not.toBeNull();
     expect(screen.queryByTestId("tree-leaf-retries-status-change")).toBeNull();
   });
+
+  it("shows the start and stop timestamps on the duration when the report carries them", async () => {
+    vi.useFakeTimers();
+    render(<TreeItemInfo duration={1608} tooltips={{ duration: "Start: one\nStop: two" }} />);
+
+    const duration = screen.getByTestId("tree-leaf-duration");
+    const trigger = duration.parentElement!.parentElement!;
+
+    expect(duration.textContent).toBe("1s 608ms");
+
+    await act(async () => {
+      trigger.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
+      trigger.dispatchEvent(new MouseEvent("mouseenter", { bubbles: false }));
+      vi.advanceTimersByTime(300);
+    });
+
+    expect(screen.getByTestId("tree-leaf-duration-tooltip").textContent).toBe("Start: one\nStop: two");
+  });
+
+  it("renders the duration without a tooltip when the report has no timestamps", () => {
+    render(<TreeItemInfo duration={1608} />);
+
+    expect(screen.getByTestId("tree-leaf-duration").textContent).toBe("1s 608ms");
+    expect(screen.queryByTestId("tree-leaf-duration-tooltip")).toBeNull();
+  });
 });

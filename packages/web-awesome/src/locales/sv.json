@@ -157,6 +157,8 @@
     "all": "Alla"
   },
   "ui": {
+    "start": "Start",
+    "stop": "Slut",
     "labels": "Etiketter",
     "metadata": "Metadata",
     "parameters": "Parametrar",

@@ -20,6 +20,7 @@ import {
   treeStore,
 } from "@/stores/tree";
 import { clearTreeFilters, treeStatus } from "@/stores/treeFilters/store";
+import { formatTimeRange } from "@/utils/time";
 import { createTreeLocalizer } from "@/utils/tree";
 
 import * as styles from "./styles.scss";
@@ -85,6 +86,7 @@ export const TreeList = () => {
   const localizers = useMemo(
     () => ({
       tooltip: (key: string, options?: Record<string, string | number>) => tooltip(`description.${key}`, options),
+      timeRange: formatTimeRange,
     }),
     [tooltip],
   );

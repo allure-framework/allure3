@@ -11,6 +11,7 @@ import { currentEnvironment, environmentNameById } from "@/stores/env";
 import { qualityGateStore } from "@/stores/qualityGate";
 import { navigateToTestResult } from "@/stores/router";
 import { currentTrId } from "@/stores/testResult";
+import { formatTimeRange } from "@/utils/time";
 import { createTreeLocalizer } from "@/utils/tree";
 import { createRecursiveTree } from "@/utils/treeFilters";
 
@@ -38,6 +39,7 @@ const QualityGateTestResultsTree = ({ tree }: { tree: ReportTree }) => {
       createTreeLocalizer({
         tooltip: (key: string, options?: Record<string, unknown>) =>
           tooltip(`description.${key}`, options as Record<string, string>),
+        timeRange: formatTimeRange,
       })(recursiveTree),
     [recursiveTree, tooltip],
   );

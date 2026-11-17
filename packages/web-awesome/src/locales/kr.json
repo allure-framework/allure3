@@ -157,6 +157,8 @@
     "all": "모두"
   },
   "ui": {
+    "start": "시작",
+    "stop": "종료",
     "labels": "레이블",
     "metadata": "메타데이터",
     "parameters": "매개변수",

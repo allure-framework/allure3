@@ -4,8 +4,11 @@ import {
   type TestStepResult,
   formatDuration,
 } from "@allurereport/core-api";
-import { SvgIcon, Text, allureIcons } from "@allurereport/web-components/core";
+import { SvgIcon, Text, Tooltip, TooltipWrapper, allureIcons } from "@allurereport/web-components/core";
 import clsx from "clsx";
+import type { FunctionalComponent } from "preact";
+
+import { formatTimeRange } from "@/utils/time";
 
 import * as styles from "@/components/TestResult/TrSteps/styles.scss";
 
@@ -80,9 +83,17 @@ const icons = {
   unknown: lineGeneralHelpCircle,
 };
 
+/**
+ * Rendered by the tooltip only while it is visible, so timestamps are formatted on hover rather than for every step.
+ */
+const TrStepTimeTooltip: FunctionalComponent<{ start?: number; stop?: number }> = ({ start, stop }) => (
+  <Tooltip data-testid="test-result-step-time-tooltip">{formatTimeRange(start, stop)}</Tooltip>
+);
+
 export const TrStepInfo = (props: { item: DefaultTestStepResult }) => {
   const { item } = props;
   const formattedDuration = formatDuration(item?.duration as number);
+  const hasTimeRange = typeof item?.start === "number" || typeof item?.stop === "number";
   const stepLength = countDescendantSteps(item);
   const attachmentLength = countDescendantAttachments(item);
 
@@ -118,9 +129,20 @@ export const TrStepInfo = (props: { item: DefaultTestStepResult }) => {
           <Text size={"s"}>{attachmentLength}</Text>
         </div>
       )}
-      <Text type="ui" size={"s"} className={styles["item-time"]}>
-        {formattedDuration}
-      </Text>
+      {hasTimeRange ? (
+        <TooltipWrapper
+          className={styles["item-time-wrapper"]}
+          tooltipComponent={<TrStepTimeTooltip start={item.start} stop={item.stop} />}
+        >
+          <Text type="ui" size={"s"} className={styles["item-time"]}>
+            {formattedDuration}
+          </Text>
+        </TooltipWrapper>
+      ) : (
+        <Text type="ui" size={"s"} className={styles["item-time"]}>
+          {formattedDuration}
+        </Text>
+      )}
     </div>
   );
 };

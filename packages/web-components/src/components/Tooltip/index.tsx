@@ -110,6 +110,18 @@ export const TooltipWrapper: FunctionalComponent<TooltipWrapperProps> = ({
     setCurrentText(tooltipText);
   }, [tooltipText]);
 
+  // The host is positioned imperatively below; take it out of the flow up front so the content
+  // cannot push its trigger around, and keep it hidden until the coordinates are known so it never
+  // paints at its static position first (measured on a report tree row: the trigger jumped 129px
+  // left, and the tooltip itself appeared beside the trigger before moving above it).
+  useLayoutEffect(() => {
+    const tooltip = tooltipRef.current;
+    if (tooltip) {
+      tooltip.style.position = "absolute";
+      tooltip.style.visibility = "hidden";
+    }
+  }, []);
+
   useEffect(() => {
     if (!isVisible || !triggerRef.current || !tooltipRef.current) {
       return;
@@ -127,13 +139,20 @@ export const TooltipWrapper: FunctionalComponent<TooltipWrapperProps> = ({
           "top": `${y}px`,
           "position": "absolute",
           "z-index": 100,
+          // reveal only once placed, so a tooltip never appears at its unpositioned spot first
+          "visibility": "visible",
         });
       });
     };
 
     updatePosition();
 
-    return autoUpdate(trigger, tooltip, updatePosition);
+    const release = autoUpdate(trigger, tooltip, updatePosition);
+    return () => {
+      // the next show has to wait for its own coordinates again
+      tooltip.style.visibility = "hidden";
+      release();
+    };
   }, [isVisible, placement, tooltipText]);
 
   const onMouseEnter = () => {

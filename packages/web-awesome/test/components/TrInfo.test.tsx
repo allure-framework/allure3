@@ -3,6 +3,7 @@ import type { ComponentChildren } from "preact";
 import { afterEach, describe, expect, it, vi } from "vite-plus/test";
 
 import { TrInfo } from "@/components/TestResult/TrInfo";
+import { formatTimeRange } from "@/utils/time";
 
 vi.mock("@allurereport/web-components/core", () => {
   return {
@@ -48,6 +49,8 @@ vi.mock("@/components/TestResult/TrTabs", () => ({
 }));
 
 vi.mock("@/stores/locale", () => ({
+  currentLocale: { value: "en" },
+  currentLocaleIso: { value: "en-US" },
   useI18n: () => ({
     t: (key: string) => key,
   }),
@@ -85,5 +88,23 @@ describe("components > TrInfo", () => {
     render(<TrInfo testResult={{ ...testResult, retriesStatusChange: false } as any} />);
 
     expect(screen.queryByTestId("test-result-retries-status-change")).toBeNull();
+  });
+
+  it("shows start and stop timestamps when hovering the test duration", () => {
+    const start = 1779887536194;
+    const stop = 1779887537802;
+
+    render(<TrInfo testResult={{ ...testResult, start, stop, duration: stop - start } as any} />);
+
+    const tooltipText = screen.getByText("1s 608ms").closest("[title]")?.getAttribute("title");
+
+    expect(tooltipText).toBe(formatTimeRange(start, stop));
+    expect(tooltipText?.split("\n")).toHaveLength(2);
+  });
+
+  it("does not show a duration tooltip when the test has no timestamps", () => {
+    render(<TrInfo testResult={{ ...testResult, duration: 1608 } as any} />);
+
+    expect(screen.getByText("1s 608ms").closest("[title]")).toBeNull();
   });
 });

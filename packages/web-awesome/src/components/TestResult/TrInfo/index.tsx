@@ -15,7 +15,7 @@ import { TrTab, TrTabsList } from "@/components/TestResult/TrTabs";
 import { testEnvGroupId, testEnvGroupsStore } from "@/stores/env";
 import { isSplitMode } from "@/stores/layout";
 import { useI18n } from "@/stores/locale";
-import { timestampToDate } from "@/utils/time";
+import { formatTimeRange } from "@/utils/time";
 
 import * as styles from "./styles.scss";
 
@@ -35,11 +35,12 @@ export const TrInfo: FunctionalComponent<TrInfoProps> = ({ testResult }) => {
     history,
     retries,
     attachments,
+    start,
     stop,
     categories,
   } = testResult ?? {};
   const formattedDuration = formatDuration(duration as number);
-  const fullDate = stop ? timestampToDate(stop) : undefined;
+  const timeRange = formatTimeRange(start, stop);
   const severity = labels?.find((label) => label.name === "severity")?.value ?? "normal";
   const categoryName = categories?.[0]?.name;
   const { t } = useI18n("ui");
@@ -63,7 +64,7 @@ export const TrInfo: FunctionalComponent<TrInfoProps> = ({ testResult }) => {
               {t("category")}: {categoryName}
             </Text>
           )}
-          <TooltipWrapper tooltipText={fullDate}>
+          <TooltipWrapper tooltipText={timeRange}>
             <Text tag={"div"} size={"s"} bold className={styles["test-result-duration"]}>
               {formattedDuration}
             </Text>

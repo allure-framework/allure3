@@ -157,6 +157,8 @@
     "all": "Hamısı"
   },
   "ui": {
+    "start": "Başlanğıc",
+    "stop": "Son",
     "labels": "Etiketlər",
     "metadata": "Metaməlumat",
     "parameters": "Parametrlər",
