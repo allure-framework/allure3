@@ -101,7 +101,7 @@ jobs:
         env:
           ALLURE_NO_ANALYTICS: "true"
         shell: bash
-        run: yarn run test:e2e --update-snapshots
+        run: yarn workspace @allurereport/web-allure2 test:e2e tests/e2e/visual.spec.mts --update-snapshots
 
       - name: Prepare changed screenshots
         id: screenshots
@@ -132,7 +132,7 @@ jobs:
         env:
           ALLURE_NO_ANALYTICS: "true"
         shell: bash
-        run: yarn run test:e2e
+        run: yarn workspace @allurereport/web-allure2 test:e2e tests/e2e/visual.spec.mts
 
       - name: Upload updated screenshots
         if: ${{ steps.screenshots.outputs.has_updates == 'true' }}
