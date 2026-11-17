@@ -66,7 +66,7 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  margin-right: 24px;
+  margin-inline-end: 24px;
   flex: 1 1 auto;
   min-width: 0;
 }
@@ -110,7 +110,7 @@
   background: transparent;
   color: inherit;
   font: inherit;
-  text-align: left;
+  text-align: start;
   gap: 4px;
   cursor: pointer;
   position: relative;
@@ -161,7 +161,7 @@
   display: block;
   min-width: 0;
   max-width: 100%;
-  padding-left: 24px;
+  padding-inline-start: 24px;
   margin-bottom: 12px;
   border-top: 1px solid var(--color-border-subtle);
   box-sizing: border-box;
@@ -332,4 +332,12 @@
   .item-parameters {
     display: none;
   }
+}
+
+// Test and group names are usually written left-to-right; in right-to-left layouts
+// let each title take its direction from its own text so "@scope/name" is not reordered
+:global([dir="rtl"]) .tree-section-title,
+:global([dir="rtl"]) .item-title {
+  unicode-bidi: plaintext;
+  text-align: right;
 }
