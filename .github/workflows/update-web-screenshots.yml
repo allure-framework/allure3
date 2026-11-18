@@ -166,7 +166,7 @@ jobs:
           token: ${{ steps.app-token.outputs.token }}
 
       - name: Download updated screenshots
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           pattern: web-screenshots-*
           path: ${{ runner.temp }}/web-screenshots
