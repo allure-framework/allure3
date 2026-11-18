@@ -303,10 +303,15 @@
         "history": "{{timestamp, timestamp_date}}"
       }
     },
+    "trendHelp": {
+      "label": "Como ler as tendências",
+      "description": "A linha contínua mostra a tendência do total acumulado dividido pelo número de comparações. A altura da linha não indica a quantidade de testes. A linha tracejada mostra a tendência da variação líquida por execução."
+    },
     "statusTransitions": {
       "title": "Transições de status",
       "legend": {
-        "trend": "Taxa de correção"
+        "cumulativeTrend": "Tendência acumulada",
+        "diffTrend": "Tendência de variação por execução"
       },
       "transitions": {
         "new": "$t(transitions:new, capitalize)",
@@ -366,7 +371,8 @@
         "removedunknown": "Removido $t(statuses:unknown)"
       },
       "legend": {
-        "trend": "Tendência de crescimento"
+        "cumulativeTrend": "Tendência acumulada",
+        "diffTrend": "Tendência de variação por execução"
       },
       "no-history": "$t(empty:no-history-results)",
       "no-results": "$t(empty:no-results)",

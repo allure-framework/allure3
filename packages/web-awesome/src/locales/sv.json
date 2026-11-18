@@ -303,10 +303,15 @@
         "history": "{{timestamp, timestamp_date}}"
       }
     },
+    "trendHelp": {
+      "label": "Så läser du trenderna",
+      "description": "Den heldragna linjen visar trenden för den ackumulerade summan delad med antalet jämförelser. Höjden anger inte antalet tester. Den streckade linjen visar trenden för nettoförändringen per körning."
+    },
     "statusTransitions": {
       "title": "Statusövergångar",
       "legend": {
-        "trend": "Korrigeringsgrad"
+        "cumulativeTrend": "Kumulativ trend",
+        "diffTrend": "Trend för förändring per körning"
       },
       "transitions": {
         "new": "$t(transitions:new, capitalize)",
@@ -366,7 +371,8 @@
         "removedunknown": "Borttagen $t(statuses:unknown)"
       },
       "legend": {
-        "trend": "Tillväxttrend"
+        "cumulativeTrend": "Kumulativ trend",
+        "diffTrend": "Trend för förändring per körning"
       },
       "no-history": "$t(empty:no-history-results)",
       "no-results": "$t(empty:no-results)",

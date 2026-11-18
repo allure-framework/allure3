@@ -84,10 +84,15 @@
         "history": "{{timestamp, timestamp_date}}"
       }
     },
+    "trendHelp": {
+      "label": "Як читати тренди",
+      "description": "Суцільна лінія показує тренд накопиченої суми, поділеної на кількість порівнянь. Її висота не дорівнює кількості тестів. Пунктир показує тренд чистої зміни за запуск."
+    },
     "statusTransitions": {
       "title": "Переходи статусів",
       "legend": {
-        "trend": "Коефіцієнт виправлень"
+        "cumulativeTrend": "Накопичувальний тренд",
+        "diffTrend": "Тренд змін за запусками"
       },
       "transitions": {
         "new": "$t(transitions:new, capitalize)",
@@ -147,7 +152,8 @@
         "removedunknown": "Видалений $t(statuses:unknown)"
       },
       "legend": {
-        "trend": "Тренд зростання"
+        "cumulativeTrend": "Накопичувальний тренд",
+        "diffTrend": "Тренд змін за запусками"
       },
       "no-history": "$t(empty:no-history-results)",
       "no-results": "$t(empty:no-results)",

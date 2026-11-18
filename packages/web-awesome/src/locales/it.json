@@ -303,10 +303,15 @@
         "history": "{{timestamp, timestamp_date}}"
       }
     },
+    "trendHelp": {
+      "label": "Come leggere le tendenze",
+      "description": "La linea continua mostra la tendenza del totale cumulativo diviso per il numero di confronti. La sua altezza non indica il numero di test. La linea tratteggiata mostra la tendenza della variazione netta per esecuzione."
+    },
     "statusTransitions": {
       "title": "Transizioni di stato",
       "legend": {
-        "trend": "Tasso di correzione"
+        "cumulativeTrend": "Tendenza cumulativa",
+        "diffTrend": "Tendenza della variazione per esecuzione"
       },
       "transitions": {
         "new": "$t(transitions:new, capitalize)",
@@ -366,7 +371,8 @@
         "removedunknown": "Rimosso $t(statuses:unknown)"
       },
       "legend": {
-        "trend": "Tendenza di crescita"
+        "cumulativeTrend": "Tendenza cumulativa",
+        "diffTrend": "Tendenza della variazione per esecuzione"
       },
       "no-history": "$t(empty:no-history-results)",
       "no-results": "$t(empty:no-results)",

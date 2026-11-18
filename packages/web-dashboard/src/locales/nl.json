@@ -78,10 +78,15 @@
         "history": "{{timestamp, timestamp_date}}"
       }
     },
+    "trendHelp": {
+      "label": "De trends lezen",
+      "description": "De doorgetrokken lijn toont de trend van het cumulatieve totaal gedeeld door het aantal vergelijkingen. De hoogte geeft geen aantal tests aan. De stippellijn toont de trend van de nettoverandering per uitvoering."
+    },
     "statusTransitions": {
       "title": "Statusovergangen",
       "legend": {
-        "trend": "Correctieratio"
+        "cumulativeTrend": "Cumulatieve trend",
+        "diffTrend": "Trend van veranderingen per uitvoering"
       },
       "transitions": {
         "new": "$t(transitions:new, capitalize)",
@@ -141,7 +146,8 @@
         "removedunknown": "Verwijderd $t(statuses:unknown)"
       },
       "legend": {
-        "trend": "Groeitrend"
+        "cumulativeTrend": "Cumulatieve trend",
+        "diffTrend": "Trend van veranderingen per uitvoering"
       },
       "no-history": "$t(empty:no-history-results)",
       "no-results": "$t(empty:no-results)",

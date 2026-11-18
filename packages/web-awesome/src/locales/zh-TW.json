@@ -303,10 +303,15 @@
         "history": "{{timestamp, timestamp_date}}"
       }
     },
+    "trendHelp": {
+      "label": "如何閱讀趨勢",
+      "description": "實線顯示累計總和除以比較次數後的趨勢。線的高度不代表測試數量。虛線顯示每次執行的淨變化趨勢。"
+    },
     "statusTransitions": {
       "title": "狀態轉變",
       "legend": {
-        "trend": "修復率"
+        "cumulativeTrend": "累積趨勢",
+        "diffTrend": "每次執行的變化趨勢"
       },
       "transitions": {
         "new": "$t(transitions:new, capitalize)",
@@ -366,7 +371,8 @@
         "removedunknown": "移除 $t(statuses:unknown)"
       },
       "legend": {
-        "trend": "增長趨勢"
+        "cumulativeTrend": "累積趨勢",
+        "diffTrend": "每次執行的變化趨勢"
       },
       "no-history": "$t(empty:no-history-results)",
       "no-results": "$t(empty:no-results)",

@@ -78,10 +78,15 @@
         "history": "{{timestamp, timestamp_date}}"
       }
     },
+    "trendHelp": {
+      "label": "How to read the trends",
+      "description": "The solid line fits the running total divided by the number of comparisons. Its height does not show a test count. The dashed line fits the net change per run."
+    },
     "statusTransitions": {
       "title": "Status transitions",
       "legend": {
-        "trend": "Fix rate"
+        "cumulativeTrend": "Cumulative trend",
+        "diffTrend": "Per-run change trend"
       },
       "transitions": {
         "new": "$t(transitions:new, capitalize)",
@@ -141,7 +146,8 @@
         "removedunknown": "Removed $t(statuses:unknown)"
       },
       "legend": {
-        "trend": "Growth trend"
+        "cumulativeTrend": "Cumulative trend",
+        "diffTrend": "Per-run change trend"
       },
       "no-history": "$t(empty:no-history-results)",
       "no-results": "$t(empty:no-results)",

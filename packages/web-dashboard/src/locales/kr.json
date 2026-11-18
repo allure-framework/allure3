@@ -78,10 +78,15 @@
         "history": "{{timestamp, timestamp_date}}"
       }
     },
+    "trendHelp": {
+      "label": "추세를 읽는 방법",
+      "description": "실선은 누적 합계를 비교 횟수로 나눈 값의 추세를 나타냅니다. 선의 높이는 테스트 개수를 뜻하지 않습니다. 점선은 실행별 순변화의 추세를 나타냅니다."
+    },
     "statusTransitions": {
       "title": "상태 전환",
       "legend": {
-        "trend": "수정률"
+        "cumulativeTrend": "누적 추세",
+        "diffTrend": "실행별 변화 추세"
       },
       "transitions": {
         "new": "$t(transitions:new, capitalize)",
@@ -141,7 +146,8 @@
         "removedunknown": "제거된 $t(statuses:unknown)"
       },
       "legend": {
-        "trend": "성장 추세"
+        "cumulativeTrend": "누적 추세",
+        "diffTrend": "실행별 변화 추세"
       },
       "no-history": "$t(empty:no-history-results)",
       "no-results": "$t(empty:no-results)",

@@ -78,10 +78,15 @@
         "history": "{{timestamp, timestamp_date}}"
       }
     },
+    "trendHelp": {
+      "label": "איך לקרוא את המגמות",
+      "description": "הקו הרציף מציג את מגמת הסכום המצטבר לאחר חלוקה במספר ההשוואות. גובה הקו אינו מייצג מספר בדיקות. הקו המקווקו מציג את מגמת השינוי נטו בכל הרצה."
+    },
     "statusTransitions": {
       "title": "מעברי סטטוס",
       "legend": {
-        "trend": "שיעור תיקון"
+        "cumulativeTrend": "מגמה מצטברת",
+        "diffTrend": "מגמת השינוי בכל הרצה"
       },
       "transitions": {
         "new": "$t(transitions:new, capitalize)",
@@ -141,7 +146,8 @@
         "removedunknown": "הוסר $t(statuses:unknown)"
       },
       "legend": {
-        "trend": "מגמת צמיחה"
+        "cumulativeTrend": "מגמה מצטברת",
+        "diffTrend": "מגמת השינוי בכל הרצה"
       },
       "no-history": "$t(empty:no-history-results)",
       "no-results": "$t(empty:no-results)",

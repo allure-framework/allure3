@@ -64,3 +64,20 @@
   height: 16px;
   width: 16px;
 }
+
+.lineLegendItem {
+  max-width: 100%;
+
+  .legendName {
+    min-width: 0;
+  }
+
+  .legendLabel {
+    max-width: none;
+    overflow-wrap: anywhere;
+  }
+
+  .point {
+    flex-shrink: 0;
+  }
+}

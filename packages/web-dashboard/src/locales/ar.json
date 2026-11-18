@@ -78,10 +78,15 @@
         "history": "{{timestamp, timestamp_date}}"
       }
     },
+    "trendHelp": {
+      "label": "كيفية قراءة الاتجاهات",
+      "description": "يمثل الخط المتصل اتجاه المجموع التراكمي مقسومًا على عدد المقارنات. لا يمثل ارتفاعه عدد الاختبارات. يمثل الخط المتقطع اتجاه صافي التغير لكل تشغيل."
+    },
     "statusTransitions": {
       "title": "انتقالات الحالة",
       "legend": {
-        "trend": "معدل الإصلاح"
+        "cumulativeTrend": "الاتجاه التراكمي",
+        "diffTrend": "اتجاه التغير لكل تشغيل"
       },
       "transitions": {
         "new": "$t(transitions:new, capitalize)",
@@ -141,7 +146,8 @@
         "removedunknown": "محذوف $t(statuses:unknown)"
       },
       "legend": {
-        "trend": "اتجاه النمو"
+        "cumulativeTrend": "الاتجاه التراكمي",
+        "diffTrend": "اتجاه التغير لكل تشغيل"
       },
       "no-history": "$t(empty:no-history-results)",
       "no-results": "$t(empty:no-results)",

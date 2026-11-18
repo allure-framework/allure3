@@ -45,21 +45,33 @@ describe("StatusTransitionsChartWidget", () => {
     const props = lastBarChartProps();
 
     expect(props.data).toEqual([
-      expect.objectContaining({ id: "history", fixed: 2, regressed: -1, malfunctioned: -1, trend: 50 }),
-      expect.objectContaining({ id: "current", fixed: 3, regressed: -2, malfunctioned: 0, trend: 58.33 }),
+      expect.objectContaining({
+        id: "history",
+        fixed: 2,
+        regressed: -1,
+        malfunctioned: -1,
+        diffTrend: 0,
+        cumulativeTrend: 0,
+      }),
+      expect.objectContaining({
+        id: "current",
+        fixed: 3,
+        regressed: -2,
+        malfunctioned: 0,
+        diffTrend: 1,
+        cumulativeTrend: 0.5,
+      }),
     ]);
     expect(props.legend.map(({ id, label }: { id: string; label: string }) => ({ id, label }))).toEqual([
       { id: "fixed", label: "transitions.fixed" },
       { id: "regressed", label: "transitions.regressed" },
       { id: "malfunctioned", label: "transitions.malfunctioned" },
-      { id: "trend", label: "legend.trend" },
+      { id: "cumulativeTrend", label: "legend.cumulativeTrend" },
+      { id: "diffTrend", label: "legend.diffTrend" },
     ]);
     expect(props.minValue).toBe(-6);
     expect(props.maxValue).toBe(6);
     expect(props.formatLegendValue({ id: "regressed", value: -12 })).toBe("12");
-    expect(props.formatLegendValue({ id: "trend", value: 0.25 })).toBe("");
-    expect(props.formatTrendValue(-1)).toBeUndefined();
-    expect(props.formatTrendValue(0.25)).toBe(0.25);
     expect(props.formatBottomTick("history")).toBe("ticks.history:100");
     expect(props.formatBottomTick("current")).toBe("ticks.current");
     expect(props.formatIndexBy({ id: "history", timestamp: 100 })).toBe("tooltips.history:100");
@@ -79,7 +91,6 @@ describe("StatusTransitionsChartWidget", () => {
 
     noResults.unmount();
     const noHistory = renderWidget([
-      { id: "history", timestamp: 100, prevItemTimestamp: 0, fixed: 0, regressed: 0, malfunctioned: 0 },
       { id: "current", timestamp: 200, prevItemTimestamp: 100, fixed: 1, regressed: 0, malfunctioned: 0 },
     ]);
 
@@ -88,7 +99,7 @@ describe("StatusTransitionsChartWidget", () => {
 
     noHistory.unmount();
     renderWidget([
-      { id: "history", timestamp: 100, prevItemTimestamp: 0, fixed: 0, regressed: 1, malfunctioned: 0 },
+      { id: "history", timestamp: 100, prevItemTimestamp: 0, fixed: 0, regressed: 0, malfunctioned: 0 },
       { id: "current", timestamp: 200, prevItemTimestamp: 100, fixed: 1, regressed: 0, malfunctioned: 0 },
     ]);
 

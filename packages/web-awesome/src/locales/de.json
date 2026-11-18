@@ -303,10 +303,15 @@
         "history": "{{timestamp, timestamp_date}}"
       }
     },
+    "trendHelp": {
+      "label": "So liest du die Trends",
+      "description": "Die durchgezogene Linie zeigt den Trend der laufenden Summe geteilt durch die Anzahl der Vergleiche. Ihre Höhe gibt keine Testanzahl an. Die gestrichelte Linie zeigt den Trend der Nettoänderung pro Lauf."
+    },
     "statusTransitions": {
       "title": "Statusübergänge",
       "legend": {
-        "trend": "Korrekturrate"
+        "cumulativeTrend": "Kumulativer Trend",
+        "diffTrend": "Änderungstrend pro Lauf"
       },
       "transitions": {
         "new": "$t(transitions:new, capitalize)",
@@ -366,7 +371,8 @@
         "removedunknown": "Entfernt $t(statuses:unknown)"
       },
       "legend": {
-        "trend": "Wachstumstrend"
+        "cumulativeTrend": "Kumulativer Trend",
+        "diffTrend": "Änderungstrend pro Lauf"
       },
       "no-history": "$t(empty:no-history-results)",
       "no-results": "$t(empty:no-results)",

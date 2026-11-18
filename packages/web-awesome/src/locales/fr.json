@@ -303,10 +303,15 @@
         "history": "{{timestamp, timestamp_date}}"
       }
     },
+    "trendHelp": {
+      "label": "Comment lire les tendances",
+      "description": "Le trait plein montre la tendance du total cumulé divisé par le nombre de comparaisons. Sa hauteur ne représente pas un nombre de tests. Le trait en pointillé montre la tendance de la variation nette par exécution."
+    },
     "statusTransitions": {
       "title": "Transitions de statut",
       "legend": {
-        "trend": "Taux de correction"
+        "cumulativeTrend": "Tendance cumulée",
+        "diffTrend": "Tendance des variations par exécution"
       },
       "transitions": {
         "new": "$t(transitions:new, capitalize)",
@@ -366,7 +371,8 @@
         "removedunknown": "Supprimé $t(statuses:unknown)"
       },
       "legend": {
-        "trend": "Tendance de croissance"
+        "cumulativeTrend": "Tendance cumulée",
+        "diffTrend": "Tendance des variations par exécution"
       },
       "no-history": "$t(empty:no-history-results)",
       "no-results": "$t(empty:no-results)",

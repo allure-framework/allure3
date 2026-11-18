@@ -303,10 +303,15 @@
         "history": "{{timestamp, timestamp_date}}"
       }
     },
+    "trendHelp": {
+      "label": "როგორ წავიკითხოთ ტენდენციები",
+      "description": "უწყვეტი ხაზი აჩვენებს შედარებების რაოდენობაზე გაყოფილი დაგროვილი ჯამის ტენდენციას. ხაზის სიმაღლე ტესტების რაოდენობას არ აღნიშნავს. წყვეტილი ხაზი აჩვენებს თითოეული გაშვების წმინდა ცვლილების ტენდენციას."
+    },
     "statusTransitions": {
       "title": "სტატუსის გადასვლები",
       "legend": {
-        "trend": "გამოსწორების მაჩვენებელი"
+        "cumulativeTrend": "კუმულაციური ტენდენცია",
+        "diffTrend": "ცვლილების ტენდენცია გაშვებების მიხედვით"
       },
       "transitions": {
         "new": "$t(transitions:new, capitalize)",
@@ -366,7 +371,8 @@
         "removedunknown": "წაშლილი $t(statuses:unknown)"
       },
       "legend": {
-        "trend": "ზრდის ტენდენция"
+        "cumulativeTrend": "კუმულაციური ტენდენცია",
+        "diffTrend": "ცვლილების ტენდენცია გაშვებების მიხედვით"
       },
       "no-history": "$t(empty:no-history-results)",
       "no-results": "$t(empty:no-results)",
