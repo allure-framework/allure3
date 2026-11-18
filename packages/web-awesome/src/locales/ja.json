@@ -303,10 +303,15 @@
         "history": "{{timestamp, timestamp_date}}"
       }
     },
+    "trendHelp": {
+      "label": "傾向の読み方",
+      "description": "実線は、累積値を比較回数で割った値の傾向を示します。線の高さはテスト件数を表しません。破線は、実行ごとの正味の変化の傾向を示します。"
+    },
     "statusTransitions": {
       "title": "ステータス遷移",
       "legend": {
-        "trend": "修正率"
+        "cumulativeTrend": "累積の傾向",
+        "diffTrend": "実行ごとの変化の傾向"
       },
       "transitions": {
         "new": "$t(transitions:new, capitalize)",
@@ -366,7 +371,8 @@
         "removedunknown": "削除 $t(statuses:unknown)"
       },
       "legend": {
-        "trend": "成長トレンド"
+        "cumulativeTrend": "累積の傾向",
+        "diffTrend": "実行ごとの変化の傾向"
       },
       "no-history": "$t(empty:no-history-results)",
       "no-results": "$t(empty:no-results)",

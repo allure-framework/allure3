@@ -4,7 +4,10 @@ import type { TestStatus } from "@allurereport/core-api";
 type I18nKeys =
   | `status.new${TestStatus}`
   | `status.removed${TestStatus}`
-  | "legend.trend"
+  | "legend.cumulativeTrend"
+  | "legend.diffTrend"
+  | "trendHelp.label"
+  | "trendHelp.description"
   | "no-history"
   | "no-results"
   | "ticks.current"

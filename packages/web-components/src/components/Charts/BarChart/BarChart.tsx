@@ -28,6 +28,7 @@ type BarChartProps<T extends BarDatum> = {
     curveSharpness?: number;
   }[];
   hideEmptyTrendLines?: boolean;
+  valueTrends?: { helpLabel: string; helpDescription: string };
   formatTrendValue?: (value: number, trendKey: Extract<keyof T, string>) => number | undefined;
   formatLegendValue?: (legend: LegendItemValue<T>) => string | number | undefined;
   formatIndexBy?: (value: T, indexBy: Extract<keyof T, string>) => string;
@@ -75,13 +76,20 @@ export const BarChart = <T extends BarDatum>(props: BarChartProps<T>) => {
     leftAxisTickValues,
     layout = "vertical",
     formatTrendValue,
+    valueTrends,
   } = props;
   const legendMap = useMemo(() => new Map(legend.map((item) => [item.id, item])), [legend]);
   const barKeys = useMemo(
     () => legend.filter((item) => item.type !== "point" && item.type !== "tree").map((item) => item.id),
     [legend],
   );
+  const tooltipLegend = useMemo(
+    () => (valueTrends ? legend.filter((item) => item.type !== "point") : legend),
+    [legend, valueTrends],
+  );
   const isEmpty = useMemo(() => isEmptyChart(data, indexBy), [data, indexBy]);
+  const visibleLegend =
+    !isEmpty && !noLegend ? legend : valueTrends ? legend.filter((item) => item.type === "point") : [];
 
   const barSize = useMemo(() => {
     if (data.length >= 8) {
@@ -98,7 +106,7 @@ export const BarChart = <T extends BarDatum>(props: BarChartProps<T>) => {
   const isInverted = layout === "horizontal";
 
   return (
-    <div className={styles.container}>
+    <div className={styles.container} data-value-trends={valueTrends ? true : undefined}>
       <div className={styles.barContainer}>
         <BarChartStateProvider>
           <ResponsiveBar
@@ -143,7 +151,13 @@ export const BarChart = <T extends BarDatum>(props: BarChartProps<T>) => {
                 />
               ),
               (layerProps: BarCustomLayerProps<T>) => (
-                <TrendLinesLayer {...layerProps} legend={legend} indexBy={indexBy} formatValue={formatTrendValue} />
+                <TrendLinesLayer
+                  {...layerProps}
+                  legend={legend}
+                  indexBy={indexBy}
+                  formatValue={formatTrendValue}
+                  valueTrendData={valueTrends ? data : undefined}
+                />
               ),
               "markers",
               (layerProps: BarCustomLayerProps<T>) => (
@@ -159,7 +173,7 @@ export const BarChart = <T extends BarDatum>(props: BarChartProps<T>) => {
                         allowZeroValues
                         value={value}
                         indexBy={indexBy}
-                        legend={legend}
+                        legend={tooltipLegend}
                         formatLegendValue={formatLegendValue}
                         formatIndexBy={formatIndexBy}
                       />
@@ -223,7 +237,13 @@ export const BarChart = <T extends BarDatum>(props: BarChartProps<T>) => {
           />
         </BarChartStateProvider>
       </div>
-      {!isEmpty && !noLegend && <Legends data={legend} />}
+      {visibleLegend.length > 0 && <Legends data={visibleLegend} />}
+      {valueTrends && (
+        <details className={styles.trendHelp}>
+          <summary>{valueTrends.helpLabel}</summary>
+          <p>{valueTrends.helpDescription}</p>
+        </details>
+      )}
     </div>
   );
 };

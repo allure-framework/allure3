@@ -78,10 +78,15 @@
         "history": "{{timestamp, timestamp_date}}"
       }
     },
+    "trendHelp": {
+      "label": "Cómo leer las tendencias",
+      "description": "La línea continua muestra la tendencia del total acumulado dividido por el número de comparaciones. Su altura no indica un número de pruebas. La línea discontinua muestra la tendencia del cambio neto por ejecución."
+    },
     "statusTransitions": {
       "title": "Transiciones de estado",
       "legend": {
-        "trend": "Tasa de corrección"
+        "cumulativeTrend": "Tendencia acumulada",
+        "diffTrend": "Tendencia del cambio por ejecución"
       },
       "transitions": {
         "new": "$t(transitions:new, capitalize)",
@@ -141,7 +146,8 @@
         "removedunknown": "Eliminado $t(statuses:unknown)"
       },
       "legend": {
-        "trend": "Tendencia de crecimiento"
+        "cumulativeTrend": "Tendencia acumulada",
+        "diffTrend": "Tendencia del cambio por ejecución"
       },
       "no-history": "$t(empty:no-history-results)",
       "no-results": "$t(empty:no-results)",

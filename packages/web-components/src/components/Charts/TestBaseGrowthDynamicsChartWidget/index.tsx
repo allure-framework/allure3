@@ -10,7 +10,7 @@ import { Widget } from "@/components/Widget";
 import { BarChart } from "../BarChart/BarChart.js";
 import { formatNumber } from "../Legend/LegendItem/index.js";
 import type { LegendItemValue } from "../Legend/LegendItem/types.js";
-import { getColorFromStatus, getTrendForDivergingChart } from "../utils.js";
+import { getColorFromStatus, withCumulativeTrend } from "../utils.js";
 import type { Props, StatusWithPrefix } from "./types.js";
 
 const isNewStatus = (status: StatusWithPrefix): boolean => {
@@ -74,76 +74,41 @@ export const TestBaseGrowthDynamicsChartWidget: FunctionalComponent<Props> = (pr
         };
       }),
       {
-        id: "trend",
-        label: i18n("legend.trend"),
+        id: "cumulativeTrend",
+        label: i18n("legend.cumulativeTrend"),
         color: "var(--color-chart-categorical-9)",
         type: "point",
+        lineStyle: "solid",
+      },
+      {
+        id: "diffTrend",
+        label: i18n("legend.diffTrend"),
+        color: "var(--color-chart-categorical-10)",
+        type: "point",
+        lineStyle: "dashed",
       },
     ],
     [statusesWithPrefixes, i18n],
   );
 
-  const maxValue = Math.ceil(
-    Math.max(
-      ...data.map((item) => {
-        const negativeSumm = Math.abs(
-          statusesWithPrefixes
-            .filter((status) => isRemovedStatus(status))
-            .reduce((acc, value) => acc + (item[value] ?? 0), 0),
-        );
-
-        const positiveSumm = Math.abs(
-          statusesWithPrefixes
-            .filter((status) => isNewStatus(status))
-            .reduce((acc, value) => acc + (item[value] ?? 0), 0),
-        );
-
-        return Math.max(positiveSumm, negativeSumm);
-      }),
-    ) * 1.01,
-  );
-
-  const chartData = useMemo(
-    () =>
+  const { chartData, maxValue } = useMemo(() => {
+    let maxBarValue = 0;
+    const chartData = withCumulativeTrend(
       data.map((item) => {
-        const absTotal = maxValue * 2;
         const stats = getStatusStats(item, statusesWithPrefixes);
-        const negativeSumm = Math.abs(
-          statusesWithPrefixes
-            .filter((status) => isRemovedStatus(status))
-            .reduce((acc, value) => acc + (stats[value] ?? 0), 0),
-        );
+        const added = statusesWithPrefixes.filter(isNewStatus).reduce((sum, status) => sum + stats[status], 0);
+        const removed = statusesWithPrefixes.filter(isRemovedStatus).reduce((sum, status) => sum - stats[status], 0);
 
-        const positiveSumm = Math.abs(
-          statusesWithPrefixes
-            .filter((status) => isNewStatus(status))
-            .reduce((acc, value) => acc + (stats[value] ?? 0), 0),
-        );
+        maxBarValue = Math.max(maxBarValue, added, removed);
 
-        const trend = getTrendForDivergingChart({
-          positiveValue: positiveSumm,
-          negativeValue: negativeSumm,
-          absTotal,
-          // This means that the was no new nor removed tests at all,
-          // so we do not use it to calculate the trend line direction
-          noValuePercentage: -1,
-        });
-
-        return {
-          id: item.id,
-          timestamp: item.timestamp,
-          ...stats,
-          trend,
-        };
+        return { id: item.id, timestamp: item.timestamp, ...stats, diffTrend: added - removed };
       }),
-    [data, statusesWithPrefixes, maxValue],
-  );
+    );
+
+    return { chartData, maxValue: Math.ceil(maxBarValue * 1.01) };
+  }, [data, statusesWithPrefixes]);
 
   const isChartEmpty = chartData.every((item) => statusesWithPrefixes.every((status) => item[status] === 0));
-  const noChartHistory = chartData
-    .filter((item) => item.id !== "current")
-    .every((item) => statusesWithPrefixes.every((status) => item[status] === 0));
-
   // No data at all
   if (!currentData || isChartEmpty) {
     return (
@@ -154,7 +119,7 @@ export const TestBaseGrowthDynamicsChartWidget: FunctionalComponent<Props> = (pr
   }
 
   // We have data only for current run, but no history
-  if ((data.length === 1 && currentData) || noChartHistory) {
+  if (data.length < 2) {
     return (
       <Widget title={title}>
         <EmptyView title={i18n("no-history")} icon={allureIcons.lineChartsBarChartSquare} />
@@ -191,11 +156,7 @@ export const TestBaseGrowthDynamicsChartWidget: FunctionalComponent<Props> = (pr
           return i18n("ticks.history", { timestamp: item?.timestamp });
         }}
         bottomTickRotation={45}
-        formatLegendValue={({ value, id }) => {
-          if (id === "trend") {
-            return "";
-          }
-
+        formatLegendValue={({ value }) => {
           if (!value) {
             return "-";
           }
@@ -203,6 +164,10 @@ export const TestBaseGrowthDynamicsChartWidget: FunctionalComponent<Props> = (pr
           return formatNumber(Math.abs(Number(value)));
         }}
         noLegend
+        valueTrends={{
+          helpLabel: i18n("trendHelp.label"),
+          helpDescription: i18n("trendHelp.description"),
+        }}
         formatLeftTick={(value) => {
           const numberedValue = Math.abs(Number(value));
 
@@ -217,14 +182,6 @@ export const TestBaseGrowthDynamicsChartWidget: FunctionalComponent<Props> = (pr
         // Also minValue should be negative and maxValue should be positive
         minValue={-maxValue}
         maxValue={maxValue}
-        formatTrendValue={(value) => {
-          if (value === -1) {
-            // Do not use this value to calculate the trend line direction
-            return undefined;
-          }
-
-          return value;
-        }}
       />
     </Widget>
   );

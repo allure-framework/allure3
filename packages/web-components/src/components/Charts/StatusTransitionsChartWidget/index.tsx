@@ -10,7 +10,7 @@ import { Widget } from "@/components/Widget";
 import { BarChart } from "../BarChart/BarChart.js";
 import { formatNumber } from "../Legend/LegendItem/index.js";
 import type { LegendItemValue } from "../Legend/LegendItem/types.js";
-import { getTrendForDivergingChart } from "../utils.js";
+import { withCumulativeTrend } from "../utils.js";
 import type { Props } from "./types.js";
 
 const getColorFromTransition = (transition: TestStatusTransition): string => {
@@ -33,31 +33,18 @@ export const StatusTransitionsChartWidget: FunctionalComponent<Props> = (props) 
 
   const maxValue = Math.ceil(Math.max(...data.map((item) => item.fixed + item.regressed + item.malfunctioned)) * 1.01);
 
-  const chartData = data.map((item) => {
-    const absTotal = maxValue * 2;
-    const broken = item.regressed + item.malfunctioned;
-
-    const trend = getTrendForDivergingChart({
-      positiveValue: item.fixed,
-      negativeValue: broken,
-      absTotal,
-      // This means that the was no transitions at all,
-      // so we do not use it to calculate the trend line direction
-      noValuePercentage: -1,
-    });
-
-    return {
+  const chartData = withCumulativeTrend(
+    data.map((item) => ({
       id: item.id,
       timestamp: item.timestamp,
       prevItemTimestamp: item.prevItemTimestamp,
       fixed: item.fixed,
-      // Inverted values for regressed and malfunctioned to make them appear
-      // on the bottom side of the chart
+      // Draw regressions and malfunctions below zero.
       regressed: item.regressed === 0 ? 0 : -item.regressed,
       malfunctioned: item.malfunctioned === 0 ? 0 : -item.malfunctioned,
-      trend,
-    };
-  });
+      diffTrend: item.fixed - item.regressed - item.malfunctioned,
+    })),
+  );
 
   const currentData = data.find((item) => item.id === "current");
 
@@ -70,20 +57,24 @@ export const StatusTransitionsChartWidget: FunctionalComponent<Props> = (props) 
         value: transition === "fixed" ? 1 : -1,
       })),
       {
-        id: "trend",
-        label: i18n("legend.trend"),
+        id: "cumulativeTrend",
+        label: i18n("legend.cumulativeTrend"),
         color: "var(--color-chart-categorical-9)",
         type: "point",
+        lineStyle: "solid",
+      },
+      {
+        id: "diffTrend",
+        label: i18n("legend.diffTrend"),
+        color: "var(--color-chart-categorical-10)",
+        type: "point",
+        lineStyle: "dashed",
       },
     ],
     [i18n],
   );
 
   const isChartEmpty = chartData.every((item) => item.fixed === 0 && item.regressed === 0 && item.malfunctioned === 0);
-  const noChartHistory = chartData
-    .filter((item) => item.id !== "current")
-    .every((item) => item.fixed === 0 && item.regressed === 0 && item.malfunctioned === 0);
-
   // No data at all
   if (!currentData || isChartEmpty) {
     return (
@@ -94,7 +85,7 @@ export const StatusTransitionsChartWidget: FunctionalComponent<Props> = (props) 
   }
 
   // We have data only for current run, but no history
-  if ((data.length === 1 && currentData) || noChartHistory) {
+  if (data.length < 2) {
     return (
       <Widget title={title}>
         <EmptyView title={i18n("no-history")} icon={allureIcons.lineChartsBarChartSquare} />
@@ -133,18 +124,7 @@ export const StatusTransitionsChartWidget: FunctionalComponent<Props> = (props) 
           return i18n("ticks.history", { timestamp: item?.timestamp });
         }}
         bottomTickRotation={45}
-        formatTrendValue={(value) => {
-          if (value === -1) {
-            return undefined;
-          }
-
-          return value;
-        }}
-        formatLegendValue={({ value, id }) => {
-          if (id === "trend") {
-            return "";
-          }
-
+        formatLegendValue={({ value }) => {
           if (!value) {
             return "-";
           }
@@ -152,6 +132,10 @@ export const StatusTransitionsChartWidget: FunctionalComponent<Props> = (props) 
           return formatNumber(Math.abs(Number(value)));
         }}
         noLegend
+        valueTrends={{
+          helpLabel: i18n("trendHelp.label"),
+          helpDescription: i18n("trendHelp.description"),
+        }}
         formatLeftTick={(value) => {
           const numberedValue = Math.abs(Number(value));
 

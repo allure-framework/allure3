@@ -375,10 +375,15 @@
         "history": "{{timestamp, timestamp_date}}"
       }
     },
+    "trendHelp": {
+      "label": "راهنمای خواندن روندها",
+      "description": "خط پیوسته، روند مجموع تجمعی تقسیم‌شده بر تعداد مقایسه‌ها را نشان می‌دهد. ارتفاع آن بیانگر تعداد آزمون‌ها نیست. خط‌چین، روند تغییر خالص در هر اجرا را نشان می‌دهد."
+    },
     "statusTransitions": {
       "title": "تغییرات وضعیت",
       "legend": {
-        "trend": "نرخ رفع"
+        "cumulativeTrend": "روند تجمعی",
+        "diffTrend": "روند تغییر در هر اجرا"
       },
       "transitions": {
         "new": "$t(transitions:new, capitalize)",
@@ -438,7 +443,8 @@
         "removedunknown": "$t(statuses:unknown) حذف‌شده"
       },
       "legend": {
-        "trend": "روند رشد"
+        "cumulativeTrend": "روند تجمعی",
+        "diffTrend": "روند تغییر در هر اجرا"
       },
       "no-history": "$t(empty:no-history-results)",
       "no-results": "$t(empty:no-results)",

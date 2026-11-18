@@ -3,6 +3,7 @@ export interface LegendItemValue<T extends Record<string, number | string>> {
   color: string;
   border?: string;
   pointHoverColor?: string;
+  lineStyle?: "solid" | "dashed";
   label: string | number;
   type?: "default" | "point" | "tree" | "none";
   link?: string;

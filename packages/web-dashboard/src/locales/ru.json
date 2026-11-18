@@ -84,10 +84,15 @@
         "history": "{{timestamp, timestamp_date}}"
       }
     },
+    "trendHelp": {
+      "label": "Как читать тренды",
+      "description": "Сплошная линия показывает тренд накопленной суммы, поделённой на число сравнений. Её высота не равна количеству тестов. Пунктир показывает тренд чистого изменения за запуск."
+    },
     "statusTransitions": {
       "title": "Переходы статусов",
       "legend": {
-        "trend": "Коэффициент исправлений"
+        "cumulativeTrend": "Накопительный тренд",
+        "diffTrend": "Тренд изменений по запускам"
       },
       "transitions": {
         "new": "$t(transitions:new, capitalize)",
@@ -147,7 +152,8 @@
         "removedunknown": "Удалённый $t(statuses:unknown)"
       },
       "legend": {
-        "trend": "Тренд роста"
+        "cumulativeTrend": "Накопительный тренд",
+        "diffTrend": "Тренд изменений по запускам"
       },
       "no-history": "$t(empty:no-history-results)",
       "no-results": "$t(empty:no-results)",

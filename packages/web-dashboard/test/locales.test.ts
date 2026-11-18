@@ -72,3 +72,22 @@ it("defines the generated footer label and date separator in every dashboard loc
     expect(locale.ui.generatedAt, file).toContain("{{timestamp, timestamp_long}}");
   }
 });
+
+it("defines both diff trend legends and their explanation in every locale", () => {
+  const localeFiles = readdirSync(localesDir).filter((file) => file.endsWith(".json"));
+  expect(localeFiles.length).toBeGreaterThan(0);
+  for (const file of localeFiles) {
+    const { charts } = JSON.parse(readFileSync(join(localesDir, file), "utf8"));
+    for (const value of [
+      charts.statusTransitions?.legend?.cumulativeTrend,
+      charts.statusTransitions?.legend?.diffTrend,
+      charts.testBaseGrowthDynamics?.legend?.cumulativeTrend,
+      charts.testBaseGrowthDynamics?.legend?.diffTrend,
+      charts.trendHelp?.label,
+      charts.trendHelp?.description,
+    ]) {
+      expect(value, file).toEqual(expect.any(String));
+      expect(value.trim().length, file).toBeGreaterThan(0);
+    }
+  }
+});

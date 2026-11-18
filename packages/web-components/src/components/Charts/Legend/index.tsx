@@ -10,9 +10,9 @@ export const Legends = <T extends Record<string, number | string>>(props: {
   const { data, onLegendClick } = props;
 
   return (
-    <div className={styles.legends}>
+    <div className={styles.legends} data-wrap={data.some((item) => item.lineStyle) || undefined}>
       {data.map((item) => (
-        <LegendItem key={item.id} legend={item} onClick={onLegendClick} />
+        <LegendItem key={item.id} legend={item} onClick={onLegendClick} hideOnEmptyValue={!item.lineStyle} />
       ))}
     </div>
   );

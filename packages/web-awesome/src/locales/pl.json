@@ -311,10 +311,15 @@
         "history": "{{timestamp, timestamp_date}}"
       }
     },
+    "trendHelp": {
+      "label": "Jak odczytywać trendy",
+      "description": "Linia ciągła przedstawia trend sumy skumulowanej podzielonej przez liczbę porównań. Jej wysokość nie oznacza liczby testów. Linia przerywana przedstawia trend zmiany netto w poszczególnych uruchomieniach."
+    },
     "statusTransitions": {
       "title": "Przejścia statusu",
       "legend": {
-        "trend": "Wskaźnik napraw"
+        "cumulativeTrend": "Trend skumulowany",
+        "diffTrend": "Trend zmian w poszczególnych uruchomieniach"
       },
       "transitions": {
         "new": "$t(transitions:new, capitalize)",
@@ -374,7 +379,8 @@
         "removedunknown": "Usunięty $t(statuses:unknown)"
       },
       "legend": {
-        "trend": "Trend wzrostu"
+        "cumulativeTrend": "Trend skumulowany",
+        "diffTrend": "Trend zmian w poszczególnych uruchomieniach"
       },
       "no-history": "$t(empty:no-history-results)",
       "no-results": "$t(empty:no-results)",
