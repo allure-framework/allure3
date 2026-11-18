@@ -119,7 +119,7 @@ export class Allure2Plugin implements Plugin {
     await generatePackagesData(writer, displayedTr);
     await generateCategoriesData(writer, displayedTr);
     await generateTimelineData(writer, allTr);
-    await generateSummaryJson(writer, reportName, displayedTr);
+    await generateSummaryJson(writer, reportName, allTr);
     await generateEnvironmentJson(writer, environmentItems);
 
     const executor = await store.metadataByKey<Partial<Allure2ExecutorInfo>>("allure2_executor");
@@ -132,7 +132,7 @@ export class Allure2Plugin implements Plugin {
     await generateExecutorJson(writer, executor);
     await generateDefaultWidgetData(writer, displayedTr, "duration.json", "status-chart.json", "severity.json");
     await generateHistoryTrendData(writer, reportName, displayedTr, historyDataPoints, historyTrend, executor);
-    await generateDurationTrendData(writer, displayedTr, durationTrend, executor);
+    await generateDurationTrendData(writer, allTr, durationTrend, executor);
     await generateRetryTrendData(writer, allTr, retryTrend, executor);
     await generateCategoriesTrendData(writer, allTr, categoriesTrend, executor);
 

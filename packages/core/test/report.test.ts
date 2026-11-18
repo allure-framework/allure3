@@ -5,8 +5,8 @@ import { join, relative, sep } from "node:path";
 import { setTimeout } from "node:timers/promises";
 
 import { detect } from "@allurereport/ci";
-import type { TestResult } from "@allurereport/core-api";
-import { type Plugin, type QualityGateRule, md5 } from "@allurereport/plugin-api";
+import type { TestError, TestResult } from "@allurereport/core-api";
+import { type ExitCode, type Plugin, PluginFatalError, type QualityGateRule, md5 } from "@allurereport/plugin-api";
 import AwesomePlugin from "@allurereport/plugin-awesome";
 import MetricsPlugin from "@allurereport/plugin-metrics";
 import { BufferResultFile, type ResultsReader } from "@allurereport/reader-api";
@@ -62,6 +62,7 @@ const createPlugin = (id: string, enabled: boolean = true, options: Record<strin
   const plugin: Mocked<Required<Plugin>> = {
     start: vi.fn<Required<Plugin>["start"]>(),
     update: vi.fn<Required<Plugin>["update"]>(),
+    prepare: vi.fn<Required<Plugin>["prepare"]>(),
     done: vi.fn<Required<Plugin>["done"]>(),
     info: vi.fn<Required<Plugin>["info"]>(),
   };
@@ -455,6 +456,169 @@ describe("report", () => {
 
       await expect(readFile(join(output, "index.html"), "utf8")).resolves.toBe("index");
       await expect(readFile(join(output, "p1", "index.html"), "utf8")).rejects.toThrow();
+    });
+  });
+
+  describe("plugin errors on done", () => {
+    it("should only log a plain plugin error and finish the report with the other plugins", async () => {
+      const output = await mkdtemp(join(tmpdir(), "allure3-plugin-error-"));
+      const config = await resolveConfig({ name: "Allure Report", output });
+      const failing = createPlugin("failing");
+      const other = createPlugin("other");
+      const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
+
+      failing.plugin.done.mockRejectedValue(new Error("render failed"));
+      config.plugins = [failing, other];
+
+      const allureReport = new AllureReport(config);
+
+      await allureReport.start();
+      await expect(allureReport.done()).resolves.toBeUndefined();
+
+      expect(other.plugin.done).toHaveBeenCalledTimes(1);
+      expect(consoleError).toHaveBeenCalledWith("plugin failing error", expect.any(Error));
+    });
+
+    it("should record a fatal prepare error in the store before any plugin renders its report", async () => {
+      const output = await mkdtemp(join(tmpdir(), "allure3-plugin-fatal-prepare-"));
+      const config = await resolveConfig({ name: "Allure Report", output });
+      const other = createPlugin("other");
+      const failing = createPlugin("failing");
+      let globalsSeenByOther: { exitCode?: ExitCode; errors: TestError[] } | undefined;
+
+      vi.spyOn(console, "error").mockImplementation(() => {});
+      // the failing plugin goes last, the other one still has to see the failure when it renders its report
+      failing.plugin.prepare.mockRejectedValue(new PluginFatalError("push failed"));
+      other.plugin.done.mockImplementation(async (_context, store) => {
+        globalsSeenByOther = { exitCode: await store.globalExitCode(), errors: await store.allGlobalErrors() };
+      });
+      config.plugins = [other, failing];
+
+      const allureReport = new AllureReport(config);
+
+      await allureReport.start();
+      allureReport.realtimeDispatcher.sendGlobalExitCode({ original: 0, actual: 0 });
+
+      await expect(allureReport.done()).rejects.toThrow('Plugin "failing" failed the report generation: push failed');
+      expect(globalsSeenByOther).toEqual({
+        exitCode: { original: 0, actual: 1 },
+        errors: [expect.objectContaining({ message: 'Plugin "failing" failed the report generation: push failed' })],
+      });
+    });
+
+    it("should keep a non-zero exit code when a fatal prepare error fails the report generation", async () => {
+      const output = await mkdtemp(join(tmpdir(), "allure3-plugin-fatal-interrupted-"));
+      const config = await resolveConfig({ name: "Allure Report", output });
+      const failing = createPlugin("failing");
+
+      vi.spyOn(console, "error").mockImplementation(() => {});
+      failing.plugin.prepare.mockRejectedValue(new PluginFatalError("push failed"));
+      config.plugins = [failing];
+
+      const allureReport = new AllureReport(config);
+
+      await allureReport.start();
+      allureReport.realtimeDispatcher.sendGlobalExitCode({ original: 130, actual: 130 });
+
+      await expect(allureReport.done()).rejects.toThrow(KnownError);
+      await expect(allureReport.store.globalExitCode()).resolves.toEqual({ original: 130, actual: 130 });
+    });
+
+    it("should only log a fatal error thrown after prepare, because the reports may already show success", async () => {
+      const output = await mkdtemp(join(tmpdir(), "allure3-plugin-fatal-done-"));
+      const config = await resolveConfig({ name: "Allure Report", output });
+      const failing = createPlugin("failing");
+      const other = createPlugin("other");
+      const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
+
+      failing.plugin.done.mockRejectedValue(new PluginFatalError("push failed"));
+      config.plugins = [other, failing];
+
+      const allureReport = new AllureReport(config);
+
+      await allureReport.start();
+      allureReport.realtimeDispatcher.sendGlobalExitCode({ original: 0, actual: 0 });
+
+      await expect(allureReport.done()).resolves.toBeUndefined();
+      expect(consoleError).toHaveBeenCalledWith("plugin failing error", expect.any(PluginFatalError));
+      await expect(allureReport.store.globalExitCode()).resolves.toEqual({ original: 0, actual: 0 });
+      await expect(allureReport.store.allGlobalErrors()).resolves.toEqual([]);
+    });
+
+    it("should fail the report generation when a metrics push fails with failOnPushError", async () => {
+      const output = await mkdtemp(join(tmpdir(), "allure3-metrics-fail-on-push-"));
+      const config = await resolveConfig({ name: "Allure Report", output });
+      const fetchMock = vi.fn().mockRejectedValue(
+        new TypeError("fetch failed", {
+          cause: Object.assign(new Error("connect ECONNREFUSED"), { code: "ECONNREFUSED" }),
+        }),
+      );
+
+      vi.stubGlobal("fetch", fetchMock);
+      vi.spyOn(console, "error").mockImplementation(() => {});
+      config.plugins = [
+        {
+          id: "metrics",
+          enabled: true,
+          options: {},
+          plugin: new MetricsPlugin({
+            prometheus: { pushgateway: { url: "http://127.0.0.1:9091" } },
+            failOnPushError: true,
+          }),
+        },
+      ];
+
+      try {
+        const allureReport = new AllureReport(config);
+
+        await allureReport.start();
+
+        await expect(allureReport.done()).rejects.toThrow(
+          'Plugin "metrics" failed the report generation: Failed to push metrics to http://127.0.0.1:9091/metrics/job/allure: request failed (ECONNREFUSED)',
+        );
+        expect(fetchMock).toHaveBeenCalledTimes(1);
+        // the export file is written before the push, so it is kept even though the generation fails
+        await expect(readFile(join(output, "export", "prometheusData.txt"), "utf8")).resolves.toContain(
+          "launch_status_",
+        );
+      } finally {
+        vi.unstubAllGlobals();
+      }
+    });
+
+    it("should only warn when a metrics push fails without failOnPushError", async () => {
+      const output = await mkdtemp(join(tmpdir(), "allure3-metrics-warn-on-push-"));
+      const config = await resolveConfig({ name: "Allure Report", output });
+      // the plugin writes to the global console, while this file and the core use the one from `node:console`
+      const consoleWarn = vi.spyOn(globalThis.console, "warn").mockImplementation(() => {});
+
+      vi.stubGlobal(
+        "fetch",
+        vi.fn().mockRejectedValue(
+          new TypeError("fetch failed", {
+            cause: Object.assign(new Error("connect ECONNREFUSED"), { code: "ECONNREFUSED" }),
+          }),
+        ),
+      );
+      config.plugins = [
+        {
+          id: "metrics",
+          enabled: true,
+          options: {},
+          plugin: new MetricsPlugin({ prometheus: { pushgateway: { url: "http://127.0.0.1:9091" } } }),
+        },
+      ];
+
+      try {
+        const allureReport = new AllureReport(config);
+
+        await allureReport.start();
+
+        await expect(allureReport.done()).resolves.toBeUndefined();
+        expect(consoleWarn).toHaveBeenCalledWith(expect.stringContaining("ECONNREFUSED"));
+      } finally {
+        vi.unstubAllGlobals();
+      }
     });
   });
 
@@ -1603,7 +1767,7 @@ describe("report", () => {
 
     expect(AllureServiceClientMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        uploadConcurrency: uploadConcurrency ?? 10,
+        uploadConcurrency,
       }),
     );
     expect(AllureServiceClientMock.prototype.completeReport).toHaveBeenCalledTimes(1);
@@ -1613,7 +1777,7 @@ describe("report", () => {
     await verifyUploadOptionsForwarding(75);
   });
 
-  it("should use default uploadConcurrency in service client config", async () => {
+  it("should forward optional uploadConcurrency to service client", async () => {
     await verifyUploadOptionsForwarding();
   });
 
@@ -1631,12 +1795,17 @@ describe("report", () => {
 
     new AllureReport(config);
 
-    expect(config.allureService).toEqual({ accessToken: "", private: undefined, ...defaultUploadConfig });
+    expect(config.allureService).toEqual({
+      accessToken: "",
+      private: undefined,
+      uploadMaxAttempts: undefined,
+      uploadMaxSimultaneousFailures: undefined,
+    });
     expect(AllureServiceClientMock).not.toHaveBeenCalled();
     expect(AllureTestOpsClientMock).not.toHaveBeenCalled();
   });
 
-  it("should use TestOps default uploadConcurrency in client config", async () => {
+  it("should forward optional uploadConcurrency to TestOps client", async () => {
     const config = await resolveConfig({
       allureService: {
         accessToken: "ato1.token",
@@ -1647,12 +1816,12 @@ describe("report", () => {
 
     expect(AllureTestOpsClientMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        uploadConcurrency: 10,
+        uploadConcurrency: undefined,
       }),
     );
   });
 
-  it("should default invalid uploadConcurrency for each client", async () => {
+  it("should normalize invalid uploadConcurrency for each client", async () => {
     const storageConfig = await resolveConfig({
       allureService: {
         accessToken: validAccessToken,
@@ -1681,12 +1850,12 @@ describe("report", () => {
 
     expect(AllureServiceClientMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        uploadConcurrency: 10,
+        uploadConcurrency: undefined,
       }),
     );
     expect(AllureTestOpsClientMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        uploadConcurrency: 10,
+        uploadConcurrency: undefined,
       }),
     );
   });

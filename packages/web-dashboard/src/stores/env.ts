@@ -2,6 +2,7 @@ import type { EnvironmentIdentity } from "@allurereport/core-api";
 import {
   errorMessageFromUnknown,
   fetchReportJsonData,
+  getReportStorageKey,
   loadFromLocalStorage,
   migrateStoredEnvironmentSelection,
   normalizeEnvironmentsWidget,
@@ -16,7 +17,9 @@ export const environmentsStore = signal<StoreSignalState<EnvironmentIdentity[]> 
   data: [],
 });
 
-export const currentEnvironment = signal<string>(loadFromLocalStorage<string>("currentEnvironment", ""));
+export const currentEnvironment = signal<string>(
+  loadFromLocalStorage<string>(getReportStorageKey("currentEnvironment"), ""),
+);
 
 export const setCurrentEnvironment = (env: string) => {
   currentEnvironment.value = env;
@@ -50,5 +53,5 @@ export const fetchEnvironments = async () => {
 };
 
 effect(() => {
-  localStorage.setItem("currentEnvironment", JSON.stringify(currentEnvironment.value));
+  localStorage.setItem(getReportStorageKey("currentEnvironment"), JSON.stringify(currentEnvironment.value));
 });

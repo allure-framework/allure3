@@ -811,6 +811,7 @@ await new Promise((resolve) => setTimeout(resolve, 2500));
       expect(isAbsolute(invocations[1]!.testPlanPath!)).toBe(true);
       expect(invocations[1]?.testPlan).toEqual({
         version: "1.0",
+        mutedTests: [],
         tests: [{ selector: "Quality Gate Suite > becomes fast enough after rerun" }],
       });
     });
@@ -1604,6 +1605,7 @@ console.log(\`selected selectors: \${Array.from(selectors).join(",")}\`);
     await step("verify selected rerun output", async () => {
       expect(JSON.parse(selectStdout)).toEqual({
         version: "1.0",
+        mutedTests: [],
         tests: [
           {
             selector: "suite feature A",
@@ -1613,6 +1615,7 @@ console.log(\`selected selectors: \${Array.from(selectors).join(",")}\`);
       expect(selectStderr).toBe("");
       expect(JSON.parse(await readFile(selectedTestPlanPath, "utf-8"))).toEqual({
         version: "1.0",
+        mutedTests: [],
         tests: [
           {
             selector: "suite feature A",

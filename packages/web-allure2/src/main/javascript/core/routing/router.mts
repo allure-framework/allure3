@@ -1,3 +1,5 @@
+import { parseTestResultRoute } from "@allurereport/web-commons";
+
 import { omit } from "../../shared/utils/collections.mts";
 
 type RouteParameters = (string | null)[];
@@ -88,7 +90,13 @@ class AppRouter {
   }
 
   loadUrl(fragment = this.getCurrentUrl()) {
-    const normalizedFragment = toFragment(fragment);
+    let normalizedFragment = toFragment(fragment);
+    const testResultId = parseTestResultRoute(normalizedFragment);
+    if (testResultId && !normalizedFragment.startsWith("testresult/")) {
+      normalizedFragment = `testresult/${testResultId}`;
+      this.navigate(normalizedFragment, { replace: true });
+    }
+
     for (const { route, callback } of this.routes) {
       if (route.test(normalizedFragment)) {
         this.previousUrl = this.currentUrl;

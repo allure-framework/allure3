@@ -74,6 +74,7 @@ describe("agent select command", () => {
       testPlan: {
         version: "1.0",
         tests: [{ selector: "suite feature A" }],
+        mutedTests: [],
       },
     });
 
@@ -85,7 +86,7 @@ describe("agent select command", () => {
       latest: false,
     });
     expect(consoleModule.log).toHaveBeenCalledWith(
-      `{\n  "version": "1.0",\n  "tests": [\n    {\n      "selector": "suite feature A"\n    }\n  ]\n}`,
+      `{\n  "version": "1.0",\n  "tests": [\n    {\n      "selector": "suite feature A"\n    }\n  ],\n  "mutedTests": []\n}`,
     );
   });
 
@@ -103,6 +104,7 @@ describe("agent select command", () => {
       testPlan: {
         version: "1.0",
         tests: [{ selector: "suite feature A" }, { selector: "suite feature B" }],
+        mutedTests: [],
       },
     });
 
@@ -125,7 +127,7 @@ describe("agent select command", () => {
     expect(fsModule.mkdir).toHaveBeenCalledWith(outputDir, { recursive: true });
     expect(fsModule.writeFile).toHaveBeenCalledWith(
       outputPath,
-      `{\n  "version": "1.0",\n  "tests": [\n    {\n      "selector": "suite feature A"\n    },\n    {\n      "selector": "suite feature B"\n    }\n  ]\n}\n`,
+      `{\n  "version": "1.0",\n  "tests": [\n    {\n      "selector": "suite feature A"\n    },\n    {\n      "selector": "suite feature B"\n    }\n  ],\n  "mutedTests": []\n}\n`,
       "utf-8",
     );
     expect(consoleModule.log).toHaveBeenNthCalledWith(1, `agent testplan: ${outputPath}`);

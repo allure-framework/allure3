@@ -1,6 +1,6 @@
 import type { ChildProcess } from "node:child_process";
 import { execFile, fork } from "node:child_process";
-import { EventEmitter } from "node:events";
+import { EventEmitter, once } from "node:events";
 import { rmSync } from "node:fs";
 import { mkdtemp, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
@@ -230,7 +230,8 @@ describe("runProcess", () => {
         stderr += data;
       });
 
-      await expect(terminationOf(childProcess)).resolves.toBe(0);
+      const [exitCode] = await once(childProcess, "close");
+      expect(exitCode).toBe(0);
       expect(JSON.parse(stdout.trim())).toEqual(["value with spaces"]);
       expect(stderr).not.toContain("[DEP0190]");
     } finally {

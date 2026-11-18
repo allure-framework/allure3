@@ -76,6 +76,7 @@ describe("agent-select utils", () => {
     expect(selection.selectedTests[0].full_name).toBe("suite feature A");
     expect(selection.testPlan).toEqual({
       version: "1.0",
+      mutedTests: [],
       tests: [{ selector: "suite feature A" }],
     });
   });

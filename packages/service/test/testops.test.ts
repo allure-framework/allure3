@@ -2,7 +2,7 @@ import { readFile } from "node:fs/promises";
 import { join as joinPosix } from "node:path/posix";
 
 import type { HistoryDataPoint } from "@allurereport/core-api";
-import { type MockedFunction, beforeEach, describe, expect, it, vi } from "vite-plus/test";
+import { type MockedFunction, afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 import type { AllureTestOpsClient } from "../src/testops.js";
 import { HttpClientMock, createHttpClientMock } from "./utils.js";
@@ -100,11 +100,16 @@ describe("AllureTestOpsClient", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.stubGlobal("fetch", fetchMock);
+    vi.spyOn(console, "warn").mockImplementation(() => {});
 
     testOpsClient = new AllureTestOpsClientClass({
       ...uploadConfig,
       accessToken: fixtures.accessToken,
     });
+  });
+
+  afterEach(() => {
+    vi.mocked(console.warn).mockRestore();
   });
 
   describe("constructor", () => {
@@ -114,10 +119,61 @@ describe("AllureTestOpsClient", () => {
       ).toThrow("Allure TestOps access token is required");
     });
 
-    it("should throw an error if access token is invalid", () => {
-      expect(() => new AllureTestOpsClientClass({ ...uploadConfig, accessToken: "invalid-token" })).toThrow(
-        "Allure service access token is invalid",
+    it.each([
+      { config: { url: testOpsUrl }, error: "project id" },
+      { config: { projectId: 123 }, error: "url" },
+      { config: { projectId: "not-a-number", url: testOpsUrl }, error: "project id" },
+    ])("rejects a user token with missing or invalid $error", ({ config, error }) => {
+      expect(() => new AllureTestOpsClientClass({ accessToken: testOpsAccessToken, ...config })).toThrow(error);
+    });
+
+    it("uses a user token with an explicit URL and project id", async () => {
+      const client = new AllureTestOpsClientClass({
+        accessToken: testOpsAccessToken,
+        projectId: "456",
+        url: "https://user-testops.example.com/",
+      });
+      HttpClientMock.prototype.get.mockResolvedValueOnce({ content: [], last: true });
+
+      await client.getMutedTests();
+
+      expect(createHttpClientMock).toHaveBeenCalledExactlyOnceWith("https://user-testops.example.com", {
+        apiToken: "testops-access-token",
+      });
+      expect(console.warn).not.toHaveBeenCalled();
+      expect(HttpClientMock.prototype.get).toHaveBeenCalledWith("/api/rs/testcase/muted", {
+        params: { projectId: 456, view: "plan", page: 0, size: 100 },
+      });
+    });
+
+    it.each([
+      { projectId: 456 },
+      { url: "https://ignored.example.com" },
+      { projectId: 456, url: "https://ignored.example.com" },
+    ])("warns and uses project token values with explicit projectId=$projectId url=$url", async (overrides) => {
+      const client = new AllureTestOpsClientClass({ accessToken: validAccessToken, ...overrides });
+      HttpClientMock.prototype.get.mockResolvedValueOnce({ content: [], last: true });
+
+      await client.getMutedTests();
+
+      expect(console.warn).toHaveBeenCalledWith(expect.stringMatching(/project.*token.*projectId.*url/i));
+      expect(createHttpClientMock).toHaveBeenCalledExactlyOnceWith("https://testops.example.com", {
+        apiToken: "testops-access-token",
+      });
+      expect(HttpClientMock.prototype.get).toHaveBeenCalledWith("/api/rs/testcase/muted", {
+        params: { projectId: 123, view: "plan", page: 0, size: 100 },
+      });
+    });
+
+    it("sends project token override warnings to the configured logger instead of console", () => {
+      const logger = { debug: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn() };
+
+      new AllureTestOpsClientClass({ accessToken: validAccessToken, projectId: 456 }, logger);
+
+      expect(logger.warn).toHaveBeenCalledExactlyOnceWith(
+        "Allure TestOps project token contains projectId and url; explicit values are ignored.",
       );
+      expect(console.warn).not.toHaveBeenCalled();
     });
 
     it("should throw an error if token payload doesn't contain a project ID", () => {
@@ -156,6 +212,48 @@ describe("AllureTestOpsClient", () => {
       expect(createHttpClientMock).toHaveBeenCalledWith(fixtures.url, {
         apiToken: fixtures.testOpsAccessToken,
       });
+    });
+  });
+
+  describe("getMutedTests", () => {
+    it("fetches every page with the decoded project and API token and maps plan identities", async () => {
+      HttpClientMock.prototype.get
+        .mockResolvedValueOnce({ content: [{ id: 7, fullName: "suite#test" }, { id: 9 }], last: false })
+        .mockResolvedValueOnce({ content: [{ fullName: "suite#other" }, { id: 0, fullName: "" }], last: true });
+
+      const result = await testOpsClient.getMutedTests();
+
+      expect(result).toEqual([
+        { id: "7", selector: "suite#test" },
+        { id: "9" },
+        { selector: "suite#other" },
+        { id: "0", selector: "" },
+      ]);
+      expect(createHttpClientMock).toHaveBeenCalledExactlyOnceWith(fixtures.url, {
+        apiToken: fixtures.testOpsAccessToken,
+      });
+      expect(HttpClientMock.prototype.get.mock.calls).toEqual([
+        ["/api/rs/testcase/muted", { params: { projectId: 123, view: "plan", page: 0, size: 100 } }],
+        ["/api/rs/testcase/muted", { params: { projectId: 123, view: "plan", page: 1, size: 100 } }],
+      ]);
+    });
+
+    it("stops on an empty page even without the last-page marker", async () => {
+      HttpClientMock.prototype.get.mockResolvedValueOnce({ content: [], last: false });
+
+      const result = await testOpsClient.getMutedTests();
+
+      expect(result).toEqual([]);
+      expect(HttpClientMock.prototype.get).toHaveBeenCalledTimes(1);
+    });
+
+    it("rejects the whole fetch when a later page fails", async () => {
+      const error = new Error("request failed");
+      HttpClientMock.prototype.get
+        .mockResolvedValueOnce({ content: [{ id: 7 }], last: false })
+        .mockRejectedValueOnce(error);
+
+      await expect(testOpsClient.getMutedTests()).rejects.toBe(error);
     });
   });
 
@@ -369,6 +467,24 @@ describe("AllureTestOpsClient", () => {
   });
 
   describe("uploadReport", () => {
+    it.each([
+      {
+        options: {},
+        expected: { uploadConcurrency: 10, uploadMaxAttempts: 5, uploadMaxSimultaneousFailures: 5 },
+      },
+      {
+        options: { uploadConcurrency: 2, uploadMaxAttempts: 3, uploadMaxSimultaneousFailures: 0 },
+        expected: { uploadConcurrency: 2, uploadMaxAttempts: 3, uploadMaxSimultaneousFailures: 0 },
+      },
+    ])("resolves upload options before passing them to the helper: $options", async ({ options, expected }) => {
+      const client = new AllureTestOpsClientClass({ accessToken: fixtures.accessToken, ...options });
+      httpMock.uploadReport.mockResolvedValue({ hrefs: {} });
+
+      await client.uploadReport({ reportUuid: fixtures.report, files: {} });
+
+      expect(httpMock.uploadReport).toHaveBeenCalledWith(expect.objectContaining(expected));
+    });
+
     it("uploads files through shared helper", async () => {
       httpMock.uploadReport.mockResolvedValue({ hrefs: {}, indexHref: undefined });
 

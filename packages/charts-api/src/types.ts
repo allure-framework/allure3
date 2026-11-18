@@ -1,5 +1,6 @@
 import type {
   CategoryDefinition,
+  FlakinessOptions,
   HistoryDataPoint,
   SeverityLevel,
   Statistic,
@@ -253,7 +254,7 @@ export interface StabilityDistributionChartData {
     id: string;
     /**
      * Percentage of assessed tests classified stable, from 0 to 100.
-     * Tests without comparable history are excluded unless explicitly reported flaky.
+     * Tests with insufficient evidence are excluded unless explicitly reported flaky.
      */
     stabilityRate: number;
   }[];
@@ -448,19 +449,23 @@ export type DurationsChartOptions = {
   groupBy?: "layer" | "none";
 };
 
-export type StabilityDistributionChartOptions = {
+export type StabilityDistributionChartOptions = Pick<FlakinessOptions, "algorithm" | "retryFailureThreshold"> & {
   type: ChartType.StabilityDistribution;
   title?: string;
   /**
-   * Maximum comparable previous executions per test; current is included separately.
+   * Maximum previous history entries selected per test before classification.
+   * Positive values select history.slice(0, limit), including noncomparable entries.
+   * Current is included separately. Omit to use the whole history array.
    * Missing tests reset the calculation. Zero disables the chart.
    *
-   * @default 10
+   * @default undefined
    */
   limit?: number;
   /**
-   * Consecutive identical passed, failed, or broken outcomes that reset earlier instability.
-   * For bounded history, this is capped at the previous-execution limit plus current.
+   * Consecutive identical final outcomes (status-changes) or uniform attempt sequences
+   * (retry failure rate) that reset earlier instability. Retry failure rate discards
+   * the stabilizing streak and all older evidence; mixed sequences do not stabilize.
+   * Must be a positive integer, less than a positive limit. Defaults to 5.
    *
    * @default 5
    */

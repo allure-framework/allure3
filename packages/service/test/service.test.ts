@@ -93,6 +93,18 @@ describe("AllureServiceClient", () => {
   });
 
   describe("constructor", () => {
+    it.each([
+      { options: {}, expected: { uploadConcurrency: 10, uploadMaxAttempts: 5, uploadMaxSimultaneousFailures: 5 } },
+      {
+        options: { uploadConcurrency: 2, uploadMaxAttempts: 3, uploadMaxSimultaneousFailures: 0, private: true },
+        expected: { uploadConcurrency: 2, uploadMaxAttempts: 3, uploadMaxSimultaneousFailures: 0, private: true },
+      },
+    ])("resolves upload settings for $options", ({ options, expected }) => {
+      const client = new AllureServiceClientClass({ accessToken: validAccessToken, ...options });
+
+      expect(client.config).toEqual({ accessToken: validAccessToken, ...expected });
+    });
+
     it("should throw an error if access token is not provided", () => {
       expect(
         () => new AllureServiceClientClass({ ...uploadConfig, accessToken: undefined as unknown as string }),

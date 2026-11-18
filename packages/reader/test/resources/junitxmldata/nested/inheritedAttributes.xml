@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+  <testsuite name="outer" package="com.outer">
+    <testsuite>
+      <testcase name="inherits both"/>
+    </testsuite>
+    <testsuite name="inner" package="com.inner">
+      <testcase name="overrides both"/>
+    </testsuite>
+  </testsuite>
+</testsuites>

@@ -17,6 +17,14 @@ describe("configuration expressions", () => {
     expect(results).toEqual([true, false, true]);
   });
 
+  it("enables CEL optional values", () => {
+    const expression = compileExpression("${{ env.?BUILD_NAME.orValue('Local') }}", "name", { env: "map" });
+
+    const result = expression({ env: {} });
+
+    expect(result).toBe("Local");
+  });
+
   it("supports guarded optional fields and numeric category conditions", () => {
     const predicate = compilePredicate(
       "${{ has(data.message) && data.duration > 42 && data.message.contains('timeout') }}",

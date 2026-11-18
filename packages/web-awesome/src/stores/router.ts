@@ -1,11 +1,18 @@
 import { createRoute, navigateTo as routerNavigateTo } from "@allurereport/web-commons";
 import { computed } from "@preact/signals";
 
+const directTestResultRoute = computed(() =>
+  createRoute<{ testResultId: string; tab?: string }>("/testresult/:testResultId/:tab?"),
+);
+
+const plainTestResultPath = () =>
+  directTestResultRoute.value.matches ? "/testresult/:testResultId/:tab?" : "/:testResultId/:tab?";
+
 const normalizeTab = (tab?: string) => (tab && tab !== "overview" ? tab : undefined);
 
 export const navigateToTestResult = (params: { testResultId: string; tab?: string }) => {
   const normalized = { ...params, tab: normalizeTab(params.tab) };
-  const path = rootTabRoute.value.matches ? "/:rootTab/:testResultId/:tab?" : "/:testResultId/:tab?";
+  const path = rootTabRoute.value.matches ? "/:rootTab/:testResultId/:tab?" : plainTestResultPath();
   const routeParams = rootTabRoute.value.matches
     ? { ...normalized, rootTab: rootTabRoute.value.params.rootTab }
     : normalized;
@@ -19,7 +26,7 @@ export const navigateToPlainTestResult = (params: { testResultId: string; tab?: 
 
 export const navigateToTestResultTab = (params: { testResultId: string; tab: string }) => {
   const normalized = { ...params, tab: normalizeTab(params.tab) };
-  const path = rootTabRoute.value.matches ? "/:rootTab/:testResultId/:tab?" : "/:testResultId/:tab?";
+  const path = rootTabRoute.value.matches ? "/:rootTab/:testResultId/:tab?" : plainTestResultPath();
   const routeParams = rootTabRoute.value.matches
     ? { ...normalized, rootTab: rootTabRoute.value.params.rootTab }
     : normalized;
@@ -64,16 +71,21 @@ export const categoriesRoute = computed(() =>
   createRoute<{ testResultId?: string; tab?: string }>("/categories/:testResultId?/:tab?"),
 );
 
-export const testResultRoute = computed(() =>
-  createRoute<{ testResultId: string; tab?: string }>("/:testResultId/:tab?", ({ params }) => {
+export const testResultRoute = computed(() => {
+  if (directTestResultRoute.value.matches) {
+    return directTestResultRoute.value;
+  }
+
+  return createRoute<{ testResultId: string; tab?: string }>("/:testResultId/:tab?", ({ params }) => {
     return (
       !!params.testResultId &&
       params.testResultId !== "categories" &&
+      params.testResultId !== "testresult" &&
       !SECTION_ROUTE_NAMES.includes(params.testResultId as SectionRouteName) &&
       !rootTabs.includes(params.testResultId)
     );
-  }),
-);
+  });
+});
 
 export const sectionRoute = computed(() =>
   createRoute<{ section: SectionRouteName }>("/:section", ({ params }) => {

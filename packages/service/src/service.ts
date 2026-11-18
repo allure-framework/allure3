@@ -2,11 +2,11 @@ import { createReadStream } from "node:fs";
 import { stat } from "node:fs/promises";
 import { join as joinPosix } from "node:path/posix";
 
-import { type HistoryDataPoint, parseIntegerConfigValue } from "@allurereport/core-api";
+import { type AllureLogger, type HistoryDataPoint, parseIntegerConfigValue } from "@allurereport/core-api";
 
 import {
   ALLURE_SERVICE_STORAGE_PREFIX,
-  type AllureServiceApiClient,
+  AllureServiceApiClient,
   type AllureServiceApiClientConfig,
   type UploadReportFilePayload,
   type UploadReportFilesPayload,
@@ -27,9 +27,9 @@ const createReportFileUrl = (baseUrl: string, reportUuid: string, reportFilename
   `${baseUrl}/${joinPosix(reportUuid, reportFilename)}`;
 
 const resolveUploadConcurrency = (value: number | undefined) => {
-  const concurrency = parseIntegerConfigValue(value) ?? 10;
+  const concurrency = parseIntegerConfigValue(value);
 
-  if (concurrency <= 0) {
+  if (concurrency === undefined || concurrency <= 0) {
     throw new Error(
       `Allure service upload concurrency must resolve to an integer greater than 0; received ${String(value)}`,
     );
@@ -38,12 +38,14 @@ const resolveUploadConcurrency = (value: number | undefined) => {
   return concurrency;
 };
 
-export class AllureServiceClient implements AllureServiceApiClient {
+export class AllureServiceClient extends AllureServiceApiClient {
   readonly #client: HttpClient;
   readonly #url: string;
   readonly #uploadedAssets = new Map<string, Set<string>>();
 
-  constructor(readonly config: AllureServiceApiClientConfig) {
+  constructor(config: AllureServiceApiClientConfig, logger?: AllureLogger) {
+    super(config, logger);
+
     if (!config?.accessToken) {
       throw new Error("Allure service access token is required");
     }

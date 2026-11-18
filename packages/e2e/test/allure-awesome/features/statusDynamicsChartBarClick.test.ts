@@ -47,10 +47,15 @@ const historyPoints = [
   }),
 ];
 
-const currentTestResults = [
-  makeTestResult({ ...makeTestResultNames("current test a"), status: Status.PASSED, stage: Stage.FINISHED }),
-  makeTestResult({ ...makeTestResultNames("current test b"), status: Status.PASSED, stage: Stage.FINISHED }),
-];
+const currentTestResults = ["current test a", "current test b"].map((name) =>
+  makeTestResult({
+    ...makeTestResultNames(name),
+    status: Status.PASSED,
+    stage: Stage.FINISHED,
+    start: Date.UTC(2024, 0, 1),
+    stop: Date.UTC(2024, 0, 1, 0, 1),
+  }),
+);
 
 const pluginConfig = {
   charts: [
@@ -61,6 +66,7 @@ const pluginConfig = {
       title: chartTitle,
     },
   ],
+  reportLanguage: "en",
   sections: ["charts"],
   defaultSection: "charts",
 } as unknown as AwesomePluginOptions;
@@ -96,6 +102,29 @@ test.describe("status dynamics chart bar click", () => {
 
   test.afterAll(async () => {
     await bootstrap?.shutdown?.();
+  });
+
+  test("shows the report generation time in the latest bar tooltip", async ({ page }) => {
+    await page.clock.setFixedTime(new Date("2050-01-01T12:00:00Z"));
+    await page.reload();
+
+    const reportTime = await page.evaluate(() => {
+      const { createdAt } = (globalThis as typeof globalThis & { allureReportOptions: { createdAt: number } })
+        .allureReportOptions;
+      return new Intl.DateTimeFormat("en", {
+        year: "numeric",
+        month: "numeric",
+        day: "numeric",
+        hour: "numeric",
+        minute: "numeric",
+        hour12: false,
+      })
+        .format(createdAt)
+        .replace(",", " at");
+    });
+
+    await page.getByTestId("hover-rect").last().hover();
+    await expect(page.getByTestId("chart-tooltip")).toContainText(`Latest report (${reportTime})`);
   });
 
   test("opens the history point URL in a new tab when a non-current bar is clicked", async ({ page }) => {

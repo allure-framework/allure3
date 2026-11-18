@@ -27,6 +27,7 @@
     "lint:fix": "vp lint --import-plugin --fix src test features stories"
   },
   "dependencies": {
+    "@allurereport/core-api": "workspace:*",
     "lodash.debounce": "^4.0.8",
     "yoctocolors": "^2.2.0"
   },

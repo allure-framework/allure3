@@ -16,6 +16,7 @@ export class TestPlanCommand extends Command {
     details: "This command generates a testplan.json file from the provided Allure Results directory.",
     examples: [
       ["testplan ./allure-results", "Generate a testplan.json file from the ./allure-results directory"],
+      ["testplan ./allure-results --muted-only", "Generate a testplan.json file containing only muted tests"],
       [
         "testplan ./allure-results --output custom-testplan.json",
         "Generate a custom-testplan.json file from the ./allure-results directory",
@@ -39,6 +40,10 @@ export class TestPlanCommand extends Command {
     description: "The output file name. Absolute paths are accepted as well",
   });
 
+  mutedOnly = Option.Boolean("--muted-only", false, {
+    description: "Generate only the mutedTests array, including when it is empty",
+  });
+
   async execute() {
     const cwd = processCwd();
     const rawConfig = await readRawConfig(cwd);
@@ -58,7 +63,7 @@ export class TestPlanCommand extends Command {
       output: output,
       plugins: {
         "@allurereport/plugin-testplan": {
-          options: { fileName },
+          options: { fileName, mutedOnly: this.mutedOnly },
         },
       },
     });

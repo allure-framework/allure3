@@ -838,7 +838,8 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   }
 
   #applyHistoryFlags(result: TestResult, history: (HistoryTestResult | undefined)[]): void {
-    result.flaky = result.sourceMetadata?.reportedFlaky === true || this.#detectFlaky(result, history);
+    const current = { ...result, retries: this.#retriesByTr(result) };
+    result.flaky = result.sourceMetadata?.reportedFlaky === true || this.#detectFlaky(current, history);
     const resolvedHistory = history.filter((entry): entry is HistoryTestResult => entry !== undefined);
     result.transition = getStatusTransition(result, resolvedHistory);
   }
@@ -956,6 +957,18 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
 
   async globalExitCode(): Promise<ExitCode | undefined> {
     return this.#globalExitCode;
+  }
+
+  /**
+   * Records an error that fails the report generation, e.g. a fatal plugin error: it becomes a global error and makes
+   * the stored exit code non-zero, so every report and summary written afterwards shows the failure
+   */
+  addFatalError(error: PluginGlobalError): void {
+    this.#addGlobalError(error);
+
+    if (this.#globalExitCode && !this.#globalExitCode.actual) {
+      this.#globalExitCode = { ...this.#globalExitCode, actual: 1 };
+    }
   }
 
   async allGlobalErrors(): Promise<TestError[]> {

@@ -142,6 +142,7 @@ describe("generateAllCharts", () => {
       allEnvironmentIdentities: vi.fn().mockResolvedValue([{ id: "default", name: "default" }]),
       allTestResults: vi.fn().mockResolvedValue([failed]),
       allHistoryDataPoints: vi.fn().mockResolvedValue([]),
+      retriesByTrId: vi.fn().mockResolvedValue([]),
     } as unknown as AllureStore;
     const writer = createWriter();
 

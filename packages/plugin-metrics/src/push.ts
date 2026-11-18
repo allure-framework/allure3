@@ -5,16 +5,46 @@ type Fetch = typeof fetch;
 
 export const DEFAULT_PUSH_TIMEOUT = 10_000;
 
+// the message ends up in the report and in TestOps when `failOnPushError` is on, so it never includes raw fetch
+// messages, causes or response bodies: they may repeat the URL with its credentials or echo the request
+const failureReason = (err: unknown, target: string): string => {
+  const url = (() => {
+    try {
+      return new URL(target);
+    } catch {
+      return undefined;
+    }
+  })();
+
+  if (url?.username || url?.password) {
+    return "URLs with credentials are not supported, use the authorization options instead";
+  }
+
+  if (err instanceof Error && (err.name === "TimeoutError" || err.name === "AbortError")) {
+    return "the request timed out";
+  }
+
+  // network failures keep a system error code (e.g. ECONNREFUSED) in the cause
+  const code = err instanceof Error ? (err.cause as { code?: unknown } | undefined)?.code : undefined;
+
+  return typeof code === "string" && /^[A-Z][A-Z0-9_]*$/.test(code) ? `request failed (${code})` : "request failed";
+};
+
+const send = async (doFetch: Fetch, target: string, init: RequestInit): Promise<Response> => {
+  try {
+    return await doFetch(target, init);
+  } catch (err) {
+    // the raw error is not kept as the cause: Node prints the cause chain, and it may repeat the original url
+    throw new Error(`Failed to push metrics to ${redactUrl(target)}: ${failureReason(err, target)}`);
+  }
+};
+
 const ensureOk = async (response: Response, target: string): Promise<void> => {
   if (response.ok) {
     return;
   }
 
-  const details = await response.text().catch(() => "");
-
-  throw new Error(
-    `Failed to push metrics to ${redactUrl(target)}: ${response.status} ${response.statusText} ${details}`.trim(),
-  );
+  throw new Error(`Failed to push metrics to ${redactUrl(target)}: HTTP ${response.status}`);
 };
 
 // Pushgateway treats even an encoded slash as a path separator, so such values (and empty ones) have to use
@@ -45,7 +75,7 @@ export const pushToPushgateway = async (
   const authorization = options.authorization ?? (options.authorizationEnv ? env[options.authorizationEnv] : undefined);
   const target = pushgatewayUrl(options);
   // PUT replaces the whole group, so stale series from previous runs do not stay in the Pushgateway
-  const response = await doFetch(target, {
+  const response = await send(doFetch, target, {
     method: "PUT",
     headers: {
       "Content-Type": "text/plain; version=0.0.4",
@@ -93,7 +123,7 @@ export const pushToInfluxDb = async (
     : options.username
       ? `Basic ${Buffer.from(`${options.username}:${password ?? ""}`).toString("base64")}`
       : undefined;
-  const response = await doFetch(target, {
+  const response = await send(doFetch, target, {
     method: "POST",
     headers: {
       "Content-Type": "text/plain; charset=utf-8",

@@ -244,6 +244,78 @@ describe("junit xml reader", () => {
     });
   });
 
+  describe("nested suites", () => {
+    it("should read a test case from a single nested suite of an aggregated document", async () => {
+      const visitor = await readResults(junitXml, {
+        "junitxmldata/nested/aggregatedSingleNested.xml": randomTestsuiteFileName(),
+      });
+
+      expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+      const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+
+      expect(trs).toMatchObject([
+        {
+          name: "nested test",
+          fullName: "com.example.InnerTest.nested test",
+          labels: [
+            { name: "package", value: "com.example" },
+            { name: "parentSuite", value: "com.example" },
+            { name: "suite", value: "inner" },
+            { name: "testClass", value: "com.example.InnerTest" },
+          ],
+        },
+      ]);
+    });
+
+    it("should read test cases from suites at any depth and label them with the nearest suite", async () => {
+      const visitor = await readResults(junitXml, {
+        "junitxmldata/nested/multiLevel.xml": randomTestsuiteFileName(),
+      });
+
+      expect(visitor.visitTestResult).toHaveBeenCalledTimes(5);
+
+      const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+
+      expect(trs).toMatchObject([
+        { name: "root test", labels: [{ name: "suite", value: "root" }] },
+        { name: "level1 test", labels: [{ name: "suite", value: "level1" }] },
+        { name: "level2a test 1", labels: [{ name: "suite", value: "level2a" }] },
+        { name: "level2a test 2", labels: [{ name: "suite", value: "level2a" }] },
+        { name: "level3 test", labels: [{ name: "suite", value: "level3" }] },
+      ]);
+    });
+
+    it("should inherit a missing suite name and package from the enclosing suite", async () => {
+      const visitor = await readResults(junitXml, {
+        "junitxmldata/nested/inheritedAttributes.xml": randomTestsuiteFileName(),
+      });
+
+      expect(visitor.visitTestResult).toHaveBeenCalledTimes(2);
+
+      const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+
+      expect(trs).toMatchObject([
+        {
+          name: "inherits both",
+          labels: [
+            { name: "package", value: "com.outer" },
+            { name: "parentSuite", value: "com.outer" },
+            { name: "suite", value: "outer" },
+          ],
+        },
+        {
+          name: "overrides both",
+          labels: [
+            { name: "package", value: "com.inner" },
+            { name: "parentSuite", value: "com.inner" },
+            { name: "suite", value: "inner" },
+          ],
+        },
+      ]);
+    });
+  });
+
   describe("durations", () => {
     it("should convert a test case duration from seconds to milliseconds", async () => {
       const visitor = await readResults(junitXml, {

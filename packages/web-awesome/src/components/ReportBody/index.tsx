@@ -2,7 +2,7 @@ import { capitalize, statusesList } from "@allurereport/core-api";
 import { Counter, Loadable } from "@allurereport/web-components/core";
 
 import { reportStatsStore, statsByEnvStore } from "@/stores";
-import { currentEnvironment } from "@/stores/env";
+import { currentEnvironment, environmentsStore } from "@/stores/env";
 import { useI18n } from "@/stores/locale";
 import { treeStore } from "@/stores/tree";
 import { setTreeStatus, treeStatus } from "@/stores/treeFilters/store";
@@ -31,7 +31,12 @@ const Header = () => {
             renderData={(stats) => {
               const envId = currentEnvironment.value;
               const currentEnv = stats[envId] || reportStatsStore.value.data;
-              const statusTabCounts = getUnresolvedStatusCounts(currentEnv, treeStore.value.data, envId);
+              const statusTabCounts = getUnresolvedStatusCounts(
+                currentEnv,
+                treeStore.value.data,
+                envId,
+                environmentsStore.value.data.map(({ id }) => id),
+              );
               const statList = statusesList
                 .map((status) => {
                   return { status, value: statusTabCounts[status] };

@@ -38,10 +38,14 @@ export const fetchTestResultNav = async () => {
   }
 };
 
+let latestTestResultRequest = 0;
+
 export const fetchTestResult = async (testResultId: string) => {
   if (!testResultId) {
     return;
   }
+
+  const requestId = ++latestTestResultRequest;
 
   testResultStore.value = {
     ...testResultStore.value,
@@ -51,6 +55,9 @@ export const fetchTestResult = async (testResultId: string) => {
 
   try {
     const data = await fetchReportJsonData<ReportTestResult>(`data/test-results/${testResultId}.json`);
+    if (requestId !== latestTestResultRequest) {
+      return;
+    }
 
     testResultStore.value = {
       data: { ...testResultStore.value.data, [testResultId]: data },
@@ -58,6 +65,10 @@ export const fetchTestResult = async (testResultId: string) => {
       loading: false,
     };
   } catch (err) {
+    if (requestId !== latestTestResultRequest) {
+      return;
+    }
+
     testResultStore.value = {
       ...testResultStore.value,
       error: errorMessageFromUnknown(err),

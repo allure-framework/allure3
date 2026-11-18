@@ -1,4 +1,5 @@
 import { ChartType } from "@allurereport/charts-api";
+import { getReportOptions } from "@allurereport/web-commons";
 
 import type { ChartWidgetProps } from "./ChartWidget.types";
 import { DurationDynamicsChartWidget } from "./DurationDynamicsChartWidget";
@@ -11,6 +12,12 @@ import { TestBaseGrowthDynamicsChartWidget } from "./TestBaseGrowthDynamicsChart
 import { TrSeveritiesChartWidget } from "./TrSeveritiesChartWidget";
 
 export const ChartRenderer = ({ chartData, t }: ChartWidgetProps) => {
+  const createdAt = getReportOptions<{ createdAt?: number }>()?.createdAt;
+  const withReportTimestamp = <T extends { id: string; timestamp: number }>(data: T[]): T[] =>
+    createdAt === undefined
+      ? data
+      : data.map((item) => (item.id === "current" ? { ...item, timestamp: createdAt } : item));
+
   switch (chartData.type) {
     case ChartType.StatusDynamics: {
       const title = chartData.title ?? t("statusDynamics.title");
@@ -18,7 +25,7 @@ export const ChartRenderer = ({ chartData, t }: ChartWidgetProps) => {
       return (
         <StatusDynamicsChartWidget
           title={title}
-          data={chartData.data}
+          data={withReportTimestamp(chartData.data)}
           limit={chartData.limit}
           statuses={chartData.statuses}
           i18n={(key, props = {}) => t(`statusDynamics.${key}`, props)}
@@ -31,7 +38,7 @@ export const ChartRenderer = ({ chartData, t }: ChartWidgetProps) => {
       return (
         <StatusTransitionsChartWidget
           title={title}
-          data={chartData.data}
+          data={withReportTimestamp(chartData.data)}
           i18n={(key, props = {}) => t(`statusTransitions.${key}`, props)}
         />
       );
@@ -72,7 +79,7 @@ export const ChartRenderer = ({ chartData, t }: ChartWidgetProps) => {
       return (
         <TestBaseGrowthDynamicsChartWidget
           title={title}
-          data={chartData.data}
+          data={withReportTimestamp(chartData.data)}
           statuses={chartData.statuses}
           i18n={(key, props = {}) => t(`testBaseGrowthDynamics.${key}`, props)}
         />
@@ -84,7 +91,7 @@ export const ChartRenderer = ({ chartData, t }: ChartWidgetProps) => {
       return (
         <StatusAgePyramidChartWidget
           title={title}
-          data={chartData.data}
+          data={withReportTimestamp(chartData.data)}
           statuses={chartData.statuses}
           i18n={(key, props = {}) => t(`statusAgePyramid.${key}`, props)}
         />
@@ -109,7 +116,7 @@ export const ChartRenderer = ({ chartData, t }: ChartWidgetProps) => {
       return (
         <DurationDynamicsChartWidget
           title={title}
-          data={chartData.data}
+          data={withReportTimestamp(chartData.data)}
           i18n={(key, props = {}) => t(`durationDynamics.${key}`, props)}
         />
       );

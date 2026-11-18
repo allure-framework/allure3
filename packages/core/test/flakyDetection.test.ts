@@ -2,7 +2,7 @@ import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
-import type { HistoryDataPoint } from "@allurereport/core-api";
+import type { HistoryDataPoint, TestResult } from "@allurereport/core-api";
 import { md5 } from "@allurereport/plugin-api";
 import type { RawTestResult } from "@allurereport/reader-api";
 import { epic, feature, label, story } from "allure-js-commons";
@@ -65,6 +65,20 @@ const createReport = async () => {
   return report;
 };
 
+const expectFlakinessInputs = (result: TestResult, retries: TestResult[] = []) => {
+  expect(mocks.getTestFlakiness).toHaveBeenCalledExactlyOnceWith(
+    expect.objectContaining({
+      id: result.id,
+      name: rawResult.name,
+      status: rawResult.status,
+      retryHash: result.retryHash,
+      retries,
+    }),
+    [expect.objectContaining({ id: "historical-result", name: "example test", status: "passed", url: "" })],
+    { historyDepth: undefined, stabilizationPeriod: undefined },
+  );
+};
+
 const outcomes = [
   { description: "marks unstable failed tests as flaky", value: true, expected: true },
   { description: "keeps stable failed tests unmarked", value: false, expected: false },
@@ -78,7 +92,7 @@ describe("flaky tests", () => {
     await report.store.visitTestResult(rawResult, { readerId });
     const [result] = await report.store.allTestResults();
 
-    expect(mocks.getTestFlakiness).toHaveBeenCalled();
+    expectFlakinessInputs(result);
     expect(result.flaky).toBe(expected);
   });
   it.each(outcomes)("$description during history refresh", async ({ value, expected }) => {
@@ -91,7 +105,27 @@ describe("flaky tests", () => {
     report.store.updateHistoryFlags();
     const [result] = await report.store.allTestResults();
 
-    expect(mocks.getTestFlakiness).toHaveBeenCalled();
+    expectFlakinessInputs(result);
+    expect(result.flaky).toBe(expected);
+  });
+  it.each(outcomes)("$description during history refresh with retries", async ({ value, expected }) => {
+    const report = await createReport();
+    mocks.getTestFlakiness.mockReturnValue(!expected);
+    await report.store.visitTestResult({ ...rawResult, uuid: "first-retry", status: "broken", start: 1 }, { readerId });
+    await report.store.visitTestResult({ ...rawResult, uuid: "second-retry", start: 2 }, { readerId });
+    const [firstRetry, secondRetry] = await report.store.allTestResults({ includeRetries: true });
+    await report.store.visitTestResult(
+      { uuid: "unrelated-result", testId: "other-test", name: "other test", status: "passed", start: 3 },
+      { readerId },
+    );
+    await report.store.visitTestResult({ ...rawResult, start: 4 }, { readerId });
+    const result = (await report.store.allTestResults()).find((testResult) => testResult.name === rawResult.name)!;
+    mocks.getTestFlakiness.mockClear();
+    mocks.getTestFlakiness.mockReturnValue(value);
+
+    report.store.updateHistoryFlags([result]);
+
+    expectFlakinessInputs(result, [secondRetry, firstRetry]);
     expect(result.flaky).toBe(expected);
   });
 });

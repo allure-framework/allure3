@@ -13,7 +13,12 @@ import type { AllureStore } from "../store.js";
 
 /**
  * Resolves overall report status from global errors, exit code, and test statuses.
- * Precedence: any global error -> failed; nonzero exit -> failed; else worst test status (or passed).
+ * Precedence: any global error -> failed; nonzero exit -> failed; exit code resolved by Allure to 0 -> passed;
+ * else worst test status (or passed).
+ *
+ * `exitCode.actual` is Allure's own verdict on the run: it is set to 0 when the quality gate passes or when only
+ * non-blocking failures remain, even if some tests failed. The report header uses the same verdict, so the
+ * summary must not fall back to the worst test status in that case.
  */
 export const resolveReportStatus = (params: {
   globalErrorsCount: number;
@@ -28,6 +33,10 @@ export const resolveReportStatus = (params: {
 
   if (code !== undefined && code !== 0) {
     return "failed";
+  }
+
+  if (params.exitCode?.actual === 0) {
+    return "passed";
   }
 
   return getWorstStatus(params.testStatuses) ?? "passed";
@@ -52,28 +61,52 @@ export const convertToSummaryCheckResult = (check: AllureCheckResult): SummaryCh
 });
 
 /**
+ * The longest pause between test activity that still counts as part of one run.
+ * Results merged from runs made hours or days apart would otherwise turn the time
+ * between those runs into "duration".
+ */
+export const RUN_IDLE_GAP_LIMIT = 60 * 60 * 1000;
+
+/**
  * Returns the time span of the run, from the earliest start to the latest stop of the given test results,
- * the results without timings are skipped
+ * the results without timings are skipped.
+ * The duration is the wall clock time of that span without the pauses longer than {@link RUN_IDLE_GAP_LIMIT}
+ * during which no test was running.
  */
 export const getRunSummary = (testResults: Pick<TestResult, "start" | "stop">[]): ReportRunSummary | undefined => {
-  let start = Infinity;
-  let stop = -Infinity;
+  const intervals: [start: number, stop: number][] = [];
 
-  for (const { start: trStart, stop: trStop } of testResults) {
-    if (
-      typeof trStart === "number" &&
-      Number.isFinite(trStart) &&
-      typeof trStop === "number" &&
-      Number.isFinite(trStop)
-    ) {
-      start = Math.min(start, trStart);
-      stop = Math.max(stop, trStop);
+  for (const { start, stop } of testResults) {
+    if (typeof start === "number" && Number.isFinite(start) && typeof stop === "number" && Number.isFinite(stop)) {
+      intervals.push([start, stop]);
     }
   }
 
-  return Number.isFinite(start) && Number.isFinite(stop)
-    ? { start, stop, duration: Math.max(0, stop - start) }
-    : undefined;
+  if (intervals.length === 0) {
+    return undefined;
+  }
+
+  intervals.sort((a, b) => a[0] - b[0]);
+
+  const runStart = intervals[0][0];
+  let runStop = -Infinity;
+  let duration = 0;
+  let [activeStart, activeStop] = intervals[0];
+
+  for (const [start, stop] of intervals) {
+    runStop = Math.max(runStop, stop);
+
+    if (start - activeStop > RUN_IDLE_GAP_LIMIT) {
+      duration += Math.max(0, activeStop - activeStart);
+      activeStart = start;
+      activeStop = stop;
+      continue;
+    }
+
+    activeStop = Math.max(activeStop, stop);
+  }
+
+  return { start: runStart, stop: runStop, duration: duration + Math.max(0, activeStop - activeStart) };
 };
 
 export const calculateRunDuration = (testResults: Pick<TestResult, "start" | "stop" | "duration">[]): number =>
@@ -100,7 +133,8 @@ export const createPluginSummary = async (params: {
   );
   const retryTrs = allTrs.filter(({ retryHash }) => retryHash && retryHashesWithRetries.has(retryHash));
   const flakyTrs = allTrs.filter((tr) => !!tr?.flaky);
-  const duration = calculateRunDuration(allTrs);
+  // a retried attempt is still test activity: without it a long first attempt would look like an idle gap
+  const duration = calculateRunDuration(await store.allTestResults({ includeRetries: true, filter }));
   const exitCode = await store.globalExitCode();
   const globalErrors = await store.allGlobalErrors();
   const status = resolveReportStatus({
