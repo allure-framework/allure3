@@ -38,7 +38,7 @@
       }
 
       .right {
-        margin-right: -2px;
+        margin-inline-end: -2px;
         color: var(--color-icon-secondary);
       }
 
@@ -142,7 +142,7 @@
     font-weight: inherit;
     letter-spacing: inherit;
     font-family: inherit;
-    text-align: left;
+    text-align: start;
   }
 
   & .right {

@@ -32,7 +32,7 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  margin-right: 24px;
+  margin-inline-end: 24px;
 }
 
 .tree-count {
@@ -74,7 +74,7 @@
 
 .tree-content:not(.root) {
   display: block;
-  padding-left: 24px;
+  padding-inline-start: 24px;
   margin-bottom: 12px;
   border-top: 1px solid var(--color-border-subtle);
 }
@@ -230,3 +230,11 @@
   }
 }
 
+:global([dir="rtl"]) .tree-header-arrow:not(.tree-header-arrow-opened) {
+  transform: rotate(90deg);
+}
+
+:global([dir="rtl"]) .tree-header-title {
+  unicode-bidi: plaintext;
+  text-align: right;
+}
