@@ -489,7 +489,6 @@ ${environmentsSource}
 export default {
   name: "Combined report",
   output: ${JSON.stringify(outputDir)},
-  qualityGate: { enabled: false },
 ${environmentsSource}
 };
 `.trimStart();
@@ -1997,7 +1996,7 @@ console.log(\`selected selectors: \${Array.from(selectors).join(",")}\`);
       await mkdir(results);
       await writeFile(
         configPath,
-        `export default { appendHistory: false, qualityGate: { enabled: false }, plugins: { awesome: { options: { charts: [], sections: ["default"] } } } };`,
+        `export default { appendHistory: false, plugins: { awesome: { options: { charts: [], sections: ["default"] } } } };`,
       );
       await writeFile(
         runner,
