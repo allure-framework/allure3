@@ -20,5 +20,5 @@ const createTestPlanTests = (testResults: TestResult[]): TestPlanTest[] => {
 export const createTestPlan = (testResults: TestResult[], mutedTestResults: TestResult[] = []): TestPlan => ({
   version: "1.0",
   tests: createTestPlanTests(testResults),
-  mutedTests: createTestPlanTests(mutedTestResults),
+  excludedTests: createTestPlanTests(mutedTestResults),
 });
