@@ -1540,6 +1540,7 @@ describe("run command", () => {
 describe("with skipping muted tests", () => {
   const accessToken = `ato1.${Buffer.from(JSON.stringify({ accessToken: "api-token", url: "https://testops.example.com", projectId: 42 })).toString("base64url")}.signature`;
   const ownedDir = resolve("/tmp/run-muted");
+  const attachmentsDir = resolve("/tmp/run-attachments");
   const planPath = resolve(ownedDir, "testplan.json");
   const execute = (options: string[] = ["--skip-muted-tests"]) =>
     Cli.from([RunCommand])
@@ -1788,7 +1789,10 @@ describe("with skipping muted tests", () => {
     const { AllureReportMock } = await import("../utils.js");
     const failedTest = { id: "failed", fullName: "suite#failed", status: "failed", labels: [] };
     AllureReportMock.prototype.store.blockingFailedTestResults.mockResolvedValue([failedTest]);
-    vi.mocked(mkdtemp).mockResolvedValueOnce(ownedDir).mockResolvedValueOnce("/tmp/rerun");
+    vi.mocked(mkdtemp)
+      .mockResolvedValueOnce(ownedDir)
+      .mockResolvedValueOnce(attachmentsDir)
+      .mockResolvedValueOnce("/tmp/rerun");
 
     await execute(["--skip-muted-tests", "--rerun", "1"]);
 
@@ -1844,6 +1848,7 @@ describe("with skipping muted tests", () => {
       })
       .mockResolvedValue({ results: [], fastFailed: false });
     supervisorExitCodeMock.mockReturnValueOnce(processDone).mockResolvedValueOnce(0);
+    vi.mocked(mkdtemp).mockResolvedValueOnce(ownedDir).mockResolvedValueOnce(attachmentsDir);
 
     const completion = execute(["--skip-muted-tests", "--rerun", "1"]);
     const callback = await callbackReady;
@@ -1859,7 +1864,9 @@ describe("with skipping muted tests", () => {
       ALLURE_RERUN: "0",
     });
     expect(mutedGetMock).toHaveBeenCalledTimes(1);
-    expect(mkdtemp).toHaveBeenCalledOnce();
+    expect(mkdtemp).toHaveBeenCalledTimes(2);
+    expect(mkdtemp).toHaveBeenCalledWith(expect.stringMatching(/allure-run-attachments-$/u));
+    expect(rm).toHaveBeenCalledWith(attachmentsDir, { recursive: true, force: true });
     expect(rm).toHaveBeenCalledWith(ownedDir, { recursive: true, force: true });
   });
 });
