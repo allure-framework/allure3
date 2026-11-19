@@ -58,7 +58,7 @@
   },
   "devDependencies": {
     "@allurereport/common-config": "workspace:*",
-    "@types/node": "^20.19.43",
+    "@types/node": "^26.6.6",
     "@types/zip-stream": "^7.0.0",
     "@vitest/coverage-istanbul": "^5.0.5",
     "@vitest/runner": "^4.1.12",
