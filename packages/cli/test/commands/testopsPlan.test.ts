@@ -83,7 +83,7 @@ describe("testops-plan command", () => {
 
     expect(written).toEqual({
       version: "1.0",
-      mutedTests: [],
+      excludedTests: [],
       tests: [
         { id: "123", selector: "suite.spec.ts#test one" },
         { id: "456", selector: "suite.spec.ts#test two" },
@@ -126,6 +126,6 @@ describe("testops-plan command", () => {
 
     const written = JSON.parse(await readFile(fixtures.output, "utf-8"));
 
-    expect(written).toEqual({ version: "1.0", tests: [], mutedTests: [] });
+    expect(written).toEqual({ version: "1.0", tests: [], excludedTests: [] });
   });
 });

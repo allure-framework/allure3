@@ -16,7 +16,7 @@ The plugin generates Allure Testplan file which can be used by Allure integratio
 
 ## Generated format
 
-By default, generated plans retain version `"1.0"` and contain both `tests` and `mutedTests` arrays:
+By default, generated plans retain version `"1.0"` and contain both `tests` and `excludedTests` arrays:
 
 ```json
 {
@@ -25,7 +25,7 @@ By default, generated plans retain version `"1.0"` and contain both `tests` and 
     { "id": "42", "selector": "suite#mutedFailure" },
     { "selector": "suite#regularFailure" }
   ],
-  "mutedTests": [
+  "excludedTests": [
     { "id": "42", "selector": "suite#mutedFailure" },
     { "selector": "suite#mutedPassed" }
   ]
@@ -33,13 +33,13 @@ By default, generated plans retain version `"1.0"` and contain both `tests` and 
 ```
 
 - `tests` follows the configured `filter`, which selects failed and broken results by default.
-- `mutedTests` includes all results whose boolean `muted` flag is `true`, regardless of their status or the configured filter. A muted resolution without that flag does not qualify.
+- `excludedTests` includes all results whose boolean `muted` flag is `true`, regardless of their status or the configured filter. A muted resolution without that flag does not qualify.
 - Entries use an optional `id` from the `ALLURE_ID` label and an optional `selector` from `runSelector`, falling back to `fullName`. Results without either identifier are omitted.
 - Overlap is intentional: a muted failed result can appear in both lists.
 - Either array can be empty, but both keys are always present. A muted-only plan has `tests: []`.
 - Generation is skipped only when neither collection has candidate results, before mapping identifiers.
 
-The `allure testplan` command uses this same format. Honoring `mutedTests` requires consumer support; generating the list alone does not suppress results or change execution filtering.
+The `allure testplan` command uses this same format. Honoring `excludedTests` requires consumer support; generating the list alone does not suppress results or change execution filtering.
 
 ## Muted-only generation
 
@@ -49,7 +49,7 @@ Use `allure testplan ./allure-results --muted-only` to generate only the muted l
 {
   "version": "1.0",
   "tests": [],
-  "mutedTests": []
+  "excludedTests": []
 }
 ```
 
@@ -91,4 +91,4 @@ The plugin accepts the following options:
 |------------|------------------------------------------------------------------------|-----------------------------------|--------------------------------------------|
 | `mutedOnly` | Omit `tests` and always write the muted list, even when empty | `boolean` | `false` |
 | `fileName` | Testplan filename                                                      | `string`                          | `testplan.json`                            |
-| `filter`   | Function that selects results for `tests`; does not affect `mutedTests` | `(result: TestResult) => boolean` | Failed and broken results |
+| `filter`   | Function that selects results for `tests`; does not affect `excludedTests` | `(result: TestResult) => boolean` | Failed and broken results |
