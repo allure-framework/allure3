@@ -1,10 +1,10 @@
 import { execFileSync } from "node:child_process";
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { cpSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
 
-import { afterEach, beforeEach, describe, expect, it } from "vite-plus/test";
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vite-plus/test";
 
 import { collectGitFacts } from "../src/collectGitFacts.js";
 
@@ -22,8 +22,9 @@ const git = (cwd: string, ...args: string[]) =>
     },
   }).trim();
 
-describe("collectGitFacts on a pull request merge checkout", () => {
+describe("collectGitFacts on a pull request merge checkout", { timeout: 15_000 }, () => {
   let root: string;
+  let origin: string;
   let checkout: string;
   let base: { first: string; second: string };
   let pr: { first: string; head: string };
@@ -38,9 +39,9 @@ describe("collectGitFacts on a pull request merge checkout", () => {
   };
 
   /** Checks the merge out the way `actions/checkout` does on a `pull_request` run. */
-  const checkoutMergeRef = (depth?: number, pullRequest = 3) => {
+  const checkoutMergeRef = (depth?: number, pullRequest = 3, remote = origin) => {
     git(checkout, "init", "-q");
-    git(checkout, "remote", "add", "origin", pathToFileURL(join(root, "origin")).href);
+    git(checkout, "remote", "add", "origin", pathToFileURL(remote).href);
     git(
       checkout,
       "fetch",
@@ -52,13 +53,10 @@ describe("collectGitFacts on a pull request merge checkout", () => {
     git(checkout, "checkout", "-q", "--detach", `refs/remotes/pull/${pullRequest}/merge`);
   };
 
-  beforeEach(() => {
+  // Build the commit graph once. Each test fetches into its own empty checkout.
+  beforeAll(() => {
     root = mkdtempSync(join(tmpdir(), "allure-git-"));
-    checkout = join(root, "checkout");
-    const origin = join(root, "origin");
-
-    mkdirSync(origin, { recursive: true });
-    mkdirSync(checkout, { recursive: true });
+    origin = mkdtempSync(join(root, "origin-"));
     git(origin, "init", "-q", "-b", "main");
     const firstBase = commitFile(origin, "base1");
 
@@ -75,10 +73,16 @@ describe("collectGitFacts on a pull request merge checkout", () => {
     git(origin, "reset", "-q", "--hard", secondBase);
     base = { first: firstBase, second: secondBase };
     pr = { first: firstPr, head: prHead };
+  }, 30_000);
+
+  beforeEach(() => {
+    checkout = mkdtempSync(join(root, "checkout-"));
   });
 
-  afterEach(() => {
-    rmSync(root, { recursive: true, force: true, maxRetries: 3 });
+  afterAll(() => {
+    if (root) {
+      rmSync(root, { recursive: true, force: true, maxRetries: 3 });
+    }
   });
 
   it("reports the pull request head and its history for a full checkout", () => {
@@ -99,28 +103,35 @@ describe("collectGitFacts on a pull request merge checkout", () => {
     });
   });
 
-  it("fetches the head history when the merge history is deep enough but the head's is not", () => {
-    const origin = join(root, "origin");
+  it(
+    "fetches the head history when the merge history is deep enough but the head's is not",
+    { timeout: 30_000 },
+    () => {
+      const longOrigin = mkdtempSync(join(root, "long-"));
+      cpSync(origin, longOrigin, { recursive: true });
+      git(longOrigin, "checkout", "-q", "-b", "long", base.first);
+      const [first, second, head] = ["long1", "long2", "long3"].map((name) => commitFile(longOrigin, name));
+      git(longOrigin, "checkout", "-q", "main");
+      git(longOrigin, "merge", "-q", "--no-ff", "-m", "Merge long", "long");
+      git(longOrigin, "update-ref", "refs/pull/4/merge", git(longOrigin, "rev-parse", "HEAD"));
+      git(longOrigin, "reset", "-q", "--hard", base.second);
+      git(longOrigin, "branch", "-qD", "long");
 
-    git(origin, "checkout", "-q", "-b", "long", base.first);
-    const [first, second, head] = ["long1", "long2", "long3"].map((name) => commitFile(origin, name));
-    git(origin, "checkout", "-q", "main");
-    git(origin, "merge", "-q", "--no-ff", "-m", "Merge long", "long");
-    git(origin, "update-ref", "refs/pull/4/merge", git(origin, "rev-parse", "HEAD"));
-    git(origin, "reset", "-q", "--hard", base.second);
-    git(origin, "branch", "-qD", "long");
-    // Depth 3 shows three first-parent commits of the merge, but only two of the head.
-    checkoutMergeRef(3, 4);
+      // Depth 3 shows three first-parent commits of the merge, but only two of the head.
+      checkoutMergeRef(3, 4, longOrigin);
 
-    expect(collectGitFacts({ cwd: checkout, sourceCommit: head, ancestorLimit: 2 })).toMatchObject({
-      commit: head,
-      firstParentAncestors: [second, first],
-    });
-  });
+      expect(collectGitFacts({ cwd: checkout, sourceCommit: head, ancestorLimit: 2 })).toMatchObject({
+        commit: head,
+        firstParentAncestors: [second, first],
+      });
+    },
+  );
 
   it("reports the head when no branch of origin points at it, as with a fork", () => {
-    git(join(root, "origin"), "branch", "-qD", "feature");
-    checkoutMergeRef(1);
+    const forkOrigin = mkdtempSync(join(root, "fork-"));
+    cpSync(origin, forkOrigin, { recursive: true });
+    git(forkOrigin, "branch", "-qD", "feature");
+    checkoutMergeRef(1, 3, forkOrigin);
 
     expect(collectGitFacts({ cwd: checkout, sourceCommit: pr.head })?.commit).toBe(pr.head);
   });
