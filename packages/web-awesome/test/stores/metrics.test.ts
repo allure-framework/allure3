@@ -132,7 +132,7 @@ describe("metrics store helpers", () => {
   });
 
   it("should build one compact summary row per metric key", () => {
-    expect(metricSummaryRows(data)).toEqual(
+    expect(metricSummaryRows(metricRows(data))).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
           key: "browser.heap.usedMb",
@@ -162,23 +162,25 @@ describe("metrics store helpers", () => {
 
   it("should average repeated current samples for summary deltas and trends", () => {
     expect(
-      metricSummaryRows({
-        current: [
-          { id: "avg-1", key: "generate.total.avgMs", value: 220, start: 0, stop: 220 },
-          { id: "avg-2", key: "generate.total.avgMs", value: 180, start: 250, stop: 430 },
-          { id: "count", key: "generate.total.count", value: 1, start: 0, stop: 430 },
-        ],
-        history: [
-          {
-            uuid: "history-1",
-            name: "Older report",
-            timestamp: 1000,
-            metrics: {
-              "generate.total.avgMs": 200,
+      metricSummaryRows(
+        metricRows({
+          current: [
+            { id: "avg-1", key: "generate.total.avgMs", value: 220, start: 0, stop: 220 },
+            { id: "avg-2", key: "generate.total.avgMs", value: 180, start: 250, stop: 430 },
+            { id: "count", key: "generate.total.count", value: 1, start: 0, stop: 430 },
+          ],
+          history: [
+            {
+              uuid: "history-1",
+              name: "Older report",
+              timestamp: 1000,
+              metrics: {
+                "generate.total.avgMs": 200,
+              },
             },
-          },
-        ],
-      }),
+          ],
+        }),
+      ),
     ).toEqual([
       expect.objectContaining({
         key: "generate.total.avgMs",
@@ -196,21 +198,23 @@ describe("metrics store helpers", () => {
 
   it("should prefer explicit metric group for summary rows", () => {
     expect(
-      metricSummaryRows({
-        current: [
-          {
-            id: "parser-duration",
-            key: "parser.duration.avgMs",
-            value: 20,
-            start: 0,
-            stop: 20,
-            unit: "ms",
-            group: "backend",
-            source: "performance.json",
-          },
-        ],
-        history: [],
-      }),
+      metricSummaryRows(
+        metricRows({
+          current: [
+            {
+              id: "parser-duration",
+              key: "parser.duration.avgMs",
+              value: 20,
+              start: 0,
+              stop: 20,
+              unit: "ms",
+              group: "backend",
+              source: "performance.json",
+            },
+          ],
+          history: [],
+        }),
+      ),
     ).toEqual([
       expect.objectContaining({
         key: "parser.duration.avgMs",

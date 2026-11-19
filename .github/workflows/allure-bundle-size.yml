@@ -1,13 +1,7 @@
 name: "Allure bundle size budgets"
 
 on:
-  pull_request:
-    paths:
-      - "packages/**"
-      - "scripts/**"
-      - "yarn.lock"
-      - "package.json"
-      - ".github/**"
+  workflow_call: {}
   workflow_dispatch: {}
 
 permissions:
@@ -62,7 +56,15 @@ jobs:
       - name: Build project
         uses: ./.github/actions/build
 
+      - name: Measure bundle size
+        run: |
+          node ./scripts/allure-bundle-size.mjs --ci \
+            --include-closure \
+            --allure-results ./out/bundle-size-results \
+            --output ./out/bundle-size.json
+
       - name: Select bundle size baseline
+        if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
         env:
           EVENT_NAME: ${{ github.event_name }}
           APPROVED: ${{ steps.approval.outputs.approved }}
@@ -94,14 +96,8 @@ jobs:
             --json --update-baseline "$baseline"
           echo "Bundle size baseline measured from base commit $base_sha." >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Measure bundle size
-        run: |
-          node ./scripts/allure-bundle-size.mjs --ci \
-            --include-closure \
-            --allure-results ./out/bundle-size-results \
-            --output ./out/bundle-size.json
-
       - name: Enforce bundle size budgets
+        if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
         id: budgets
         env:
           ALLURE_BUNDLE_BASELINE: ./out/bundle-size-baseline.json

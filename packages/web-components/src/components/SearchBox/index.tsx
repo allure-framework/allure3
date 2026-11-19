@@ -10,6 +10,7 @@ import styles from "./styles.scss";
 
 type Props = {
   placeholder?: string;
+  clearLabel?: string;
   error?: string;
   value: string;
   onChange: (value: string) => void;
@@ -19,7 +20,7 @@ type Props = {
 };
 
 export const SearchBox = (props: Props) => {
-  const { placeholder, value, onChange, changeDebounce = 300, leadingSlot, trailingSlot, error } = props;
+  const { placeholder, clearLabel, value, onChange, changeDebounce = 300, leadingSlot, trailingSlot, error } = props;
   const [localValue, setLocalValue] = useState(value);
   const inputRef = useRef<HTMLInputElement>(null);
   const lastEmittedValueRef = useRef(value ?? "");
@@ -58,6 +59,7 @@ export const SearchBox = (props: Props) => {
     setLocalValue("");
     onChangeDebounced.cancel();
     emitChange("");
+    inputRef.current?.focus();
   };
   const handleWrapClick = (e: MouseEvent) => {
     const target = e.target as HTMLElement;
@@ -114,6 +116,7 @@ export const SearchBox = (props: Props) => {
             icon={allureIcons.lineGeneralXClose}
             onClick={handleClear}
             style="ghost"
+            aria-label={clearLabel}
             data-testid="clear-button"
           />
         </div>

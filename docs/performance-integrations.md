@@ -31,8 +31,9 @@ Use separate `Bench` instances for independent concurrent runs. Outside a config
 ## CLI bundle size
 
 The bundle-size workflow measures the installed CLI footprint with `scripts/allure-bundle-size.mjs`. It records
-the Allure code, dependencies, and total size in bytes. Pull requests measure both the base commit and the merge
-checkout on the same Linux runner. The report uses `metricMax` to check the code and dependency sizes against that
+the Allure code, dependencies, and total size in bytes, plus the number of installed external packages. The count
+includes direct and transitive packages and counts nested copies separately. Pull requests measure both the base
+commit and the merge checkout on the same Linux runner. The report uses `metricMax` to check the code and dependency sizes against that
 base measurement plus the allowed growth. Maintainers can use `/update-bundle-baseline` on same-repository PRs
 to approve a larger increase. The command measures the merge checkout on the same runner type and publishes a
 signed CI commit with the measured baseline. The approval applies to that PR and its current base and head.

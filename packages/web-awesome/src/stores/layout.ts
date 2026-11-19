@@ -1,4 +1,4 @@
-import { getReportOptions } from "@allurereport/web-commons";
+import { getReportOptions, writeLocalStorage, readLocalStorage } from "@allurereport/web-commons";
 import { computed, signal } from "@preact/signals";
 import type { ReportOptions, Layout } from "types";
 
@@ -11,7 +11,7 @@ const getInitialLayout = (): Layout => {
     return DEFAULT_LAYOUT;
   }
 
-  const lsLayout = localStorage.getItem("layout") as Layout | null;
+  const lsLayout = readLocalStorage("layout") as Layout | null;
 
   if (lsLayout !== null) {
     return lsLayout;
@@ -27,7 +27,7 @@ export const isLayoutLoading = signal(false);
 export const setLayout = (newLayout: Layout): void => {
   layoutStore.value = newLayout;
   document.documentElement.setAttribute("data-layout", newLayout as string);
-  window.localStorage.setItem("layout", newLayout as string);
+  writeLocalStorage("layout", newLayout as string);
 };
 
 export const toggleLayout = () => {

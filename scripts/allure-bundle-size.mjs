@@ -11,7 +11,7 @@
  * 3. Install only `allure` in a clean temp project; use npm overrides so every
  *    `@allurereport/*` dependency resolves to the local tarballs. External deps
  *    still come from the npm registry.
- * 4. Measure `du -skL node_modules` (follow symlinks).
+ * 4. Measure `du -skL node_modules` (follow symlinks) and count installed external packages.
  *
  * Usage:
  *   yarn build && yarn allure:size
@@ -234,7 +234,7 @@ const printPlain = (report) => {
   console.log(`${dim("Allure code:")}  ${color(ANSI.magenta, formatBytesForConsole(report.selfBytes))}`);
   console.log(`${dim("Dependencies:")}  ${color(ANSI.magenta, formatBytesForConsole(report.depsBytes))}`);
   console.log(`${dim("Total:")}         ${bold(formatBytesForConsole(report.totalBytes))}`);
-  console.log(dim(`node_modules:  ${report.nodeModulesTopLevelEntries} top-level entries`));
+  console.log(dim(`Installed external packages: ${report.dependencyCount}`));
 
   if (report.missingDist?.length) {
     console.log("");
@@ -443,8 +443,40 @@ const formatBytesForConsole = (bytes) => {
   return `${bytes} B`;
 };
 
-const countNodeModulesEntries = (nodeModulesPath) =>
-  readdirSync(nodeModulesPath).filter((entry) => !entry.startsWith(".")).length;
+const countInstalledDependencies = (nodeModulesPath, internalPackages) => {
+  if (!existsSync(nodeModulesPath)) {
+    return 0;
+  }
+
+  const countPackage = (path, name) => {
+    if (!existsSync(join(path, "package.json"))) {
+      return 0;
+    }
+
+    const external = internalPackages.has(name) ? 0 : 1;
+    return external + countInstalledDependencies(join(path, "node_modules"), internalPackages);
+  };
+
+  let count = 0;
+  for (const entry of readdirSync(nodeModulesPath, { withFileTypes: true })) {
+    if (!entry.isDirectory() || entry.name.startsWith(".")) {
+      continue;
+    }
+
+    const path = join(nodeModulesPath, entry.name);
+    if (entry.name.startsWith("@")) {
+      for (const scoped of readdirSync(path, { withFileTypes: true })) {
+        if (scoped.isDirectory()) {
+          count += countPackage(join(path, scoped.name), `${entry.name}/${scoped.name}`);
+        }
+      }
+    } else {
+      count += countPackage(path, entry.name);
+    }
+  }
+
+  return count;
+};
 
 const findMissingDist = (packages, closureNames) => {
   const byName = new Map(packages.map((item) => [item.packageJson.name, item]));
@@ -614,7 +646,7 @@ const measureLocalInstall = (repoRoot, options) => {
       rootPackage: ROOT_PACKAGE,
       internalClosureCount: closureNames.length,
       internalClosure: options.includeClosure ? closureNames : undefined,
-      nodeModulesTopLevelEntries: countNodeModulesEntries(nodeModulesPath),
+      dependencyCount: countInstalledDependencies(nodeModulesPath, new Set(closureNames)),
       selfBytes,
       depsBytes,
       totalBytes,
@@ -652,11 +684,12 @@ const appendGithubStepSummary = (report) => {
   const lines = [
     "## Allure bundle size",
     "",
-    "| Metric | Size |",
+    "| Metric | Value |",
     "| --- | ---: |",
     `| Allure code | ${report.selfMb} MB |`,
     `| Dependencies | ${report.depsMb} MB |`,
     `| Total | ${report.totalMb} MB |`,
+    `| Installed external packages | ${report.dependencyCount} |`,
   ];
 
   appendFileSync(summaryPath, `${lines.join("\n")}\n`, "utf8");
@@ -705,6 +738,7 @@ const main = async () => {
       internalClosureCount: r.internalClosureCount,
       selfBytes: r.selfBytes,
       depsBytes: r.depsBytes,
+      dependencyCount: r.dependencyCount,
       totalBytes: r.totalBytes,
     };
 
@@ -733,6 +767,7 @@ const main = async () => {
       "allure.bundle.size.self": report.selfBytes,
       "allure.bundle.size.dependencies": report.depsBytes,
       "allure.bundle.size.total": report.totalBytes,
+      "allure.bundle.dependencies.count": report.dependencyCount,
     }).map(([key, value]) => ({ id: key, key, value, start: timestamp, stop: timestamp }));
     writer.writeMetricResults("bundle-size-metric.json", metrics);
   }

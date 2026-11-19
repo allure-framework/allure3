@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen, within } from "@testing-library/preact";
+import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/preact";
 import { afterEach, describe, expect, it, vi } from "vite-plus/test";
 
 import { ReportMetrics } from "@/components/ReportMetrics";
@@ -10,6 +10,7 @@ vi.mock("@/stores", () => ({
 
 afterEach(() => {
   cleanup();
+  localStorage.removeItem("allure.metrics.favorites");
   metricsStore.value = { loading: true, error: undefined, data: undefined };
 });
 
@@ -36,6 +37,110 @@ const showMetrics = (value: number, unit?: string, history: MetricsWidgetData["h
 };
 
 describe("components > ReportMetrics", () => {
+  const loadReport = (keys = ["build.duration", "bundle.size"]) => {
+    metricsStore.value = {
+      loading: false,
+      data: {
+        current: keys.map((key, index) => ({
+          id: key,
+          key,
+          title: key === "bundle.size" ? "Installed footprint" : "Build duration",
+          value: index + 1,
+          start: 0,
+          stop: 1,
+          source: "ci-metric.json",
+        })),
+        history: [],
+      },
+    };
+    return render(<ReportMetrics />);
+  };
+
+  it("pins a metric once in the summary and maintains focus independently of row expansion", () => {
+    loadReport();
+    const summary = within(screen.getByRole("region", { name: "metrics.phaseSummary" }));
+    const star = within(summary.getByRole("button", { name: "Installed footprint" }).closest("tr")!).getByRole(
+      "button",
+      { name: "metrics.addFavorite" },
+    );
+    star.focus();
+    fireEvent.click(star);
+    const pinned = within(summary.getByRole("region", { name: "metrics.favorites" }));
+    expect(summary.getAllByRole("heading", { level: 3 })[0]).toHaveTextContent("metrics.favorites");
+    expect(summary.getAllByRole("button", { name: "Installed footprint" })).toHaveLength(1);
+    expect(pinned.getByRole("button", { name: "Installed footprint" })).toHaveAttribute("aria-expanded", "false");
+    expect(pinned.getByRole("button", { name: "metrics.removeFavorite" })).toHaveFocus();
+    const toggle = screen.getByTestId("metrics-favorites");
+    fireEvent.click(toggle);
+    expect(summary.queryByRole("button", { name: "Build duration" })).not.toBeInTheDocument();
+    fireEvent.click(pinned.getByRole("button", { name: "metrics.removeFavorite" }));
+    expect(toggle).toHaveFocus();
+    expect(screen.getByText("metrics.noFavorites")).toBeVisible();
+  });
+
+  it("searches names and keys in both tables and combines the query with favorites", async () => {
+    localStorage.setItem("allure.metrics.favorites", JSON.stringify({ keys: ["bundle.size"], only: false }));
+    loadReport();
+    const summary = within(screen.getByRole("region", { name: "metrics.phaseSummary" }));
+    const search = screen.getByRole("textbox", { name: "metrics.search" });
+    fireEvent.input(search, { target: { value: "  FOOTPRINT " } });
+    await waitFor(() => expect(summary.queryByRole("button", { name: "Build duration" })).not.toBeInTheDocument());
+    const currentToggle = screen.getByText("metrics.currentValues");
+    fireEvent.click(currentToggle);
+    const current = currentToggle.closest("details")!;
+    expect(within(current).getByText("Installed footprint")).toBeInTheDocument();
+    expect(within(current).queryByText("Build duration")).not.toBeInTheDocument();
+    fireEvent.input(search, { target: { value: "BUILD.DUR" } });
+    await summary.findByRole("button", { name: "Build duration" });
+    fireEvent.click(screen.getByTestId("metrics-favorites"));
+    expect(screen.getByText("metrics.noMatches")).toBeVisible();
+    fireEvent.click(screen.getByRole("button", { name: "metrics.clearSearch" }));
+    expect(search).toHaveFocus();
+    expect(current).toBeVisible();
+    expect(current).toHaveAttribute("open");
+    expect(screen.getByRole("region", { name: "metrics.favorites" })).toBeVisible();
+  });
+
+  it("restores favorites across report mounts and keeps keys absent from the current report", () => {
+    localStorage.setItem("allure.metrics.favorites", JSON.stringify({ keys: ["bundle.size"], only: true }));
+    const first = loadReport(["build.duration"]);
+    expect(screen.getByText("metrics.noFavorites")).toBeVisible();
+    fireEvent.click(screen.getByTestId("metrics-favorites"));
+    first.unmount();
+    loadReport();
+    const pinned = within(screen.getByRole("region", { name: "metrics.favorites" }));
+    expect(pinned.getByRole("button", { name: "Installed footprint" })).toBeVisible();
+    expect(screen.getByTestId("metrics-favorites")).toHaveAttribute("aria-pressed", "false");
+  });
+
+  it("changes one favorite without overwriting storage edits made after the report opened", () => {
+    const storageKey = "allure.metrics.favorites";
+    loadReport();
+    localStorage.setItem(storageKey, JSON.stringify({ keys: ["another.report"], only: false }));
+
+    const summary = within(screen.getByRole("region", { name: "metrics.phaseSummary" }));
+    const row = summary.getByRole("button", { name: "Installed footprint" }).closest("tr")!;
+    fireEvent.click(within(row).getByRole("button", { name: "metrics.addFavorite" }));
+    expect(JSON.parse(localStorage.getItem(storageKey)!)).toEqual({
+      keys: ["another.report", "bundle.size"],
+      only: false,
+    });
+  });
+
+  it("retains focus on a star moved by an update from another tab", () => {
+    loadReport();
+    const summary = within(screen.getByRole("region", { name: "metrics.phaseSummary" }));
+    const row = summary.getByRole("button", { name: "Installed footprint" }).closest("tr")!;
+    within(row).getByRole("button", { name: "metrics.addFavorite" }).focus();
+
+    const key = "allure.metrics.favorites";
+    localStorage.setItem(key, JSON.stringify({ keys: ["bundle.size"], only: false }));
+    fireEvent(window, new StorageEvent("storage", { key }));
+
+    const pinned = within(summary.getByRole("region", { name: "metrics.favorites" }));
+    expect(pinned.getByRole("button", { name: "metrics.removeFavorite" })).toHaveFocus();
+  });
+
   it("compares the current mean for repeated measurements while displaying each individual value", async () => {
     metricsStore.value = {
       loading: false,
@@ -137,7 +242,7 @@ describe("components > ReportMetrics", () => {
     expect(within(summary).getByText("-9.18 MiB").closest("span")).toHaveAttribute("data-direction", "good");
     expect(summary.querySelector("polyline")).toBeInTheDocument();
 
-    fireEvent.click(within(summary).getByRole("button"));
+    fireEvent.click(within(summary).getByRole("button", { name: "Attachment size" }));
     const history = screen.getByRole("region", { name: "metrics.historyTitle Attachment size" });
     expect(within(history).getByText("868.93 MiB")).toBeInTheDocument();
     expect(within(history).getByText("886.38 MiB")).toBeInTheDocument();
