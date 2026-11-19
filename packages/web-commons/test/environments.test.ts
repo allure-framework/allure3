@@ -57,6 +57,20 @@ describe("environment helpers", () => {
     ]);
   });
 
+  it("normalizeEnvironmentsWidget should keep the configured flag of declared environments", () => {
+    expect(
+      normalizeEnvironmentsWidget([
+        { id: "default", name: "default", configured: true },
+        { id: "qa", name: "QA" },
+        { id: "prod", name: "", configured: true },
+      ]),
+    ).toEqual([
+      { id: "default", name: "default", configured: true },
+      { id: "qa", name: "QA" },
+      { id: "prod", name: "prod", configured: true },
+    ]);
+  });
+
   it("normalizeEnvironmentsWidget should skip invalid ids and non-arrays", () => {
     expect(normalizeEnvironmentsWidget(null)).toEqual([]);
     expect(normalizeEnvironmentsWidget([{ id: "bad id!", name: "x" }])).toEqual([]);

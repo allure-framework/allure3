@@ -31,17 +31,18 @@ export const normalizeEnvironmentsWidget = (raw: unknown): EnvironmentIdentity[]
     }
 
     const rawName = rec.name;
+    const configured = rec.configured === true ? { configured: true } : undefined;
 
     if (typeof rawName === "string") {
       const nameResult = validateEnvironmentName(rawName);
 
       if (nameResult.valid) {
-        out.push({ id: idResult.normalized, name: nameResult.normalized });
+        out.push({ id: idResult.normalized, name: nameResult.normalized, ...configured });
         continue;
       }
     }
 
-    out.push({ id: idResult.normalized, name: idResult.normalized });
+    out.push({ id: idResult.normalized, name: idResult.normalized, ...configured });
   }
 
   return out;
