@@ -51,6 +51,54 @@ beforeEach(async () => {
 });
 
 describe("generateStatusTransitionsChart", () => {
+  it.each([
+    { status: "passed", intermediate: "skipped" },
+    { status: "failed", intermediate: "unknown" },
+    { status: "broken", intermediate: "skipped" },
+  ] as const)("keeps $status unchanged after an intermediate $intermediate result", ({ status, intermediate }) => {
+    const chart = generateStatusTransitionsChart({
+      options: { type: ChartType.StatusTransitions },
+      storeData: {
+        historyDataPoints: [
+          point("middle", 200, { example: historical("example", intermediate) }),
+          point("baseline", 100, { example: historical("example", status) }),
+        ],
+        testResults: [current("example", status)],
+        statistic: { total: 1, [status]: 1 },
+      },
+    });
+    expect(chart.data).toMatchObject([
+      { id: "middle", fixed: 0, regressed: 0, malfunctioned: 0 },
+      { id: "current", fixed: 0, regressed: 0, malfunctioned: 0 },
+    ]);
+  });
+
+  it("retains the baseline for historical comparisons and still counts a real fix after skipped", () => {
+    const chart = generateStatusTransitionsChart({
+      options: { type: ChartType.StatusTransitions },
+      storeData: {
+        historyDataPoints: [
+          point("latest", 300, { unchanged: historical("unchanged", "passed"), fixed: historical("fixed", "passed") }),
+          point("skipped", 200, {
+            unchanged: historical("unchanged", "skipped"),
+            fixed: historical("fixed", "skipped"),
+          }),
+          point("baseline", 100, {
+            unchanged: historical("unchanged", "passed"),
+            fixed: historical("fixed", "failed"),
+          }),
+        ],
+        testResults: [current("unchanged", "passed", 400), current("fixed", "passed", 400)],
+        statistic: { total: 2, passed: 2 },
+      },
+    });
+    expect(chart.data).toMatchObject([
+      { id: "skipped", fixed: 0, regressed: 0, malfunctioned: 0 },
+      { id: "latest", fixed: 1, regressed: 0, malfunctioned: 0 },
+      { id: "current", fixed: 0, regressed: 0, malfunctioned: 0 },
+    ]);
+  });
+
   it("should aggregate transitions chronologically, exclude irrelevant results, and apply the history limit", async () => {
     await allureId("304049");
     const storeData: AllureChartsStoreData = {
