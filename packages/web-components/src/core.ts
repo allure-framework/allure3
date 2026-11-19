@@ -1,6 +1,7 @@
 import "@/assets/scss/index.scss";
 
 export { allureIcons } from "./components/SvgIcon";
+export { getCiIconId } from "./components/SvgIcon/ciIcons";
 
 export { DropdownButton, Button, IconButton, ButtonLink } from "./components/Button";
 export { OverviewLink } from "./components/OverviewLink";
@@ -19,6 +20,8 @@ export { ArrowButton } from "./components/ArrowButton";
 export * from "./components/Modal";
 export * from "./components/Tree";
 export { Counter } from "./components/Counter";
+export { ReportFailureSummary } from "./components/ReportFailureSummary";
+export type { ReportFailureSummaryItem, ReportFailureSummaryProps } from "./components/ReportFailureSummary";
 export { Toggle } from "./components/Toggle";
 export { Link } from "./components/Link";
 export { Label } from "./components/Label";
@@ -34,6 +37,7 @@ export * from "./components/ReportSummaryCard";
 export * from "./components/ThemeProvider";
 export * from "./components/EmptyView";
 export * from "./components/ImageDiff";
+export * from "./components/TestResultError";
 
 export { LazyComponent } from "./components/LazyComponent";
 

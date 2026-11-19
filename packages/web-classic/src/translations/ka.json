@@ -62,10 +62,12 @@
   "empty": {
     "no-results": "შედეგები არ არის",
     "no-tests-found": "შედეგები არ მოიძებნა",
+    "no-message-provided": "შეტყობინება არ არის მოწოდებული",
     "clear-filters": "ფილტრების გასუფთავება",
     "no-attachments-results": "დანართების ინფორმაცია არ არის ხელმისაწვდომი",
     "no-history-results": "ისტორიის ინფორმაცია არ არის ხელმისაწვდომი",
-    "no-retries-results": "ხელახალი ცდების ინფორმ���ცია არ არის ხელმისაწვდომი"
+    "no-retries-results": "ხელახალი ცდების ინფორმ���ცია არ არის ხელმისაწვდომი",
+    "no-test-steps-results": "ტესტის ნაბიჯების ინფორმაცია ხელმისაწვდომი არ არის"
   },
   "severity": {
     "blocker": "ბლოკერი",
@@ -96,7 +98,17 @@
     "showMore": "მეტის ჩვენება",
     "copy": "კოპირება",
     "attempt": "მცდელობა {{attempt}} {{total}}-დან",
-    "at": "ზე"
+    "at": "ზე",
+    "generated": "გენერირებულია",
+    "precondition": "წინაპირობა",
+    "expectedResult": "მოსალოდნელი შედეგი",
+    "categories": "კატეგორიები",
+    "tags": "ტეგები",
+    "owner": "მფლობელი",
+    "fullname": "სრული სახელი",
+    "test-case-id": "ტესტ-ქეისის ID",
+    "history-id": "ისტორიის ID",
+    "successRate": "წარმატების მაჩვენებელი {{rate}}% ({{passed}} {{total}}-დან)"
   },
   "controls": {
     "backToOverview": "მიმოხილვაზე დაბრუნება",
@@ -112,27 +124,320 @@
     "expand": "გახსნა",
     "fullscreen": "სრულ ეკრანზე",
     "language": "ენის შეცვლა",
-    "openInNewTab": "გახსნა ახალ ჩანართში"
+    "openInNewTab": "გახსნა ახალ ჩანართში",
+    "theme": "თემის შეცვლა",
+    "showDiff": "მაჩვენე განსხვავება",
+    "comparison": "შედარება",
+    "expected": "მოსალოდნელი",
+    "actual": "ნამდვილი",
+    "viewMode": "ნახვის რეჟიმი",
+    "unified": "გაერთიანებული",
+    "side-by-side": "გვერდიგვერდ",
+    "compareBy": "შედარება",
+    "chars": "სიმბოლოები",
+    "words": "სიტყვები",
+    "lines": "ხაზები",
+    "loadComparisonError": "შედარების ჩატვირთვა ვერ მოხერხდა",
+    "retry": "ხელახლა ცდა",
+    "loadAttachmentViewerError": "დანართების სანახავი მოდულის ჩატვირთვა ვერ მოხერხდა",
+    "previewAttachment": "წინასწარი ნახვა",
+    "viewCode": "კოდის ჩვენება"
   },
   "errors": {
     "missedAttachment": "დანართი ვერ მოიძებნა"
   },
   "nav": {
+    "overview": "მიმოხილვა",
+    "behaviors": "ქცევები",
+    "categories": "კატეგორიები",
+    "graphs": "გრაფიკები",
+    "packages": "პაკეტები",
+    "suites": "ნაკრებები",
+    "timeline": "დროის ხაზი",
     "comingSoon": "მალე"
   },
   "charts": {
     "retry": "ხელახლა ცდა",
     "loadError": "დიაგრამის ჩატვირთვა ვერ მოხერხდა",
+    "currentStatus": {
+      "title": "მიმდინარე სტატუსი",
+      "status": {
+        "passed": "$t(statuses:passed, capitalize)",
+        "failed": "$t(statuses:failed, capitalize)",
+        "broken": "$t(statuses:broken, capitalize)",
+        "skipped": "$t(statuses:skipped, capitalize)",
+        "unknown": "$t(statuses:unknown, capitalize)"
+      },
+      "percentage": "{{percentage}}%",
+      "of": "{{total}}-დან",
+      "total": "სულ",
+      "tests": {
+        "new_zero": "ახალი ტესტები არ არის",
+        "new_one": "{{count}} ახალი ტესტი",
+        "new_other": "{{count}} ახალი ტესტი",
+        "flaky_zero": "არასტაბილური ტესტები არ არის",
+        "flaky_one": "{{count}} არასტაბილური ტესტი",
+        "flaky_other": "{{count}} არასტაბილური ტესტი",
+        "retries_zero": "განმეორებითი ტესტები არ არის",
+        "retries_one": "{{count}} განმეორებითი ტესტი",
+        "retries_other": "{{count}} განმეორებითი ტესტი"
+      }
+    },
+    "statusDynamics": {
+      "title": "სტატუსის დინამიკა",
+      "status": {
+        "passed": "$t(statuses:passed, capitalize)",
+        "failed": "$t(statuses:failed, capitalize)",
+        "broken": "$t(statuses:broken, capitalize)",
+        "skipped": "$t(statuses:skipped, capitalize)",
+        "unknown": "$t(statuses:unknown, capitalize)"
+      },
+      "no-history": "$t(empty:no-history-results)",
+      "no-results": "$t(empty:no-results)",
+      "tooltips": {
+        "current": "ბოლო ანგარიში ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "{{timestamp, timestamp_long_no_seconds}} ანგარიში"
+      },
+      "ticks": {
+        "current": "ბოლო",
+        "history": "{{timestamp, timestamp_date}}"
+      }
+    },
+    "statusTransitions": {
+      "title": "სტატუსის გადასვლები",
+      "legend": {
+        "trend": "გამოსწორების მაჩვენებელი"
+      },
+      "transitions": {
+        "new": "$t(transitions:new, capitalize)",
+        "fixed": "$t(transitions:fixed, capitalize)",
+        "regressed": "$t(transitions:regressed, capitalize)",
+        "malfunctioned": "$t(transitions:malfunctioned, capitalize)"
+      },
+      "no-history": "$t(empty:no-history-results)",
+      "no-results": "$t(empty:no-results)",
+      "tooltips": {
+        "current": "ბოლო ანგარიში ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "{{timestamp, timestamp_long_no_seconds}} ანგარიში"
+      },
+      "ticks": {
+        "current": "ბოლო",
+        "history": "{{timestamp, timestamp_date}}"
+      }
+    },
+    "durations": {
+      "title": "ხანგრძლივობის ჰისტოგრამა {{groupBy}}-ის მიხედვით",
+      "title_none": "ხანგრძლივობის ჰისტოგრამა",
+      "no-results": "$t(empty:no-results)",
+      "groupBy": {
+        "none": "არცერთი",
+        "layer": "ფენა"
+      },
+      "ticks": {
+        "durationRange": "{{from, format_duration}} - {{to, format_duration}}"
+      },
+      "tooltips": {
+        "durationRange": "{{from, format_duration}} - {{to, format_duration}}"
+      },
+      "legend": {
+        "value": "{{value}}",
+        "total": "ტესტების რაოდენობა"
+      }
+    },
+    "stabilityDistribution": {
+      "title": "სტაბილურობის განაწილება",
+      "no-results": "$t(empty:no-results)",
+      "legend": {
+        "stabilityRate": "სტაბილურობის მაჩვენებელი"
+      }
+    },
+    "testBaseGrowthDynamics": {
+      "title": "ტესტების ბაზის ზრდის დინამიკა",
+      "status": {
+        "newpassed": "ახალი $t(statuses:passed)",
+        "newfailed": "ახალი $t(statuses:failed)",
+        "newbroken": "ახალი $t(statuses:broken)",
+        "newskipped": "ახალი $t(statuses:skipped)",
+        "newunknown": "ახალი $t(statuses:unknown)",
+        "removedpassed": "წაშლილი $t(statuses:passed)",
+        "removedfailed": "წაშლილი $t(statuses:failed)",
+        "removedbroken": "წაშლილი $t(statuses:broken)",
+        "removedskipped": "წაშლილი $t(statuses:skipped)",
+        "removedunknown": "წაშლილი $t(statuses:unknown)"
+      },
+      "legend": {
+        "trend": "ზრდის ტენდენция"
+      },
+      "no-history": "$t(empty:no-history-results)",
+      "no-results": "$t(empty:no-results)",
+      "tooltips": {
+        "current": "უახლესი ანგარიში ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "ანგარიში {{timestamp, timestamp_long_no_seconds}}"
+      },
+      "ticks": {
+        "current": "უახლესი",
+        "history": "{{timestamp, timestamp_date}}"
+      }
+    },
+    "statusAgePyramid": {
+      "title": "ასაკობრივი პირამიდა სტატუსის მიხედვით",
+      "status": {
+        "passed": "$t(statuses:passed, capitalize)",
+        "failed": "$t(statuses:failed, capitalize)",
+        "broken": "$t(statuses:broken, capitalize)",
+        "skipped": "$t(statuses:skipped, capitalize)",
+        "unknown": "$t(statuses:unknown, capitalize)"
+      },
+      "no-history": "$t(empty:no-history-results)",
+      "no-results": "$t(empty:no-results)",
+      "tooltips": {
+        "current": "უახლესი ანგარიში ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "ანგარიში {{timestamp, timestamp_long_no_seconds}}"
+      },
+      "ticks": {
+        "current": "უახლესი",
+        "history": "{{timestamp, timestamp_date}}"
+      }
+    },
+    "trSeverities": {
+      "title": "ტესტის შედეგები სიმძიმის მიხედვით",
+      "no-results": "$t(empty:no-results)",
+      "status": {
+        "passed": "$t(statuses:passed, capitalize)",
+        "failed": "$t(statuses:failed, capitalize)",
+        "broken": "$t(statuses:broken, capitalize)",
+        "skipped": "$t(statuses:skipped, capitalize)",
+        "unknown": "$t(statuses:unknown, capitalize)"
+      },
+      "severity": {
+        "blocker": "$t(severity:blocker, capitalize)",
+        "critical": "$t(severity:critical, capitalize)",
+        "normal": "$t(severity:normal, capitalize)",
+        "minor": "$t(severity:minor, capitalize)",
+        "trivial": "$t(severity:trivial, capitalize)",
+        "unset": "სიმძიმე არ არის"
+      }
+    },
+    "durationDynamics": {
+      "title": "ხანგრძლივობის დინამიკა",
+      "durations": {
+        "sequential": "თანმიმდევრული ხანგრძლივობა",
+        "duration": "ტესტის ხანგრძლივობა",
+        "speedup": "აჩქარება"
+      },
+      "no-results": "$t(empty:no-results)",
+      "tooltips": {
+        "current": "ბოლო ანგარიში ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "{{timestamp, timestamp_long_no_seconds}} ანგარიში"
+      },
+      "ticks": {
+        "current": "ბოლო",
+        "history": "{{timestamp, timestamp_date}}"
+      },
+      "legend": {
+        "duration": "{{duration, format_duration}}",
+        "speedup": "{{speedup}}x"
+      }
+    },
     "successRate": {
       "successRate": "წარმატების მაჩვენებელი: {{rate}}",
       "successRateDescription": "ითვლება წარმატებული, წარუმატებელი და დაზიანებული ტესტების მიხედვით. გამოტოვებული და უცნობი სტატუსის მქონე ტესტები არ ითვლება.",
-      "noResults": "ტესტის შედეგები არ არის.",
       "noEligibleResults": "წარმატებული, წარუმატებელი ან დაზიანებული ტესტები არ არის. გამოტოვებული და უცნობი სტატუსის მქონე ტესტები წარმატების მაჩვენებელში არ ითვლება.",
+      "noResults": "ტესტის შედეგები არ არის.",
+      "notAvailable": "მიუწვდომელია",
       "slice_one": "{{count}} ტესტი (ყველა ტესტის {{percent}}%)",
       "slice_other": "{{count}} ტესტი (ყველა ტესტის {{percent}}%)",
       "layer": "დონე: {{layer}}",
       "statusSlice": "{{count}} {{status}} (ყველა ტესტის {{percent}}%)",
       "slice": "{{count}} ტესტი (ყველა ტესტის {{percent}}%)"
+    },
+    "durationTrend": {
+      "title": "ხანგრძლივობის ტენდენცია",
+      "duration": "ხანგრძლივობა",
+      "value": "{{duration, format_duration}}"
+    },
+    "retriesTrend": {
+      "title": "მცდელობის ტენდენცია",
+      "retry": "ხელახალი ცდები",
+      "run": "ტესტები"
+    },
+    "categoriesTrend": {
+      "title": "კატეგორიზებული ტენდენცია"
+    },
+    "runTrend": {
+      "empty": "მონაცემები არაა ხელმისაწვდომი",
+      "ticks": {
+        "current": "ბოლო",
+        "history": "{{timestamp, timestamp_date}}"
+      },
+      "tooltips": {
+        "current": "ბოლო ანგარიში ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "{{timestamp, timestamp_long_no_seconds}} ანგარიში"
+      }
     }
+  },
+  "transitions": {
+    "new": "ახალი",
+    "fixed": "გასწორებული",
+    "regressed": "რეგრესია",
+    "malfunctioned": "დაზიანებული"
+  },
+  "timeline": {
+    "empty": "მონაცემები არ არის",
+    "selected_one": "არჩეულია {{ count }} ტესტი ({{ percentage }}%) {{ minDuration }}-ზე მეტი და {{ maxDuration }}-ზე ნაკლები ხანგრძლივობით",
+    "selected_other": "არჩეულია {{ count }} ტესტი ({{ percentage }}%) {{ minDuration }}-ზე მეტი და {{ maxDuration }}-ზე ნაკლები ხანგრძლივობით",
+    "host": "ჰოსტი: {{ host }}"
+  },
+  "overview": {
+    "summary": "შეჯამება",
+    "successRateDescription": "წარმატებული ტესტების წილი ყველა ტესტს შორის.",
+    "dates": "{{start, timestamp_long}} – {{stop, timestamp_long}}",
+    "duration": "ხანგრძლივობა: {{duration, format_duration}}",
+    "testCases_one": "{{count}} სატესტო შემთხვევა",
+    "testCases_other": "{{count}} სატესტო შემთხვევა",
+    "suites": "ნაკრებები",
+    "features": "ფუნქციები ისტორიების მიხედვით",
+    "categories": "კატეგორიები",
+    "environment": "გარემო",
+    "executors": "შემსრულებლები",
+    "itemsTotal_one": "სულ {{count}} ელემენტი",
+    "itemsTotal_other": "სულ {{count}} ელემენტი",
+    "showAll": "ყველას ჩვენება",
+    "noItems": "ელემენტები არ არის",
+    "noEnvironment": "გარემოს ცვლადები არ არის",
+    "noExecutors": "ტესტების შემსრულებლების შესახებ ინფორმაცია არ არის",
+    "build": "ბილდი",
+    "ciBuild": "CI ბილდი",
+    "pullRequest": "Pull request",
+    "branch": "ბრენჩი",
+    "commit": "კომიტი"
+  },
+  "attachments": {
+    "imageDiff": {
+      "mode": {
+        "diff": "სხვაობა",
+        "actual": "ფაქტობრივი",
+        "expected": "მოსალოდნელი",
+        "side-by-side": "გვერდიგვერდ",
+        "overlay": "ფენა"
+      },
+      "empty": {
+        "failed-to-load": "სურათების შედარების ჩატვირთვა ვერ მოხერხდა"
+      },
+      "image": {
+        "diff": "სხვაობა",
+        "actual": "ფაქტობრივი",
+        "expected": "მოსალოდნელი"
+      }
+    }
+  },
+  "tree": {
+    "collapse-all": "ყველა ჯგუფის აკეცვა",
+    "expand-all": "ყველა ჯგუფის გაშლა",
+    "show-groups-info": "ჯგუფების ინფორმაციის ჩვენება",
+    "hide-groups-info": "ჯგუფების ინფორმაციის დამალვა",
+    "download-csv": "CSV-ის ჩამოტვირთვა",
+    "flaky": "არასტაბილური",
+    "retries": "გამეორებები: {{count}}"
   }
 }

@@ -492,7 +492,31 @@
       "slice": "{{count}} tester ({{percent}}% av alla tester)"
     },
     "retry": "Försök igen",
-    "loadError": "Det gick inte att ladda diagrammet"
+    "loadError": "Det gick inte att ladda diagrammet",
+    "durationTrend": {
+      "title": "Varaktighet trend",
+      "duration": "Varaktighet",
+      "value": "{{duration, format_duration}}"
+    },
+    "retriesTrend": {
+      "title": "Återförsöks trend",
+      "retry": "Omtagningar",
+      "run": "Tester"
+    },
+    "categoriesTrend": {
+      "title": "Kategorier trend"
+    },
+    "runTrend": {
+      "empty": "Det finns ingenting att visa här",
+      "ticks": {
+        "current": "Senast",
+        "history": "{{timestamp, timestamp_date}}"
+      },
+      "tooltips": {
+        "current": "Senaste rapporten ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "Rapport från {{timestamp, timestamp_long_no_seconds}}"
+      }
+    }
   },
   "transitions": {
     "description": {

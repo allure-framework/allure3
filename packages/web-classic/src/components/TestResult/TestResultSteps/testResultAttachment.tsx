@@ -1,35 +1,20 @@
 import type { AttachmentTestStepResult } from "@allurereport/core-api";
-import { Code, SvgIcon, Text, allureIcons } from "@allurereport/web-components";
+import { attachmentType } from "@allurereport/web-commons";
+import { Attachment, Code, SvgIcon, Text, allureIcons } from "@allurereport/web-components";
 import type { FunctionComponent } from "preact";
 import { useState } from "preact/hooks";
 
 import { ArrowButton } from "@/components/ArrowButton";
-import { Attachment } from "@/components/TestResult/TestResultSteps/attachment";
+import { hasAttachmentPreview } from "@/components/TestResult/TestResultSteps/attachmentPreview";
 import { TestResultAttachmentInfo } from "@/components/TestResult/TestResultSteps/testResultAttachmentInfo";
-import { attachmentType } from "@/utils/attachments";
+import { useAttachmentI18n } from "@/components/TestResult/TestResultSteps/useAttachmentI18n";
+import { useI18n } from "@/stores/locale";
 
 import * as styles from "@/components/TestResult/TestResultSteps/styles.scss";
 
 const { lineImagesImage, lineFilesFileAttachment2 } = allureIcons;
 
-const iconMap: Record<string, string> = {
-  "text/plain": lineFilesFileAttachment2,
-  "application/xml": lineFilesFileAttachment2,
-  "text/html": lineFilesFileAttachment2,
-  "text/csv": lineFilesFileAttachment2,
-  "text/tab-separated-values": lineFilesFileAttachment2,
-  "text/css": lineFilesFileAttachment2,
-  "text/uri-list": lineFilesFileAttachment2,
-  "image/svg+xml": lineImagesImage,
-  "image/png": lineImagesImage,
-  "image/webp": lineImagesImage,
-  "application/json": lineFilesFileAttachment2,
-  "application/zip": lineFilesFileAttachment2,
-  "video/webm": lineImagesImage,
-  "image/jpeg": lineImagesImage,
-  "video/mp4": lineImagesImage,
-  "application/vnd.allure.image.diff": lineImagesImage,
-};
+const imageAttachmentTypes = new Set(["image", "svg", "video", "image-diff"]);
 
 export const TestResultAttachment: FunctionComponent<{
   item: AttachmentTestStepResult;
@@ -40,22 +25,33 @@ export const TestResultAttachment: FunctionComponent<{
   const { link } = item;
   const { missed } = link;
   const componentType = attachmentType(link.contentType);
-  const isValidComponentType = !["archive", null].includes(componentType.type as string);
+  const isValidComponentType = !["archive", null].includes(componentType);
+  const isPreviewable = hasAttachmentPreview(link.contentType);
+  const [showPreview, setShowPreview] = useState(isPreviewable);
+  const i18n = useAttachmentI18n();
+  const { t: errors } = useI18n("errors");
 
   return (
-    <div className={styles["test-result-step"]}>
+    <div data-testid="test-result-attachment" className={styles["test-result-step"]}>
       <div
+        data-testid="test-result-attachment-header"
         className={styles["test-result-attachment-header"]}
         onClick={(e) => {
           e.stopPropagation();
-          setIsOpen((prev) => !prev);
+          if (isValidComponentType) {
+            setIsOpen((prev) => !prev);
+          }
         }}
       >
-        <ArrowButton isOpened={isOpened} />
+        {isValidComponentType ? <ArrowButton isOpened={isOpened} /> : <div className={styles["test-result-strut"]} />}
         <div className={styles["test-result-attachment-icon"]}>
           <SvgIcon
             size="s"
-            id={(link.contentType ? iconMap[link.contentType] : undefined) ?? lineFilesFileAttachment2}
+            id={
+              componentType !== null && imageAttachmentTypes.has(componentType)
+                ? lineImagesImage
+                : lineFilesFileAttachment2
+            }
           />
         </div>
 
@@ -66,15 +62,21 @@ export const TestResultAttachment: FunctionComponent<{
         <Text className={styles["test-result-attachment-text"]}>{link.name || link.originalFileName}</Text>
         {missed && (
           <Text size={"s"} className={styles["test-result-attachment-missed"]}>
-            missed
+            {errors("missedAttachment")}
           </Text>
         )}
-        <TestResultAttachmentInfo item={item} shouldExpand={isValidComponentType} />
+        <TestResultAttachmentInfo
+          item={item}
+          shouldExpand={isValidComponentType}
+          isPreviewable={isPreviewable}
+          showPreview={showPreview}
+          onPreviewToggle={() => setShowPreview((preview) => !preview)}
+        />
       </div>
       {isOpened && isValidComponentType && (
         <div className={styles["test-result-attachment-content-wrapper"]}>
-          <div className={styles["test-result-attachment-content"]}>
-            <Attachment item={item} />
+          <div data-testid="test-result-attachment-content" className={styles["test-result-attachment-content"]}>
+            <Attachment item={item} previewable={showPreview} i18n={i18n} />
           </div>
         </div>
       )}

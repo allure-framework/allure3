@@ -15,6 +15,10 @@ vi.mock("@allurereport/web-components", () => ({
   TooltipWrapper: ({ children }: { children: ComponentChildren }) => children,
   allureIcons: {},
 }));
+vi.mock("@/components/TestResult/TestResultError", () => ({
+  TestResultError: ({ message, trace }: { message: string; trace: string }) =>
+    createElement("pre", { "data-testid": "error-block" }, `${message}\n${trace}`),
+}));
 vi.mock("@/components/Tree/TreeItemIcon", () => ({ default: () => null }));
 vi.mock("@/components/ArrowButton", () => ({ ArrowButton: () => createElement("span", null, "Expand") }));
 vi.mock("@/stores", () => ({ useI18n: () => ({ t: (key: string) => key }) }));
@@ -43,7 +47,7 @@ const result: TestResult = {
 const container = document.createElement("div");
 afterEach(() => act(() => render(null, container)));
 
-it.each(["history", "retry"])("shows the stored error message and trace for a %s result", (kind) => {
+it.each(["history", "retry"])("passes the stored error message and trace of a %s result to the error block", (kind) => {
   act(() =>
     render(
       kind === "history"
@@ -60,9 +64,9 @@ it.each(["history", "retry"])("shows the stored error message and trace for a %s
       container,
     ),
   );
-  expect(container.textContent).not.toContain(result.error!.message);
+  expect(container.querySelector("[data-testid=error-block]")).toBeNull();
   act(() => container.querySelector("span")!.click());
-  expect(container.textContent).toContain(result.error!.message);
-  act(() => container.querySelector("[data-testid=test-result-error-message]")!.parentElement!.click());
-  expect(container.textContent).toContain(result.error!.trace);
+  expect(container.querySelector("[data-testid=error-block]")!.textContent).toBe(
+    `${result.error!.message}\n${result.error!.trace}`,
+  );
 });

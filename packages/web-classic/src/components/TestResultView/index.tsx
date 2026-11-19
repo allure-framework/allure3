@@ -12,7 +12,7 @@ export const TestResultView = () => {
 
   useEffect(() => {
     if (testResultId) fetchTestResult(testResultId);
-  }, []);
+  }, [testResultId]);
 
   return (
     <Loadable

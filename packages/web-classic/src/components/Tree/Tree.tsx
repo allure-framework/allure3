@@ -1,12 +1,13 @@
 import type { Statistic } from "@allurereport/core-api";
 import cx from "clsx";
 import type { FunctionComponent } from "preact";
-import { useState } from "preact/hooks";
+import { useEffect, useRef, useState } from "preact/hooks";
 import type { ReportRecursiveTree, ReportStatus } from "types";
 
 import TreeItem from "@/components/Tree/TreeItem";
 import { route } from "@/stores/router";
 
+import { useTreeStore } from "./context";
 import TreeHeader from "./TreeHeader";
 
 import * as styles from "./styles.scss";
@@ -23,12 +24,32 @@ const Tree: FunctionComponent<TreeProps> = ({ tree, statusFilter, root, name, st
   const { params } = route.value;
   const { id: parentId, testResultId } = params;
 
-  const [isOpened, setIsOpen] = useState(
-    parentId === tree.nodeId || statistic === undefined || !!statistic.failed || !!statistic.broken,
-  );
+  const { expansion } = useTreeStore();
+  // a group opened by a link without a test result (e.g. from the Overview widgets) is marked and scrolled to
+  const isMarked = !root && !testResultId && parentId === tree.nodeId;
+  const ref = useRef<HTMLDivElement>(null);
+  const [isOpened, setIsOpen] = useState(() => {
+    const { mode } = expansion.peek();
+
+    if (root || isMarked || mode === "expanded") {
+      return true;
+    }
+
+    if (mode === "collapsed") {
+      return false;
+    }
+
+    return parentId === tree.nodeId || statistic === undefined || !!statistic.failed || !!statistic.broken;
+  });
   const toggleTree = () => {
     setIsOpen(!isOpened);
   };
+
+  useEffect(() => {
+    if (isMarked) {
+      ref.current?.scrollIntoView?.({ block: "nearest" });
+    }
+  }, [isMarked]);
   const emptyTree = !tree?.trees?.length && !tree?.leaves?.length;
 
   if (emptyTree) {
@@ -61,6 +82,9 @@ const Tree: FunctionComponent<TreeProps> = ({ tree, statusFilter, root, name, st
           status={leaf.status}
           groupOrder={leaf.groupOrder}
           duration={leaf.duration}
+          flaky={leaf.flaky}
+          retriesCount={leaf.retriesCount}
+          transition={leaf.transition}
           parentNodeId={tree.nodeId}
           isMarked={leaf.nodeId === testResultId}
         />
@@ -69,8 +93,16 @@ const Tree: FunctionComponent<TreeProps> = ({ tree, statusFilter, root, name, st
   );
 
   return (
-    <div className={styles.tree}>
-      {name && <TreeHeader categoryTitle={name} isOpened={isOpened} toggleTree={toggleTree} statistic={statistic} />}
+    <div className={styles.tree} ref={ref}>
+      {name && (
+        <TreeHeader
+          categoryTitle={name}
+          isOpened={isOpened}
+          isMarked={isMarked}
+          toggleTree={toggleTree}
+          statistic={statistic}
+        />
+      )}
       {treeContent}
     </div>
   );

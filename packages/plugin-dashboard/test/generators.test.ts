@@ -1,3 +1,5 @@
+import { ChartType } from "@allurereport/charts-api";
+import { normalizeCategoriesConfig } from "@allurereport/core-api";
 import type { AllureStore, PluginContext, ReportFiles } from "@allurereport/plugin-api";
 import { readReportStaticAssets } from "@allurereport/plugin-api/static-assets";
 import { epic, feature, label, story } from "allure-js-commons";
@@ -24,6 +26,32 @@ const createReportFiles = () => {
 
   return { files, reportFiles };
 };
+
+describe("generateAllCharts", () => {
+  it("should count the configured categories in the categories trend", async () => {
+    const writeWidget = vi.fn().mockResolvedValue(undefined);
+    const store = {
+      allEnvironmentIdentities: vi.fn().mockResolvedValue([{ id: "default", name: "default" }]),
+      allTestResults: vi.fn().mockResolvedValue([{ id: "tr-1", name: "failed", status: "failed", labels: [] }]),
+      allHistoryDataPoints: vi.fn().mockResolvedValue([]),
+    } as unknown as AllureStore;
+    const context = {
+      reportName: "Report",
+      categories: normalizeCategoriesConfig([{ name: "Environment category", matchedStatuses: ["failed"] }]),
+    } as unknown as PluginContext;
+
+    await generateAllCharts(
+      { writeWidget } as unknown as DashboardDataWriter,
+      store,
+      { layout: [{ type: ChartType.CategoriesTrend }] },
+      context,
+    );
+
+    const [, chartsData] = writeWidget.mock.calls[0];
+
+    expect(Object.values<{ categories: string[] }>(chartsData.general)[0].categories).toEqual(["Environment category"]);
+  });
+});
 
 describe("generateStaticFiles", () => {
   it("should restore the packaged archive for multi-file reports", async () => {

@@ -44,7 +44,141 @@ beforeEach(async () => {
   (importWrapper as unknown as MockInstance).mockResolvedValue({ default: PluginFixture });
 });
 
+describe("plugin descriptor expression warnings", () => {
+  afterEach(() => vi.restoreAllMocks());
+
+  it("inspects descriptors before their import without changing constructor context", async () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const enabled = "${{ env.ENABLED }}";
+
+    const input = {
+      plugins: {
+        custom: { import: "${{ env.IMPORT }}", enabled: enabled as unknown as boolean },
+      },
+    };
+
+    const config = await resolveConfig(input);
+    await resolveConfig(input);
+
+    expect(importWrapper).toHaveBeenCalledWith("@allurereport/plugin-${{ env.IMPORT }}");
+    expect(warn.mock.invocationCallOrder[0]).toBeLessThan(vi.mocked(importWrapper).mock.invocationCallOrder[0]);
+    expect(config.plugins?.find(({ id }) => id === "custom")?.enabled).toBe(enabled);
+    expect(warn.mock.calls).toEqual([
+      ["Dynamic expressions are not supported at config.plugins.custom.import; the value will not be evaluated."],
+      ["Dynamic expressions are not supported at config.plugins.custom.enabled; the value will not be evaluated."],
+    ]);
+  });
+});
+
+describe("unsupported core expressions", () => {
+  let resolveConfig: typeof import("../src/config.js").resolveConfig;
+
+  beforeEach(async () => {
+    vi.resetModules();
+    ({ resolveConfig } = await import("../src/config.js"));
+  });
+  afterEach(() => vi.restoreAllMocks());
+
+  it("does not read config getters discarded by overrides", async () => {
+    const discarded = vi.fn((): never => {
+      throw new Error("discarded config value was read");
+    });
+    const input: Config = {};
+    for (const key of ["output", "name", "plugins"]) {
+      Object.defineProperty(input, key, { enumerable: true, get: discarded });
+    }
+
+    const config = await resolveConfig(input, { output: "safe", name: "Safe", plugins: {} });
+
+    expect(config.name).toBe("Safe");
+    expect(config.output).toBe(resolve("safe"));
+    expect(config.plugins).toEqual([]);
+    expect(discarded).not.toHaveBeenCalled();
+  });
+
+  it("warns once without leaking values or changing output normalization", async () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const output = "${{ env.SECRET }}";
+
+    const config = await resolveConfig({ output }, { plugins: {} });
+    await resolveConfig({ output: "${{ env.OTHER }}" }, { plugins: {} });
+
+    expect(config.output).toBe(resolve(output));
+    expect(warn.mock.calls).toEqual([
+      ["Dynamic expressions are not supported at config.output; the value will not be evaluated."],
+    ]);
+  });
+
+  it("only inspects selected nullish override values", async () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const input = { output: "${{ env.IGNORED }}", historyBaseUrl: "${{ env.IGNORED }}" };
+
+    await resolveConfig(input, { output: "safe", historyBaseUrl: "safe", plugins: {} });
+    expect(warn).not.toHaveBeenCalled();
+    await resolveConfig(input, { output: "${{ env.SELECTED }}", historyBaseUrl: undefined, plugins: {} });
+
+    expect(warn.mock.calls).toEqual([
+      ["Dynamic expressions are not supported at config.output; the value will not be evaluated."],
+      ["Dynamic expressions are not supported at config.historyBaseUrl; the value will not be evaluated."],
+    ]);
+  });
+
+  it("preserves evaluated names and hidden labels but treats name overrides as literals", async () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const input = { name: "${{ 'Report' }}" };
+
+    const evaluated = await resolveConfig(input, { hideLabels: ["${{ name == 'owner' }}"], plugins: {} });
+    await resolveConfig(input, { name: "Safe", plugins: {} });
+    expect(warn).not.toHaveBeenCalled();
+    const literal = await resolveConfig(input, { name: "${{ 'Override' }}", plugins: {} });
+
+    expect(evaluated.name).toBe("Report");
+    expect(shouldHideLabel("owner", evaluated.hideLabels)).toBe(true);
+    expect(literal.name).toBe("${{ 'Override' }}");
+    expect(warn.mock.calls).toEqual([
+      ["Dynamic expressions are not supported at config.name (report-name override); the value will not be evaluated."],
+    ]);
+  });
+
+  it("classifies disabled sections by capability, not execution", async () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+
+    await resolveConfig(
+      {
+        qualityGate: {
+          enabled: false,
+          use: [{ rule: "custom", message: "${{ env.MESSAGE }}" }],
+          rules: [{ id: "${{ env.ID }}", custom: "${{ env.EXPECTED }}" }],
+        },
+      } as Config,
+      { plugins: {} },
+    );
+
+    expect(warn.mock.calls).toEqual([
+      ["Dynamic expressions are not supported at config.qualityGate.rules[0].id; the value will not be evaluated."],
+    ]);
+  });
+});
+
 describe("flaky detection configuration", () => {
+  it.each([
+    ["algorithm", "failure-rate"],
+    ["retryFailureThreshold", -0.1],
+    ["retryFailureThreshold", 1.1],
+    ["retryFailureThreshold", Number.POSITIVE_INFINITY],
+    ["retryFailureThreshold", "0.1"],
+  ])("rejects invalid classifier setting %s=%s", async (field, value) => {
+    const input = { flakyDetection: { [field]: value } } as Config;
+
+    await expect(resolveConfig(input, { plugins: {} })).rejects.toThrow(`flakyDetection.${field}`);
+  });
+  it.each([0, 0.1, 1])("accepts retry failure rate with threshold %s", async (retryFailureThreshold) => {
+    const input: Config = { flakyDetection: { algorithm: "retry-failure-rate", retryFailureThreshold } };
+
+    const config = await resolveConfig(input, { plugins: {} });
+
+    expect(config.flakyDetection).toEqual(input.flakyDetection);
+  });
   it.each([1, 5])("preserves stabilizationPeriod=%s", async (stabilizationPeriod) => {
     const input = { flakyDetection: { stabilizationPeriod } };
 
@@ -68,6 +202,26 @@ describe("flaky detection configuration", () => {
     const resolution = resolveConfig(input, { plugins: {} });
 
     await expect(resolution).rejects.toThrow("flakyDetection.historyDepth");
+  });
+  it.each([
+    { historyDepth: 5 },
+    { historyDepth: 3, stabilizationPeriod: 3 },
+    { historyDepth: 3, stabilizationPeriod: 4 },
+  ])("rejects stabilization periods that cannot fit below bounded history $historyDepth", async (flakyDetection) => {
+    const resolution = resolveConfig({ flakyDetection }, { plugins: {} });
+
+    await expect(resolution).rejects.toThrow("flakyDetection.stabilizationPeriod");
+  });
+  it.each([
+    { historyDepth: 6 },
+    { historyDepth: 3, stabilizationPeriod: 2 },
+    { historyDepth: 0, stabilizationPeriod: 100 },
+    { historyDepth: -1, stabilizationPeriod: 100 },
+    { stabilizationPeriod: 100 },
+  ])("accepts compatible bounded, unlimited and disabled history $historyDepth", async (flakyDetection) => {
+    const config = await resolveConfig({ flakyDetection }, { plugins: {} });
+
+    expect(config.flakyDetection).toEqual(flakyDetection);
   });
   it("rejects a non-boolean includePassedTests", async () => {
     const input = { flakyDetection: { includePassedTests: "true" } } as unknown as Config;
@@ -545,7 +699,7 @@ describe("resolveConfig", () => {
     });
   });
 
-  it("fills default allureService upload options", async () => {
+  it("resolves allureService with optional upload settings", async () => {
     const resolved = await resolveConfig({
       allureService: {
         accessToken: "token",
@@ -554,8 +708,8 @@ describe("resolveConfig", () => {
 
     expect(resolved.allureService).toEqual({
       accessToken: "token",
-      uploadMaxAttempts: 5,
-      uploadMaxSimultaneousFailures: 5,
+      uploadMaxAttempts: undefined,
+      uploadMaxSimultaneousFailures: undefined,
     });
   });
 
@@ -571,8 +725,8 @@ describe("resolveConfig", () => {
 
     expect(resolved.allureService).toEqual({
       accessToken: "token",
-      uploadMaxAttempts: 5,
-      uploadMaxSimultaneousFailures: 5,
+      uploadMaxAttempts: undefined,
+      uploadMaxSimultaneousFailures: undefined,
     });
   });
 

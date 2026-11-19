@@ -1,7 +1,9 @@
+import { getReportStorageKey } from "@allurereport/web-commons";
 import { epic, feature, label, story } from "allure-js-commons";
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 const STORAGE_KEY = "ALLURE_REPORT_SORT_BY";
+const reportKey = (scope = "/") => getReportStorageKey(STORAGE_KEY, scope);
 
 beforeEach(async () => {
   await epic("coverage");
@@ -52,11 +54,30 @@ describe("stores > treeSort", () => {
   });
 
   it("localStorage takes priority over defaultSortBy from reportOptions", async () => {
-    localStorage.setItem(STORAGE_KEY, "duration,desc");
+    localStorage.setItem(reportKey(), "duration,desc");
     (globalThis as any).allureReportOptions = { defaultSortBy: "name,asc" };
 
     const { sortBy } = await import("../../src/stores/treeSort.js");
 
     expect(sortBy.value).toBe("duration,desc");
+  });
+
+  it("ignores the sort order saved by another report on the same origin", async () => {
+    localStorage.setItem(STORAGE_KEY, "duration,desc");
+    localStorage.setItem(reportKey("/other-report/"), "status,desc");
+    (globalThis as any).allureReportOptions = { defaultSortBy: "name,asc" };
+
+    const { sortBy } = await import("../../src/stores/treeSort.js");
+
+    expect(sortBy.value).toBe("name,asc");
+  });
+
+  it("saves the sort order under the current report's key", async () => {
+    const { setSortBy } = await import("../../src/stores/treeSort.js");
+
+    setSortBy("duration,asc");
+
+    expect(localStorage.getItem(reportKey())).toBe("duration,asc");
+    expect(localStorage.getItem(STORAGE_KEY)).toBeNull();
   });
 });

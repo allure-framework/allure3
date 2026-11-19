@@ -10,11 +10,12 @@ import type { ChartWidgetProps } from "./ChartWidget.types";
 export type { ChartWidgetProps } from "./ChartWidget.types";
 
 const rendererLoaders = {
-  pie: () => import(/* webpackChunkName: "chart-pie" */ "./PieChartRenderer"),
-  bar: () => import(/* webpackChunkName: "chart-bar" */ "./BarChartRenderer"),
-  treemap: () => import(/* webpackChunkName: "chart-treemap" */ "./TreeMapChartRenderer"),
-  heatmap: () => import(/* webpackChunkName: "chart-heatmap" */ "./HeatMapChartRenderer"),
-  funnel: () => import(/* webpackChunkName: "chart-funnel" */ "./FunnelChartRenderer"),
+  "pie": () => import(/* webpackChunkName: "chart-pie" */ "./PieChartRenderer"),
+  "bar": () => import(/* webpackChunkName: "chart-bar" */ "./BarChartRenderer"),
+  "treemap": () => import(/* webpackChunkName: "chart-treemap" */ "./TreeMapChartRenderer"),
+  "heatmap": () => import(/* webpackChunkName: "chart-heatmap" */ "./HeatMapChartRenderer"),
+  "funnel": () => import(/* webpackChunkName: "chart-funnel" */ "./FunnelChartRenderer"),
+  "run-trend": () => import(/* webpackChunkName: "chart-run-trend" */ "./RunTrendChartRenderer"),
 };
 type Renderer = keyof typeof rendererLoaders;
 const rendererCache = new Map<Renderer, ComponentType<ChartWidgetProps>>();

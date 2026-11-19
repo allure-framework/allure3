@@ -1,4 +1,5 @@
 import { type Axis, axisBottom, axisLeft, axisTop } from "d3-axis";
+import type { ScaleTime } from "d3-scale";
 import { useEffect, useRef, useState } from "preact/hooks";
 
 import type { TimelineChartData, TimelineData } from "./types";
@@ -40,6 +41,40 @@ export class ZoomEvent extends CustomEvent<ZoomEventProps> {
     });
   }
 }
+
+/**
+ * Picks time axis ticks so that neighbouring labels are at least `minSpacing` pixels apart.
+ * Starts from `preferredCount` and asks the scale for fewer ticks until they fit its range.
+ * Returns `null` when `minSpacing` is not set, so the axis keeps its own tick generation.
+ */
+export const fitTimeTicks = (
+  scale: Pick<ScaleTime<number, number>, "range" | "ticks">,
+  preferredCount: number,
+  minSpacing?: number,
+): Date[] | null => {
+  if (!minSpacing || minSpacing <= 0) {
+    return null;
+  }
+
+  const [rangeStart, rangeEnd] = scale.range();
+  const maxCount = Math.max(1, Math.floor(Math.abs(rangeEnd - rangeStart) / minSpacing) + 1);
+
+  for (let count = Math.min(preferredCount, maxCount); count > 1; count--) {
+    const ticks = scale.ticks(count);
+
+    if (ticks.length <= maxCount) {
+      return ticks;
+    }
+  }
+
+  return scale.ticks(1).slice(0, maxCount);
+};
+
+/**
+ * Sets fitted tick values on the axis, or lets it generate its own ticks when there are none.
+ */
+export const setTickValues = <T>(axis: Axis<T>, values: T[] | null): Axis<T> =>
+  values ? axis.tickValues(values) : axis.tickValues(null);
 
 export const d3AxisBottom = <T>(): Axis<T> => {
   // @ts-expect-error axis functions can be called without scale initially

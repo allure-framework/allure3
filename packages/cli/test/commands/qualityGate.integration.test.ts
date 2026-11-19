@@ -40,7 +40,7 @@ afterEach(async () => {
   await Promise.all(directories.splice(0).map((directory) => rm(directory, { recursive: true, force: true })));
 });
 
-describe("serialized quality-gate command", () => {
+describe("serialized quality-gate command", { timeout: 20000 }, () => {
   it("skips a disabled gate without requiring result directories", async () => {
     const result = await runGate(
       `

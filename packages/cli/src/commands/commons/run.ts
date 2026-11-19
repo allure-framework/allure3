@@ -687,15 +687,27 @@ export const executeAllureRun = async (params: {
 
   allureReport.realtimeDispatcher.sendGlobalExitCode(globalExitCode);
 
+  logRunDiagnostic("finalizing report");
+
   try {
-    logRunDiagnostic("finalizing report");
     await allureReport.done();
-    logRunDiagnostic("report finalization complete");
+  } catch (error) {
+    // an unexpected failure keeps propagating, so the command cleans up and fails as before
+    if (!(error instanceof KnownError)) {
+      throw error;
+    }
+
+    // e.g. a plugin failed the report generation on purpose, such as a metrics push with `failOnPushError`;
+    // the same precedence as the store uses for the report: a non-zero code (e.g. 130 on interruption) is kept
+    globalExitCode.actual ||= 1;
+    runLogger.error(error.message);
   } finally {
     if (attachmentsDirectory) {
       await rm(attachmentsDirectory, { recursive: true, force: true });
     }
   }
+
+  logRunDiagnostic("report finalization complete");
 
   return {
     globalExitCode,

@@ -3,6 +3,7 @@ import {
   collectExpandableSubtreeNodes,
   errorMessageFromUnknown,
   fetchReportJsonData,
+  getReportStorageKey,
   loadFromLocalStorage,
   type SubtreeNodeState,
 } from "@allurereport/web-commons";
@@ -30,15 +31,17 @@ export const noTests = computed(() => {
   );
 });
 
-export const collapsedTrees = signal(new Set(loadFromLocalStorage<string[]>("collapsedTrees", [])));
-export const expandedTrees = signal(new Set(loadFromLocalStorage<string[]>("expandedTrees", [])));
+export const collapsedTrees = signal(
+  new Set(loadFromLocalStorage<string[]>(getReportStorageKey("collapsedTrees"), [])),
+);
+export const expandedTrees = signal(new Set(loadFromLocalStorage<string[]>(getReportStorageKey("expandedTrees"), [])));
 
 effect(() => {
-  localStorage.setItem("collapsedTrees", JSON.stringify([...collapsedTrees.value]));
+  localStorage.setItem(getReportStorageKey("collapsedTrees"), JSON.stringify([...collapsedTrees.value]));
 });
 
 effect(() => {
-  localStorage.setItem("expandedTrees", JSON.stringify([...expandedTrees.value]));
+  localStorage.setItem(getReportStorageKey("expandedTrees"), JSON.stringify([...expandedTrees.value]));
 });
 
 export const isTreeOpened = (id: string, openedByDefault = true): boolean => {

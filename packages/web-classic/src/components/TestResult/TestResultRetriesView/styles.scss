@@ -33,8 +33,22 @@
   }
 }
 
+.test-result-retries-item-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
 .test-result-retries-item-text {
   padding-top: 2px;
+}
+
+.test-result-retries-item-message {
+  color: var(--color-text-secondary);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .test-result-retries-item-info {

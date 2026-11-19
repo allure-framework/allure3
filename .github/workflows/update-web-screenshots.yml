@@ -1,0 +1,206 @@
+name: Update web screenshots
+
+on:
+  workflow_dispatch:
+    inputs:
+      linux:
+        description: "Update Linux screenshots"
+        required: true
+        type: boolean
+        default: true
+      macos:
+        description: "Update macOS screenshots"
+        required: true
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: update-web-screenshots
+  cancel-in-progress: false
+
+jobs:
+  prepare:
+    name: Prepare screenshot update
+    runs-on: ubuntu-latest
+    outputs:
+      environments: ${{ steps.prepare.outputs.environments }}
+      matrix: ${{ steps.prepare.outputs.matrix }}
+      update_branch: ${{ steps.prepare.outputs.update_branch }}
+    steps:
+      - name: Resolve environments and base revision
+        id: prepare
+        shell: bash
+        env:
+          LINUX: ${{ inputs.linux }}
+          MACOS: ${{ inputs.macos }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          BASE_SHA: ${{ github.sha }}
+          RUN_ID: ${{ github.run_id }}
+        run: |
+          set -euo pipefail
+
+          if [[ "${GITHUB_REF}" != "refs/heads/${DEFAULT_BRANCH}" ]]; then
+            echo "::error::This workflow must be triggered from the default branch (${DEFAULT_BRANCH}); received ${GITHUB_REF}."
+            exit 1
+          fi
+
+          matrix='[]'
+          if [[ "${LINUX}" == "true" ]]; then
+            matrix="$(jq -c '. + [{"name":"Linux","platform":"linux","runner":"ubuntu-latest"}]' <<< "${matrix}")"
+          fi
+          if [[ "${MACOS}" == "true" ]]; then
+            matrix="$(jq -c '. + [{"name":"macOS","platform":"darwin","runner":"macos-latest"}]' <<< "${matrix}")"
+          fi
+
+          if [[ "$(jq 'length' <<< "${matrix}")" == "0" ]]; then
+            echo "::error::Select at least one environment."
+            exit 1
+          fi
+
+          environments="$(jq -r '[.[].name] | join(", ")' <<< "${matrix}")"
+          update_branch="chore/update-web-screenshots-${BASE_SHA:0:8}-${RUN_ID}"
+
+          {
+            echo "environments=${environments}"
+            echo "matrix={\"include\":${matrix}}"
+            echo "update_branch=${update_branch}"
+          } >> "${GITHUB_OUTPUT}"
+
+  update:
+    name: Update ${{ matrix.name }} screenshots
+    needs: prepare
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.prepare.outputs.matrix) }}
+    steps:
+      - name: Checkout base revision
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Build project
+        uses: ./.github/actions/build
+        id: build
+        with:
+          yarn-hardened-mode: "0"
+
+      - parallel:
+          - name: Install Playwright browsers
+            timeout-minutes: 5
+            run: yarn workspace @allurereport/common-config playwright install chromium firefox webkit
+          - name: Install playwright dependencies for e2e
+            timeout-minutes: 5
+            run: yarn workspace @allurereport/common-config playwright install-deps
+
+      - name: Update screenshots
+        env:
+          ALLURE_NO_ANALYTICS: "true"
+        shell: bash
+        run: yarn workspace @allurereport/web-allure2 test:e2e tests/e2e/visual.spec.mts --update-snapshots
+
+      - name: Prepare changed screenshots
+        id: screenshots
+        shell: bash
+        env:
+          PLATFORM: ${{ matrix.platform }}
+        run: |
+          set -euo pipefail
+
+          changes="$(git ls-files --modified --others --exclude-standard | grep '\.png$' || true)"
+
+          if [[ -z "${changes}" ]]; then
+            echo "No ${PLATFORM} screenshot changes; skipping verification and upload."
+            echo "has_updates=false" >> "${GITHUB_OUTPUT}"
+            exit 0
+          fi
+
+          echo "Archiving the following changed screenshots:"
+          echo "${changes}"
+
+          archive="${RUNNER_TEMP}/web-screenshots-${PLATFORM}.tar"
+          printf '%s\n' "${changes}" | tar -cf "${archive}" -T -
+          echo "Created updated screenshot archive '${archive}'"
+          echo "has_updates=true" >> "${GITHUB_OUTPUT}"
+
+      - name: Verify updated screenshots
+        if: ${{ steps.screenshots.outputs.has_updates == 'true' }}
+        env:
+          ALLURE_NO_ANALYTICS: "true"
+        shell: bash
+        run: yarn workspace @allurereport/web-allure2 test:e2e tests/e2e/visual.spec.mts
+
+      - name: Upload updated screenshots
+        if: ${{ steps.screenshots.outputs.has_updates == 'true' }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: web-screenshots-${{ matrix.platform }}
+          path: ${{ runner.temp }}/web-screenshots-${{ matrix.platform }}.tar
+          if-no-files-found: error
+          compression-level: 0
+
+  pull-request:
+    name: Create screenshot pull request
+    needs: [prepare, update]
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+    steps:
+      - name: Create GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@v3
+        with:
+          client-id: ${{ vars.ALLURE_CI_APP_CLIENT_ID }}
+          private-key: ${{ secrets.ALLURE_CI_APP_PRIVATE_KEY }}
+          permission-contents: write
+          permission-pull-requests: write
+
+      - name: Checkout base revision
+        uses: actions/checkout@v7
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+
+      - name: Download updated screenshots
+        uses: actions/download-artifact@v8
+        with:
+          pattern: web-screenshots-*
+          path: ${{ runner.temp }}/web-screenshots
+          merge-multiple: true
+
+      - name: Extract updated screenshots
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          shopt -s nullglob
+          archives=("${RUNNER_TEMP}"/web-screenshots/*.tar)
+          if [[ "${#archives[@]}" == "0" ]]; then
+            echo "::error::No screenshot archives were produced; cannot restore updated screenshots."
+            exit 1
+          fi
+
+          for archive in "${archives[@]}"; do
+            tar -xf "${archive}"
+          done
+
+      - name: Create or update pull request
+        uses: peter-evans/create-pull-request@v8
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+          branch: ${{ needs.prepare.outputs.update_branch }}
+          commit-message: "chore: update web screenshots"
+          title: "chore: update web screenshots"
+          body: |
+            Updates the web visual baselines generated in CI.
+
+            Environments: ${{ needs.prepare.outputs.environments }}
+            Source revision: `${{ github.sha }}`
+          committer: ${{ vars.ALLURE_CI_APP_SLUG }}[bot] <${{ vars.ALLURE_CI_APP_USER_ID }}+${{ vars.ALLURE_CI_APP_SLUG }}[bot]@users.noreply.github.com>
+          author: ${{ vars.ALLURE_CI_APP_SLUG }}[bot] <${{ vars.ALLURE_CI_APP_USER_ID }}+${{ vars.ALLURE_CI_APP_SLUG }}[bot]@users.noreply.github.com>
+          add-paths: "**/*.png"
+          delete-branch: true

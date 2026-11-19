@@ -1,7 +1,10 @@
 import type {
+  CategoriesTrendChartData,
   ChartId,
   CurrentStatusChartData,
   DurationDynamicsChartData,
+  DurationTrendChartData,
+  RetriesTrendChartData,
   DurationsChartData,
   StabilityDistributionChartData,
   StatusAgePyramidChartData,
@@ -192,6 +195,12 @@ export const createCharts = (res: ChartsData): Record<ChartId, UIChartData> => {
         acc[chartId] = res[chartId] as TrSeveritiesChartData;
       } else if (chart.type === ChartType.DurationDynamics) {
         acc[chartId] = res[chartId] as DurationDynamicsChartData;
+      } else if (chart.type === ChartType.DurationTrend) {
+        acc[chartId] = res[chartId] as DurationTrendChartData;
+      } else if (chart.type === ChartType.RetriesTrend) {
+        acc[chartId] = res[chartId] as RetriesTrendChartData;
+      } else if (chart.type === ChartType.CategoriesTrend) {
+        acc[chartId] = res[chartId] as CategoriesTrendChartData;
       } else if (chart.type === ChartType.CoverageDiff || chart.type === ChartType.SuccessRateDistribution) {
         const chartData = createTreeMapChartData(chartId, chart, res);
         if (chartData) {

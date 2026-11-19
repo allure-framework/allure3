@@ -128,6 +128,57 @@ describe("report fixture projection", () => {
     expect(step.parameters).toEqual([token, hidden]);
     expect(token.value).toBe("secret");
   });
+
+  it("keeps the fixture error so reports can show why a setup or teardown failed", () => {
+    const error = { message: "connection refused", trace: "at setup (db.ts:1)", expected: "1", actual: "2" };
+    const fixture: TestFixtureResult = {
+      id: "broken-fixture",
+      type: "after",
+      name: "teardown",
+      status: "broken",
+      error,
+      testResultIds: ["test"],
+      sourceMetadata: { readerId: "system", metadata: {} },
+      steps: [],
+    };
+
+    expect(convertFixtureResult(fixture)).toMatchObject({ id: "broken-fixture", status: "broken", error });
+  });
+
+  it("marks a fixture whose error repeats a nested step error", () => {
+    const failedStep: DefaultTestStepResult = {
+      type: "step",
+      stepId: "outer",
+      name: "outer",
+      status: "passed",
+      parameters: [],
+      steps: [
+        {
+          type: "step",
+          stepId: "inner",
+          name: "connect",
+          status: "broken",
+          message: "connection refused",
+          parameters: [],
+          steps: [],
+        },
+      ],
+    };
+    const makeFixture = (message: string): TestFixtureResult => ({
+      id: "fixture",
+      type: "before",
+      name: "setup",
+      status: "broken",
+      error: { message },
+      testResultIds: ["test"],
+      sourceMetadata: { readerId: "system", metadata: {} },
+      steps: [failedStep],
+    });
+
+    expect(convertFixtureResult(makeFixture("connection refused")).hasSimilarErrorInSubSteps).toBe(true);
+    expect(convertFixtureResult(makeFixture("timeout")).hasSimilarErrorInSubSteps).toBe(false);
+    expect(convertFixtureResult({ ...makeFixture("x"), error: undefined }).hasSimilarErrorInSubSteps).toBeUndefined();
+  });
 });
 
 describe("report history writing", () => {

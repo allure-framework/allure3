@@ -5,7 +5,7 @@ import {
   createStylesLinkTag,
   stringifyForInlineScript,
 } from "@allurereport/core-api";
-import type { ExitCode, ReportFiles } from "@allurereport/plugin-api";
+import { type ExitCode, type ReportFiles, getRunSummary } from "@allurereport/plugin-api";
 import { writeConcurrently } from "@allurereport/plugin-api/internal/report";
 import {
   copyReportStaticAssets,
@@ -274,6 +274,13 @@ export const generateTestResults = async (writer: Allure2DataWriter, tests: Allu
   await writeConcurrently(tests, (test) => writer.writeTestCase(test));
 };
 
+/**
+ * The duration of the whole run, the same as the summary card shows: all the attempts count as test activity,
+ * the long pauses between the merged runs do not.
+ */
+const getRunDuration = (tests: Allure2TestResult[]): number | undefined =>
+  getRunSummary(tests.map(({ time }) => time))?.duration;
+
 export const generateSummaryJson = async (
   writer: Allure2DataWriter,
   reportName: string,
@@ -288,6 +295,12 @@ export const generateSummaryJson = async (
       updateStatistic(statistic, test);
       updateTime(time, test);
     });
+
+  const runDuration = getRunDuration(tests);
+
+  if (runDuration !== undefined) {
+    time.duration = runDuration;
+  }
 
   const data: SummaryData = {
     reportName,
@@ -402,11 +415,8 @@ export const generateDurationTrendData = async (
   history: Allure2DurationTrendItem[] = [],
   executor?: Partial<Allure2ExecutorInfo>,
 ) => {
-  const time: GroupTime = {};
-  tests.forEach((test) => updateTime(time, test));
-
   const current: Allure2DurationTrendItem = {
-    data: { duration: time.duration ?? 0 },
+    data: { duration: getRunDuration(tests) ?? 0 },
     ...trendIdentity(executor),
   };
 

@@ -1,7 +1,10 @@
 import type {
+  CategoriesTrendChartData,
   ChartId,
   ChartType,
   DurationDynamicsChartData,
+  DurationTrendChartData,
+  RetriesTrendChartData,
   DurationsChartData,
   HeatMapSerie,
   StabilityDistributionChartData,
@@ -96,6 +99,9 @@ export type ChartData =
   | StatusAgePyramidChartData
   | TrSeveritiesChartData
   | DurationDynamicsChartData
+  | DurationTrendChartData
+  | RetriesTrendChartData
+  | CategoriesTrendChartData
   | TestingPyramidChartData;
 
 export type UIChartData =
@@ -110,6 +116,9 @@ export type UIChartData =
   | StabilityDistributionChartData
   | TrSeveritiesChartData
   | DurationDynamicsChartData
+  | DurationTrendChartData
+  | RetriesTrendChartData
+  | CategoriesTrendChartData
   | TestingPyramidChartData;
 
 export type ChartsData = Record<ChartId, ChartData>;

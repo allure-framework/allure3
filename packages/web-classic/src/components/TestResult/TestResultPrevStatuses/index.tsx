@@ -10,10 +10,17 @@ import { timestampToDate } from "@/utils/time";
 import * as styles from "./styles.scss";
 
 const TestResultPrevStatus: FunctionalComponent<{ item: HistoryTestResult }> = ({ item }) => {
-  const navigateUrl = new URL(item.id, item.url);
+  // the url is resolved by the plugin and is empty when the historical report cannot be opened
+  if (!item.url) {
+    return (
+      <div className={styles["test-result-prev-status"]}>
+        <SvgIcon id={allureIcons.lineShapesDotCircle} className={styles[`status-${item?.status}`]} />
+      </div>
+    );
+  }
 
   return (
-    <a className={styles["test-result-prev-status"]} href={navigateUrl.toString()} target={"_blank"} rel={"noreferrer"}>
+    <a className={styles["test-result-prev-status"]} href={item.url} target={"_blank"} rel={"noreferrer"}>
       <SvgIcon id={allureIcons.lineShapesDotCircle} className={styles[`status-${item?.status}`]} />
     </a>
   );
@@ -40,13 +47,16 @@ export type TestResultPrevStatusesProps = {
 export const TestResultPrevStatuses: FunctionalComponent<TestResultPrevStatusesProps> = ({ history }) => {
   return (
     <div className={styles["test-result-prev-statuses"]}>
-      {history?.slice(0, HISTORY_DATA_POINT_LIMIT).map((item, key) => (
-        <div key={key} className={styles["test-result-prev-status"]}>
-          <TooltipWrapper key={key} tooltipComponent={<TestResultPrevStatusTooltip item={item} />}>
-            <TestResultPrevStatus item={item} />
-          </TooltipWrapper>
-        </div>
-      ))}
+      {history
+        ?.slice(0, HISTORY_DATA_POINT_LIMIT)
+        .sort((a: HistoryTestResult, b: HistoryTestResult) => (a.stop ?? 0) - (b.stop ?? 0))
+        .map((item, key) => (
+          <div key={key} data-testid={"test-result-prev-status"} className={styles["test-result-prev-status"]}>
+            <TooltipWrapper key={key} tooltipComponent={<TestResultPrevStatusTooltip item={item} />}>
+              <TestResultPrevStatus item={item} />
+            </TooltipWrapper>
+          </div>
+        ))}
     </div>
   );
 };

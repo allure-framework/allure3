@@ -1,3 +1,13 @@
+.tooltip-positioner {
+  position: absolute;
+  // Keep the measurable tooltip on the non-scrollable side until it has coordinates.
+  inset-block-end: 100%;
+  inset-inline-end: 100%;
+  width: max-content;
+  z-index: 100;
+  visibility: hidden;
+}
+
 .custom-tooltip {
   z-index: 1000;
   background-color: var(--color-bg-inverse-raised);

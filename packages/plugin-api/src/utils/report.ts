@@ -46,12 +46,30 @@ export const convertTestStepResult = (tsr: TestStepResult): ReportTestStepResult
   return tsr;
 };
 
+const collectStepMessages = (steps: TestStepResult[] | undefined, messages = new Set<string>()) => {
+  for (const step of steps ?? []) {
+    if (!isStep(step)) {
+      continue;
+    }
+    if (step.message) {
+      messages.add(step.message);
+    }
+    collectStepMessages(step.steps, messages);
+  }
+  return messages;
+};
+
 export const convertFixtureResult = (fr: TestFixtureResult): ReportFixtureResult => {
+  const message = fr.error?.message;
+
   return {
     id: fr.id,
     type: fr.type,
     name: fr.name,
     status: fr.status,
+    error: fr.error,
+    // same rule as regular steps in the store: the fixture error is shown on the nested step that repeats it
+    hasSimilarErrorInSubSteps: message ? collectStepMessages(fr.steps).has(message) : undefined,
     steps: fr.steps.map(convertTestStepResult),
     duration: fr.duration,
   };

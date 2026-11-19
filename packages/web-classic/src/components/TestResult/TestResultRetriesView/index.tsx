@@ -12,7 +12,7 @@ export const TestResultRetriesView: FunctionalComponent<{ testResult: ReportTest
 
   return (
     <div className={styles["test-result-history"]}>
-      {retries.length ? (
+      {retries?.length ? (
         retries?.map((item, key) => (
           <TestResultRetriesItem
             testResultItem={item}

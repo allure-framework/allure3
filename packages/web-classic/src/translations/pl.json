@@ -5,7 +5,10 @@
     "broken": "uszkodzony",
     "skipped": "pominęty",
     "unknown": "nieznany",
-    "total": "wszystkie"
+    "total": "wszystkie",
+    "flakyTests": "niestabilny",
+    "newTests": "nowy",
+    "retryTests": "powtórzony"
   },
   "testSummary": {
     "all": "Wszystkie testy",
@@ -39,8 +42,8 @@
     "status": "Status"
   },
   "sort-by.directions": {
-    "order-asc": "Późnejsze – Wcześniejsze",
     "order-desc": "Wcześniejsze – Późnejsze",
+    "order-asc": "Późnejsze – Wcześniejsze",
     "order-asc-short": "Późnejsze",
     "order-desc-short": "Wcześniejsze",
     "alphabet-asc": "Z – A",
@@ -59,22 +62,24 @@
   "empty": {
     "no-results": "Brak wyników",
     "no-tests-found": "Nie znaleziono wyników",
+    "no-message-provided": "Nie podano komunikatu",
     "clear-filters": "Wyczyść filtry",
     "no-attachments-results": "Brak dostępnych informacji o załącznikach",
     "no-history-results": "Brak dostępnych informacji o historii",
-    "no-retries-results": "Brak dostępnych informacji o ponownych próbach"
+    "no-retries-results": "Brak dostępnych informacji o ponownych próbach",
+    "no-test-steps-results": "Brak dostępnych informacji o krokach testowych"
   },
   "severity": {
-    "name": "Ważność",
     "blocker": "bloker",
     "critical": "krytyczna",
     "normal": "zwykła",
     "minor": "niska",
-    "trivial": "minimalna"
+    "trivial": "minimalna",
+    "name": "Ważność"
   },
   "execution": {
-    "body": "Ciało testu",
     "name": "Wykonanie",
+    "body": "Ciało testu",
     "setup": "Przygotowanie",
     "teardown": "Zakończenie"
   },
@@ -94,14 +99,24 @@
     "showMore": "Pokaż więcej",
     "copy": "Skopuj",
     "attempt": "Próba {{attempt}} z {{total}}",
-    "at": "w"
+    "at": "w",
+    "generated": "Wygenerowano",
+    "precondition": "Warunek wstępny",
+    "expectedResult": "Oczekiwany wynik",
+    "categories": "Kategorie",
+    "tags": "Tagi",
+    "owner": "Właściciel",
+    "fullname": "Pełna nazwa",
+    "test-case-id": "ID przypadku testowego",
+    "history-id": "ID historii",
+    "successRate": "Współczynnik powodzenia {{rate}}% ({{passed}} z {{total}})"
   },
   "controls": {
     "backToOverview": "Wróć do przeglądu",
     "newTabAttachment": "Otwórz w nowej zakładce",
-    "downloadAttachment": "Załaduj załącznik",
     "nextTR": "Następny test",
     "prevTR": "Poprzedni test",
+    "downloadAttachment": "Załaduj załącznik",
     "backto": "Wróć do",
     "clipboard": "Skopuj do schowka",
     "clipboardError": "Błąd. Najprawdopodobniej Twoja przeglądarka nie obsługuje tej funkcji",
@@ -110,22 +125,233 @@
     "expand": "Poszerzyć",
     "fullscreen": "Pełny ekran",
     "language": "Zmień język",
-    "openInNewTab": "Otwórz w nowej karcie"
+    "openInNewTab": "Otwórz w nowej karcie",
+    "theme": "Zmień motyw",
+    "showDiff": "Pokaż różnicę",
+    "comparison": "Porównanie",
+    "expected": "Oczekiwany",
+    "actual": "Rzeczywisty",
+    "viewMode": "Tryb widoku",
+    "unified": "Zunifikowany",
+    "side-by-side": "Obok siebie",
+    "compareBy": "Porównaj według",
+    "chars": "znaki",
+    "words": "słowa",
+    "lines": "linie",
+    "loadComparisonError": "Nie udało się załadować porównania",
+    "retry": "Spróbuj ponownie",
+    "loadAttachmentViewerError": "Nie udało się załadować podglądu załącznika",
+    "previewAttachment": "Podgląd",
+    "viewCode": "Pokaż kod"
   },
   "errors": {
     "missedAttachment": "Nie znaleziono załącznika"
   },
   "nav": {
+    "overview": "Przegląd",
+    "behaviors": "Zachowania",
+    "categories": "Kategorie",
+    "graphs": "Wykresy",
+    "packages": "Pakiety",
+    "suites": "Zestawy",
+    "timeline": "Oś czasu",
     "comingSoon": "Wkrótce"
   },
   "charts": {
     "retry": "Spróbuj ponownie",
     "loadError": "Nie udało się załadować wykresu",
+    "currentStatus": {
+      "title": "Aktualny status",
+      "status": {
+        "passed": "$t(statuses:passed, capitalize)",
+        "failed": "$t(statuses:failed, capitalize)",
+        "broken": "$t(statuses:broken, capitalize)",
+        "skipped": "$t(statuses:skipped, capitalize)",
+        "unknown": "$t(statuses:unknown, capitalize)"
+      },
+      "percentage": "{{percentage}}%",
+      "of": "z {{total}}",
+      "total": "łącznie",
+      "tests": {
+        "new_zero": "Brak nowych testów",
+        "new_one": "{{count}} nowy test",
+        "new_other": "{{count}} nowych testów",
+        "flaky_zero": "Brak niestabilnych testów",
+        "flaky_one": "{{count}} niestabilny test",
+        "flaky_other": "{{count}} niestabilnych testów",
+        "retries_zero": "Brak powtórzonych testów",
+        "retries_one": "{{count}} powtórzony test",
+        "retries_other": "{{count}} powtórzonych testów",
+        "new_few": "{{count}} nowe testy",
+        "new_many": "{{count}} nowych testów",
+        "flaky_few": "{{count}} niestabilne testy",
+        "flaky_many": "{{count}} niestabilnych testów",
+        "retries_few": "{{count}} powtórzone testy",
+        "retries_many": "{{count}} powtórzonych testów"
+      }
+    },
+    "statusDynamics": {
+      "title": "Dynamika statusu",
+      "status": {
+        "passed": "$t(statuses:passed, capitalize)",
+        "failed": "$t(statuses:failed, capitalize)",
+        "broken": "$t(statuses:broken, capitalize)",
+        "skipped": "$t(statuses:skipped, capitalize)",
+        "unknown": "$t(statuses:unknown, capitalize)"
+      },
+      "no-history": "$t(empty:no-history-results)",
+      "no-results": "$t(empty:no-results)",
+      "tooltips": {
+        "current": "Najnowszy raport ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "Raport z {{timestamp, timestamp_long_no_seconds}}"
+      },
+      "ticks": {
+        "current": "Wcześniejsze",
+        "history": "{{timestamp, timestamp_date}}"
+      }
+    },
+    "statusTransitions": {
+      "title": "Przejścia statusu",
+      "legend": {
+        "trend": "Wskaźnik napraw"
+      },
+      "transitions": {
+        "new": "$t(transitions:new, capitalize)",
+        "fixed": "$t(transitions:fixed, capitalize)",
+        "regressed": "$t(transitions:regressed, capitalize)",
+        "malfunctioned": "$t(transitions:malfunctioned, capitalize)"
+      },
+      "no-history": "$t(empty:no-history-results)",
+      "no-results": "$t(empty:no-results)",
+      "tooltips": {
+        "current": "Najnowszy raport ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "Raport z {{timestamp, timestamp_long_no_seconds}}"
+      },
+      "ticks": {
+        "current": "Wcześniejsze",
+        "history": "{{timestamp, timestamp_date}}"
+      }
+    },
+    "durations": {
+      "title": "Histogram czasu trwania według {{groupBy}}",
+      "title_none": "Histogram czasu trwania",
+      "no-results": "$t(empty:no-results)",
+      "groupBy": {
+        "none": "Brak",
+        "layer": "Warstwa"
+      },
+      "ticks": {
+        "durationRange": "{{from, format_duration}} - {{to, format_duration}}"
+      },
+      "tooltips": {
+        "durationRange": "{{from, format_duration}} - {{to, format_duration}}"
+      },
+      "legend": {
+        "value": "{{value}}",
+        "total": "Liczba testów"
+      }
+    },
+    "stabilityDistribution": {
+      "title": "Rozkład stabilności",
+      "no-results": "$t(empty:no-results)",
+      "legend": {
+        "stabilityRate": "Wskaźnik stabilności"
+      }
+    },
+    "testBaseGrowthDynamics": {
+      "title": "Dynamika wzrostu bazy testów",
+      "status": {
+        "newpassed": "Nowy $t(statuses:passed)",
+        "newfailed": "Nowy $t(statuses:failed)",
+        "newbroken": "Nowy $t(statuses:broken)",
+        "newskipped": "Nowy $t(statuses:skipped)",
+        "newunknown": "Nowy $t(statuses:unknown)",
+        "removedpassed": "Usunięty $t(statuses:passed)",
+        "removedfailed": "Usunięty $t(statuses:failed)",
+        "removedbroken": "Usunięty $t(statuses:broken)",
+        "removedskipped": "Usunięty $t(statuses:skipped)",
+        "removedunknown": "Usunięty $t(statuses:unknown)"
+      },
+      "legend": {
+        "trend": "Trend wzrostu"
+      },
+      "no-history": "$t(empty:no-history-results)",
+      "no-results": "$t(empty:no-results)",
+      "tooltips": {
+        "current": "Najnowszy raport ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "Raport z {{timestamp, timestamp_long_no_seconds}}"
+      },
+      "ticks": {
+        "current": "Najnowszy",
+        "history": "{{timestamp, timestamp_date}}"
+      }
+    },
+    "statusAgePyramid": {
+      "title": "Piramida wieku według statusu",
+      "status": {
+        "passed": "$t(statuses:passed, capitalize)",
+        "failed": "$t(statuses:failed, capitalize)",
+        "broken": "$t(statuses:broken, capitalize)",
+        "skipped": "$t(statuses:skipped, capitalize)",
+        "unknown": "$t(statuses:unknown, capitalize)"
+      },
+      "no-history": "$t(empty:no-history-results)",
+      "no-results": "$t(empty:no-results)",
+      "tooltips": {
+        "current": "Najnowszy raport ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "Raport z {{timestamp, timestamp_long_no_seconds}}"
+      },
+      "ticks": {
+        "current": "Najnowszy",
+        "history": "{{timestamp, timestamp_date}}"
+      }
+    },
+    "trSeverities": {
+      "title": "Wyniki testów według ważności",
+      "no-results": "$t(empty:no-results)",
+      "status": {
+        "passed": "$t(statuses:passed, capitalize)",
+        "failed": "$t(statuses:failed, capitalize)",
+        "broken": "$t(statuses:broken, capitalize)",
+        "skipped": "$t(statuses:skipped, capitalize)",
+        "unknown": "$t(statuses:unknown, capitalize)"
+      },
+      "severity": {
+        "blocker": "$t(severity:blocker, capitalize)",
+        "critical": "$t(severity:critical, capitalize)",
+        "normal": "$t(severity:normal, capitalize)",
+        "minor": "$t(severity:minor, capitalize)",
+        "trivial": "$t(severity:trivial, capitalize)",
+        "unset": "Brak ważności"
+      }
+    },
+    "durationDynamics": {
+      "title": "Dynamika czasu trwania",
+      "durations": {
+        "sequential": "Czas sekwencyjny",
+        "duration": "Czas trwania testów",
+        "speedup": "Przyspieszenie"
+      },
+      "no-results": "$t(empty:no-results)",
+      "tooltips": {
+        "current": "Najnowszy raport ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "Raport z {{timestamp, timestamp_long_no_seconds}}"
+      },
+      "ticks": {
+        "current": "Najnowszy",
+        "history": "{{timestamp, timestamp_date}}"
+      },
+      "legend": {
+        "duration": "{{duration, format_duration}}",
+        "speedup": "{{speedup}}x"
+      }
+    },
     "successRate": {
       "successRate": "Współczynnik powodzenia: {{rate}}",
       "successRateDescription": "Obliczany na podstawie testów zaliczonych, niezaliczonych i uszkodzonych. Testy pominięte i o nieznanym statusie są wykluczone.",
-      "noResults": "Brak wyników testów.",
       "noEligibleResults": "Brak testów zaliczonych, niezaliczonych lub uszkodzonych. Testy pominięte i o nieznanym statusie są wykluczone ze współczynnika powodzenia.",
+      "noResults": "Brak wyników testów.",
+      "notAvailable": "Brak danych",
       "slice_one": "{{count}} test ({{percent}}% wszystkich testów)",
       "slice_other": "{{count}} testów ({{percent}}% wszystkich testów)",
       "layer": "Warstwa: {{layer}}",
@@ -133,6 +359,100 @@
       "slice": "{{count}} testów ({{percent}}% wszystkich testów)",
       "slice_few": "{{count}} testy ({{percent}}% wszystkich testów)",
       "slice_many": "{{count}} testów ({{percent}}% wszystkich testów)"
+    },
+    "durationTrend": {
+      "title": "Trend czasu trwania",
+      "duration": "Czas trwania",
+      "value": "{{duration, format_duration}}"
+    },
+    "retriesTrend": {
+      "title": "Trend powtórzeń",
+      "retry": "Próby ponowne",
+      "run": "Testy"
+    },
+    "categoriesTrend": {
+      "title": "Trend kategorii"
+    },
+    "runTrend": {
+      "empty": "Brak czegokolwiek do pokazania",
+      "ticks": {
+        "current": "Wcześniejsze",
+        "history": "{{timestamp, timestamp_date}}"
+      },
+      "tooltips": {
+        "current": "Najnowszy raport ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "Raport z {{timestamp, timestamp_long_no_seconds}}"
+      }
     }
+  },
+  "transitions": {
+    "new": "Nowe",
+    "fixed": "Naprawione",
+    "regressed": "Zaregresowane",
+    "malfunctioned": "Uszkodzone"
+  },
+  "timeline": {
+    "empty": "Brak danych",
+    "selected_one": "Wybrano {{ count }} test ({{ percentage }}%) z czasem trwania większym niż {{ minDuration }} i mniejszym niż {{ maxDuration }}",
+    "selected_other": "Wybrano {{ count }} testów ({{ percentage }}%) z czasem trwania większym niż {{ minDuration }} i mniejszym niż {{ maxDuration }}",
+    "host": "Host: {{ host }}",
+    "selected_few": "Wybrano {{ count }} testy ({{ percentage }}%) z czasem trwania większym niż {{ minDuration }} i mniejszym niż {{ maxDuration }}",
+    "selected_many": "Wybrano {{ count }} testów ({{ percentage }}%) z czasem trwania większym niż {{ minDuration }} i mniejszym niż {{ maxDuration }}"
+  },
+  "overview": {
+    "summary": "Podsumowanie",
+    "successRateDescription": "Odsetek testów zaliczonych spośród wszystkich testów.",
+    "dates": "{{start, timestamp_long}} – {{stop, timestamp_long}}",
+    "duration": "Czas trwania: {{duration, format_duration}}",
+    "testCases_one": "{{count}} przypadek testowy",
+    "testCases_other": "{{count}} przypadku testowego",
+    "suites": "Zestawy",
+    "features": "Funkcjonalności według historii",
+    "categories": "Kategorie",
+    "environment": "Środowisko",
+    "executors": "Wykonawcy",
+    "itemsTotal_one": "Łącznie {{count}} element",
+    "itemsTotal_other": "Łącznie {{count}} elementu",
+    "showAll": "Pokaż wszystko",
+    "noItems": "Brak elementów",
+    "noEnvironment": "Brak zmiennych środowiskowych",
+    "noExecutors": "Brak informacji o wykonawcach testów",
+    "build": "Build",
+    "ciBuild": "Build CI",
+    "pullRequest": "Pull request",
+    "branch": "Gałąź",
+    "commit": "Commit",
+    "testCases_few": "{{count}} przypadki testowe",
+    "testCases_many": "{{count}} przypadków testowych",
+    "itemsTotal_few": "Łącznie {{count}} elementy",
+    "itemsTotal_many": "Łącznie {{count}} elementów"
+  },
+  "attachments": {
+    "imageDiff": {
+      "mode": {
+        "diff": "Różnica",
+        "actual": "Aktualny",
+        "expected": "Oczekiwany",
+        "side-by-side": "Obok siebie",
+        "overlay": "Nakładka"
+      },
+      "empty": {
+        "failed-to-load": "Nie udało się załadować porównania obrazów"
+      },
+      "image": {
+        "diff": "Różnica",
+        "actual": "Aktualny",
+        "expected": "Oczekiwany"
+      }
+    }
+  },
+  "tree": {
+    "collapse-all": "Zwiń wszystkie grupy",
+    "expand-all": "Rozwiń wszystkie grupy",
+    "show-groups-info": "Pokaż informacje o grupach",
+    "hide-groups-info": "Ukryj informacje o grupach",
+    "download-csv": "Pobierz CSV",
+    "flaky": "Niestabilny",
+    "retries": "Ponowienia: {{count}}"
   }
 }

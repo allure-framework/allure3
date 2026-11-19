@@ -80,6 +80,20 @@ describe("collectMailData", () => {
     expect(data.stats.total).toBe(3);
   });
 
+  it("counts the retried attempts in the run duration", async () => {
+    const minute = 60 * 1000;
+    const shown = [tr({ id: "a", start: 0, stop: minute }), tr({ id: "b-2", start: 121 * minute, stop: 122 * minute })];
+    const retried = tr({ id: "b-1", start: minute, stop: 121 * minute });
+    const store = {
+      ...createStore(shown),
+      allTestResults: async ({ includeRetries }: { includeRetries?: boolean } = {}) =>
+        includeRetries ? [...shown, retried] : shown,
+    } as unknown as AllureStore;
+    const data = await collectMailData(createContext().context, store);
+
+    expect(data.duration).toBe("2h 2m");
+  });
+
   it("lists failed before broken tests and respects maxFailed", async () => {
     const { context } = createContext();
     const data = await collectMailData(context, createStore(results), { maxFailed: 1 });

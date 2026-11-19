@@ -2,8 +2,8 @@ import { DropdownButton, Link, Menu, SvgIcon, Text, allureIcons } from "@allurer
 import clsx from "clsx";
 import type { ComponentChildren } from "preact";
 
+import { useTreeStore } from "@/components/Tree/context";
 import { useI18n } from "@/stores/locale";
-import { setTreeDirection, setTreeSortBy, treeFiltersStore } from "@/stores/tree";
 
 import * as styles from "./styles.scss";
 
@@ -15,7 +15,8 @@ export const SortBy = () => {
   const { t: sortByLocale } = useI18n("sort-by");
   const { t: sortByValuesLocale } = useI18n("sort-by.values");
   const { t: sortByDirectionsLocale } = useI18n("sort-by.directions");
-  const { sortBy, direction } = treeFiltersStore.value;
+  const { filters, setSortBy: setTreeSortBy, setDirection: setTreeDirection } = useTreeStore();
+  const { sortBy, direction } = filters.value;
 
   const displayedSortByValue = sortByValuesLocale(sortBy);
   const displayedDirection = sortByDirectionsLocale(`${sortBy}-${direction}-short`);

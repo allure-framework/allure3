@@ -492,7 +492,31 @@
       "slice": "{{count}} ტესტი (ყველა ტესტის {{percent}}%)"
     },
     "retry": "ხელახლა ცდა",
-    "loadError": "დიაგრამის ჩატვირთვა ვერ მოხერხდა"
+    "loadError": "დიაგრამის ჩატვირთვა ვერ მოხერხდა",
+    "durationTrend": {
+      "title": "ხანგრძლივობის ტენდენცია",
+      "duration": "ხანგრძლივობა",
+      "value": "{{duration, format_duration}}"
+    },
+    "retriesTrend": {
+      "title": "მცდელობის ტენდენცია",
+      "retry": "ხელახალი ცდები",
+      "run": "ტესტები"
+    },
+    "categoriesTrend": {
+      "title": "კატეგორიზებული ტენდენცია"
+    },
+    "runTrend": {
+      "empty": "მონაცემები არაა ხელმისაწვდომი",
+      "ticks": {
+        "current": "ბოლო",
+        "history": "{{timestamp, timestamp_date}}"
+      },
+      "tooltips": {
+        "current": "ბოლო ანგარიში ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "{{timestamp, timestamp_long_no_seconds}} ანგარიში"
+      }
+    }
   },
   "transitions": {
     "description": {

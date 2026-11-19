@@ -1,5 +1,27 @@
 @import "../../variables.scss";
 
+@mixin icon-bar {
+  width: $sidebar-collapsed;
+  min-width: $sidebar-collapsed;
+
+  .report-info {
+    display: none;
+  }
+
+  .text,
+  .brand-text,
+  .badge {
+    visibility: hidden;
+    opacity: 0;
+    white-space: nowrap;
+  }
+
+  .collapse,
+  .link {
+    white-space: nowrap;
+  }
+}
+
 .side-nav {
   background: $app-nav-bg;
   width: $sidebar-full-width;
@@ -51,9 +73,57 @@
   .item {
     display: block;
   }
+  .brand-logo {
+    flex: none;
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
+  }
+
+  .brand-text {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+
   .language-picker {
     display: flex;
     justify-content: center;
+  }
+
+  .theme-button {
+    display: flex;
+    justify-content: center;
+    color: $text-muted-color;
+
+    button,
+    button:hover,
+    svg {
+      color: inherit;
+    }
+
+    &:hover {
+      color: $sidebar-hover-text-color;
+    }
+  }
+
+  .report-info {
+    padding: 8px 8px 0 16px;
+    color: $text-muted-color;
+  }
+
+  .report-info-line {
+    display: block;
+    overflow-wrap: anywhere;
   }
 
   .link,
@@ -128,24 +198,19 @@
   }
 
   &.collapsed {
-    width: $sidebar-collapsed;
-    min-width: $sidebar-collapsed;
+    @include icon-bar;
 
     .collapse-icon {
       transform: rotate(-90deg);
     }
+  }
 
-    .text,
-    .brand-text,
-    .badge {
-      visibility: hidden;
-      opacity: 0;
-      white-space: nowrap;
-    }
+  // Phones get the icon bar only: the expanded nav would take half the screen
+  @media (max-width: $narrow-max-width) {
+    @include icon-bar;
 
-    .collapse,
-    .link {
-      white-space: nowrap;
+    .collapse {
+      display: none;
     }
   }
 

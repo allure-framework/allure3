@@ -42,6 +42,7 @@ const entries = {
   Attachment: "src/components/Attachment/Attachment.tsx",
   ChartWidget: "src/components/Charts/ChartWidget.tsx",
   CodeViewer: "src/components/Attachment/CodeViewer.tsx",
+  ErrorDiff: "src/components/TestResultError/ErrorDiff.tsx",
   Grid: "src/components/Grid/index.tsx",
   Timeline: "src/components/Timeline/index.ts",
   SuccessRatePieChart: "src/components/Charts/SuccessRatePieChart/index.tsx",

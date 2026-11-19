@@ -62,10 +62,12 @@
   "empty": {
     "no-results": "Aucun résultat",
     "no-tests-found": "Aucun résultat trouvé",
+    "no-message-provided": "Aucun message fourni",
     "clear-filters": "Effacer les filtres",
     "no-attachments-results": "Aucune information sur les pièces jointes disponible",
     "no-history-results": "Aucune information sur l'historique disponible",
-    "no-retries-results": "Aucune information sur les réessais disponible"
+    "no-retries-results": "Aucune information sur les réessais disponible",
+    "no-test-steps-results": "Aucune information sur les étapes de test disponible"
   },
   "severity": {
     "blocker": "bloquant",
@@ -96,7 +98,17 @@
     "showMore": "Montrer plus",
     "copy": "Copier",
     "attempt": "Tentative {{attempt}} sur {{total}}",
-    "at": "à"
+    "at": "à",
+    "generated": "Généré",
+    "precondition": "Précondition",
+    "expectedResult": "Résultat attendu",
+    "categories": "Catégories",
+    "tags": "Tags",
+    "owner": "Propriétaire",
+    "fullname": "Nom complet",
+    "test-case-id": "ID du cas de test",
+    "history-id": "ID de l'historique",
+    "successRate": "Taux de réussite {{rate}} % ({{passed}} sur {{total}})"
   },
   "controls": {
     "backToOverview": "Retour à l'aperçu",
@@ -112,28 +124,321 @@
     "expand": "Agrandir",
     "fullscreen": "Plein écran",
     "language": "Changer la langue",
-    "openInNewTab": "Ouvrir dans un nouvel onglet"
+    "openInNewTab": "Ouvrir dans un nouvel onglet",
+    "theme": "Changer de thème",
+    "showDiff": "Afficher la différence",
+    "comparison": "Comparaison",
+    "expected": "Attendu",
+    "actual": "Réel",
+    "viewMode": "Mode d'affichage",
+    "unified": "Unifié",
+    "side-by-side": "Côte à côte",
+    "compareBy": "Comparer par",
+    "chars": "caractères",
+    "words": "mots",
+    "lines": "lignes",
+    "loadComparisonError": "Échec du chargement de la comparaison",
+    "retry": "Réessayer",
+    "loadAttachmentViewerError": "Échec du chargement de la visionneuse de pièces jointes",
+    "previewAttachment": "Aperçu",
+    "viewCode": "Voir le code"
   },
   "errors": {
     "missedAttachment": "Pièce jointe non trouvée"
   },
   "nav": {
+    "overview": "Vue d'ensemble",
+    "behaviors": "Comportements",
+    "categories": "Catégories",
+    "graphs": "Graphiques",
+    "packages": "Paquets",
+    "suites": "Suites",
+    "timeline": "Chronologie",
     "comingSoon": "Bientôt"
   },
   "charts": {
     "retry": "Réessayer",
     "loadError": "Échec du chargement du graphique",
+    "currentStatus": {
+      "title": "Statut actuel",
+      "status": {
+        "passed": "$t(statuses:passed, capitalize)",
+        "failed": "$t(statuses:failed, capitalize)",
+        "broken": "$t(statuses:broken, capitalize)",
+        "skipped": "$t(statuses:skipped, capitalize)",
+        "unknown": "$t(statuses:unknown, capitalize)"
+      },
+      "percentage": "{{percentage}}%",
+      "of": "sur {{total}}",
+      "total": "total",
+      "tests": {
+        "new_zero": "Aucun nouveau test",
+        "new_one": "{{count}} nouveau test",
+        "new_other": "{{count}} nouveaux tests",
+        "flaky_zero": "Aucun test instable",
+        "flaky_one": "{{count}} test instable",
+        "flaky_other": "{{count}} tests instables",
+        "retries_zero": "Aucun test relancé",
+        "retries_one": "{{count}} test relancé",
+        "retries_other": "{{count}} tests relancés"
+      }
+    },
+    "statusDynamics": {
+      "title": "Dynamique des statuts",
+      "status": {
+        "passed": "$t(statuses:passed, capitalize)",
+        "failed": "$t(statuses:failed, capitalize)",
+        "broken": "$t(statuses:broken, capitalize)",
+        "skipped": "$t(statuses:skipped, capitalize)",
+        "unknown": "$t(statuses:unknown, capitalize)"
+      },
+      "no-history": "$t(empty:no-history-results)",
+      "no-results": "$t(empty:no-results)",
+      "tooltips": {
+        "current": "Dernier rapport ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "Rapport du {{timestamp, timestamp_long_no_seconds}}"
+      },
+      "ticks": {
+        "current": "Derniers",
+        "history": "{{timestamp, timestamp_date}}"
+      }
+    },
+    "statusTransitions": {
+      "title": "Transitions de statut",
+      "legend": {
+        "trend": "Taux de correction"
+      },
+      "transitions": {
+        "new": "$t(transitions:new, capitalize)",
+        "fixed": "$t(transitions:fixed, capitalize)",
+        "regressed": "$t(transitions:regressed, capitalize)",
+        "malfunctioned": "$t(transitions:malfunctioned, capitalize)"
+      },
+      "no-history": "$t(empty:no-history-results)",
+      "no-results": "$t(empty:no-results)",
+      "tooltips": {
+        "current": "Dernier rapport ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "Rapport du {{timestamp, timestamp_long_no_seconds}}"
+      },
+      "ticks": {
+        "current": "Derniers",
+        "history": "{{timestamp, timestamp_date}}"
+      }
+    },
+    "durations": {
+      "title": "Histogramme des durées par {{groupBy}}",
+      "title_none": "Histogramme des durées",
+      "no-results": "$t(empty:no-results)",
+      "groupBy": {
+        "none": "Aucun",
+        "layer": "Couche"
+      },
+      "ticks": {
+        "durationRange": "{{from, format_duration}} - {{to, format_duration}}"
+      },
+      "tooltips": {
+        "durationRange": "{{from, format_duration}} - {{to, format_duration}}"
+      },
+      "legend": {
+        "value": "{{value}}",
+        "total": "Nombre de tests"
+      }
+    },
+    "stabilityDistribution": {
+      "title": "Distribution de stabilité",
+      "no-results": "$t(empty:no-results)",
+      "legend": {
+        "stabilityRate": "Taux de stabilité"
+      }
+    },
+    "testBaseGrowthDynamics": {
+      "title": "Dynamique de croissance de la base de tests",
+      "status": {
+        "newpassed": "Nouveau $t(statuses:passed)",
+        "newfailed": "Nouveau $t(statuses:failed)",
+        "newbroken": "Nouveau $t(statuses:broken)",
+        "newskipped": "Nouveau $t(statuses:skipped)",
+        "newunknown": "Nouveau $t(statuses:unknown)",
+        "removedpassed": "Supprimé $t(statuses:passed)",
+        "removedfailed": "Supprimé $t(statuses:failed)",
+        "removedbroken": "Supprimé $t(statuses:broken)",
+        "removedskipped": "Supprimé $t(statuses:skipped)",
+        "removedunknown": "Supprimé $t(statuses:unknown)"
+      },
+      "legend": {
+        "trend": "Tendance de croissance"
+      },
+      "no-history": "$t(empty:no-history-results)",
+      "no-results": "$t(empty:no-results)",
+      "tooltips": {
+        "current": "Dernier rapport ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "Rapport du {{timestamp, timestamp_long_no_seconds}}"
+      },
+      "ticks": {
+        "current": "Dernier",
+        "history": "{{timestamp, timestamp_date}}"
+      }
+    },
+    "statusAgePyramid": {
+      "title": "Pyramide des âges par statut",
+      "status": {
+        "passed": "$t(statuses:passed, capitalize)",
+        "failed": "$t(statuses:failed, capitalize)",
+        "broken": "$t(statuses:broken, capitalize)",
+        "skipped": "$t(statuses:skipped, capitalize)",
+        "unknown": "$t(statuses:unknown, capitalize)"
+      },
+      "no-history": "$t(empty:no-history-results)",
+      "no-results": "$t(empty:no-results)",
+      "tooltips": {
+        "current": "Dernier rapport ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "Rapport du {{timestamp, timestamp_long_no_seconds}}"
+      },
+      "ticks": {
+        "current": "Dernier",
+        "history": "{{timestamp, timestamp_date}}"
+      }
+    },
+    "trSeverities": {
+      "title": "Résultats des tests par sévérité",
+      "no-results": "$t(empty:no-results)",
+      "status": {
+        "passed": "$t(statuses:passed, capitalize)",
+        "failed": "$t(statuses:failed, capitalize)",
+        "broken": "$t(statuses:broken, capitalize)",
+        "skipped": "$t(statuses:skipped, capitalize)",
+        "unknown": "$t(statuses:unknown, capitalize)"
+      },
+      "severity": {
+        "blocker": "$t(severity:blocker, capitalize)",
+        "critical": "$t(severity:critical, capitalize)",
+        "normal": "$t(severity:normal, capitalize)",
+        "minor": "$t(severity:minor, capitalize)",
+        "trivial": "$t(severity:trivial, capitalize)",
+        "unset": "Aucune sévérité"
+      }
+    },
+    "durationDynamics": {
+      "title": "Dynamique de durée",
+      "durations": {
+        "sequential": "Durée séquentielle",
+        "duration": "Durée des tests",
+        "speedup": "Accélération"
+      },
+      "no-results": "$t(empty:no-results)",
+      "tooltips": {
+        "current": "Dernier rapport ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "Rapport du {{timestamp, timestamp_long_no_seconds}}"
+      },
+      "ticks": {
+        "current": "Dernier",
+        "history": "{{timestamp, timestamp_date}}"
+      },
+      "legend": {
+        "duration": "{{duration, format_duration}}",
+        "speedup": "{{speedup}}x"
+      }
+    },
     "successRate": {
       "successRate": "Taux de réussite : {{rate}}",
       "successRateDescription": "Calculé à partir des tests réussis, échoués et en erreur. Les tests ignorés et de statut inconnu sont exclus.",
-      "noResults": "Aucun résultat de test.",
       "noEligibleResults": "Aucun test réussi, échoué ou en erreur. Les tests ignorés et de statut inconnu sont exclus du taux de réussite.",
+      "noResults": "Aucun résultat de test.",
+      "notAvailable": "N/D",
       "slice_one": "{{count}} test ({{percent}}% de tous les tests)",
       "slice_other": "{{count}} tests ({{percent}}% de tous les tests)",
       "layer": "Niveau : {{layer}}",
       "statusSlice": "{{count}} {{status}} ({{percent}}% de tous les tests)",
       "slice": "{{count}} tests ({{percent}}% de tous les tests)",
       "slice_many": "{{count}} tests ({{percent}}% de tous les tests)"
+    },
+    "durationTrend": {
+      "title": "Tendance de la durée",
+      "duration": "Durée",
+      "value": "{{duration, format_duration}}"
+    },
+    "retriesTrend": {
+      "title": "Tendance des tentatives",
+      "retry": "Réessais",
+      "run": "Tests"
+    },
+    "categoriesTrend": {
+      "title": "Tendance des catégories"
+    },
+    "runTrend": {
+      "empty": "Il n'y a rien à montrer",
+      "ticks": {
+        "current": "Derniers",
+        "history": "{{timestamp, timestamp_date}}"
+      },
+      "tooltips": {
+        "current": "Dernier rapport ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "Rapport du {{timestamp, timestamp_long_no_seconds}}"
+      }
     }
+  },
+  "transitions": {
+    "new": "Nouveaux",
+    "fixed": "Corrigés",
+    "regressed": "Régression",
+    "malfunctioned": "Défectueux"
+  },
+  "timeline": {
+    "empty": "Aucune donnée",
+    "selected_one": "{{ count }} test ({{ percentage }}%) avec une durée supérieure à {{ minDuration }} et inférieure à {{ maxDuration }} sélectionné",
+    "selected_other": "{{ count }} tests ({{ percentage }}%) avec une durée supérieure à {{ minDuration }} et inférieure à {{ maxDuration }} sélectionnés",
+    "host": "Hôte : {{ host }}"
+  },
+  "overview": {
+    "summary": "Résumé",
+    "successRateDescription": "Part des tests réussis parmi tous les tests.",
+    "dates": "{{start, timestamp_long}} – {{stop, timestamp_long}}",
+    "duration": "Durée: {{duration, format_duration}}",
+    "testCases_one": "{{count}} cas de test",
+    "testCases_other": "{{count}} cas de test",
+    "suites": "Suites",
+    "features": "Fonctionnalités par histoires",
+    "categories": "Catégories",
+    "environment": "Environnement",
+    "executors": "Exécuteurs",
+    "itemsTotal_one": "{{count}} élément au total",
+    "itemsTotal_other": "{{count}} éléments au total",
+    "showAll": "Tout afficher",
+    "noItems": "Aucun élément",
+    "noEnvironment": "Aucune variable d'environnement",
+    "noExecutors": "Aucune information sur les exécuteurs de tests",
+    "build": "Build",
+    "ciBuild": "Build CI",
+    "pullRequest": "Pull request",
+    "branch": "Branche",
+    "commit": "Commit"
+  },
+  "attachments": {
+    "imageDiff": {
+      "mode": {
+        "diff": "Diff",
+        "actual": "Réel",
+        "expected": "Attendu",
+        "side-by-side": "Côte à côte",
+        "overlay": "Superposition"
+      },
+      "empty": {
+        "failed-to-load": "Échec du chargement de la comparaison d'images"
+      },
+      "image": {
+        "diff": "Diff",
+        "actual": "Réel",
+        "expected": "Attendu"
+      }
+    }
+  },
+  "tree": {
+    "collapse-all": "Réduire tous les groupes",
+    "expand-all": "Développer tous les groupes",
+    "show-groups-info": "Afficher les infos des groupes",
+    "hide-groups-info": "Masquer les infos des groupes",
+    "download-csv": "Télécharger le CSV",
+    "flaky": "Instable",
+    "retries": "Relances : {{count}}"
   }
 }

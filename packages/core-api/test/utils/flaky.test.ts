@@ -45,7 +45,7 @@ const sequenceCase = (sequence: string): { current: TestResult; history: (Histor
     .reverse(),
 });
 
-describe("getTestFlakiness", () => {
+describe("Status Changes", () => {
   const cases: [string, boolean | undefined][] = [
     ["P", undefined],
     ["F", undefined],
@@ -94,22 +94,21 @@ describe("getTestFlakiness", () => {
   });
 
   const windows: [string, FlakinessOptions | undefined, boolean | undefined][] = [
-    ["FPPPPFFFPPPP", undefined, false],
+    ["FPPPPFFFPPPP", undefined, true],
+    ["FPPPPFFFPPPP", { historyDepth: undefined, stabilizationPeriod: undefined }, true],
     ["FPPPPFFFPPPP", { historyDepth: 10 }, false],
     ["FPPPPFFFPPPP", { historyDepth: 11 }, true],
     ["FPPPPFFFPPPP", { historyDepth: 0 }, true],
     ["FBF-P", { historyDepth: 0 }, undefined],
     ["FBF", { historyDepth: -1 }, undefined],
-    ["FBF", { historyDepth: 1 }, false],
-    ["FBF", { historyDepth: 2 }, true],
+    ["FBF", { historyDepth: 3, stabilizationPeriod: 2 }, true],
     ["FBF", { stabilizationPeriod: 1 }, false],
     ["FBF", { stabilizationPeriod: 3 }, true],
-    ["FBF", { stabilizationPeriod: 4, historyDepth: 2 }, true],
-    ["FFF", { stabilizationPeriod: 4, historyDepth: 2 }, false],
+    ["FBFFFBF", { stabilizationPeriod: 3, historyDepth: 4 }, true],
     ["PFPFPP", { stabilizationPeriod: 3 }, true],
     ["PFPFPPP", { stabilizationPeriod: 3 }, false],
     ["FBFFFBF", { stabilizationPeriod: 3 }, true],
-    ["P-PFBF", { historyDepth: 2 }, true],
+    ["P-PFBF", { historyDepth: 4, stabilizationPeriod: 3 }, true],
   ];
   it.each(windows)("classifies %s with %j as %s", (sequence, options, expected) => {
     const { current, history } = sequenceCase(sequence);
@@ -119,24 +118,27 @@ describe("getTestFlakiness", () => {
     expect(result).toBe(expected);
   });
 
-  it("ignores resolved noncomparable results before applying the limit without mutating inputs", () => {
-    const { current, history } = sequenceCase("FBF");
-    const entries = [
-      { id: current.id, name: "duplicate", status: "passed" as const, url: "" },
-      { id: "skipped", name: "skipped", status: "skipped" as const, url: "" },
-      { id: "unknown", name: "unknown", status: "unknown" as const, url: "" },
-      ...history,
-    ];
-    const snapshot = structuredClone({ current, entries });
-    Object.freeze(current);
-    entries.forEach((entry) => Object.freeze(entry));
-    Object.freeze(entries);
+  it.each(["status-changes", "retry-failure-rate"] as const)(
+    "slices raw history before filtering for %s without mutating inputs",
+    (algorithm) => {
+      const { current, history } = sequenceCase("FBP");
+      const entries = [
+        { id: current.id, name: "duplicate", status: "passed" as const, url: "" },
+        { id: "skipped", name: "skipped", status: "skipped" as const, url: "" },
+        { id: "unknown", name: "unknown", status: "unknown" as const, url: "" },
+        ...history,
+      ].map((result) => (result ? { ...result, retries: [] } : undefined));
+      const snapshot = structuredClone({ current, entries });
+      Object.freeze(current);
+      entries.forEach((entry) => Object.freeze(entry));
+      Object.freeze(entries);
 
-    const result = getTestFlakiness(current, entries, { historyDepth: 2 });
+      const result = getTestFlakiness(current, entries, { algorithm, historyDepth: 3, stabilizationPeriod: 2 });
 
-    expect(result).toBe(true);
-    expect({ current, entries }).toEqual(snapshot);
-  });
+      expect(result).toBe(algorithm === "status-changes" ? undefined : false);
+      expect({ current, entries }).toEqual(snapshot);
+    },
+  );
   it.each(["skipped", "unknown"] as const)("leaves only noncomparable %s history unassessed", (status) => {
     const { current } = sequenceCase("F");
     const history = [{ id: "history", name: "test", status, url: "" }];

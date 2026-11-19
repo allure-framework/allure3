@@ -492,7 +492,31 @@
       "slice": "{{count}} 個測試（占全部測試的 {{percent}}%）"
     },
     "retry": "重試",
-    "loadError": "無法載入圖表"
+    "loadError": "無法載入圖表",
+    "durationTrend": {
+      "title": "持續時間趨勢",
+      "duration": "持續時間",
+      "value": "{{duration, format_duration}}"
+    },
+    "retriesTrend": {
+      "title": "重試趨勢",
+      "run": "測試",
+      "retry": "重試"
+    },
+    "categoriesTrend": {
+      "title": "類別趨勢"
+    },
+    "runTrend": {
+      "empty": "沒有可顯示的內容",
+      "tooltips": {
+        "current": "最新報告 ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "報告時間:{{timestamp, timestamp_long_no_seconds}}"
+      },
+      "ticks": {
+        "current": "最新",
+        "history": "{{timestamp, timestamp_date}}"
+      }
+    }
   },
   "transitions": {
     "description": {

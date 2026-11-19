@@ -16,6 +16,20 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const localesDir = join(__dirname, "../src/locales");
 
 describe("dashboard locales", () => {
+  it("defines run trend labels for every locale", () => {
+    const localeFiles = readdirSync(localesDir).filter((file) => file.endsWith(".json"));
+
+    localeFiles.forEach((file) => {
+      const { charts } = JSON.parse(readFileSync(join(localesDir, file), "utf8"));
+
+      expect(charts.durationTrend.title, file).toEqual(expect.stringMatching(/\S/));
+      expect(charts.durationTrend.value, file).toContain("format_duration");
+      expect(charts.retriesTrend.retry, file).toEqual(expect.stringMatching(/\S/));
+      expect(charts.categoriesTrend.title, file).toEqual(expect.stringMatching(/\S/));
+      expect(charts.runTrend.ticks.history, file).toContain("timestamp_date");
+    });
+  });
+
   it("defines the label of the back to overview link for every locale", () => {
     const localeFiles = readdirSync(localesDir).filter((file) => file.endsWith(".json"));
 

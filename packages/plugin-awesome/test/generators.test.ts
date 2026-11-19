@@ -13,6 +13,7 @@ import type {
   TestFixtureResult,
   TestResult,
 } from "@allurereport/core-api";
+import { normalizeCategoriesConfig } from "@allurereport/core-api";
 import type {
   AllureStore,
   ReportQualityGateResults,
@@ -36,7 +37,6 @@ import {
   generateStatistic,
   generateTestResults,
   generateTree,
-  getRunSummary,
 } from "../src/generators.js";
 
 beforeEach(async () => {
@@ -62,35 +62,6 @@ const getTestResultsStats = (trs: TestResult[], filter: (tr: TestResult) => bool
     { total: trsToProcess.length } as Record<string, number>,
   );
 };
-
-describe("getRunSummary", () => {
-  it("should return undefined for empty result input", () => {
-    expect(getRunSummary([])).toBeUndefined();
-  });
-
-  it("should derive launch interval from valid result timings", () => {
-    expect(
-      getRunSummary([
-        { start: 1000, stop: 2000 },
-        { start: 500, stop: 2500 },
-        { start: 1500, stop: 1800 },
-      ]),
-    ).toEqual({
-      start: 500,
-      stop: 2500,
-      duration: 2000,
-    });
-  });
-
-  it("should ignore results without valid timing data", () => {
-    expect(
-      getRunSummary([
-        { start: undefined, stop: 2000 },
-        { start: 1000, stop: undefined },
-      ]),
-    ).toBeUndefined();
-  });
-});
 
 const mockTestResult = (id: string, name: string, status: TestResult["status"]): TestResult & ReportTestResult =>
   ({
@@ -151,6 +122,32 @@ const mockFixtureResult = (
   }) as TestFixtureResult;
 
 describe("generateAllCharts", () => {
+  it("should count the configured categories in the categories trend", async () => {
+    const writtenWidgets = new Map<string, unknown>();
+    const writer = {
+      writeWidget: vi.fn(async (fileName: string, data: unknown) => {
+        writtenWidgets.set(fileName, data);
+      }),
+    } as unknown as AwesomeDataWriter;
+    const store = {
+      allEnvironmentIdentities: vi.fn().mockResolvedValue([{ id: "default", name: "default" }]),
+      allTestResults: vi.fn().mockResolvedValue([mockTestResult("tr-1", "failed test", "failed")]),
+      allHistoryDataPoints: vi.fn().mockResolvedValue([]),
+    } as unknown as AllureStore;
+    const context = {
+      reportName: "Test report",
+      categories: normalizeCategoriesConfig([{ name: "Environment category", matchedStatuses: ["failed"] }]),
+    } as unknown as PluginContext;
+
+    await generateAllCharts(writer, store, { charts: [{ type: ChartType.CategoriesTrend }] }, context);
+
+    const { general } = writtenWidgets.get("charts.json") as {
+      general: Record<string, { categories: string[] }>;
+    };
+
+    expect(Object.values(general)[0].categories).toEqual(["Environment category"]);
+  });
+
   it("should filter chart data when filter is passed in options", async () => {
     const testResults: TestResult[] = [
       mockTestResult("tr-1", "passed test", "passed"),

@@ -226,7 +226,31 @@
       "slice": "{{count}} test (tüm testlerin %{{percent}} kadarı)"
     },
     "retry": "Yeniden dene",
-    "loadError": "Grafik yüklenemedi"
+    "loadError": "Grafik yüklenemedi",
+    "durationTrend": {
+      "title": "Süre trendi",
+      "duration": "Süre",
+      "value": "{{duration, format_duration}}"
+    },
+    "retriesTrend": {
+      "title": "Tekrar trendi",
+      "retry": "Tekrar Denemeler",
+      "run": "Testler"
+    },
+    "categoriesTrend": {
+      "title": "Kategoriler trendi"
+    },
+    "runTrend": {
+      "empty": "Gösterilecek bir şey yok",
+      "ticks": {
+        "current": "Son",
+        "history": "{{timestamp, timestamp_date}}"
+      },
+      "tooltips": {
+        "current": "Son rapor ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "{{timestamp, timestamp_long_no_seconds}} tarihli rapor"
+      }
+    }
   },
   "transitions": {
     "description": {

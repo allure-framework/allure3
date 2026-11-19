@@ -492,7 +492,31 @@
       "slice": "테스트 {{count}}개 (전체 테스트의 {{percent}}%)"
     },
     "retry": "다시 시도",
-    "loadError": "차트를 불러오지 못했습니다"
+    "loadError": "차트를 불러오지 못했습니다",
+    "durationTrend": {
+      "title": "소요시간 트렌드",
+      "duration": "소요 시간",
+      "value": "{{duration, format_duration}}"
+    },
+    "retriesTrend": {
+      "title": "재시도 트렌드",
+      "retry": "재시도",
+      "run": "테스트"
+    },
+    "categoriesTrend": {
+      "title": "카테고리 트렌드"
+    },
+    "runTrend": {
+      "empty": "정보가 없습니다.",
+      "ticks": {
+        "current": "최신",
+        "history": "{{timestamp, timestamp_date}}"
+      },
+      "tooltips": {
+        "current": "최신 보고서 ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "{{timestamp, timestamp_long_no_seconds}} 보고서"
+      }
+    }
   },
   "transitions": {
     "description": {

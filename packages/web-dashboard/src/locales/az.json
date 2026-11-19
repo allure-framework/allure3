@@ -226,7 +226,31 @@
       "slice": "{{count}} test (bütün testlərin {{percent}}%-i)"
     },
     "retry": "Yenidən cəhd et",
-    "loadError": "Diaqramı yükləmək mümkün olmadı"
+    "loadError": "Diaqramı yükləmək mümkün olmadı",
+    "durationTrend": {
+      "title": "Müddət trendi",
+      "duration": "Müddət",
+      "value": "{{duration, format_duration}}"
+    },
+    "retriesTrend": {
+      "title": "Yenidən cəhdlər trendi",
+      "retry": "Təkrar cəhdlər",
+      "run": "Testlər"
+    },
+    "categoriesTrend": {
+      "title": "Kateqoriyalar trendi"
+    },
+    "runTrend": {
+      "empty": "Göstəriləcək heç nə yoxdur",
+      "ticks": {
+        "current": "Sonuncu",
+        "history": "{{timestamp, timestamp_date}}"
+      },
+      "tooltips": {
+        "current": "Son hesabat ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "{{timestamp, timestamp_long_no_seconds}} tarixli hesabat"
+      }
+    }
   },
   "transitions": {
     "description": {

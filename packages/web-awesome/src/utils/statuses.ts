@@ -13,13 +13,18 @@ export const getUnresolvedStatusCounts = (
   stats: Statistic,
   trees: Record<string, ReportTree> | undefined,
   environmentId?: string,
+  allEnvironmentIds: string[] = [],
 ): Partial<Record<TestStatus, number>> => {
   if (!trees) {
     return getRawStatusCounts(stats);
   }
 
-  const counts: Partial<Record<TestStatus, number>> = {};
-  const envIds = environmentId ? [environmentId] : Object.keys(trees);
+  // Every status gets an explicit count, so a status whose results are all resolved reads as 0
+  // instead of being absent and making callers fall back to the raw stats.
+  const counts: Partial<Record<TestStatus, number>> = Object.fromEntries(statusesList.map((status) => [status, 0]));
+  // Without a selected environment the counts cover every environment of the report, not only
+  // the trees loaded so far, so a missing tree falls back to the raw stats instead of reading as 0.
+  const envIds = environmentId ? [environmentId] : allEnvironmentIds.length ? allEnvironmentIds : Object.keys(trees);
 
   if (envIds.some((envId) => !trees[envId])) {
     return getRawStatusCounts(stats);

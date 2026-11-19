@@ -35,6 +35,7 @@ import {
   type ReportFiles,
   type ResultFile,
   createTestResultRegistry,
+  isPluginFatalError,
 } from "@allurereport/plugin-api";
 import {
   allure1,
@@ -92,7 +93,6 @@ const { version } = JSON.parse(readFileSync(new URL("../package.json", import.me
 const INIT_REQUIRED_ERROR_MESSAGE = "report is not initialised. Call the start() method first.";
 const DEFAULT_READ_CONCURRENCY = 64;
 const MAX_READ_CONCURRENCY = 256;
-const DEFAULT_UPLOAD_CONCURRENCY = 10;
 const TEST_RESULTS_REGISTRY_FILENAME = "test-results.json";
 const QUALITY_GATE_RESULTS_FILENAME = "quality-gate.json";
 // directories next to the report ones that are not reports on their own, for example the `export` one with the
@@ -120,6 +120,9 @@ const readConcurrency = () => {
 
   return Math.min(MAX_READ_CONCURRENCY, Math.max(1, parsed));
 };
+
+const fatalPluginErrorMessage = (pluginId: string, error: Error) =>
+  `Plugin "${pluginId}" failed the report generation: ${error.message}`;
 
 const clonePluginSummary = (summary: PluginSummary): PluginSummary => structuredClone(summary);
 
@@ -212,6 +215,7 @@ export class AllureReport {
   #artifactFilesByPath: Map<string, ReportArtifact> = new Map();
   #published = false;
   readonly #failedGenerationPlugins = new Set<string>();
+  readonly #fatalPluginErrors: { pluginId: string; error: Error }[] = [];
   #endGeneratePerfSpan?: () => void;
   #resolvedReportUrl?: string;
   #reportUrl?: string;
@@ -254,7 +258,7 @@ export class AllureReport {
       const allureServiceClientConfig = {
         ...allureService,
         accessToken: allureServiceAccessToken,
-        uploadConcurrency: parseIntegerConfigValue(allureService.uploadConcurrency, 1) ?? DEFAULT_UPLOAD_CONCURRENCY,
+        uploadConcurrency: parseIntegerConfigValue(allureService.uploadConcurrency, 1),
       };
 
       this.#allureServiceClient = allureServiceAccessToken.startsWith("ato1.")
@@ -1303,6 +1307,25 @@ export class AllureReport {
   };
 
   done = async (): Promise<void> => {
+    await this.#finish();
+
+    // the report is finished anyway, then a fatal plugin error makes the caller fail (e.g. the CLI exits with 1)
+    this.#throwFatalPluginErrors();
+  };
+
+  #throwFatalPluginErrors = (): void => {
+    if (this.#fatalPluginErrors.length === 0) {
+      return;
+    }
+
+    const message = this.#fatalPluginErrors
+      .map(({ pluginId, error }) => fatalPluginErrorMessage(pluginId, error))
+      .join("\n");
+
+    throw new KnownError(message, undefined, { cause: this.#fatalPluginErrors[0].error });
+  };
+
+  #finish = async (): Promise<void> => {
     const summaries: PluginSummary[] = [];
 
     if (this.#executionStage !== "running") {
@@ -1331,6 +1354,23 @@ export class AllureReport {
       await this.#resolveReportUrl();
 
       this.#overviewHref = await this.#resolveOverviewHref();
+
+      // fatal plugin errors have to be in the store before any report, summary or history entry is written
+      await this.#eachPlugin(false, async (plugin, context) => {
+        try {
+          await plugin.prepare?.(context, this.#store);
+        } catch (e) {
+          // only `prepare` can fail the generation: a later fatal error could not reach the reports already rendered
+          if (isPluginFatalError(e)) {
+            this.#fatalPluginErrors.push({ pluginId: context.id, error: e });
+          }
+
+          throw e;
+        }
+      });
+      this.#fatalPluginErrors.forEach(({ pluginId, error }) => {
+        this.#store.addFatalError({ message: fatalPluginErrorMessage(pluginId, error) });
+      });
 
       // isolate logs of different reports dumps: done and summary
       const failedPlugins = await measurePerf(PERF_METRIC_NAMES.generatePluginsDone, () =>

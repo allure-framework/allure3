@@ -1,10 +1,28 @@
 import { copyToClipboard, getReportOptions } from "@allurereport/web-commons";
 import { cleanup, fireEvent, render, screen } from "@testing-library/preact";
 import type { ComponentChildren } from "preact";
+import type { ReportTreeLeaf } from "types";
 import { type Mock, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 import { ReportMetadata } from "@/components/ReportMetadata";
 import { MetadataSummary } from "@/components/ReportMetadata/MetadataSummary";
+import { getUnresolvedStatusCounts } from "@/utils/statuses";
+
+const resolvedLeaf = (
+  nodeId: string,
+  status: ReportTreeLeaf["status"],
+  resolutionStatus: ReportTreeLeaf["resolutionStatus"],
+): ReportTreeLeaf => ({
+  nodeId,
+  id: nodeId,
+  name: nodeId,
+  status,
+  duration: 1,
+  groupOrder: 1,
+  flaky: false,
+  retry: false,
+  resolutionStatus,
+});
 
 const {
   setTreeFlakyMock,
@@ -265,6 +283,32 @@ describe("components > ReportMetadata", () => {
     expect(screen.getByTestId("metadata-item-failed")).toHaveTextContent("Failed1");
     expect(screen.queryByTestId("metadata-item-broken")).not.toBeInTheDocument();
     expect(screen.getByTestId("metadata-item-passed")).toHaveTextContent("Passed7");
+  });
+
+  it("should hide the failed and broken summary counters when every such result is resolved", () => {
+    const stats = { total: 4, failed: 2, broken: 1, passed: 1 };
+    const statusCounts = getUnresolvedStatusCounts(
+      stats,
+      {
+        default: {
+          root: { groups: [], leaves: ["failed-issue", "failed-muted", "broken-accepted", "passed"] },
+          groupsById: {},
+          leavesById: {
+            "failed-issue": resolvedLeaf("failed-issue", "failed", "issue"),
+            "failed-muted": resolvedLeaf("failed-muted", "failed", "muted"),
+            "broken-accepted": resolvedLeaf("broken-accepted", "broken", "accepted"),
+            "passed": resolvedLeaf("passed", "passed", "none"),
+          },
+        },
+      },
+      "default",
+    );
+
+    render(<MetadataSummary stats={stats} statusCounts={statusCounts} />);
+
+    expect(screen.queryByTestId("metadata-item-failed")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("metadata-item-broken")).not.toBeInTheDocument();
+    expect(screen.getByTestId("metadata-item-passed")).toHaveTextContent("Passed1");
   });
 
   it("should clear summary metadata filters when total is clicked", () => {

@@ -1,4 +1,12 @@
-import type { HistoryDataPoint, SeverityLevel, Statistic, TestResult, TestStatus } from "@allurereport/core-api";
+import type {
+  CategoryDefinition,
+  FlakinessOptions,
+  HistoryDataPoint,
+  SeverityLevel,
+  Statistic,
+  TestResult,
+  TestStatus,
+} from "@allurereport/core-api";
 
 // Chart types and enums
 export enum ChartType {
@@ -15,6 +23,9 @@ export enum ChartType {
   CoverageDiff = "coverageDiff",
   SuccessRateDistribution = "successRateDistribution",
   ProblemsDistribution = "problemsDistribution",
+  DurationTrend = "durationTrend",
+  RetriesTrend = "retriesTrend",
+  CategoriesTrend = "categoriesTrend",
 }
 
 export enum ChartDataType {
@@ -243,7 +254,7 @@ export interface StabilityDistributionChartData {
     id: string;
     /**
      * Percentage of assessed tests classified stable, from 0 to 100.
-     * Tests without comparable history are excluded unless explicitly reported flaky.
+     * Tests with insufficient evidence are excluded unless explicitly reported flaky.
      */
     stabilityRate: number;
   }[];
@@ -310,6 +321,46 @@ export type DurationDynamicsChartData = {
   }[];
 };
 
+/**
+ * A single run on the Allure 2 like trend charts (history points first, the current run last)
+ */
+export type RunTrendPoint = {
+  id: string;
+  name: string;
+  timestamp: number;
+};
+
+export type DurationTrendChartData = {
+  type: ChartType.DurationTrend;
+  title?: string;
+  /**
+   * The time the run took from the start of the first test to the end of the last one, in milliseconds
+   */
+  data: (RunTrendPoint & { duration: number })[];
+};
+
+export type RetriesTrendChartData = {
+  type: ChartType.RetriesTrend;
+  title?: string;
+  /**
+   * `run` is the number of tests, `retry` is the number of their earlier attempts
+   */
+  data: (RunTrendPoint & { run: number; retry: number })[];
+};
+
+export type CategoriesTrendChartData = {
+  type: ChartType.CategoriesTrend;
+  title?: string;
+  /**
+   * The number of tests in each category by category name
+   */
+  data: (RunTrendPoint & { categories: Record<string, number> })[];
+  /**
+   * Names of the categories present in the data, in the order the categories are matched
+   */
+  categories: string[];
+};
+
 // Union types for generated chart data
 export type GeneratedChartData =
   | TrendChartData
@@ -324,7 +375,10 @@ export type GeneratedChartData =
   | HeatMapChartData
   | TestingPyramidChartData
   | TrSeveritiesChartData
-  | DurationDynamicsChartData;
+  | DurationDynamicsChartData
+  | DurationTrendChartData
+  | RetriesTrendChartData
+  | CategoriesTrendChartData;
 
 export type GeneratedChartsData = Record<ChartId, GeneratedChartData>;
 
@@ -395,19 +449,23 @@ export type DurationsChartOptions = {
   groupBy?: "layer" | "none";
 };
 
-export type StabilityDistributionChartOptions = {
+export type StabilityDistributionChartOptions = Pick<FlakinessOptions, "algorithm" | "retryFailureThreshold"> & {
   type: ChartType.StabilityDistribution;
   title?: string;
   /**
-   * Maximum comparable previous executions per test; current is included separately.
+   * Maximum previous history entries selected per test before classification.
+   * Positive values select history.slice(0, limit), including noncomparable entries.
+   * Current is included separately. Omit to use the whole history array.
    * Missing tests reset the calculation. Zero disables the chart.
    *
-   * @default 10
+   * @default undefined
    */
   limit?: number;
   /**
-   * Consecutive identical passed, failed, or broken outcomes that reset earlier instability.
-   * For bounded history, this is capped at the previous-execution limit plus current.
+   * Consecutive identical final outcomes (status-changes) or uniform attempt sequences
+   * (retry failure rate) that reset earlier instability. Retry failure rate discards
+   * the stabilizing streak and all older evidence; mixed sequences do not stabilize.
+   * Must be a positive integer, less than a positive limit. Defaults to 5.
    *
    * @default 5
    */
@@ -514,6 +572,17 @@ export type DurationDynamicsChartOptions = {
   limit?: number;
 };
 
+export type RunTrendChartOptions = {
+  type: ChartType.DurationTrend | ChartType.RetriesTrend | ChartType.CategoriesTrend;
+  title?: string;
+  /**
+   * Limit of runs shown on the chart, including the current one
+   *
+   * @default 10
+   */
+  limit?: number;
+};
+
 export type TreeMapChartOptions = {
   type: ChartType.CoverageDiff | ChartType.SuccessRateDistribution;
   title?: string;
@@ -543,7 +612,16 @@ export type ChartOptions =
   | StatusAgePyramidChartOptions
   | TestBaseGrowthDynamicsChartOptions
   | TrSeveritiesChartOptions
-  | DurationDynamicsChartOptions;
+  | DurationDynamicsChartOptions
+  | RunTrendChartOptions;
+
+/**
+ * Returns the categories of a test result, in the order they are counted
+ */
+export type CategoriesMatcher = (
+  categories: CategoryDefinition[],
+  tr: Pick<TestResult, "status" | "labels" | "error" | "flaky" | "duration" | "transition" | "environment">,
+) => { name: string }[];
 
 export interface AllureChartsStoreData {
   historyDataPoints: HistoryDataPoint[];
@@ -551,6 +629,14 @@ export interface AllureChartsStoreData {
   /** Current results including retries, after the same environment and chart filters as testResults. */
   allTestResults?: TestResult[];
   statistic: Statistic;
+  /**
+   * Categories the test results are matched to, in matching order; the default categories when not set
+   */
+  categories?: CategoryDefinition[];
+  /**
+   * How a test result gets its categories in the categories trend, the first matching one when not set
+   */
+  matchCategories?: CategoriesMatcher;
 }
 
 export interface TrendDataAccessor<T extends TrendDataType> {

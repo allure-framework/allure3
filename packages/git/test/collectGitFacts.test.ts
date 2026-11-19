@@ -529,6 +529,26 @@ describe("collectGitFacts", () => {
     ).toEqual([]);
   });
 
+  it("keeps the merged head with unknown ancestors when its history cannot be read", () => {
+    mockHappyGit();
+    const happyGit = runGit.getMockImplementation()!;
+
+    runGit.mockImplementation((args: string[]) => {
+      if (args[0] === "cat-file") {
+        return `tree ${COMMIT_A}\nparent ${COMMIT_A}\nparent ${COMMIT_B}\nauthor a\n\nmessage`;
+      }
+
+      return args[0] === "rev-list" && args[1] === "--first-parent" && args[2] === COMMIT_B
+        ? undefined
+        : happyGit(args);
+    });
+
+    expect(collectGitFacts({ sourceCommit: COMMIT_B })).toMatchObject({
+      commit: COMMIT_B,
+      firstParentAncestors: [],
+    });
+  });
+
   it("continues lineage collection when deepen fetch fails", () => {
     mockHappyGit();
 

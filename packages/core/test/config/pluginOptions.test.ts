@@ -17,6 +17,60 @@ afterEach(() => {
   vi.useRealTimers();
 });
 
+describe("plugin expression warnings", () => {
+  it("uses constructor metadata for nested fields and never scans evaluated results", async () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const path = fileURLToPath(new URL("../fixtures/expression-plugin.mjs", import.meta.url));
+
+    const plugin = await resolvePlugin(
+      "custom-plugin",
+      {
+        sections: [{ title: "${{ '${{ literal }}' }}", unknown: "${{ env.SECRET }}" }],
+      },
+      path,
+    );
+
+    expect(plugin.options.sections[0].title).toBe("${{ literal }}");
+    expect(warn.mock.calls).toEqual([
+      [
+        'Dynamic expressions are not supported at config.plugins["custom-plugin"].options.sections[0].unknown; the value will not be evaluated.',
+      ],
+    ]);
+  });
+
+  it("warns for options when the selected constructor has no metadata", async () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+
+    const plugin = await resolvePlugin("csv", { filter: "${{ literal }}" }, "@allurereport/plugin-progress");
+    await resolvePlugin("csv", { filter: "${{ another }}" }, "@allurereport/plugin-progress");
+
+    expect(plugin.options.filter).toBe("${{ literal }}");
+    expect(warn.mock.calls).toEqual([
+      ["Dynamic expressions are not supported at config.plugins.csv.options.filter; the value will not be evaluated."],
+    ]);
+  });
+
+  it("ignores discarded maps and inspects disabled selected plugins exactly once", async () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const input = { plugins: { discarded: { import: "not-a-plugin", options: { title: "${{ ignored }}" } } } };
+
+    const empty = await resolveConfig(input, { plugins: {} });
+    expect(empty.plugins).toEqual([]);
+    expect(warn).not.toHaveBeenCalled();
+    await resolveConfig(input, {
+      plugins: {
+        selected: { import: "@allurereport/plugin-progress", enabled: false, options: { title: "${{ literal }}" } },
+      },
+    });
+
+    expect(warn.mock.calls).toEqual([
+      [
+        "Dynamic expressions are not supported at config.plugins.selected.options.title; the value will not be evaluated.",
+      ],
+    ]);
+  });
+});
+
 describe("plugin option expressions", () => {
   it.each(["awesome", "classic", "dashboard", "csv", "log", "testops"])("normalizes %s test filters", async (kind) => {
     const plugin = await resolvePlugin(

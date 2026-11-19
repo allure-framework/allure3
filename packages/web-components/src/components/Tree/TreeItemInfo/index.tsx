@@ -19,6 +19,8 @@ export interface TreeItemInfoProps {
   transition?: TestStatusTransition;
   transitionTooltip?: string;
   tooltips?: Partial<Record<string, string>>;
+  /** Render no duration instead of the "unknown" text when the duration is missing */
+  hideUnknownDuration?: boolean;
 }
 
 const resolutionToIcon: Record<ResolutionCategory, string> = {
@@ -35,8 +37,9 @@ export const TreeItemInfo: FunctionComponent<TreeItemInfoProps> = ({
   resolution,
   transition,
   tooltips,
+  hideUnknownDuration = false,
 }) => {
-  const formattedDuration = formatDuration(duration);
+  const formattedDuration = typeof duration !== "number" && hideUnknownDuration ? undefined : formatDuration(duration);
 
   return (
     <div className={styles["item-info"]}>
@@ -72,9 +75,11 @@ export const TreeItemInfo: FunctionComponent<TreeItemInfoProps> = ({
           />
         </TooltipWrapper>
       )}
-      <Text data-testid="tree-leaf-duration" type="ui" size={"m"} className={styles["item-info-time"]}>
-        {formattedDuration}
-      </Text>
+      {formattedDuration !== undefined && (
+        <Text data-testid="tree-leaf-duration" type="ui" size={"m"} className={styles["item-info-time"]}>
+          {formattedDuration}
+        </Text>
+      )}
     </div>
   );
 };

@@ -234,7 +234,31 @@
       "slice_many": "{{count}} тестов ({{percent}}% всех тестов)"
     },
     "retry": "Повторить",
-    "loadError": "Не удалось загрузить график"
+    "loadError": "Не удалось загрузить график",
+    "durationTrend": {
+      "title": "Тренд длительности",
+      "duration": "Длительность",
+      "value": "{{duration, format_duration}}"
+    },
+    "retriesTrend": {
+      "title": "Тренд перезапусков",
+      "retry": "Перезапуски",
+      "run": "Тесты"
+    },
+    "categoriesTrend": {
+      "title": "Тренд категорий"
+    },
+    "runTrend": {
+      "empty": "Нет данных",
+      "ticks": {
+        "current": "Последний",
+        "history": "{{timestamp, timestamp_date}}"
+      },
+      "tooltips": {
+        "current": "Последний отчёт ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "Отчёт от {{timestamp, timestamp_long_no_seconds}}"
+      }
+    }
   },
   "transitions": {
     "description": {

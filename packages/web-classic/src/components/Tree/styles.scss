@@ -60,7 +60,8 @@
     border-top: 1px solid var(--color-border-subtle);
   }
 }
-.tree-item-marked {
+.tree-item-marked,
+.tree-header-marked {
   background: var(--color-bg-secondary);
 }
 
@@ -68,10 +69,9 @@
   display: flex;
 }
 
-.item-time {
+.item-info {
   flex: none;
   margin-left: auto;
-  color: var(--color-text-muted);
 }
 
 .test-count {

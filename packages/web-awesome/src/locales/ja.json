@@ -492,7 +492,31 @@
       "slice": "{{count}} 件のテスト（全テストの {{percent}}%）"
     },
     "retry": "再試行",
-    "loadError": "チャートを読み込めませんでした"
+    "loadError": "チャートを読み込めませんでした",
+    "durationTrend": {
+      "title": "期間の傾向",
+      "duration": "所要時間",
+      "value": "{{duration, format_duration}}"
+    },
+    "retriesTrend": {
+      "title": "再実行の傾向",
+      "retry": "再試行",
+      "run": "テスト"
+    },
+    "categoriesTrend": {
+      "title": "カテゴリーの傾向"
+    },
+    "runTrend": {
+      "empty": "何も表示するものがありません",
+      "ticks": {
+        "current": "最新",
+        "history": "{{timestamp, timestamp_date}}"
+      },
+      "tooltips": {
+        "current": "最新レポート ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "{{timestamp, timestamp_long_no_seconds}} のレポート"
+      }
+    }
   },
   "transitions": {
     "description": {

@@ -33,3 +33,8 @@
 .arrow-button-icon--opened {
   transform: rotate(0);
 }
+
+// In right-to-left layouts a collapsed chevron points to the start of the line (left)
+:global([dir="rtl"]) .arrow-button-icon:not(.arrow-button-icon--opened) {
+  transform: rotate(90deg);
+}

@@ -4,6 +4,7 @@
       "settings": {
         "typescript": {
           "tsdk": "node_modules/typescript/lib",
+          "preferGoToSourceDefinition": true,
         },
         "vtsls": {
           "autoUseWorkspaceTsdk": true,
@@ -50,4 +51,3 @@
     },
   },
 }
-

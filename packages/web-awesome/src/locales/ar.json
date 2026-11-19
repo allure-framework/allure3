@@ -491,7 +491,31 @@
       "slice_many": "{{count}} اختبارًا ({{percent}}% من جميع الاختبارات)"
     },
     "retry": "إعادة المحاولة",
-    "loadError": "تعذّر تحميل الرسم البياني"
+    "loadError": "تعذّر تحميل الرسم البياني",
+    "durationTrend": {
+      "duration": "المدة",
+      "value": "{{duration, format_duration}}",
+      "title": "اتجاه المدة"
+    },
+    "retriesTrend": {
+      "retry": "محاولات الإعادة",
+      "run": "الاختبارات",
+      "title": "اتجاه إعادة المحاولات"
+    },
+    "categoriesTrend": {
+      "title": "اتجاه الفئات"
+    },
+    "runTrend": {
+      "empty": "$t(empty:no-results)",
+      "ticks": {
+        "current": "الأحدث",
+        "history": "{{timestamp, timestamp_date}}"
+      },
+      "tooltips": {
+        "current": "أحدث تقرير ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "تقرير من {{timestamp, timestamp_long_no_seconds}}"
+      }
+    }
   },
   "transitions": {
     "description": {

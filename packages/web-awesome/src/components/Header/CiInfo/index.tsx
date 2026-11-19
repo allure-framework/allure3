@@ -1,6 +1,6 @@
-import { CiDescriptor, CiType, sanitizeExternalUrl } from "@allurereport/core-api";
-import { getReportOptions } from "@allurereport/web-commons";
-import { SvgIcon, Text, allureIcons } from "@allurereport/web-components/core";
+import { CiDescriptor, sanitizeExternalUrl } from "@allurereport/core-api";
+import { getCiLabel, getCiLink, getReportOptions } from "@allurereport/web-commons";
+import { SvgIcon, Text, getCiIconId } from "@allurereport/web-components/core";
 import type { ClassValue } from "clsx";
 import clsx from "clsx";
 
@@ -16,18 +16,7 @@ interface CiIconProps {
   type?: CiDescriptor["type"];
 }
 
-const ciIconIds: Partial<Record<CiType, string>> = {
-  [CiType.Amazon]: allureIcons.amazon,
-  [CiType.Azure]: allureIcons.azure,
-  [CiType.Bitbucket]: allureIcons.bitbucket,
-  [CiType.Circle]: allureIcons.circleci,
-  [CiType.Drone]: allureIcons.drone,
-  [CiType.Github]: allureIcons.github,
-  [CiType.Gitlab]: allureIcons.gitlab,
-  [CiType.Jenkins]: allureIcons.jenkins,
-};
-
-export const getCiIconId = (type?: CiDescriptor["type"]) => (type ? ciIconIds[type] : undefined);
+export { getCiIconId, getCiLabel };
 
 export const CiIcon = ({ type }: CiIconProps) => {
   const id = getCiIconId(type);
@@ -38,7 +27,7 @@ export const CiIcon = ({ type }: CiIconProps) => {
 export const CiInfo = ({ className }: CiInfoProps) => {
   const { ci } = getReportOptions<ReportOptions>();
 
-  const ciLink = ci ? ci.pullRequestUrl || ci.jobRunUrl || ci.jobUrl : undefined;
+  const ciLink = getCiLink(ci);
   const ciLabel = getCiLabel(ci, ciLink);
   const safeLink = sanitizeExternalUrl(ciLink);
 
@@ -65,12 +54,4 @@ export const CiInfo = ({ className }: CiInfoProps) => {
       </Text>
     </a>
   );
-};
-
-export const getCiLabel = (ci?: CiDescriptor, link?: string) => {
-  if (!ci) {
-    return undefined;
-  }
-
-  return ci.pullRequestName || ci.jobRunName || ci.jobName || link;
 };

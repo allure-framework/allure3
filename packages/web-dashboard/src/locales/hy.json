@@ -226,7 +226,31 @@
       "slice": "{{count}} թեստ (բոլոր թեստերի {{percent}}%-ը)"
     },
     "retry": "Կրկին փորձել",
-    "loadError": "Չհաջողվեց բեռնել գծապատկերը"
+    "loadError": "Չհաջողվեց բեռնել գծապատկերը",
+    "durationTrend": {
+      "title": "Տևողության միտում",
+      "duration": "Տևողություն",
+      "value": "{{duration, format_duration}}"
+    },
+    "retriesTrend": {
+      "title": "Կրկնությունների միտում",
+      "run": "Թեստեր",
+      "retry": "Կրկնություններ"
+    },
+    "categoriesTrend": {
+      "title": "Կատեգորիաների միտում"
+    },
+    "runTrend": {
+      "empty": "Ցուցադրելու ոչինչ չկա",
+      "tooltips": {
+        "current": "Վերջին հաշվետվություն ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "Հաշվետվություն՝ {{timestamp, timestamp_long_no_seconds}}"
+      },
+      "ticks": {
+        "current": "Վերջին",
+        "history": "{{timestamp, timestamp_date}}"
+      }
+    }
   },
   "transitions": {
     "description": {

@@ -66,7 +66,8 @@
     "clear-filters": "Clear filters",
     "no-attachments-results": "No attachments information available",
     "no-history-results": "No history information available",
-    "no-retries-results": "No retries information available"
+    "no-retries-results": "No retries information available",
+    "no-test-steps-results": "No test steps information available"
   },
   "severity": {
     "blocker": "blocker",
@@ -97,7 +98,17 @@
     "showMore": "Show more",
     "copy": "Copy",
     "attempt": "Attempt {{attempt}} of {{total}}",
-    "at": "at"
+    "at": "at",
+    "generated": "Generated",
+    "precondition": "Precondition",
+    "expectedResult": "Expected result",
+    "categories": "Categories",
+    "tags": "Tags",
+    "owner": "Owner",
+    "fullname": "Full name",
+    "test-case-id": "Test case ID",
+    "history-id": "History ID",
+    "successRate": "Success rate {{rate}}% ({{passed}} of {{total}})"
   },
   "controls": {
     "backToOverview": "Back to overview",
@@ -113,7 +124,24 @@
     "expand": "Expand",
     "fullscreen": "Full screen",
     "language": "Change language",
-    "openInNewTab": "Open in new tab"
+    "openInNewTab": "Open in new tab",
+    "theme": "Change theme",
+    "showDiff": "Show difference",
+    "comparison": "Comparison",
+    "expected": "Expected",
+    "actual": "Actual",
+    "viewMode": "View mode",
+    "unified": "Unified",
+    "side-by-side": "Side by Side",
+    "compareBy": "Compare by",
+    "chars": "chars",
+    "words": "words",
+    "lines": "lines",
+    "loadComparisonError": "Failed to load comparison",
+    "retry": "Retry",
+    "loadAttachmentViewerError": "Failed to load attachment viewer",
+    "previewAttachment": "Preview",
+    "viewCode": "View code"
   },
   "errors": {
     "missedAttachment": "Attachment not found"
@@ -314,14 +342,38 @@
     "successRate": {
       "successRate": "Success rate: {{rate}}",
       "successRateDescription": "Calculated from passed, failed, and broken tests. Skipped and unknown tests are excluded.",
-      "noResults": "There are no test results.",
       "noEligibleResults": "There are no passed, failed, or broken tests. Skipped and unknown tests are excluded from the success rate.",
+      "noResults": "There are no test results.",
       "notAvailable": "N/A",
       "slice_one": "{{count}} test ({{percent}}% of all tests)",
       "slice_other": "{{count}} tests ({{percent}}% of all tests)",
       "layer": "Layer: {{layer}}",
       "statusSlice": "{{count}} {{status}} ({{percent}}% of all tests)",
       "slice": "{{count}} tests ({{percent}}% of all tests)"
+    },
+    "durationTrend": {
+      "title": "Duration trend",
+      "duration": "Duration",
+      "value": "{{duration, format_duration}}"
+    },
+    "retriesTrend": {
+      "title": "Retries trend",
+      "run": "Tests",
+      "retry": "Retries"
+    },
+    "categoriesTrend": {
+      "title": "Categories trend"
+    },
+    "runTrend": {
+      "empty": "There is nothing to show",
+      "tooltips": {
+        "current": "Latest report ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "Report from {{timestamp, timestamp_long_no_seconds}}"
+      },
+      "ticks": {
+        "current": "Latest",
+        "history": "{{timestamp, timestamp_date}}"
+      }
     }
   },
   "transitions": {
@@ -329,5 +381,64 @@
     "fixed": "fixed",
     "regressed": "regressed",
     "malfunctioned": "malfunctioned"
+  },
+  "timeline": {
+    "empty": "No data",
+    "selected_one": "Selected {{ count }} test ({{ percentage }}%) with duration more than {{ minDuration }} and less than {{ maxDuration }}",
+    "selected_other": "Selected {{ count }} tests ({{ percentage }}%) with duration more than {{ minDuration }} and less than {{ maxDuration }}",
+    "host": "Host: {{ host }}"
+  },
+  "overview": {
+    "summary": "Summary",
+    "successRateDescription": "Share of passed tests among all tests.",
+    "dates": "{{start, timestamp_long}} – {{stop, timestamp_long}}",
+    "duration": "Duration: {{duration, format_duration}}",
+    "testCases_one": "{{count}} test case",
+    "testCases_other": "{{count}} test cases",
+    "suites": "Suites",
+    "features": "Features by stories",
+    "categories": "Categories",
+    "environment": "Environment",
+    "executors": "Executors",
+    "itemsTotal_one": "{{count}} item total",
+    "itemsTotal_other": "{{count}} items total",
+    "showAll": "Show all",
+    "noItems": "There are no items",
+    "noEnvironment": "There are no environment variables",
+    "noExecutors": "There is no information about test executors",
+    "build": "Build",
+    "ciBuild": "CI build",
+    "pullRequest": "Pull request",
+    "branch": "Branch",
+    "commit": "Commit"
+  },
+  "attachments": {
+    "imageDiff": {
+      "mode": {
+        "diff": "Diff",
+        "actual": "Actual",
+        "expected": "Expected",
+        "side-by-side": "Side by side",
+        "overlay": "Overlay"
+      },
+      "empty": {
+        "failed-to-load": "Failed to load image diff"
+      },
+      "image": {
+        "diff": "Diff",
+        "actual": "Actual",
+        "expected": "Expected"
+      }
+    }
+  },
+  "tree": {
+    "collapse-all": "Collapse all groups",
+    "expand-all": "Expand all groups",
+    "show-groups-info": "Show groups info",
+    "hide-groups-info": "Hide groups info",
+    "download-csv": "Download CSV",
+    "flaky": "Flaky",
+    "retries_one": "{{count}} retry",
+    "retries_other": "{{count}} retries"
   }
 }

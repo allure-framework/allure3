@@ -403,4 +403,22 @@ describe("components > TestResult > bodyItems", () => {
     expect(wrapped.item.type).toBe("step");
     expect(wrapped.bodyItems).toEqual(getStepBodyItems([sampleStep]));
   });
+
+  it("fixtureResultToTrStepItem keeps the fixture error and its nested-step dedupe flag", () => {
+    const fixture: ReportFixtureResult = {
+      id: "fixture-before-2",
+      type: "before",
+      name: "broken before",
+      status: "broken",
+      error: { message: "connection refused", trace: "at connect" },
+      hasSimilarErrorInSubSteps: true,
+      steps: [{ ...sampleStep, status: "broken", message: "connection refused" }],
+    };
+
+    const wrapped = fixtureResultToTrStepItem(fixture);
+
+    expect(wrapped.item.message).toBe("connection refused");
+    expect(wrapped.item.trace).toBe("at connect");
+    expect(wrapped.item.hasSimilarErrorInSubSteps).toBe(true);
+  });
 });

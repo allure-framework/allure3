@@ -68,7 +68,7 @@ or unsupported configuration fields.
 Display names and titles accept full `${{ ... }}` expressions with `env` and `date`:
 
 ```yaml
-name: "${{ (has(env.REPORT_NAME) ? env.REPORT_NAME : 'Allure Report') + ' - ' + date.isoDate }}"
+name: "${{ env.?REPORT_NAME.orValue('Allure Report') + ' - ' + date.isoDate }}"
 plugins:
   csv:
     options:
@@ -87,7 +87,8 @@ Supported fields:
 
 Plugin options are evaluated only where the plugin declares expression support, including explicit
 imports, custom instance IDs and participating third-party plugins. Undeclared options, filenames,
-keys and IDs are not evaluated.
+keys and IDs are not evaluated. Expression-looking values in unsupported fields produce a warning
+identifying the configuration path, without including the value; those values remain literal.
 Expressions must return strings; syntax, type, or evaluation failures identify the configuration
 path and fail configuration resolution. Ordinary strings remain literal. There is no interpolation
 inside larger strings: put the entire expression inside `${{ ... }}`.
@@ -96,7 +97,10 @@ The `--report-name` / `--name` CLI options and programmatic report-name override
 They take precedence over the configured `name` without evaluating either the override or the
 replaced configuration value. Report-name expressions belong in the configuration file's `name` field.
 
-`env` contains defined process environment variables. Guard optional values with `has(env.NAME)`.
+`env` contains defined process environment variables. Use CEL optional access and a fallback,
+for example `${{ env.?REPORT_NAME.orValue('Allure Report') }}`, when a variable may be absent.
+The fallback applies only to an absent value; an explicitly empty environment variable stays empty.
+Use `has(env.NAME)` when you need to branch on whether the variable is defined.
 `date` is a single UTC snapshot shared by all names in a configuration:
 
 | Field | Value |

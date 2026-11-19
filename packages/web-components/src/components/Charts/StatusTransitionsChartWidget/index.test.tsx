@@ -63,7 +63,7 @@ describe("StatusTransitionsChartWidget", () => {
     expect(props.formatBottomTick("history")).toBe("ticks.history:100");
     expect(props.formatBottomTick("current")).toBe("ticks.current");
     expect(props.formatIndexBy({ id: "history", timestamp: 100 })).toBe("tooltips.history:100");
-    expect(props.formatIndexBy({ id: "current", timestamp: 200 })).toBe("tooltips.current");
+    expect(props.formatIndexBy({ id: "current", timestamp: 200 })).toBe("tooltips.current:200");
     expect(props.formatLeftTick(-2)).toBe("2");
     expect(props.formatLeftTick(0.5)).toBe("");
   });

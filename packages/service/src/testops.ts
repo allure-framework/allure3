@@ -1,10 +1,10 @@
 import { extname, join as joinPosix } from "node:path/posix";
 
-import { type HistoryDataPoint } from "@allurereport/core-api";
+import { type AllureLogger, type HistoryDataPoint, type TestPlanTest } from "@allurereport/core-api";
 
 import {
   ALLURE_SERVICE_TESTOPS_PREFIX,
-  type AllureServiceApiClient,
+  AllureServiceApiClient,
   type AllureServiceApiClientConfig,
   type UploadReportPayload,
 } from "./model.js";
@@ -41,22 +41,40 @@ const createUploadBlob = (content: Buffer, filename: string) =>
 const createReportFileUrl = (baseUrl: string, reportUuid: string, reportFilename: string) =>
   `${baseUrl}/api/test-report/view/${joinPosix(reportUuid, reportFilename)}`;
 
-export class AllureTestOpsClient implements AllureServiceApiClient {
+export type AllureTestOpsClientConfig = AllureServiceApiClientConfig & {
+  projectId?: number | string;
+  url?: string;
+};
+
+export class AllureTestOpsClient extends AllureServiceApiClient {
   readonly #url: string;
   readonly #accessToken: string;
   readonly #projectId: number;
   #client?: HttpClient;
 
-  constructor(readonly config: AllureServiceApiClientConfig) {
+  constructor(config: AllureTestOpsClientConfig, logger?: AllureLogger) {
+    super(config, logger);
+
     if (!config?.accessToken) {
       throw new Error("Allure TestOps access token is required");
     }
 
-    if (!config.accessToken.startsWith(ALLURE_SERVICE_TESTOPS_PREFIX)) {
-      throw new Error("Allure service access token is invalid");
+    const isProjectToken = config.accessToken.startsWith(ALLURE_SERVICE_TESTOPS_PREFIX);
+    if (isProjectToken && (config.projectId !== undefined || config.url !== undefined)) {
+      this.logger.warn("Allure TestOps project token contains projectId and url; explicit values are ignored.");
+    }
+    if (!isProjectToken) {
+      if (!config.projectId) {
+        throw new Error("Allure TestOps project id is required for a user token");
+      }
+      if (!config.url) {
+        throw new Error("Allure TestOps url is required for a user token");
+      }
     }
 
-    const accessTokenPayload = parseServiceToken<{ projectId: number | string }>(config.accessToken);
+    const accessTokenPayload = isProjectToken
+      ? parseServiceToken<{ projectId: number | string }>(config.accessToken)
+      : config;
     const projectId = Number(accessTokenPayload.projectId);
 
     if (!Number.isFinite(projectId)) {
@@ -82,6 +100,29 @@ export class AllureTestOpsClient implements AllureServiceApiClient {
     });
 
     return this.#client;
+  }
+
+  async #getAll<T>(path: string, options: Parameters<HttpClient["get"]>[1] = {}): Promise<T[]> {
+    const client = await this.#authorizedClient();
+    const items: T[] = [];
+    for (let page = 0; ; page++) {
+      const response = await client.get<{ content: T[]; last: boolean }>(path, {
+        ...options,
+        params: { ...options.params, page, size: 100 },
+      });
+      items.push(...response.content);
+      if (response.last || response.content.length === 0) return items;
+    }
+  }
+
+  async getMutedTests(): Promise<TestPlanTest[]> {
+    const tests = await this.#getAll<{ id?: number; fullName?: string }>("/api/rs/testcase/muted", {
+      params: { projectId: this.#projectId, view: "plan" },
+    });
+    return tests.map(({ id, fullName }) => ({
+      ...(id !== undefined ? { id: String(id) } : {}),
+      ...(fullName !== undefined ? { selector: fullName } : {}),
+    }));
   }
 
   async downloadHistory(): Promise<HistoryDataPoint[]> {

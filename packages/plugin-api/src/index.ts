@@ -1,4 +1,5 @@
 export * from "./config.js";
+export * from "./errors.js";
 export type * from "./plugin.js";
 export type * from "./qualityGate.js";
 export type * from "./config/qualityGate.js";
@@ -8,3 +9,5 @@ export type * from "./resultFile.js";
 export * from "./utils/misc.js";
 export * from "./utils/tree.js";
 export * from "./utils/summary.js";
+export * from "./utils/ideaLinks.js";
+export * from "./utils/timeline.js";
