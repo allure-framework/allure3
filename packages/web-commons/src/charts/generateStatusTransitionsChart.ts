@@ -36,7 +36,7 @@ const getStatusTransition = (
 
   const lastStatus = getLastSignificantStatus(history);
 
-  if (lastStatus === tr.status) {
+  if (lastStatus === undefined || lastStatus === tr.status) {
     return;
   }
 

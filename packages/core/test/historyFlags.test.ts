@@ -20,7 +20,7 @@ const testId = "test";
 const retryHash = calculateRetryHash({ testCaseHash: md5Utf8(testId), parametersHash: md5Utf8("") })!;
 const legacyId = "legacy-test";
 const context = { readerId: "test" };
-const point = (timestamp: number, key: string, status: "passed" | "failed"): HistoryDataPoint => ({
+const point = (timestamp: number, key: string, status: TestResult["status"]): HistoryDataPoint => ({
   uuid: `run-${timestamp}`,
   name: `Run ${timestamp}`,
   timestamp,
@@ -44,6 +44,42 @@ beforeEach(async () => {
 });
 
 describe("history flags", () => {
+  it.each([
+    { previous: "skipped", status: "passed" },
+    { previous: "unknown", status: "passed" },
+    { previous: "skipped", status: "failed" },
+    { previous: "unknown", status: "broken" },
+  ] as const)(
+    "does not classify $previous then absent then $status as a status change",
+    async ({ previous, status }) => {
+      const store = storeWithHistory([
+        point(1, legacyId, previous),
+        { ...point(2, retryHash, "passed"), testResults: {} },
+      ]);
+      await store.readHistory();
+      await store.visitTestResult({ ...rawResult, status }, context);
+      const [result] = await store.allTestResults();
+
+      expect(result.transition).toBeUndefined();
+    },
+  );
+
+  it("keeps a first result new when no history exists", async () => {
+    const store = storeWithHistory([]);
+    await store.readHistory();
+    await store.visitTestResult({ ...rawResult, status: "passed" }, context);
+    const [result] = await store.allTestResults();
+    expect(result.transition).toBe("new");
+  });
+
+  it("still classifies a real fix across a skipped result", async () => {
+    const store = storeWithHistory([point(1, legacyId, "failed"), point(2, retryHash, "skipped")]);
+    await store.readHistory();
+    await store.visitTestResult({ ...rawResult, status: "passed" }, context);
+    const [result] = await store.allTestResults();
+    expect(result.transition).toBe("fixed");
+  });
+
   it.each([
     { name: "mixed canonical and legacy", points: mixedHistory },
     { name: "legacy-only", points: legacyHistory },

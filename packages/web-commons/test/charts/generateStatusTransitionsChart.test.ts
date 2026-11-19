@@ -51,6 +51,47 @@ beforeEach(async () => {
 });
 
 describe("generateStatusTransitionsChart", () => {
+  it.each(["passed", "failed", "broken"] as const)(
+    "does not infer a transition to %s from an ignored-only history window",
+    (status) => {
+      const chart = generateStatusTransitionsChart({
+        options: { type: ChartType.StatusTransitions, limit: 2 },
+        storeData: {
+          historyDataPoints: [
+            point("latest", 300, { example: historical("example", "unknown") }),
+            point("baseline", 200, { example: historical("example", "skipped") }),
+            point("outside", 100, { example: historical("example", status) }),
+          ],
+          testResults: [current("example", status, 400)],
+          statistic: { total: 1, [status]: 1 },
+        },
+      });
+      expect(chart.data).toMatchObject([
+        { id: "latest", fixed: 0, regressed: 0, malfunctioned: 0 },
+        { id: "current", fixed: 0, regressed: 0, malfunctioned: 0 },
+      ]);
+    },
+  );
+
+  it("preserves a supplied transition even when its significant history is outside the chart window", () => {
+    const chart = generateStatusTransitionsChart({
+      options: { type: ChartType.StatusTransitions, limit: 2 },
+      storeData: {
+        historyDataPoints: [
+          point("latest", 300, { example: historical("example", "unknown") }),
+          point("baseline", 200, { example: historical("example", "skipped") }),
+          point("outside", 100, { example: historical("example", "failed") }),
+        ],
+        testResults: [{ ...current("example", "passed", 400), transition: "fixed" }],
+        statistic: { total: 1, passed: 1 },
+      },
+    });
+    expect(chart.data).toMatchObject([
+      { id: "latest", fixed: 0, regressed: 0, malfunctioned: 0 },
+      { id: "current", fixed: 1, regressed: 0, malfunctioned: 0 },
+    ]);
+  });
+
   it.each([
     { status: "passed", intermediate: "skipped" },
     { status: "failed", intermediate: "unknown" },
