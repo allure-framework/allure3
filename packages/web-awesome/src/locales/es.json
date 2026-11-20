@@ -304,10 +304,12 @@
       }
     },
     "trendHelp": {
-      "label": "Cómo leer las tendencias",
-      "description": "La línea continua muestra la tendencia del total acumulado dividido por el número de comparaciones. Su altura no indica un número de pruebas. La línea discontinua muestra la tendencia del cambio neto por ejecución."
+      "label": "Cómo leer las tendencias"
     },
     "statusTransitions": {
+      "trendHelp": {
+        "description": "Línea continua: si sube, los estados de las pruebas mejoran en general. Si baja, empeoran. Si es plana, se mantienen estables. Línea discontinua: si sube, la mejora se acelera o el deterioro se ralentiza. Si baja, la mejora se ralentiza o el deterioro se acelera. Si es plana, el ritmo de cambio es constante."
+      },
       "title": "Transiciones de estado",
       "legend": {
         "cumulativeTrend": "Tendencia acumulada",
@@ -357,6 +359,9 @@
       }
     },
     "testBaseGrowthDynamics": {
+      "trendHelp": {
+        "description": "Línea continua: si sube, la base de pruebas crece. Si baja, se reduce. Si es plana, su tamaño es estable. Línea discontinua: si sube, el crecimiento se acelera o la reducción se ralentiza. Si baja, el crecimiento se ralentiza o la reducción se acelera. Si es plana, el ritmo de cambio es constante."
+      },
       "title": "Dinámica de crecimiento de la base de pruebas",
       "status": {
         "newpassed": "Nuevo $t(statuses:passed)",
@@ -377,6 +382,11 @@
       "no-history": "$t(empty:no-history-results)",
       "no-results": "$t(empty:no-results)",
       "tooltips": {
+        "newTests": "Pruebas nuevas",
+        "removedTests": "Pruebas eliminadas",
+        "noChanges": "Sin cambios",
+        "number": "{{value, number}}",
+        "statusCount": "{{status}}: {{count}}",
         "current": "Último informe ({{timestamp, timestamp_long_no_seconds}})",
         "history": "Informe del {{timestamp, timestamp_long_no_seconds}}"
       },

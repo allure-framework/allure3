@@ -304,10 +304,12 @@
       }
     },
     "trendHelp": {
-      "label": "So liest du die Trends",
-      "description": "Die durchgezogene Linie zeigt den Trend der laufenden Summe geteilt durch die Anzahl der Vergleiche. Ihre Höhe gibt keine Testanzahl an. Die gestrichelte Linie zeigt den Trend der Nettoänderung pro Lauf."
+      "label": "So liest du die Trends"
     },
     "statusTransitions": {
+      "trendHelp": {
+        "description": "Durchgezogene Linie: Steigend bedeutet eine Verbesserung der Testergebnisse, fallend eine Verschlechterung und waagerecht stabile Ergebnisse. Gestrichelte Linie: Steigend bedeutet schnellere Verbesserung oder langsamere Verschlechterung, fallend langsamere Verbesserung oder schnellere Verschlechterung. Waagerecht bedeutet ein gleichbleibendes Änderungstempo."
+      },
       "title": "Statusübergänge",
       "legend": {
         "cumulativeTrend": "Kumulativer Trend",
@@ -357,6 +359,9 @@
       }
     },
     "testBaseGrowthDynamics": {
+      "trendHelp": {
+        "description": "Durchgezogene Linie: Steigend bedeutet, dass der Testbestand wächst, fallend, dass er schrumpft, und waagerecht, dass er stabil bleibt. Gestrichelte Linie: Steigend bedeutet schnelleres Wachstum oder langsameres Schrumpfen, fallend langsameres Wachstum oder schnelleres Schrumpfen. Waagerecht bedeutet ein gleichbleibendes Änderungstempo."
+      },
       "title": "Wachstumsdynamik der Testbasis",
       "status": {
         "newpassed": "Neu $t(statuses:passed)",
@@ -377,6 +382,11 @@
       "no-history": "$t(empty:no-history-results)",
       "no-results": "$t(empty:no-results)",
       "tooltips": {
+        "newTests": "Neue Tests",
+        "removedTests": "Entfernte Tests",
+        "noChanges": "Keine Änderungen",
+        "number": "{{value, number}}",
+        "statusCount": "{{status}}: {{count}}",
         "current": "Neuester Bericht ({{timestamp, timestamp_long_no_seconds}})",
         "history": "Bericht vom {{timestamp, timestamp_long_no_seconds}}"
       },

@@ -304,10 +304,12 @@
       }
     },
     "trendHelp": {
-      "label": "如何閱讀趨勢",
-      "description": "實線顯示累計總和除以比較次數後的趨勢。線的高度不代表測試數量。虛線顯示每次執行的淨變化趨勢。"
+      "label": "如何閱讀趨勢"
     },
     "statusTransitions": {
+      "trendHelp": {
+        "description": "實線上升表示測試狀態整體改善，下降表示整體惡化，水平表示狀態穩定。虛線上升表示改善加快或惡化放緩，下降表示改善放緩或惡化加快，水平表示變化速率穩定。"
+      },
       "title": "狀態轉變",
       "legend": {
         "cumulativeTrend": "累積趨勢",
@@ -357,6 +359,9 @@
       }
     },
     "testBaseGrowthDynamics": {
+      "trendHelp": {
+        "description": "實線上升表示測試規模擴大，下降表示規模縮小，水平表示規模穩定。虛線上升表示成長加快或縮減放緩，下降表示成長放緩或縮減加快，水平表示變化速率穩定。"
+      },
       "title": "測試增長趨勢",
       "status": {
         "newpassed": "新增 $t(statuses:passed)",
@@ -377,6 +382,11 @@
       "no-history": "$t(empty:no-history-results)",
       "no-results": "$t(empty:no-results)",
       "tooltips": {
+        "newTests": "新增測試",
+        "removedTests": "移除的測試",
+        "noChanges": "沒有變更",
+        "number": "{{value, number}}",
+        "statusCount": "{{status}}: {{count}}",
         "current": "最新報告 ({{timestamp, timestamp_long_no_seconds}})",
         "history": "報告來自 {{timestamp, timestamp_long_no_seconds}}"
       },

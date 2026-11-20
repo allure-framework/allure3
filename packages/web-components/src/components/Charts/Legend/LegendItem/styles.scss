@@ -68,6 +68,10 @@
 .lineLegendItem {
   max-width: 100%;
 
+  [data-wrap] & {
+    padding-inline: 0;
+  }
+
   .legendName {
     min-width: 0;
   }

@@ -17,6 +17,10 @@ const linearRegression = regressionLinear<{ x: number; y: number }>()
   .x((d) => d.x)
   .y((d) => d.y);
 
+// Band centers are uniformly spaced. Fit in report units before applying the chart scales.
+export const fitValueTrend = <T extends BarDatum>(data: readonly T[], key: keyof T) =>
+  linearRegression(data.map((item, x) => ({ x, y: Number(item[key]) })));
+
 const lineGenerator = line<[number, number]>()
   .x((point) => point[0])
   .y((point) => point[1]);

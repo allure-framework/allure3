@@ -304,10 +304,12 @@
       }
     },
     "trendHelp": {
-      "label": "Comment lire les tendances",
-      "description": "Le trait plein montre la tendance du total cumulé divisé par le nombre de comparaisons. Sa hauteur ne représente pas un nombre de tests. Le trait en pointillé montre la tendance de la variation nette par exécution."
+      "label": "Comment lire les tendances"
     },
     "statusTransitions": {
+      "trendHelp": {
+        "description": "Ligne continue : une pente montante indique une amélioration globale des statuts des tests, une pente descendante une dégradation et une ligne plate une stabilité. Ligne pointillée : une pente montante indique que l’amélioration accélère ou que la dégradation ralentit. Une pente descendante indique l’inverse. Une ligne plate indique un rythme constant."
+      },
       "title": "Transitions de statut",
       "legend": {
         "cumulativeTrend": "Tendance cumulée",
@@ -357,6 +359,9 @@
       }
     },
     "testBaseGrowthDynamics": {
+      "trendHelp": {
+        "description": "Ligne continue : une pente montante indique que le parc de tests grandit, une pente descendante qu’il diminue et une ligne plate que sa taille est stable. Ligne pointillée : une pente montante indique que la croissance accélère ou que la diminution ralentit. Une pente descendante indique l’inverse. Une ligne plate indique un rythme constant."
+      },
       "title": "Dynamique de croissance de la base de tests",
       "status": {
         "newpassed": "Nouveau $t(statuses:passed)",
@@ -377,6 +382,11 @@
       "no-history": "$t(empty:no-history-results)",
       "no-results": "$t(empty:no-results)",
       "tooltips": {
+        "newTests": "Nouveaux tests",
+        "removedTests": "Tests supprimés",
+        "noChanges": "Aucun changement",
+        "number": "{{value, number}}",
+        "statusCount": "{{status}}: {{count}}",
         "current": "Dernier rapport ({{timestamp, timestamp_long_no_seconds}})",
         "history": "Rapport du {{timestamp, timestamp_long_no_seconds}}"
       },

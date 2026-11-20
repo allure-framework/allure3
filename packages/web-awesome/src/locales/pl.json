@@ -312,10 +312,12 @@
       }
     },
     "trendHelp": {
-      "label": "Jak odczytywać trendy",
-      "description": "Linia ciągła przedstawia trend sumy skumulowanej podzielonej przez liczbę porównań. Jej wysokość nie oznacza liczby testów. Linia przerywana przedstawia trend zmiany netto w poszczególnych uruchomieniach."
+      "label": "Jak odczytywać trendy"
     },
     "statusTransitions": {
+      "trendHelp": {
+        "description": "Linia ciągła: wzrost oznacza ogólną poprawę statusów testów, spadek ich pogorszenie, a pozioma linia stabilność. Linia przerywana: wzrost oznacza szybszą poprawę lub wolniejsze pogorszenie. Spadek oznacza wolniejszą poprawę lub szybsze pogorszenie. Pozioma linia oznacza stałe tempo zmian."
+      },
       "title": "Przejścia statusu",
       "legend": {
         "cumulativeTrend": "Trend skumulowany",
@@ -365,6 +367,9 @@
       }
     },
     "testBaseGrowthDynamics": {
+      "trendHelp": {
+        "description": "Linia ciągła: wzrost oznacza powiększanie bazy testów, spadek jej kurczenie, a pozioma linia stabilny rozmiar. Linia przerywana: wzrost oznacza szybsze powiększanie lub wolniejsze kurczenie. Spadek oznacza wolniejsze powiększanie lub szybsze kurczenie. Pozioma linia oznacza stałe tempo zmian."
+      },
       "title": "Dynamika wzrostu bazy testów",
       "status": {
         "newpassed": "Nowy $t(statuses:passed)",
@@ -385,6 +390,11 @@
       "no-history": "$t(empty:no-history-results)",
       "no-results": "$t(empty:no-results)",
       "tooltips": {
+        "newTests": "Nowe testy",
+        "removedTests": "Usunięte testy",
+        "noChanges": "Brak zmian",
+        "number": "{{value, number}}",
+        "statusCount": "{{status}}: {{count}}",
         "current": "Najnowszy raport ({{timestamp, timestamp_long_no_seconds}})",
         "history": "Raport z {{timestamp, timestamp_long_no_seconds}}"
       },

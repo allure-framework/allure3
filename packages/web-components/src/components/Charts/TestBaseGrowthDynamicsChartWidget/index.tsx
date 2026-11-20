@@ -1,17 +1,21 @@
 import type { TestStatus } from "@allurereport/core-api";
-import type { BarDatum } from "@nivo/bar";
 import type { FunctionalComponent } from "preact";
 import { useMemo } from "preact/hooks";
 
 import { EmptyView } from "@/components/EmptyView";
 import { allureIcons } from "@/components/SvgIcon";
+import { TreeItemIcon } from "@/components/Tree/TreeItemIcon";
+import { Text } from "@/components/Typography";
 import { Widget } from "@/components/Widget";
 
 import { BarChart } from "../BarChart/BarChart.js";
-import { formatNumber } from "../Legend/LegendItem/index.js";
+import { fitValueTrend } from "../BarChart/TrendLinesLayer.js";
+import { formatNumber, LegendItem } from "../Legend/LegendItem/index.js";
 import type { LegendItemValue } from "../Legend/LegendItem/types.js";
 import { getColorFromStatus, withCumulativeTrend } from "../utils.js";
 import type { Props, StatusWithPrefix } from "./types.js";
+
+import styles from "./styles.scss";
 
 const isNewStatus = (status: StatusWithPrefix): boolean => {
   return status.startsWith("new:");
@@ -60,7 +64,11 @@ export const TestBaseGrowthDynamicsChartWidget: FunctionalComponent<Props> = (pr
     return result;
   }, [statuses]);
 
-  const legend: LegendItemValue<BarDatum>[] = useMemo(
+  const legend = useMemo<
+    LegendItemValue<
+      { id: string; timestamp: number; diffTrend: number; cumulativeTrend: number } & Record<StatusWithPrefix, number>
+    >[]
+  >(
     () => [
       ...statusesWithPrefixes.map((status) => {
         const statusForI18n = status.replace(":", "");
@@ -107,6 +115,17 @@ export const TestBaseGrowthDynamicsChartWidget: FunctionalComponent<Props> = (pr
 
     return { chartData, maxValue: Math.ceil(maxBarValue * 1.01) };
   }, [data, statusesWithPrefixes]);
+
+  const fittedTrends = useMemo(() => {
+    if (chartData.length < 2) return [];
+
+    return legend
+      .filter(({ type }) => type === "point")
+      .map((entry) => ({
+        entry,
+        fit: fitValueTrend(chartData, entry.id),
+      }));
+  }, [chartData, legend]);
 
   const isChartEmpty = chartData.every((item) => statusesWithPrefixes.every((status) => item[status] === 0));
   // No data at all
@@ -156,12 +175,66 @@ export const TestBaseGrowthDynamicsChartWidget: FunctionalComponent<Props> = (pr
           return i18n("ticks.history", { timestamp: item?.timestamp });
         }}
         bottomTickRotation={45}
-        formatLegendValue={({ value }) => {
-          if (!value) {
-            return "-";
-          }
+        renderTooltipContent={(item) => {
+          const groups = (["new", "removed"] as const)
+            .map((kind) => ({
+              kind,
+              counters: statuses
+                .map((status) => ({ status, count: Math.abs(item[`${kind}:${status}`]) }))
+                .filter(({ count }) => count > 0),
+            }))
+            .filter(({ counters }) => counters.length > 0);
+          const index = chartData.findIndex(({ id }) => id === item.id);
 
-          return formatNumber(Math.abs(Number(value)));
+          return (
+            <>
+              {groups.map(({ kind, counters }) => (
+                <div key={kind} className={styles.row}>
+                  <Text type="ui" size="s" bold>
+                    {i18n(kind === "new" ? "tooltips.newTests" : "tooltips.removedTests")}
+                  </Text>
+                  <div className={styles.counters}>
+                    {counters.map(({ status, count }) => {
+                      const value = i18n("tooltips.number", { value: count });
+                      return (
+                        <div
+                          key={status}
+                          className={styles.counter}
+                          style={{
+                            backgroundColor: `var(--color-status-${status}-bg)`,
+                            color: `var(--color-status-${status}-on-bg)`,
+                          }}
+                        >
+                          <span className={styles.statusText}>
+                            {i18n("tooltips.statusCount", { status: i18n(`statuses:${status}`), count: value })}
+                          </span>
+                          <TreeItemIcon status={status} className={styles.icon} />
+                          <b aria-hidden="true">{value}</b>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
+              {groups.length === 0 && (
+                <Text className={styles.empty} type="ui" size="s">
+                  {i18n("tooltips.noChanges")}
+                </Text>
+              )}
+              {fittedTrends.map(({ entry, fit }) => {
+                const scale = entry.id === "cumulativeTrend" ? chartData.length : 1;
+                const value = Number((fit.predict(index) * scale).toFixed(3));
+
+                return (
+                  <LegendItem
+                    key={entry.id}
+                    mode="menu"
+                    legend={{ ...entry, value: i18n("tooltips.number", { value: value || 0 }) }}
+                  />
+                );
+              })}
+            </>
+          );
         }}
         noLegend
         valueTrends={{

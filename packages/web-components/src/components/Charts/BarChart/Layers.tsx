@@ -2,9 +2,9 @@ import type { BarCustomLayerProps, BarDatum, BarSvgProps, ComputedBarDatum } fro
 import { useMotionConfig } from "@nivo/core";
 import { animated, useSpring } from "@react-spring/web";
 import toNumber from "lodash/toNumber.js";
-import { createContext, createElement } from "preact";
+import { createContext, createElement, type JSX } from "preact";
 import { createPortal } from "preact/compat";
-import { useCallback, useContext, useId, useMemo } from "preact/hooks";
+import { useCallback, useContext, useId, useMemo, useRef } from "preact/hooks";
 
 import { useTooltip } from "@/components/Charts/hooks/useTooltip";
 
@@ -61,6 +61,7 @@ export const BarChartItemHoverLayer = <T extends BarDatum>(
     tooltip: (props: BarChartTooltipProps<T>) => any;
     indexBy: Extract<keyof T, string>;
     hasValueFn?: (data: T) => boolean;
+    inspectionLabel?: (data: T) => string;
     layout?: "vertical" | "horizontal";
     onBarClick?: (value: { data: T }) => void;
   },
@@ -74,12 +75,21 @@ export const BarChartItemHoverLayer = <T extends BarDatum>(
     indexBy,
     layout = "vertical",
     onBarClick,
+    inspectionLabel,
     bars: allBars,
     hasValueFn = (item: T) =>
       Object.entries(item)
         .filter(([key]) => key !== props.indexBy)
         .reduce((acc, [, val]) => acc + toNumber(val ?? 0), 0) > 0,
   } = props;
+  const tooltipId = useId();
+  const focusedRun = useRef<{ target: Element; value: T }>();
+  const restoreFocusedRun = () => {
+    const run = focusedRun.current;
+    if (run?.target === document.activeElement) {
+      void handleShowTooltip(run.target, run.value);
+    }
+  };
   const isInverted = layout === "horizontal";
   const { handleShowTooltip, isVisible, handleHideTooltip, tooltipRef, data } = useTooltip<T>(
     isInverted ? "bottom" : "left",
@@ -116,7 +126,7 @@ export const BarChartItemHoverLayer = <T extends BarDatum>(
   const heightDiff = height - firstBar.height;
 
   return (
-    <animated.g data-testid="hover-layer">
+    <animated.g data-testid="hover-layer" onMouseLeave={inspectionLabel ? restoreFocusedRun : undefined}>
       {bars.map((bar, index) => {
         const x = bar.x - diff / 2;
         const y = bar.y - heightDiff / 2;
@@ -137,7 +147,16 @@ export const BarChartItemHoverLayer = <T extends BarDatum>(
             value={bar.data.data}
             indexBy={indexBy}
             isInteractive={isInteractive}
-            isFocusable={isFocusable}
+            isFocusable={isFocusable || !!inspectionLabel}
+            tooltipLabel={inspectionLabel?.(bar.data.data)}
+            describedBy={isVisible && data === bar.data.data ? tooltipId : undefined}
+            onInspectionFocus={
+              inspectionLabel
+                ? (target) => {
+                    focusedRun.current = target ? { target, value: bar.data.data } : undefined;
+                  }
+                : undefined
+            }
             onTooltipShow={handleShowTooltip}
             onTooltipHide={handleHideTooltip}
             onClick={onBarClick}
@@ -145,7 +164,12 @@ export const BarChartItemHoverLayer = <T extends BarDatum>(
         );
       })}
       {createPortal(
-        <animated.div ref={tooltipRef} style={{ display: tooltipOpacity ? "block" : "none", opacity: tooltipOpacity }}>
+        <animated.div
+          ref={tooltipRef}
+          id={inspectionLabel && isVisible ? tooltipId : undefined}
+          role={inspectionLabel && isVisible ? "tooltip" : undefined}
+          style={{ display: tooltipOpacity ? "block" : "none", opacity: tooltipOpacity }}
+        >
           {isVisible && data && createElement(tooltip, { value: data })}
         </animated.div>,
         document.body,
@@ -162,6 +186,9 @@ const BarChartItemHoverArea = <T extends BarDatum>({
   value,
   isInteractive = true,
   isFocusable = true,
+  tooltipLabel,
+  describedBy,
+  onInspectionFocus,
   indexBy,
   onTooltipShow,
   onTooltipHide,
@@ -174,9 +201,12 @@ const BarChartItemHoverArea = <T extends BarDatum>({
   value: T;
   isInteractive?: boolean;
   isFocusable?: boolean;
+  tooltipLabel?: string;
+  describedBy?: string;
+  onInspectionFocus?: (target: Element | null) => void;
   indexBy: Extract<keyof T, string>;
-  onTooltipShow: (target: HTMLElement, data: T) => void;
-  onTooltipHide: (target: HTMLElement) => void;
+  onTooltipShow: (target: Element, data: T) => void;
+  onTooltipHide: (target?: Element) => void;
   onClick?: (value: { data: T }) => void;
 }) => {
   const [hoverState, setHoverState] = useBarChartState();
@@ -195,14 +225,14 @@ const BarChartItemHoverArea = <T extends BarDatum>({
 
   const handleTooltip = useCallback(
     (event: MouseEvent) => {
-      onTooltipShow(event.target as HTMLElement, value);
+      onTooltipShow(event.target as Element, value);
     },
     [onTooltipShow, value],
   );
 
   const handleMouseEnter = useCallback(
     (event: MouseEvent) => {
-      onTooltipShow(event.target as HTMLElement, value);
+      onTooltipShow(event.target as Element, value);
       setHoverState(String(indexByValue));
     },
     [onTooltipShow, value, setHoverState, indexByValue],
@@ -210,31 +240,49 @@ const BarChartItemHoverArea = <T extends BarDatum>({
 
   const handleMouseLeave = useCallback(
     (event: MouseEvent) => {
-      onTooltipHide(event.target as HTMLElement);
+      const target = event.currentTarget as Element;
+      if (tooltipLabel && target === document.activeElement) {
+        return;
+      }
+
+      onTooltipHide(target);
       setHoverState(undefined);
     },
-    [onTooltipHide, setHoverState],
+    [onTooltipHide, setHoverState, tooltipLabel],
   );
 
   const handleFocus = useCallback(
     (event: FocusEvent) => {
-      onTooltipShow(event.target as HTMLElement, value);
+      const target = event.currentTarget as Element;
+      onInspectionFocus?.(target);
+      onTooltipShow(target, value);
       setHoverState(String(indexByValue));
     },
-    [onTooltipShow, value, setHoverState, indexByValue],
+    [onInspectionFocus, onTooltipShow, value, setHoverState, indexByValue],
   );
 
   const handleBlur = useCallback(
     (event: FocusEvent) => {
-      onTooltipHide(event.target as HTMLElement);
+      onInspectionFocus?.(null);
+      onTooltipHide(event.currentTarget as Element);
       setHoverState(undefined);
     },
-    [onTooltipHide, setHoverState],
+    [onInspectionFocus, onTooltipHide, setHoverState],
   );
 
-  const handleClick = useCallback(() => {
-    onClick?.({ data: value });
-  }, [onClick, value]);
+  const handleClick = useCallback(
+    (event: MouseEvent) => {
+      if (tooltipLabel) {
+        const target = event.currentTarget as SVGElement;
+        target.focus();
+        onInspectionFocus?.(target);
+        onTooltipShow(target, value);
+        setHoverState(String(indexByValue));
+      }
+      onClick?.({ data: value });
+    },
+    [indexByValue, onClick, onInspectionFocus, onTooltipShow, setHoverState, tooltipLabel, value],
+  );
 
   return (
     <animated.rect
@@ -248,7 +296,21 @@ const BarChartItemHoverArea = <T extends BarDatum>({
       onMouseMove={isInteractive ? handleTooltip : undefined}
       onMouseEnter={isInteractive ? handleMouseEnter : undefined}
       onMouseLeave={isInteractive ? handleMouseLeave : undefined}
-      onClick={isInteractive && onClick ? handleClick : undefined}
+      tabindex={isInteractive && tooltipLabel ? 0 : undefined}
+      aria-label={tooltipLabel}
+      aria-describedby={tooltipLabel ? describedBy : undefined}
+      onClick={isInteractive && (onClick || tooltipLabel) ? handleClick : undefined}
+      onKeyDown={
+        tooltipLabel
+          ? (event: JSX.TargetedKeyboardEvent<SVGRectElement>) => {
+              if (event.key === "Escape") {
+                onInspectionFocus?.(null);
+                onTooltipHide();
+                setHoverState(undefined);
+              }
+            }
+          : undefined
+      }
       onFocus={isInteractive && isFocusable ? handleFocus : undefined}
       onBlur={isInteractive && isFocusable ? handleBlur : undefined}
     />

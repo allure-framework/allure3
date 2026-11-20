@@ -82,7 +82,10 @@ describe("Bar chart trend rendering", () => {
     const markers = [...diff.querySelectorAll("circle")];
     const bars = screen.getAllByTestId("hover-rect");
     const toCenter = (bar: HTMLElement) => numberAttr(bar, "x") + numberAttr(bar, "width") / 2;
-    expect(markers.map((circle) => numberAttr(circle, "cx"))).toEqual(bars.map(toCenter));
+    expect(markers).toHaveLength(bars.length);
+    for (const [index, marker] of markers.entries()) {
+      expect(numberAttr(marker, "cx")).toBeCloseTo(toCenter(bars[index]));
+    }
 
     const zeroTick = [...diff.closest("svg")!.querySelectorAll("text")].find((tick) => tick.textContent === "0")!;
     const zeroY = Number(zeroTick.parentElement?.getAttribute("transform")?.match(/^translate\(0,([\d.]+)\)$/)?.[1]);
