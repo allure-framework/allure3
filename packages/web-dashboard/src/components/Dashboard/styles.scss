@@ -9,6 +9,12 @@
   display: grid;
   gap: 12px;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, calc(50% - 12px)), 1fr));
+
+  @media (max-width: 480px) {
+    &:has([data-value-trends]) {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
 }
 
 // the doubled class wins against the styles of the shared GridItem regardless of the order of stylesheets

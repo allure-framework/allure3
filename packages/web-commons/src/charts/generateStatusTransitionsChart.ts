@@ -26,12 +26,12 @@ const getStatusTransition = (
   tr: TrWithStatusAndTransition,
   history: TrWithStatusAndTransition[] = [],
 ): TestStatusTransition | undefined => {
-  if (history.length === 0) {
-    return "new";
-  }
-
   if (tr.transition) {
     return tr.transition;
+  }
+
+  if (history.length === 0) {
+    return "new";
   }
 
   const lastStatus = getLastSignificantStatus(history);

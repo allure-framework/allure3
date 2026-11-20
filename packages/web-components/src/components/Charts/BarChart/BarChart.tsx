@@ -1,6 +1,7 @@
-import type { AxisTickProps } from "@nivo/axes";
+import { Axes, type AxisProps, type AxisTickProps } from "@nivo/axes";
 import { type BarCustomLayerProps, type BarDatum, type ComputedDatum, ResponsiveBar } from "@nivo/bar";
 import type { CartesianMarkerProps } from "@nivo/core";
+import type { ComponentChildren } from "preact";
 import { useMemo } from "preact/hooks";
 
 import { CHART_MOTION_CONFIG, CHART_THEME, REDUCE_MOTION } from "../config";
@@ -11,7 +12,7 @@ import { BarChartTooltip } from "./BarChartTooltip";
 import { BottomAxisLine } from "./BottomAxisLine";
 import { BarChartStateProvider } from "./context";
 import { BarChartBars, BarChartItemHoverLayer } from "./Layers";
-import { TrendLinesLayer } from "./TrendLinesLayer";
+import { fitValueTrend, TrendLinesLayer } from "./TrendLinesLayer";
 import { computeVerticalAxisMargin, isEmptyChart } from "./utils";
 
 import styles from "./styles.scss";
@@ -31,6 +32,7 @@ type BarChartProps<T extends BarDatum> = {
   valueTrends?: { helpLabel: string; helpDescription: string };
   formatTrendValue?: (value: number, trendKey: Extract<keyof T, string>) => number | undefined;
   formatLegendValue?: (legend: LegendItemValue<T>) => string | number | undefined;
+  renderTooltipContent?: (value: T) => ComponentChildren;
   formatIndexBy?: (value: T, indexBy: Extract<keyof T, string>) => string;
   renderBottomTick?: (props: AxisTickProps<number | string>) => any;
   bottomTickSize?: number;
@@ -60,6 +62,7 @@ export const BarChart = <T extends BarDatum>(props: BarChartProps<T>) => {
     onBarClick,
     padding = 0.5,
     formatLegendValue,
+    renderTooltipContent,
     formatIndexBy,
     hasValueFn,
     currentLocale = "en-US",
@@ -87,6 +90,25 @@ export const BarChart = <T extends BarDatum>(props: BarChartProps<T>) => {
     () => (valueTrends ? legend.filter((item) => item.type !== "point") : legend),
     [legend, valueTrends],
   );
+  const domain = useMemo(() => {
+    if (!valueTrends || minValue === undefined || maxValue === undefined || data.length < 2) {
+      return { min: minValue, max: maxValue };
+    }
+
+    // The ends of a fitted line can extend beyond the tallest bars.
+    const trendExtent = Math.max(
+      ...legend
+        .filter((item) => item.type === "point")
+        .flatMap(({ id }) => fitValueTrend(data, id).map(([, value]) => Math.abs(value))),
+    );
+
+    if (trendExtent < Math.min(-minValue, maxValue)) {
+      return { min: minValue, max: maxValue };
+    }
+
+    const limit = Math.ceil(trendExtent * 1.01);
+    return { min: Math.min(minValue, -limit), max: Math.max(maxValue, limit) };
+  }, [data, legend, maxValue, minValue, valueTrends]);
   const isEmpty = useMemo(() => isEmptyChart(data, indexBy), [data, indexBy]);
   const visibleLegend =
     !isEmpty && !noLegend ? legend : valueTrends ? legend.filter((item) => item.type === "point") : [];
@@ -104,6 +126,45 @@ export const BarChart = <T extends BarDatum>(props: BarChartProps<T>) => {
   }, [data]);
 
   const isInverted = layout === "horizontal";
+
+  const axisBottom: AxisProps<number | string> = {
+    tickSize: 0,
+    tickPadding: 5,
+    tickRotation: bottomTickRotation,
+    truncateTickAt: 0,
+    renderTick: renderBottomTick,
+    style: {
+      ticks: {
+        text: {
+          fontSize: bottomTickSize,
+        },
+      },
+    },
+    format: isInverted
+      ? formatLeftTick
+      : (id) =>
+          formatBottomTick(
+            id,
+            data.find((item) => item[indexBy] === id)!,
+          ),
+    tickValues: data.length > 30 ? data.filter((_, index) => !(index % 2)).map((item) => item[indexBy]) : undefined,
+  };
+  const axisLeft: AxisProps<number | string> = {
+    tickSize: 0,
+    tickPadding: 8,
+    tickRotation: 0,
+    truncateTickAt: 0,
+    format: isInverted
+      ? formatBottomTick
+        ? (id) =>
+            formatBottomTick(
+              id,
+              data.find((item) => item[indexBy] === id)!,
+            )
+        : undefined
+      : formatLeftTick,
+    tickValues: leftAxisTickValues,
+  };
 
   return (
     <div className={styles.container} data-value-trends={valueTrends ? true : undefined}>
@@ -134,11 +195,29 @@ export const BarChart = <T extends BarDatum>(props: BarChartProps<T>) => {
             }}
             padding={padding}
             innerPadding={0}
-            valueScale={{ type: "linear", nice: true, min: minValue, max: maxValue }}
-            indexScale={{ type: "band", round: true }}
+            valueScale={{ type: "linear", nice: true, ...domain }}
+            indexScale={{ type: "band", round: !valueTrends }}
             layers={[
               "grid",
-              "axes",
+              valueTrends
+                ? ({ xScale, yScale, innerWidth, innerHeight }: BarCustomLayerProps<T>) => {
+                    // Thin date ticks on narrow cards while keeping the current run labeled.
+                    const domain = xScale.domain() as (string | number)[];
+                    const step = xScale.type === "band" ? Math.ceil(52 / Math.max(xScale.step(), 1)) : 1;
+                    const tickValues = domain.filter((_, i) => (domain.length - 1 - i) % step === 0);
+
+                    return (
+                      <Axes
+                        xScale={xScale}
+                        yScale={yScale}
+                        width={innerWidth}
+                        height={innerHeight}
+                        bottom={{ ...axisBottom, tickValues }}
+                        left={axisLeft}
+                      />
+                    );
+                  }
+                : "axes",
               BottomAxisLine,
               (layerProps: BarCustomLayerProps<T>) => (
                 <BarChartBars<T>
@@ -164,6 +243,9 @@ export const BarChart = <T extends BarDatum>(props: BarChartProps<T>) => {
                 <BarChartItemHoverLayer<T>
                   {...layerProps}
                   hasValueFn={hasValueFn}
+                  inspectionLabel={
+                    renderTooltipContent && formatIndexBy ? (item) => formatIndexBy(item, indexBy) : undefined
+                  }
                   indexBy={indexBy}
                   layout={layout}
                   onBarClick={onBarClick}
@@ -176,7 +258,9 @@ export const BarChart = <T extends BarDatum>(props: BarChartProps<T>) => {
                         legend={tooltipLegend}
                         formatLegendValue={formatLegendValue}
                         formatIndexBy={formatIndexBy}
-                      />
+                      >
+                        {renderTooltipContent?.(value)}
+                      </BarChartTooltip>
                     ) as any
                   }
                 />
@@ -192,45 +276,8 @@ export const BarChart = <T extends BarDatum>(props: BarChartProps<T>) => {
             enableTotals={false}
             axisTop={null}
             axisRight={null}
-            axisBottom={{
-              tickSize: 0,
-              tickPadding: 5,
-              tickRotation: bottomTickRotation,
-              truncateTickAt: 0,
-              renderTick: renderBottomTick,
-              style: {
-                ticks: {
-                  text: {
-                    fontSize: bottomTickSize,
-                  },
-                },
-              },
-              format: isInverted
-                ? formatLeftTick
-                : (id) =>
-                    formatBottomTick(
-                      id,
-                      data.find((item) => item[indexBy] === id)!,
-                    ),
-              tickValues:
-                data.length > 30 ? data.filter((_, index) => !(index % 2)).map((item) => item[indexBy]) : undefined,
-            }}
-            axisLeft={{
-              tickSize: 0,
-              tickPadding: 8,
-              tickRotation: 0,
-              truncateTickAt: 0,
-              format: isInverted
-                ? formatBottomTick
-                  ? (id) =>
-                      formatBottomTick(
-                        id,
-                        data.find((item) => item[indexBy] === id)!,
-                      )
-                  : undefined
-                : formatLeftTick,
-              tickValues: leftAxisTickValues,
-            }}
+            axisBottom={valueTrends ? null : axisBottom}
+            axisLeft={valueTrends ? null : axisLeft}
             animate={!REDUCE_MOTION}
             motionConfig={CHART_MOTION_CONFIG}
             onClick={onBarClick}

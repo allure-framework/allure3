@@ -79,10 +79,12 @@
       }
     },
     "trendHelp": {
-      "label": "Eğilimler nasıl okunur?",
-      "description": "Düz çizgi, karşılaştırma sayısına bölünen birikimli toplamın eğilimini gösterir. Çizginin yüksekliği test sayısını göstermez. Kesikli çizgi, çalıştırma başına net değişimin eğilimini gösterir."
+      "label": "Eğilimler nasıl okunur?"
     },
     "statusTransitions": {
+      "trendHelp": {
+        "description": "Düz çizgi yükseliyorsa test durumları genel olarak iyileşiyor, düşüyorsa kötüleşiyor, yataysa sabit kalıyor. Kesikli çizgi yükseliyorsa iyileşme hızlanıyor veya kötüleşme yavaşlıyor. Düşüyorsa iyileşme yavaşlıyor veya kötüleşme hızlanıyor. Yataysa değişim hızı sabit."
+      },
       "title": "Durum geçişleri",
       "legend": {
         "cumulativeTrend": "Birikimli eğilim",
@@ -132,6 +134,9 @@
       }
     },
     "testBaseGrowthDynamics": {
+      "trendHelp": {
+        "description": "Düz çizgi yükseliyorsa test tabanı büyüyor, düşüyorsa küçülüyor, yataysa boyutu sabit kalıyor. Kesikli çizgi yükseliyorsa büyüme hızlanıyor veya küçülme yavaşlıyor. Düşüyorsa büyüme yavaşlıyor veya küçülme hızlanıyor. Yataysa değişim hızı sabit."
+      },
       "title": "Test tabanı büyüme dinamikleri",
       "status": {
         "newpassed": "Yeni $t(statuses:passed)",
@@ -152,6 +157,11 @@
       "no-history": "$t(empty:no-history-results)",
       "no-results": "$t(empty:no-results)",
       "tooltips": {
+        "newTests": "Yeni testler",
+        "removedTests": "Kaldırılan testler",
+        "noChanges": "Değişiklik yok",
+        "number": "{{value, number}}",
+        "statusCount": "{{status}}: {{count}}",
         "current": "Son rapor ({{timestamp, timestamp_long_no_seconds}})",
         "history": "{{timestamp, timestamp_long_no_seconds}} tarihli rapor"
       },

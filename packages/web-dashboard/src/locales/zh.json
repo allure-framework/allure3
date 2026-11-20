@@ -79,10 +79,12 @@
       }
     },
     "trendHelp": {
-      "label": "如何阅读趋势",
-      "description": "实线显示累计总和除以比较次数后的趋势。线的高度不代表测试数量。虚线显示每次运行的净变化趋势。"
+      "label": "如何阅读趋势"
     },
     "statusTransitions": {
+      "trendHelp": {
+        "description": "实线上升表示测试状态整体改善，下降表示整体恶化，水平表示状态稳定。虚线上升表示改善加快或恶化放缓，下降表示改善放缓或恶化加快，水平表示变化速度稳定。"
+      },
       "title": "状态转换",
       "legend": {
         "cumulativeTrend": "累计趋势",
@@ -132,6 +134,9 @@
       }
     },
     "testBaseGrowthDynamics": {
+      "trendHelp": {
+        "description": "实线上升表示测试规模扩大，下降表示规模缩小，水平表示规模稳定。虚线上升表示增长加快或缩减放缓，下降表示增长放缓或缩减加快，水平表示变化速度稳定。"
+      },
       "title": "测试基础增长动态",
       "status": {
         "newpassed": "新增 $t(statuses:passed)",
@@ -152,6 +157,11 @@
       "no-history": "$t(empty:no-history-results)",
       "no-results": "$t(empty:no-results)",
       "tooltips": {
+        "newTests": "新增测试",
+        "removedTests": "移除的测试",
+        "noChanges": "没有变化",
+        "number": "{{value, number}}",
+        "statusCount": "{{status}}: {{count}}",
         "current": "最新报告 ({{timestamp, timestamp_long_no_seconds}})",
         "history": "报告来自 {{timestamp, timestamp_long_no_seconds}}"
       },

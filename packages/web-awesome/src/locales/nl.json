@@ -304,10 +304,12 @@
       }
     },
     "trendHelp": {
-      "label": "De trends lezen",
-      "description": "De doorgetrokken lijn toont de trend van het cumulatieve totaal gedeeld door het aantal vergelijkingen. De hoogte geeft geen aantal tests aan. De stippellijn toont de trend van de nettoverandering per uitvoering."
+      "label": "De trends lezen"
     },
     "statusTransitions": {
+      "trendHelp": {
+        "description": "Doorgetrokken lijn: stijgend verbeteren de teststatussen in het algemeen, dalend verslechteren ze en vlak blijven ze stabiel. Gestreepte lijn: stijgend versnelt de verbetering of vertraagt de verslechtering. Dalend vertraagt de verbetering of versnelt de verslechtering. Vlak blijft het tempo van de verandering gelijk."
+      },
       "title": "Statusovergangen",
       "legend": {
         "cumulativeTrend": "Cumulatieve trend",
@@ -357,6 +359,9 @@
       }
     },
     "testBaseGrowthDynamics": {
+      "trendHelp": {
+        "description": "Doorgetrokken lijn: stijgend groeit de testbasis, dalend krimpt deze en vlak blijft de omvang stabiel. Gestreepte lijn: stijgend versnelt de groei of vertraagt de krimp. Dalend vertraagt de groei of versnelt de krimp. Vlak blijft het tempo van de verandering gelijk."
+      },
       "title": "Groeodynamiek van testbasis",
       "status": {
         "newpassed": "Nieuw $t(statuses:passed)",
@@ -377,6 +382,11 @@
       "no-history": "$t(empty:no-history-results)",
       "no-results": "$t(empty:no-results)",
       "tooltips": {
+        "newTests": "Nieuwe tests",
+        "removedTests": "Verwijderde tests",
+        "noChanges": "Geen wijzigingen",
+        "number": "{{value, number}}",
+        "statusCount": "{{status}}: {{count}}",
         "current": "Laatste rapport ({{timestamp, timestamp_long_no_seconds}})",
         "history": "Rapport van {{timestamp, timestamp_long_no_seconds}}"
       },

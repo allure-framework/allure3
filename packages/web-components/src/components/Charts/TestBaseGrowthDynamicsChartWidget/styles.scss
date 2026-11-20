@@ -1,0 +1,45 @@
+.row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 4px;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+.counters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.counter {
+  display: inline-flex;
+  align-items: center;
+  gap: 1px;
+  padding-inline: 2px 5px;
+  border-radius: var(--radius-pill);
+  white-space: nowrap;
+  font-size: var(--font-size-xs);
+  line-height: var(--line-height-s);
+}
+
+.counter .icon {
+  --tree-item-icon-padding: 0;
+  align-self: center;
+}
+
+.empty {
+  padding: 4px;
+  white-space: normal;
+}
+
+.statusText {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}

@@ -73,24 +73,27 @@ describe("generateStatusTransitionsChart", () => {
     },
   );
 
-  it("preserves a supplied transition even when its significant history is outside the chart window", () => {
-    const chart = generateStatusTransitionsChart({
-      options: { type: ChartType.StatusTransitions, limit: 2 },
-      storeData: {
-        historyDataPoints: [
-          point("latest", 300, { example: historical("example", "unknown") }),
-          point("baseline", 200, { example: historical("example", "skipped") }),
-          point("outside", 100, { example: historical("example", "failed") }),
-        ],
-        testResults: [{ ...current("example", "passed", 400), transition: "fixed" }],
-        statistic: { total: 1, passed: 1 },
-      },
-    });
-    expect(chart.data).toMatchObject([
-      { id: "latest", fixed: 0, regressed: 0, malfunctioned: 0 },
-      { id: "current", fixed: 1, regressed: 0, malfunctioned: 0 },
-    ]);
-  });
+  it.each(["ignored", "absent"] as const)(
+    "preserves a supplied transition outside the window when recent results are %s",
+    (recent) => {
+      const chart = generateStatusTransitionsChart({
+        options: { type: ChartType.StatusTransitions, limit: 2 },
+        storeData: {
+          historyDataPoints: [
+            point("latest", 300, recent === "ignored" ? { example: historical("example", "unknown") } : {}),
+            point("baseline", 200, recent === "ignored" ? { example: historical("example", "skipped") } : {}),
+            point("outside", 100, { example: historical("example", "failed") }),
+          ],
+          testResults: [{ ...current("example", "passed", 400), transition: "fixed" }],
+          statistic: { total: 1, passed: 1 },
+        },
+      });
+      expect(chart.data).toMatchObject([
+        { id: "latest", fixed: 0, regressed: 0, malfunctioned: 0 },
+        { id: "current", fixed: 1, regressed: 0, malfunctioned: 0 },
+      ]);
+    },
+  );
 
   it.each([
     { status: "passed", intermediate: "skipped" },

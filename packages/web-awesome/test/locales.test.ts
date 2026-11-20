@@ -147,7 +147,13 @@ it("defines both diff trend legends and their explanation in every locale", () =
       charts.testBaseGrowthDynamics?.legend?.cumulativeTrend,
       charts.testBaseGrowthDynamics?.legend?.diffTrend,
       charts.trendHelp?.label,
-      charts.trendHelp?.description,
+      charts.statusTransitions?.trendHelp?.description,
+      charts.testBaseGrowthDynamics?.trendHelp?.description,
+      charts.testBaseGrowthDynamics?.tooltips?.newTests,
+      charts.testBaseGrowthDynamics?.tooltips?.removedTests,
+      charts.testBaseGrowthDynamics?.tooltips?.noChanges,
+      charts.testBaseGrowthDynamics?.tooltips?.number,
+      charts.testBaseGrowthDynamics?.tooltips?.statusCount,
     ]) {
       expect(value, file).toEqual(expect.any(String));
       expect(value.trim().length, file).toBeGreaterThan(0);

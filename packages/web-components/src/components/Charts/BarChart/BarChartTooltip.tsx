@@ -1,4 +1,5 @@
 import type { BarDatum } from "@nivo/bar";
+import type { ComponentChildren } from "preact";
 
 import { ChartTooltip } from "../ChartTooltip";
 import { LegendItem, isPresent } from "../Legend/LegendItem";
@@ -11,6 +12,7 @@ export interface BarChartTooltipProps<T extends BarDatum> {
   formatIndexBy?: (value: T, indexBy: Extract<keyof T, string>) => string;
   formatLegendValue?: (legend: LegendItemValue<T>) => string | number | undefined;
   allowZeroValues?: boolean;
+  children?: ComponentChildren;
 }
 
 export const BarChartTooltip = <T extends BarDatum>({
@@ -20,6 +22,7 @@ export const BarChartTooltip = <T extends BarDatum>({
   formatIndexBy = (val, key) => val[key]?.toString() ?? "",
   formatLegendValue = (l) => (l.value ?? 0).toString() ?? "",
   allowZeroValues = false,
+  children,
 }: BarChartTooltipProps<T>) => {
   const chartLegend = allowZeroValues
     ? legend
@@ -27,19 +30,20 @@ export const BarChartTooltip = <T extends BarDatum>({
 
   return (
     <ChartTooltip label={formatIndexBy(value, indexBy)}>
-      {chartLegend.map((item) => (
-        <LegendItem
-          key={item.id}
-          mode="menu"
-          legend={{
-            ...item,
-            value: formatLegendValue({
+      {children ??
+        chartLegend.map((item) => (
+          <LegendItem
+            key={item.id}
+            mode="menu"
+            legend={{
               ...item,
-              value: value[item.id],
-            }),
-          }}
-        />
-      ))}
+              value: formatLegendValue({
+                ...item,
+                value: value[item.id],
+              }),
+            }}
+          />
+        ))}
     </ChartTooltip>
   );
 };
