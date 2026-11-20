@@ -1,4 +1,12 @@
-import { Button, DropdownButton, Menu, SvgIcon, allureIcons, useTooltip } from "@allurereport/web-components/core";
+import {
+  Button,
+  DropdownButton,
+  Menu,
+  SearchBox,
+  SvgIcon,
+  allureIcons,
+  useTooltip,
+} from "@allurereport/web-components/core";
 import { createPortal } from "preact/compat";
 import { useId, useMemo, useRef, useState } from "preact/hooks";
 
@@ -9,6 +17,9 @@ import { deltaDirection, formatValue } from "./format";
 import { metricTimeline, type MetricInterval } from "./timeline";
 
 import * as styles from "./timeline.scss";
+
+const minChartWidth = 540;
+const minIntervalWidth = 16;
 
 const Interval = ({
   interval,
@@ -55,6 +66,7 @@ const Interval = ({
         aria-label={text}
         aria-describedby={visible ? id : undefined}
         style={{
+          minWidth: minIntervalWidth,
           left: `${duration ? ((Math.max(sample.start, start) - start) / duration) * 100 : 0}%`,
           width: `${duration ? ((Math.min(sample.stop, start + duration) - Math.max(sample.start, start)) / duration) * 100 : 0}%`,
           top: `${lane * 36 + 2}px`,
@@ -89,6 +101,77 @@ const Interval = ({
   );
 };
 
+const TimelineRootPicker = ({
+  roots,
+  currentRoot,
+  title,
+  onSelect,
+}: {
+  roots: string[];
+  currentRoot: string;
+  title: (key: string) => string;
+  onSelect: (key: string) => void;
+}) => {
+  const { t } = useI18n("charts");
+  const { t: tEmpty } = useI18n("empty");
+  const [rootSearch, setRootSearch] = useState("");
+  const query = rootSearch.trim().toLowerCase();
+  const visibleRoots = roots.filter(
+    (key) => key.toLowerCase().includes(query) || title(key).toLowerCase().includes(query),
+  );
+
+  return (
+    <Menu
+      size="l"
+      placement="bottom-start"
+      menuTriggerWrapper="span"
+      focusOnOpen
+      menuClassName={styles.rootMenu}
+      menuTrigger={({ isOpened, onClick }) => (
+        <DropdownButton
+          style="outline"
+          size="m"
+          className={styles.rootPicker}
+          isTextTruncated
+          text={title(currentRoot)}
+          isExpanded={isOpened}
+          aria-expanded={isOpened}
+          onClick={onClick}
+        />
+      )}
+    >
+      <div className={styles.rootSearch}>
+        <SearchBox
+          changeDebounce={100}
+          flushOnBlur
+          value={rootSearch}
+          onChange={setRootSearch}
+          placeholder={t("metrics.search")}
+          clearLabel={t("metrics.clearSearch")}
+        />
+      </div>
+      {visibleRoots.length === 0 && <output className={styles.noRoots}>{tEmpty("no-results")}</output>}
+      <Menu.Section>
+        {visibleRoots.map((root) => (
+          <Menu.ItemWithCheckmark
+            key={root}
+            onClick={() => {
+              setRootSearch("");
+              onSelect(root);
+            }}
+            isChecked={root === currentRoot}
+          >
+            <span className={styles.rootChoice}>
+              {title(root)}
+              {title(root) !== root && <small className={styles.rootKey}>{root}</small>}
+            </span>
+          </Menu.ItemWithCheckmark>
+        ))}
+      </Menu.Section>
+    </Menu>
+  );
+};
+
 export default function MetricsTimeline({
   data,
   selectedRoot,
@@ -99,7 +182,10 @@ export default function MetricsTimeline({
   onSelectRoot: (root: string) => void;
 }) {
   const { t } = useI18n("charts");
-  const model = useMemo(() => metricTimeline(data, selectedRoot), [data, selectedRoot]);
+  const model = useMemo(
+    () => metricTimeline(data, selectedRoot, minIntervalWidth / minChartWidth),
+    [data, selectedRoot],
+  );
   const [zoom, setZoom] = useState<{ root: string; start: number; stop: number }>();
   const view = zoom && zoom.root === model.root ? zoom : model;
   const duration = view.stop - view.start;
@@ -111,7 +197,7 @@ export default function MetricsTimeline({
     setHovered((current) =>
       index === undefined
         ? undefined
-        : current?.root === model.root && current.index === index
+        : current && current.root === model.root && current.index === index
           ? current
           : { root: model.root!, index },
     );
@@ -131,42 +217,17 @@ export default function MetricsTimeline({
   return (
     <section className={styles.timeline} aria-label={t("metrics.timelineView")} data-testid="metrics-timeline">
       <div className={styles.toolbar}>
-        {model.roots.length > 0 && (
-          <Menu
-            size="l"
-            placement="bottom-start"
-            menuTriggerWrapper="span"
-            menuTrigger={({ isOpened, onClick }) => (
-              <DropdownButton
-                style="outline"
-                size="m"
-                className={styles.rootPicker}
-                isTextTruncated
-                text={title(model.root!)}
-                isExpanded={isOpened}
-                onClick={onClick}
-              />
-            )}
-          >
-            <Menu.Section>
-              {model.roots.map((root) => (
-                <Menu.ItemWithCheckmark
-                  key={root}
-                  onClick={() => {
-                    dismissTooltip();
-                    setZoom(undefined);
-                    onSelectRoot(root);
-                  }}
-                  isChecked={root === model.root}
-                >
-                  <span className={styles.rootChoice}>
-                    {title(root)}
-                    {title(root) !== root && <small className={styles.rootKey}>{root}</small>}
-                  </span>
-                </Menu.ItemWithCheckmark>
-              ))}
-            </Menu.Section>
-          </Menu>
+        {model.root !== undefined && (
+          <TimelineRootPicker
+            roots={model.roots}
+            currentRoot={model.root}
+            title={title}
+            onSelect={(root) => {
+              dismissTooltip();
+              setZoom(undefined);
+              onSelectRoot(root);
+            }}
+          />
         )}
         <div className={styles.tools}>
           {zoom && zoom.root === model.root && (
@@ -204,9 +265,9 @@ export default function MetricsTimeline({
         <p>{t("metrics.noIntervals")}</p>
       ) : (
         <div className={styles.scroll}>
-          <div className={styles.chart}>
+          <div className={styles.chart} style={{ minWidth: minChartWidth }}>
             <div className={styles.axis}>
-              {[0, 0.25, 0.5, 0.75, 1].map((fraction) => (
+              {(duration === 0 ? [0] : [0, 0.25, 0.5, 0.75, 1]).map((fraction) => (
                 <span key={fraction}>{formatValue(view.start - model.start + duration * fraction, "ms")}</span>
               ))}
             </div>

@@ -1,4 +1,4 @@
-import { readLocalStorage, writeLocalStorage } from "@allurereport/web-commons";
+import { getParamValue, readLocalStorage, setParams, writeLocalStorage } from "@allurereport/web-commons";
 import {
   ArrowButton,
   Button,
@@ -14,7 +14,7 @@ import {
 import { Fragment } from "preact";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "preact/hooks";
 
-import { NavTabs, NavTabsList, NavTab, useNavTabsContext } from "@/components/NavTabs";
+import { NavTabs, NavTabsList, NavTab } from "@/components/NavTabs";
 import { useI18n } from "@/stores";
 import {
   metricHistoryRows,
@@ -499,7 +499,16 @@ const ReportMetricsTable = ({ data, rows }: { data: MetricsWidgetData; rows: Met
 
 const ReportMetricsContent = ({ data }: { data: MetricsWidgetData }) => {
   const { t } = useI18n("charts");
-  const { currentTab } = useNavTabsContext();
+  const currentTab = getParamValue("metricsTab") === "timeline" ? "timeline" : "table";
+  const selectTab = (tab: "table" | "timeline", button: HTMLButtonElement) => {
+    const wasFocused = document.activeElement === button;
+    setParams({
+      key: "metricsTab",
+      value: tab === "timeline" ? tab : undefined,
+    });
+    // Keep focus on the tab when route synchronization clears it.
+    if (wasFocused && document.activeElement === document.body) button.focus({ preventScroll: true });
+  };
   const [root, setRoot] = useState<string>();
   const rows = useMemo(() => metricRows(data), [data]);
   return (
@@ -511,8 +520,20 @@ const ReportMetricsContent = ({ data }: { data: MetricsWidgetData }) => {
       <div className={styles.card}>
         <div className={styles.tabs}>
           <NavTabsList>
-            <NavTab id="table">{t("metrics.tableView")}</NavTab>
-            <NavTab id="timeline">{t("metrics.timelineView")}</NavTab>
+            <NavTab
+              id="table"
+              isCurrentTab={currentTab === "table"}
+              onClick={(e) => selectTab("table", e.currentTarget)}
+            >
+              {t("metrics.tableView")}
+            </NavTab>
+            <NavTab
+              id="timeline"
+              isCurrentTab={currentTab === "timeline"}
+              onClick={(e) => selectTab("timeline", e.currentTarget)}
+            >
+              {t("metrics.timelineView")}
+            </NavTab>
           </NavTabsList>
         </div>
         <div hidden={currentTab !== "table"} className={styles.view}>

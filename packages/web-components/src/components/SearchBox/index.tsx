@@ -15,12 +15,23 @@ type Props = {
   value: string;
   onChange: (value: string) => void;
   changeDebounce?: number;
+  flushOnBlur?: boolean;
   leadingSlot?: ComponentChild;
   trailingSlot?: ComponentChild;
 };
 
 export const SearchBox = (props: Props) => {
-  const { placeholder, clearLabel, value, onChange, changeDebounce = 300, leadingSlot, trailingSlot, error } = props;
+  const {
+    placeholder,
+    clearLabel,
+    value,
+    onChange,
+    changeDebounce = 300,
+    flushOnBlur = false,
+    leadingSlot,
+    trailingSlot,
+    error,
+  } = props;
   const [localValue, setLocalValue] = useState(value);
   const inputRef = useRef<HTMLInputElement>(null);
   const lastEmittedValueRef = useRef(value ?? "");
@@ -51,6 +62,12 @@ export const SearchBox = (props: Props) => {
     const newValue = (e.target as HTMLInputElement).value;
     setLocalValue(newValue);
     onChangeDebounced(newValue);
+  };
+
+  const handleBlur = (e: FocusEvent & { currentTarget: HTMLInputElement }) => {
+    const newValue = e.currentTarget.value;
+    onChangeDebounced.cancel();
+    if (newValue !== lastEmittedValueRef.current) emitChange(newValue);
   };
 
   const handleClear = (e: MouseEvent) => {
@@ -97,6 +114,7 @@ export const SearchBox = (props: Props) => {
         type="text"
         placeholder={placeholder}
         onInput={handleChange}
+        onBlur={flushOnBlur ? handleBlur : undefined}
         value={localValue}
         name="search"
         autocomplete="off"

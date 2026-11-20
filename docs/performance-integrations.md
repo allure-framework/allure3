@@ -46,3 +46,8 @@ To generate a report against the checked-in baseline after `yarn build`:
 node scripts/allure-bundle-size.mjs --allure-results ./out/bundle-size-results
 yarn allure generate ./out/bundle-size-results --config .github/allure-bundle-size.config.mjs --output ./out/bundle-size-report
 ```
+
+
+A metric definition can set `timeline: false` to omit its measurements from the Awesome Timeline. Metrics are
+included by default. This setting preserves the metric’s table, history, and quality-gate values. A hidden parent
+still groups visible descendants in Timeline.

@@ -11,6 +11,8 @@ export interface MetricDefinition {
   group?: string;
   /** Exact metric key of the configured parent; not a relationship between individual calls. */
   parent?: string;
+  /** Set to false to hide this metric’s measurements from Timeline. */
+  timeline?: boolean;
 }
 
 export interface MetricsConfig {
@@ -52,14 +54,18 @@ export interface MetricSample extends AllureMetricResult {
 export interface MetricHierarchyNode {
   key: string;
   children: MetricHierarchyNode[];
+  timeline?: false;
 }
 
 export const buildMetricHierarchy = (config: MetricsConfig = {}): MetricHierarchyNode[] => {
   const definitions = config.metrics ?? {};
   const metrics = Object.keys(definitions)
     .sort()
-    .map((key) => ({ key, parent: definitions[key]?.parent }));
-  for (const { key, parent } of metrics) {
+    .map((key) => ({ key, parent: definitions[key]?.parent, timeline: definitions[key]?.timeline }));
+  for (const { key, parent, timeline } of metrics) {
+    if (timeline !== undefined && typeof timeline !== "boolean") {
+      throw new Error(`metrics.metrics[${JSON.stringify(key)}].timeline must be a boolean`);
+    }
     if (parent === undefined) continue;
     if (typeof parent !== "string" || parent.length === 0) {
       throw new Error(`metrics.metrics[${JSON.stringify(key)}].parent must be a non-empty metric key`);
@@ -71,7 +77,12 @@ export const buildMetricHierarchy = (config: MetricsConfig = {}): MetricHierarch
       throw new Error(`Unknown parent ${JSON.stringify(parent)} for metric ${JSON.stringify(key)}`);
     }
   }
-  const nodes = new Map<string, MetricHierarchyNode>(metrics.map(({ key }) => [key, { key, children: [] }]));
+  const nodes = new Map<string, MetricHierarchyNode>(
+    metrics.map(({ key, timeline }) => [
+      key,
+      { key, children: [], ...(timeline === false ? { timeline: false } : {}) },
+    ]),
+  );
   const roots: MetricHierarchyNode[] = [];
 
   for (const { key, parent } of metrics) {

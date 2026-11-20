@@ -1,4 +1,5 @@
-import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/preact";
+import { setParams } from "@allurereport/web-commons";
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/preact";
 import { afterEach, describe, expect, it, vi } from "vite-plus/test";
 
 import { ReportMetrics } from "@/components/ReportMetrics";
@@ -10,6 +11,7 @@ vi.mock("@/stores", () => ({
 
 afterEach(() => {
   cleanup();
+  setParams({ key: "metricsTab", value: undefined });
   localStorage.removeItem("allure.metrics.favorites");
   metricsStore.value = { loading: true, error: undefined, data: undefined };
 });
@@ -211,11 +213,26 @@ describe("components > ReportMetrics", () => {
     );
     fireEvent.click(screen.getByRole("button", { name: "metrics.timelineView" }));
     const timeline = await screen.findByTestId("metrics-timeline");
-    fireEvent.click(within(timeline).getByRole("button", { name: "Other root" }));
+    expect(new URL(window.location.href).searchParams.get("metricsTab")).toBe("timeline");
+    fireEvent.click(within(timeline).getByRole("button", { name: "Run", exact: true }));
+    const search = screen.getByRole("textbox", { name: "metrics.search" });
+    expect(search).toHaveFocus();
+    fireEvent.input(search, { target: { value: "not found" } });
+    expect(await screen.findByRole("status")).toHaveTextContent("no-results");
+    fireEvent.input(search, { target: { value: "OTHER" } });
+    await act(() => screen.getByRole("button", { name: "metrics.clearSearch" }).focus());
+    const option = screen.getByRole("button", { name: "Other root other", exact: true });
+    expect(screen.queryByRole("button", { name: "Run run", exact: true })).not.toBeInTheDocument();
+    option.focus();
+    fireEvent.click(option);
+    const otherPicker = within(timeline).getByRole("button", { name: "Other root", exact: true });
+    expect(otherPicker).toHaveFocus();
+    fireEvent.click(otherPicker);
     fireEvent.click(screen.getByRole("button", { name: "Run run", exact: true }));
     expect(within(timeline).queryByText("metrics.noMeasurement")).not.toBeInTheDocument();
     expect(within(timeline).getAllByTestId("metric-interval")).toHaveLength(2);
     fireEvent.click(screen.getByRole("button", { name: "metrics.tableView" }));
+    expect(new URL(window.location.href).searchParams.has("metricsTab")).toBe(false);
     expect(screen.getByRole("region", { name: "metrics.historyTitle Run" })).toBeVisible();
     fireEvent.click(screen.getByRole("button", { name: "metrics.timelineView" }));
     expect(
