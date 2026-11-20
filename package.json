@@ -44,6 +44,7 @@
     "allure": "workspace:*",
     "babel-plugin-prismjs": "^2.1.0",
     "lefthook": "^2.2.2",
+    "node-stream-zip": "^1.16.0",
     "rimraf": "^6.1.3",
     "sherif": "^1.13.0",
     "tslib": "^2.7.0",
