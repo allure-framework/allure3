@@ -39,16 +39,16 @@ export const NavTabsList = (props: { children: ComponentChildren }) => {
 export const NavTab = (props: {
   "id": string;
   "children": ComponentChildren;
-  "onClick"?: () => void;
+  "onClick"?: (event: MouseEvent & { currentTarget: HTMLButtonElement }) => void;
   "data-testid"?: string;
   "isCurrentTab"?: boolean;
 }) => {
   const { currentTab, setCurrentTab } = useNavTabsContext();
   const { id, children, onClick, "data-testid": dataTestId, "isCurrentTab": overrideIsCurrentTab } = props;
   const isCurrentTab = overrideIsCurrentTab !== undefined ? overrideIsCurrentTab : currentTab === id;
-  const handleTabClick = () => {
+  const handleTabClick = (event: MouseEvent & { currentTarget: HTMLButtonElement }) => {
     if (onClick) {
-      onClick();
+      onClick(event);
     } else if (isCurrentTab) {
       return;
     } else {

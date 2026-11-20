@@ -291,7 +291,11 @@ export const environmentsTestedRule: QualityGateRule<string[]> = {
 export const metricMaxRule: QualityGateRule<MetricRuleConfig> = {
   rule: "metricMax",
   message: ({ actual, expected }) =>
-    `${bold(metricRuleTitle(actual))} ${bold(formatMetricValue(actual.value, metricRuleUnit(actual, expected)))} exceeds the allowed maximum ${bold(formatMetricValue(expected.value, metricRuleUnit(actual, expected)))}`,
+    Number.isNaN(actual.value)
+      ? `No measurement available for ${bold(expected.title ?? metricRuleTitle(actual))}`
+      : `${bold(metricRuleTitle(actual))} ${bold(formatMetricValue(actual.value, metricRuleUnit(actual, expected)))} exceeds the allowed maximum ${bold(formatMetricValue(expected.value, metricRuleUnit(actual, expected)))}`,
+  successMessage: ({ actual, expected }) =>
+    `${bold(metricRuleTitle(actual))} ${bold(formatMetricValue(actual.value, metricRuleUnit(actual, expected)))} is within the allowed maximum ${bold(formatMetricValue(expected.value, metricRuleUnit(actual, expected)))}`,
   validate: async ({ metrics = [], expected }) => {
     const value = metricAverage(metrics, expected.key);
     const actual = metricActual(metrics, expected.key, value ?? Number.NaN);

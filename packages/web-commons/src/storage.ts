@@ -1,8 +1,25 @@
+export const readLocalStorage = (key: string): string | null => {
+  try {
+    return localStorage.getItem(key);
+  } catch {
+    return null;
+  }
+};
+
+export const writeLocalStorage = (key: string, value: string): boolean => {
+  try {
+    localStorage.setItem(key, value);
+    return true;
+  } catch {
+    return false;
+  }
+};
+
 export function loadFromLocalStorage<T>(key: string, defaultValue: T): T;
 export function loadFromLocalStorage<T>(key: string): T | undefined;
 export function loadFromLocalStorage<T>(key: string, defaultValue?: T): T | undefined {
   try {
-    const stored = localStorage.getItem(key);
+    const stored = readLocalStorage(key);
     return stored ? (JSON.parse(stored) as T) : defaultValue;
   } catch {
     return defaultValue;

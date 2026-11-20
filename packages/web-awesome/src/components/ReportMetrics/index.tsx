@@ -1,8 +1,20 @@
-import { ArrowButton, LazyComponent, Loadable, PageLoader } from "@allurereport/web-components/core";
+import { getParamValue, readLocalStorage, setParams, writeLocalStorage } from "@allurereport/web-commons";
+import {
+  ArrowButton,
+  Button,
+  Counter,
+  IconButton,
+  LazyComponent,
+  Loadable,
+  PageLoader,
+  SearchBox,
+  TooltipWrapper,
+  allureIcons,
+} from "@allurereport/web-components/core";
 import { Fragment } from "preact";
-import { useState } from "preact/hooks";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "preact/hooks";
 
-import { NavTabs, NavTabsList, NavTab, useNavTabsContext } from "@/components/NavTabs";
+import { NavTabs, NavTabsList, NavTab } from "@/components/NavTabs";
 import { useI18n } from "@/stores";
 import {
   metricHistoryRows,
@@ -70,7 +82,9 @@ const groupedMetricRows = (rows: MetricSummaryRow[]) => {
   rows.forEach((row) => {
     const category = row.groupTitle ?? row.group ?? "other";
 
-    groups.set(category, [...(groups.get(category) ?? []), row]);
+    const group = groups.get(category);
+    if (group) group.push(row);
+    else groups.set(category, [row]);
   });
 
   return [...groups.entries()];
@@ -153,14 +167,116 @@ const metricRowId = (scope: MetricRowScope, key: string) => `${scope}:${key}`;
 const metricDetailsId = (scope: MetricRowScope, key: string) =>
   `metrics-${scope}-history-${encodeURIComponent(key).replaceAll("%", "_")}`;
 
-const ReportMetricsTable = ({ data }: { data: MetricsWidgetData }) => {
+const favoritesStorageKey = "allure.metrics.favorites";
+
+type MetricFavorites = { keys: string[]; only: boolean };
+
+const parseFavorites = (value: string | null): MetricFavorites => {
+  try {
+    const saved: unknown = JSON.parse(value ?? "null");
+    if (
+      saved &&
+      typeof saved === "object" &&
+      "keys" in saved &&
+      Array.isArray(saved.keys) &&
+      saved.keys.every((key) => typeof key === "string") &&
+      "only" in saved &&
+      typeof saved.only === "boolean"
+    ) {
+      return { keys: saved.keys, only: saved.only };
+    }
+  } catch {
+    // Ignore malformed saved preferences.
+  }
+  return { keys: [], only: false };
+};
+
+const ReportMetricsTable = ({ data, rows }: { data: MetricsWidgetData; rows: MetricRow[] }) => {
   const { t } = useI18n("charts");
   const { t: tEmpty } = useI18n("empty");
-  const rows = metricRows(data);
-  const rowsByKey = new Map(rows.map((row) => [row.key, row]));
-  const summaryRows = metricSummaryRows(data);
-  const metricGroups = groupedMetricRows(summaryRows);
+  const rowsByKey = useMemo(() => new Map(rows.map((row) => [row.key, row])), [rows]);
+  const summaryRows = useMemo(() => metricSummaryRows(rows), [rows]);
+  const [query, setQuery] = useState("");
+  const [{ favorites, focusTarget, inMemory }, setFavoriteState] = useState<{
+    favorites: MetricFavorites;
+    focusTarget?: string;
+    inMemory?: boolean;
+  }>(() => ({ favorites: parseFavorites(readLocalStorage(favoritesStorageKey)) }));
+  const tableRef = useRef<HTMLDivElement>(null);
+  const favoriteKeys = new Set(favorites.keys);
+  const favoritesCount = rows.filter(({ key }) => favoriteKeys.has(key)).length;
+  const search = query.trim().toLowerCase();
+  const matches = ({ key, title }: Pick<MetricSummaryRow, "key" | "title">) =>
+    (!favorites.only || favoriteKeys.has(key)) &&
+    (!search || key.toLowerCase().includes(search) || (title?.toLowerCase().includes(search) ?? false));
+  const currentRows = rows.filter(matches);
+  const visibleSummary = summaryRows.filter(matches);
+  const pinnedSummary = visibleSummary.filter((row) => favoriteKeys.has(row.key));
+  const metricGroups = groupedMetricRows(visibleSummary.filter((row) => !favoriteKeys.has(row.key)));
   const [expandedKeys, setExpandedKeys] = useState<Set<string>>(() => new Set());
+
+  useEffect(() => {
+    const syncFavorites = (event: StorageEvent) => {
+      if (!inMemory && (event.key === favoritesStorageKey || event.key === null)) {
+        const active = document.activeElement;
+        const focusTarget =
+          active instanceof HTMLButtonElement && tableRef.current?.contains(active)
+            ? active.dataset.metricFavorite
+            : undefined;
+        setFavoriteState({ favorites: parseFavorites(readLocalStorage(favoritesStorageKey)), focusTarget });
+      }
+    };
+
+    window.addEventListener("storage", syncFavorites);
+    return () => window.removeEventListener("storage", syncFavorites);
+  }, [inMemory]);
+
+  const updateFavorites = (change: (current: MetricFavorites) => MetricFavorites, focusTarget?: string) => {
+    const stored = inMemory ? null : readLocalStorage(favoritesStorageKey);
+    const next = change(stored === null ? favorites : parseFavorites(stored));
+    const saved = writeLocalStorage(favoritesStorageKey, JSON.stringify(next));
+    setFavoriteState({ favorites: next, focusTarget, inMemory: !saved });
+  };
+
+  useLayoutEffect(() => {
+    if (focusTarget === undefined) return;
+
+    const buttons = tableRef.current?.querySelectorAll<HTMLButtonElement>("button[data-metric-favorite]");
+    const button = Array.from(buttons ?? []).find(
+      (candidate) => candidate.dataset.metricFavorite === focusTarget && !candidate.closest("details:not([open])"),
+    );
+    (button ?? tableRef.current?.querySelector<HTMLButtonElement>("button[data-testid='metrics-favorites']"))?.focus();
+  }, [favorites, focusTarget]);
+
+  const renderStar = (scope: MetricRowScope, row: Pick<MetricSummaryRow, "key" | "title">) => {
+    const isFavorite = favoriteKeys.has(row.key);
+    const label = t(isFavorite ? "metrics.removeFavorite" : "metrics.addFavorite", { name: row.title ?? row.key });
+    const id = metricRowId(scope, row.key);
+
+    return (
+      <TooltipWrapper tooltipText={label}>
+        <IconButton
+          aria-label={label}
+          aria-pressed={isFavorite}
+          data-metric-favorite={id}
+          icon={isFavorite ? allureIcons.solidStar : allureIcons.lineStar}
+          size="s"
+          iconSize="s"
+          style="ghost"
+          onClick={(event) => {
+            event.stopPropagation();
+            const target = event.currentTarget === document.activeElement ? id : undefined;
+            updateFavorites((current) => {
+              const keys = new Set(current.keys);
+              if (isFavorite) keys.delete(row.key);
+              else keys.add(row.key);
+              return { ...current, keys: [...keys] };
+            }, target);
+          }}
+        />
+      </TooltipWrapper>
+    );
+  };
 
   const toggleRow = (id: string) => {
     setExpandedKeys((current) => {
@@ -193,151 +309,189 @@ const ReportMetricsTable = ({ data }: { data: MetricsWidgetData }) => {
     );
   };
 
-  if (rows.length === 0) {
-    return <div className={styles.empty}>{tEmpty("no-metrics-results")}</div>;
-  }
+  const renderSummary = (categoryRows: MetricSummaryRow[]) => (
+    <div className={styles.tableWrap}>
+      <table className={`${styles.table} ${styles.summaryTable}`}>
+        <colgroup>
+          <col className={styles.summaryMetricCol} />
+          <col className={styles.summaryCountCol} />
+          <col className={styles.summaryValueCol} />
+          <col className={styles.summaryValueCol} />
+          <col className={styles.summaryValueCol} />
+          <col className={styles.summaryValueCol} />
+          <col className={styles.summaryDeltaCol} />
+          <col className={styles.summaryTrendCol} />
+        </colgroup>
+        <thead>
+          <tr>
+            <th>{t("metrics.table.phase")}</th>
+            <th>{t("metrics.table.count")}</th>
+            <th>{t("metrics.table.total")}</th>
+            <th>{t("metrics.table.avg")}</th>
+            <th>{t("metrics.table.min")}</th>
+            <th>{t("metrics.table.max")}</th>
+            <th>{t("metrics.table.delta")}</th>
+            <th>{t("metrics.table.trend")}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {categoryRows.map((row) => {
+            const metricRow = rowsByKey.get(row.key);
+            const rowId = metricRowId("summary", row.key);
+            const detailsId = metricDetailsId("summary", row.key);
+            const isExpanded = expandedKeys.has(rowId);
+
+            return (
+              <Fragment key={row.key}>
+                <tr className={styles.expandableRow} data-expanded={isExpanded} onClick={() => toggleRow(rowId)}>
+                  <td>
+                    <div className={styles.metricCell}>
+                      {renderStar("summary", row)}
+                      <button
+                        aria-controls={detailsId}
+                        aria-expanded={isExpanded}
+                        className={styles.metricButton}
+                        type="button"
+                      >
+                        <ArrowButton className={styles.rowArrow} isOpened={isExpanded} tag="span" buttonSize="s" />
+                        <span className={styles.metricName}>{row.title ?? row.key}</span>
+                      </button>
+                    </div>
+                  </td>
+                  <td>{typeof row.count === "number" ? formatValue(row.count) : ""}</td>
+                  {(["totalMs", "avgMs", "minMs", "maxMs"] as SummaryValueField[]).map((field) => (
+                    <td key={field}>{typeof row[field] === "number" ? formatValue(row[field], row.unit) : ""}</td>
+                  ))}
+                  <td>{formatDelta({ delta: row.delta, unit: row.unit, better: row.better })}</td>
+                  <td>
+                    <Sparkline values={row.trend} />
+                  </td>
+                </tr>
+                {isExpanded && metricRow && renderHistoryRow(metricRow, 8, detailsId)}
+              </Fragment>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+  );
+
+  const renderCurrent = () => (
+    <div className={styles.tableWrap}>
+      <table className={`${styles.table} ${styles.currentTable}`}>
+        <colgroup>
+          <col className={styles.currentMetricCol} />
+          <col className={styles.currentValueCol} />
+          <col className={styles.currentDeltaCol} />
+          <col className={styles.currentSourceCol} />
+        </colgroup>
+        <thead>
+          <tr>
+            <th>{t("metrics.table.metric")}</th>
+            <th>{t("metrics.table.value")}</th>
+            <th>{t("metrics.table.delta")}</th>
+            <th>{t("metrics.table.source")}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {currentRows.map((row) => {
+            const rowId = metricRowId("current", row.key);
+            const detailsId = metricDetailsId("current", row.key);
+            const isExpanded = expandedKeys.has(rowId);
+
+            return (
+              <Fragment key={row.key}>
+                <tr className={styles.expandableRow} data-expanded={isExpanded} onClick={() => toggleRow(rowId)}>
+                  <td>
+                    <div className={styles.metricCell}>
+                      {renderStar("current", row)}
+                      <button
+                        aria-controls={detailsId}
+                        aria-expanded={isExpanded}
+                        className={styles.metricButton}
+                        type="button"
+                      >
+                        <ArrowButton className={styles.rowArrow} isOpened={isExpanded} tag="span" buttonSize="s" />
+                        <span>
+                          <span className={styles.metricName}>{row.title ?? row.key}</span>
+                          {row.group && <span className={styles.metricGroup}>{row.group}</span>}
+                        </span>
+                      </button>
+                    </div>
+                  </td>
+                  <td>{formatValue(row.value, row.unit)}</td>
+                  <td>{formatDelta(row)}</td>
+                  <td>{row.source ?? ""}</td>
+                </tr>
+                {isExpanded && renderHistoryRow(row, 4, detailsId)}
+              </Fragment>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+  );
 
   return (
-    <div>
-      {summaryRows.length > 0 && (
+    <div ref={tableRef}>
+      <div className={styles.toolbar}>
+        <div className={styles.search}>
+          <SearchBox
+            placeholder={t("metrics.search")}
+            clearLabel={t("metrics.clearSearch")}
+            value={query}
+            onChange={setQuery}
+            changeDebounce={150}
+          />
+        </div>
+        <Button
+          text={t("metrics.favorites")}
+          icon={favorites.only ? allureIcons.solidStar : allureIcons.lineStar}
+          style={favorites.only ? "raised" : "ghost"}
+          aria-pressed={favorites.only}
+          data-testid="metrics-favorites"
+          trailingSlot={<Counter count={favoritesCount} size="s" />}
+          onClick={() => updateFavorites((current) => ({ ...current, only: !favorites.only }))}
+        />
+      </div>
+
+      {currentRows.length === 0 && (
+        <output className={styles.empty}>
+          {favorites.only && favoritesCount === 0
+            ? t("metrics.noFavorites")
+            : search
+              ? t("metrics.noMatches")
+              : tEmpty("no-metrics-results")}
+        </output>
+      )}
+
+      {visibleSummary.length > 0 && (
         <section className={styles.section} aria-labelledby="metrics-phase-summary">
           <h2 className={styles.sectionTitle} id="metrics-phase-summary">
             {t("metrics.phaseSummary")}
           </h2>
+          {pinnedSummary.length > 0 && (
+            <section className={styles.phaseGroup} aria-labelledby="metrics-favorites-heading">
+              <h3 className={styles.groupTitle} id="metrics-favorites-heading">
+                {t("metrics.favorites")}
+              </h3>
+              {renderSummary(pinnedSummary)}
+            </section>
+          )}
           {metricGroups.map(([category, categoryRows]) => (
             <div className={styles.phaseGroup} key={category}>
               <h3 className={styles.groupTitle}>
                 {category === "other" ? t("metrics.groups.other") : formatGroupLabel(category)}
               </h3>
-              <div className={styles.tableWrap}>
-                <table className={`${styles.table} ${styles.summaryTable}`}>
-                  <colgroup>
-                    <col className={styles.summaryMetricCol} />
-                    <col className={styles.summaryCountCol} />
-                    <col className={styles.summaryValueCol} />
-                    <col className={styles.summaryValueCol} />
-                    <col className={styles.summaryValueCol} />
-                    <col className={styles.summaryValueCol} />
-                    <col className={styles.summaryDeltaCol} />
-                    <col className={styles.summaryTrendCol} />
-                  </colgroup>
-                  <thead>
-                    <tr>
-                      <th>{t("metrics.table.phase")}</th>
-                      <th>{t("metrics.table.count")}</th>
-                      <th>{t("metrics.table.total")}</th>
-                      <th>{t("metrics.table.avg")}</th>
-                      <th>{t("metrics.table.min")}</th>
-                      <th>{t("metrics.table.max")}</th>
-                      <th>{t("metrics.table.delta")}</th>
-                      <th>{t("metrics.table.trend")}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {categoryRows.map((row) => {
-                      const metricRow = rowsByKey.get(row.key);
-                      const rowId = metricRowId("summary", row.key);
-                      const detailsId = metricDetailsId("summary", row.key);
-                      const isExpanded = expandedKeys.has(rowId);
-
-                      return (
-                        <Fragment key={row.key}>
-                          <tr
-                            className={styles.expandableRow}
-                            data-expanded={isExpanded}
-                            onClick={() => toggleRow(rowId)}
-                          >
-                            <td>
-                              <button
-                                aria-controls={detailsId}
-                                aria-expanded={isExpanded}
-                                className={styles.metricButton}
-                                type="button"
-                              >
-                                <ArrowButton
-                                  className={styles.rowArrow}
-                                  isOpened={isExpanded}
-                                  tag="span"
-                                  buttonSize="s"
-                                />
-                                <span className={styles.metricName}>{row.title ?? row.key}</span>
-                              </button>
-                            </td>
-                            <td>{typeof row.count === "number" ? formatValue(row.count) : ""}</td>
-                            {(["totalMs", "avgMs", "minMs", "maxMs"] as SummaryValueField[]).map((field) => (
-                              <td key={field}>
-                                {typeof row[field] === "number" ? formatValue(row[field], row.unit) : ""}
-                              </td>
-                            ))}
-                            <td>{formatDelta({ delta: row.delta, unit: row.unit, better: row.better })}</td>
-                            <td>
-                              <Sparkline values={row.trend} />
-                            </td>
-                          </tr>
-                          {isExpanded && metricRow && renderHistoryRow(metricRow, 8, detailsId)}
-                        </Fragment>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
+              {renderSummary(categoryRows)}
             </div>
           ))}
         </section>
       )}
 
-      <details className={styles.section} open={summaryRows.length === 0}>
+      <details className={styles.section} hidden={currentRows.length === 0}>
         <summary className={styles.sectionTitle}>{t("metrics.currentValues")}</summary>
-        <div className={styles.tableWrap}>
-          <table className={`${styles.table} ${styles.currentTable}`}>
-            <colgroup>
-              <col className={styles.currentMetricCol} />
-              <col className={styles.currentValueCol} />
-              <col className={styles.currentDeltaCol} />
-              <col className={styles.currentSourceCol} />
-            </colgroup>
-            <thead>
-              <tr>
-                <th>{t("metrics.table.metric")}</th>
-                <th>{t("metrics.table.value")}</th>
-                <th>{t("metrics.table.delta")}</th>
-                <th>{t("metrics.table.source")}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((row) => {
-                const rowId = metricRowId("current", row.key);
-                const detailsId = metricDetailsId("current", row.key);
-                const isExpanded = expandedKeys.has(rowId);
-
-                return (
-                  <Fragment key={row.key}>
-                    <tr className={styles.expandableRow} data-expanded={isExpanded} onClick={() => toggleRow(rowId)}>
-                      <td>
-                        <button
-                          aria-controls={detailsId}
-                          aria-expanded={isExpanded}
-                          className={styles.metricButton}
-                          type="button"
-                        >
-                          <ArrowButton className={styles.rowArrow} isOpened={isExpanded} tag="span" buttonSize="s" />
-                          <span>
-                            <span className={styles.metricName}>{row.title ?? row.key}</span>
-                            {row.group && <span className={styles.metricGroup}>{row.group}</span>}
-                          </span>
-                        </button>
-                      </td>
-                      <td>{formatValue(row.value, row.unit)}</td>
-                      <td>{formatDelta(row)}</td>
-                      <td>{row.source ?? ""}</td>
-                    </tr>
-                    {isExpanded && renderHistoryRow(row, 4, detailsId)}
-                  </Fragment>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+        {currentRows.length > 0 && renderCurrent()}
       </details>
     </div>
   );
@@ -345,25 +499,45 @@ const ReportMetricsTable = ({ data }: { data: MetricsWidgetData }) => {
 
 const ReportMetricsContent = ({ data }: { data: MetricsWidgetData }) => {
   const { t } = useI18n("charts");
-  const { currentTab } = useNavTabsContext();
+  const currentTab = getParamValue("metricsTab") === "timeline" ? "timeline" : "table";
+  const selectTab = (tab: "table" | "timeline", button: HTMLButtonElement) => {
+    const wasFocused = document.activeElement === button;
+    setParams({
+      key: "metricsTab",
+      value: tab === "timeline" ? tab : undefined,
+    });
+    // Keep focus on the tab when route synchronization clears it.
+    if (wasFocused && document.activeElement === document.body) button.focus({ preventScroll: true });
+  };
   const [root, setRoot] = useState<string>();
+  const rows = useMemo(() => metricRows(data), [data]);
   return (
     <div className={styles.metrics} data-testid="metrics-view">
       <header className={styles.header}>
         <h1 className={styles.title}>{t("metrics.title")}</h1>
-        <span className={styles.meta}>
-          {t("metrics.summary", { groups: metricSummaryRows(data).length, metrics: metricRows(data).length })}
-        </span>
+        <span className={styles.meta}>{t("metrics.summary", { groups: rows.length, metrics: rows.length })}</span>
       </header>
       <div className={styles.card}>
         <div className={styles.tabs}>
           <NavTabsList>
-            <NavTab id="table">{t("metrics.tableView")}</NavTab>
-            <NavTab id="timeline">{t("metrics.timelineView")}</NavTab>
+            <NavTab
+              id="table"
+              isCurrentTab={currentTab === "table"}
+              onClick={(e) => selectTab("table", e.currentTarget)}
+            >
+              {t("metrics.tableView")}
+            </NavTab>
+            <NavTab
+              id="timeline"
+              isCurrentTab={currentTab === "timeline"}
+              onClick={(e) => selectTab("timeline", e.currentTarget)}
+            >
+              {t("metrics.timelineView")}
+            </NavTab>
           </NavTabsList>
         </div>
         <div hidden={currentTab !== "table"} className={styles.view}>
-          <ReportMetricsTable data={data} />
+          <ReportMetricsTable data={data} rows={rows} />
         </div>
         {currentTab === "timeline" && (
           <LazyComponent

@@ -1,3 +1,4 @@
+import { loadFromLocalStorage, writeLocalStorage } from "@allurereport/web-commons";
 import type { JSX } from "preact";
 import { useEffect, useMemo, useRef } from "preact/hooks";
 import Split from "split.js";
@@ -13,7 +14,7 @@ const SideBySide = ({ left, right }: { left: JSX.Element; right: JSX.Element }) 
   const rightContent = useMemo(() => right, [right]);
 
   useEffect(() => {
-    const sizes = JSON.parse(localStorage.getItem("sideBySidePosition") || "[50, 50]");
+    const sizes = loadFromLocalStorage("sideBySidePosition", [50, 50]);
 
     const splitter = Split([`.${styles["side-left"]}`, `.${styles["side-right"]}`], {
       sizes,
@@ -25,17 +26,17 @@ const SideBySide = ({ left, right }: { left: JSX.Element; right: JSX.Element }) 
           const currentSizes = splitter.getSizes();
           if (JSON.stringify(currentSizes) === "[50,50]") {
             splitter.setSizes([30, 70]);
-            localStorage.setItem("sideBySidePosition", JSON.stringify([30, 70]));
+            writeLocalStorage("sideBySidePosition", JSON.stringify([30, 70]));
             return;
           }
           splitter.setSizes([50, 50]);
-          localStorage.setItem("sideBySidePosition", JSON.stringify([50, 50]));
+          writeLocalStorage("sideBySidePosition", JSON.stringify([50, 50]));
         });
         return gutter;
       },
       onDragEnd: () => {
         const newSizes = splitter.getSizes();
-        localStorage.setItem("sideBySidePosition", JSON.stringify(newSizes));
+        writeLocalStorage("sideBySidePosition", JSON.stringify(newSizes));
       },
     });
 

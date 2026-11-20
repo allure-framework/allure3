@@ -1,5 +1,7 @@
 import { type Signal, effect } from "@preact/signals-core";
 
+import { readLocalStorage, writeLocalStorage } from "../../storage.js";
+
 export const persistSignal = <S extends Signal<unknown>>(options: {
   signal: S;
   key: string;
@@ -19,7 +21,7 @@ export const persistSignal = <S extends Signal<unknown>>(options: {
     }
 
     try {
-      window.localStorage.setItem(key, typeof value === "string" ? value : JSON.stringify(value));
+      writeLocalStorage(key, typeof value === "string" ? value : JSON.stringify(value));
     } catch {}
   });
 };
@@ -36,7 +38,7 @@ export const restoreSignal = <S extends Signal<unknown>, V = S extends Signal<in
 
   const { signal, key, defaultValue, onRestore = (v) => v as V } = options;
 
-  const value = window.localStorage.getItem(key);
+  const value = readLocalStorage(key);
 
   if (value !== null) {
     let parsedValue = value as V;

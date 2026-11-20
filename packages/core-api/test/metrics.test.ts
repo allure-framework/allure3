@@ -3,12 +3,12 @@ import { describe, expect, it } from "vite-plus/test";
 import {
   buildMetricHierarchy,
   resolveMetricSamples,
-  validatePerformanceConfig,
-  type PerformanceMetricConfig,
+  validateMetricsConfig,
+  type MetricDefinition,
   type ResolvableMetric,
 } from "../src/metrics.js";
 
-const definition = (parent?: string): PerformanceMetricConfig => ({
+const definition = (parent?: string): MetricDefinition => ({
   title: "Operation",
   unit: "ms",
   better: "lower",
@@ -51,7 +51,7 @@ describe("performance metric hierarchy", () => {
     const metrics = JSON.parse(
       '{"__proto__":{"title":"Root","unit":"ms","better":"lower"},"constructor":{"title":"Child","unit":"ms","better":"lower","parent":"__proto__"}}',
     );
-    expect(() => validatePerformanceConfig({ metrics })).not.toThrow();
+    expect(() => validateMetricsConfig({ metrics })).not.toThrow();
     expect(buildMetricHierarchy({ metrics })).toEqual([
       { key: "__proto__", children: [{ key: "constructor", children: [] }] },
     ]);
@@ -59,7 +59,7 @@ describe("performance metric hierarchy", () => {
 
   it("matches parent keys exactly without trimming or inferring a hierarchy from names", () => {
     const metrics = { " root ": definition(), "root.child": definition(" root ") };
-    expect(() => validatePerformanceConfig({ metrics })).not.toThrow();
+    expect(() => validateMetricsConfig({ metrics })).not.toThrow();
     expect(buildMetricHierarchy({ metrics })).toEqual([
       { key: " root ", children: [{ key: "root.child", children: [] }] },
     ]);
@@ -69,30 +69,30 @@ describe("performance metric hierarchy", () => {
     const metrics = Object.fromEntries(
       Array.from({ length: 10_000 }, (_, i) => [String(i), definition(i ? String(i - 1) : undefined)]),
     );
-    expect(() => validatePerformanceConfig({ metrics })).not.toThrow();
+    expect(() => validateMetricsConfig({ metrics })).not.toThrow();
   });
 
   it.each([undefined, {}, { metrics: { root: definition() } }])("accepts existing flat config %j", (config) => {
-    expect(() => validatePerformanceConfig(config)).not.toThrow();
+    expect(() => validateMetricsConfig(config)).not.toThrow();
   });
 
   it.each(["", null, 123])("rejects invalid parent %j", (parent) => {
     const config = { metrics: { child: { ...definition(), parent } } };
-    expect(() =>
-      validatePerformanceConfig(config as unknown as Parameters<typeof validatePerformanceConfig>[0]),
-    ).toThrow('performance.metrics["child"].parent must be a non-empty metric key');
+    expect(() => validateMetricsConfig(config as unknown as Parameters<typeof validateMetricsConfig>[0])).toThrow(
+      'metrics.metrics["child"].parent must be a non-empty metric key',
+    );
   });
 
   it("rejects a missing parent, including inherited object properties", () => {
     for (const parent of ["missing", "constructor", "__proto__"]) {
-      expect(() => validatePerformanceConfig({ metrics: { child: definition(parent) } })).toThrow("Unknown parent");
+      expect(() => validateMetricsConfig({ metrics: { child: definition(parent) } })).toThrow("Unknown parent");
     }
   });
 
   it("rejects self-parenting and cycles even when there are no measured results", () => {
-    expect(() => validatePerformanceConfig({ metrics: { root: definition("root") } })).toThrow("its own parent");
+    expect(() => validateMetricsConfig({ metrics: { root: definition("root") } })).toThrow("its own parent");
     expect(() =>
-      validatePerformanceConfig({
+      validateMetricsConfig({
         metrics: {
           a: definition("b"),
           b: definition("c"),
@@ -102,7 +102,7 @@ describe("performance metric hierarchy", () => {
           reachable: definition("unrelated"),
         },
       }),
-    ).toThrow('Cyclic performance metric parents: "a", "b", "c", "leaf"');
+    ).toThrow('Cyclic metric parents: "a", "b", "c", "leaf"');
   });
 
   it("keeps samples flat and preserves repeated measurements independently of configured parents", () => {

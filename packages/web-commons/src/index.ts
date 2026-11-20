@@ -28,5 +28,11 @@ export * from "./ownerAddress.js";
 export * from "./testErrors.js";
 export * from "./errors.js";
 
-export { getReportStorageKey, getReportStorageScope, loadFromLocalStorage } from "./storage.js";
+export {
+  getReportStorageKey,
+  getReportStorageScope,
+  loadFromLocalStorage,
+  readLocalStorage,
+  writeLocalStorage,
+} from "./storage.js";
 export * from "./testResultRoute.js";

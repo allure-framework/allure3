@@ -1165,7 +1165,7 @@ describe("report", () => {
     const config = await resolveConfig({
       name: "Allure Report",
       output,
-      performance: {
+      metrics: {
         groups: {
           report: {
             title: "Report generation",

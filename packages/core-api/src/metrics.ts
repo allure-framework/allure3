@@ -1,24 +1,26 @@
 export type MetricBetter = "lower" | "higher" | "neutral";
 
-export interface PerformanceGroupConfig {
+export interface MetricGroupConfig {
   title: string;
 }
 
-export interface PerformanceMetricConfig {
+export interface MetricDefinition {
   title: string;
   unit: string;
   better: Exclude<MetricBetter, "neutral">;
   group?: string;
   /** Exact metric key of the configured parent; not a relationship between individual calls. */
   parent?: string;
+  /** Set to false to hide this metric’s measurements from Timeline. */
+  timeline?: boolean;
 }
 
-export interface PerformanceConfig {
-  groups?: Record<string, PerformanceGroupConfig>;
-  metrics?: Record<string, PerformanceMetricConfig>;
+export interface MetricsConfig {
+  groups?: Record<string, MetricGroupConfig>;
+  metrics?: Record<string, MetricDefinition>;
 }
 
-export interface AllurePerformanceResult {
+export interface AllureMetricResult {
   /**
    * Stable result identifier used to preserve metric history across reports.
    */
@@ -29,7 +31,16 @@ export interface AllurePerformanceResult {
   stop: number;
 }
 
-export interface MetricSample extends AllurePerformanceResult {
+/** @deprecated Use MetricGroupConfig. */
+export type PerformanceGroupConfig = MetricGroupConfig;
+/** @deprecated Use MetricDefinition. */
+export type PerformanceMetricConfig = MetricDefinition;
+/** @deprecated Use MetricsConfig. */
+export type PerformanceConfig = MetricsConfig;
+/** @deprecated Use AllureMetricResult. */
+export type AllurePerformanceResult = AllureMetricResult;
+
+export interface MetricSample extends AllureMetricResult {
   value: number;
   source?: string;
   title?: string;
@@ -43,26 +54,35 @@ export interface MetricSample extends AllurePerformanceResult {
 export interface MetricHierarchyNode {
   key: string;
   children: MetricHierarchyNode[];
+  timeline?: false;
 }
 
-export const buildMetricHierarchy = (performance: PerformanceConfig = {}): MetricHierarchyNode[] => {
-  const definitions = performance.metrics ?? {};
+export const buildMetricHierarchy = (config: MetricsConfig = {}): MetricHierarchyNode[] => {
+  const definitions = config.metrics ?? {};
   const metrics = Object.keys(definitions)
     .sort()
-    .map((key) => ({ key, parent: definitions[key]?.parent }));
-  for (const { key, parent } of metrics) {
+    .map((key) => ({ key, parent: definitions[key]?.parent, timeline: definitions[key]?.timeline }));
+  for (const { key, parent, timeline } of metrics) {
+    if (timeline !== undefined && typeof timeline !== "boolean") {
+      throw new Error(`metrics.metrics[${JSON.stringify(key)}].timeline must be a boolean`);
+    }
     if (parent === undefined) continue;
     if (typeof parent !== "string" || parent.length === 0) {
-      throw new Error(`performance.metrics[${JSON.stringify(key)}].parent must be a non-empty metric key`);
+      throw new Error(`metrics.metrics[${JSON.stringify(key)}].parent must be a non-empty metric key`);
     }
     if (parent === key) {
-      throw new Error(`Performance metric ${JSON.stringify(key)} cannot be its own parent`);
+      throw new Error(`Metric ${JSON.stringify(key)} cannot be its own parent`);
     }
     if (!Object.hasOwn(definitions, parent)) {
-      throw new Error(`Unknown parent ${JSON.stringify(parent)} for performance metric ${JSON.stringify(key)}`);
+      throw new Error(`Unknown parent ${JSON.stringify(parent)} for metric ${JSON.stringify(key)}`);
     }
   }
-  const nodes = new Map<string, MetricHierarchyNode>(metrics.map(({ key }) => [key, { key, children: [] }]));
+  const nodes = new Map<string, MetricHierarchyNode>(
+    metrics.map(({ key, timeline }) => [
+      key,
+      { key, children: [], ...(timeline === false ? { timeline: false } : {}) },
+    ]),
+  );
   const roots: MetricHierarchyNode[] = [];
 
   for (const { key, parent } of metrics) {
@@ -80,17 +100,20 @@ export const buildMetricHierarchy = (performance: PerformanceConfig = {}): Metri
   if (reachable.length !== nodes.size) {
     const visited = new Set(reachable.map(({ key }) => key));
     const cyclic = [...nodes.keys()].filter((key) => !visited.has(key));
-    throw new Error(`Cyclic performance metric parents: ${cyclic.map((key) => JSON.stringify(key)).join(", ")}`);
+    throw new Error(`Cyclic metric parents: ${cyclic.map((key) => JSON.stringify(key)).join(", ")}`);
   }
 
   return roots;
 };
 
-export const validatePerformanceConfig = (performance: PerformanceConfig = {}): void => {
-  buildMetricHierarchy(performance);
+export const validateMetricsConfig = (config: MetricsConfig = {}): void => {
+  buildMetricHierarchy(config);
 };
 
-export type ResolvableMetric = AllurePerformanceResult &
+/** @deprecated Use validateMetricsConfig. */
+export const validatePerformanceConfig = validateMetricsConfig;
+
+export type ResolvableMetric = AllureMetricResult &
   Partial<Pick<MetricSample, "source" | "title" | "unit" | "group" | "groupTitle" | "better">>;
 
 const isValidMetricResult = (metric: ResolvableMetric) =>
@@ -103,10 +126,10 @@ const isValidMetricResult = (metric: ResolvableMetric) =>
 
 export const resolveMetricSamples = (
   metrics: readonly ResolvableMetric[],
-  performance: PerformanceConfig = {},
+  config: MetricsConfig = {},
 ): MetricSample[] => {
-  const metricsConfig = performance.metrics ?? {};
-  const groupsConfig = performance.groups ?? {};
+  const metricsConfig = config.metrics ?? {};
+  const groupsConfig = config.groups ?? {};
 
   return metrics.reduce<MetricSample[]>((acc, metric) => {
     const value = Number.isFinite(metric.value) ? Number(metric.value) : undefined;

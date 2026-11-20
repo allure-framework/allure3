@@ -117,6 +117,8 @@
 .scroll {
   grid-column: 1 / -1;
   overflow-x: auto;
+  direction: ltr;
+  padding-inline: 4px 20px;
 }
 
 @media (max-width: 900px) {
@@ -138,7 +140,6 @@
 }
 
 .chart {
-  min-width: 540px;
   direction: ltr;
 }
 
@@ -169,7 +170,6 @@
   align-items: center;
   justify-content: space-between;
   container-type: inline-size;
-  min-width: 2px;
   max-width: 100%;
   height: 32px;
   box-sizing: border-box;
@@ -185,7 +185,6 @@
 
   &[data-point="true"] {
     border-radius: 0;
-    transform: translateX(-1px);
     cursor: help;
   }
 
@@ -254,4 +253,22 @@
   box-shadow: var(--shadow-medium);
   font-size: 13px;
   line-height: 1.65;
+}
+
+.rootMenu {
+  max-height: min(360px, 45dvh);
+}
+
+.rootSearch {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--color-bg-primary);
+  padding: 6px;
+}
+
+.noRoots {
+  display: block;
+  padding: 8px;
+  color: var(--color-text-secondary);
 }

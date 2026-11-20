@@ -115,8 +115,8 @@ export const metricRows = (data: MetricsWidgetData): MetricRow[] => {
     .sort((a, b) => a.key.localeCompare(b.key));
 };
 
-export const metricSummaryRows = (data: MetricsWidgetData): MetricSummaryRow[] => {
-  return metricRows(data).map((row) => ({
+export const metricSummaryRows = (rows: MetricRow[]): MetricSummaryRow[] => {
+  return rows.map((row) => ({
     key: row.key,
     title: row.title,
     group: row.group ?? metricNamespace(row.key),

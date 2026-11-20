@@ -10,16 +10,28 @@ import styles from "./styles.scss";
 
 type Props = {
   placeholder?: string;
+  clearLabel?: string;
   error?: string;
   value: string;
   onChange: (value: string) => void;
   changeDebounce?: number;
+  flushOnBlur?: boolean;
   leadingSlot?: ComponentChild;
   trailingSlot?: ComponentChild;
 };
 
 export const SearchBox = (props: Props) => {
-  const { placeholder, value, onChange, changeDebounce = 300, leadingSlot, trailingSlot, error } = props;
+  const {
+    placeholder,
+    clearLabel,
+    value,
+    onChange,
+    changeDebounce = 300,
+    flushOnBlur = false,
+    leadingSlot,
+    trailingSlot,
+    error,
+  } = props;
   const [localValue, setLocalValue] = useState(value);
   const inputRef = useRef<HTMLInputElement>(null);
   const lastEmittedValueRef = useRef(value ?? "");
@@ -52,12 +64,19 @@ export const SearchBox = (props: Props) => {
     onChangeDebounced(newValue);
   };
 
+  const handleBlur = (e: FocusEvent & { currentTarget: HTMLInputElement }) => {
+    const newValue = e.currentTarget.value;
+    onChangeDebounced.cancel();
+    if (newValue !== lastEmittedValueRef.current) emitChange(newValue);
+  };
+
   const handleClear = (e: MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     setLocalValue("");
     onChangeDebounced.cancel();
     emitChange("");
+    inputRef.current?.focus();
   };
   const handleWrapClick = (e: MouseEvent) => {
     const target = e.target as HTMLElement;
@@ -95,6 +114,7 @@ export const SearchBox = (props: Props) => {
         type="text"
         placeholder={placeholder}
         onInput={handleChange}
+        onBlur={flushOnBlur ? handleBlur : undefined}
         value={localValue}
         name="search"
         autocomplete="off"
@@ -114,6 +134,7 @@ export const SearchBox = (props: Props) => {
             icon={allureIcons.lineGeneralXClose}
             onClick={handleClear}
             style="ghost"
+            aria-label={clearLabel}
             data-testid="clear-button"
           />
         </div>

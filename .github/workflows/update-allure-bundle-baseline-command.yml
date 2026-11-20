@@ -16,6 +16,9 @@ permissions:
   issues: write
   pull-requests: write
 
+env:
+  GH_REPO: ${{ github.repository }}
+
 concurrency:
   group: update-bundle-baseline-command-${{ github.event.issue.number }}
   cancel-in-progress: true

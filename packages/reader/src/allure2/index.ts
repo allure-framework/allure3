@@ -1,7 +1,7 @@
 import * as console from "node:console";
 import { randomUUID } from "node:crypto";
 
-import { type AllureCheckResult, type AllurePerformanceResult, ExpressionError, notNull } from "@allurereport/core-api";
+import { type AllureCheckResult, type AllureMetricResult, ExpressionError, notNull } from "@allurereport/core-api";
 import type {
   RawGlobalAttachment,
   RawGlobalError,
@@ -131,11 +131,13 @@ const isAllure2AttachmentFileName = (fileName: string): boolean => {
   return suffix === "" || suffix.startsWith(".");
 };
 
+const isMetricResultFile = (fileName: string): boolean =>
+  fileName.endsWith("-metric.json") || fileName.endsWith("-perf.json") || fileName === "performance.json";
+
 const matchesAllure2File = (fileName: string): boolean => {
   if (fileName.endsWith("-result.json")) return true;
   if (fileName.endsWith("-check.json")) return true;
-  if (fileName.endsWith("-perf.json")) return true;
-  if (fileName === "performance.json") return true;
+  if (isMetricResultFile(fileName)) return true;
   if (fileName.endsWith("-container.json")) return true;
   if (fileName.endsWith("-globals.json")) return true;
   if (isAllure2AttachmentFileName(fileName)) return true;
@@ -167,7 +169,7 @@ export const allure2: ResultsReader = {
       }
     }
 
-    if (originalFileName.endsWith("-perf.json") || originalFileName === "performance.json") {
+    if (isMetricResultFile(originalFileName)) {
       try {
         const results = await data.asJson<unknown>();
 
@@ -175,7 +177,7 @@ export const allure2: ResultsReader = {
           return false;
         }
 
-        await visitor.visitMetrics(results as AllurePerformanceResult[], { readerId, metadata: { originalFileName } });
+        await visitor.visitMetrics(results as AllureMetricResult[], { readerId, metadata: { originalFileName } });
 
         return true;
       } catch (e) {

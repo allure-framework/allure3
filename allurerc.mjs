@@ -3,6 +3,8 @@ import { env } from "node:process";
 import { defineConfig } from "allure";
 import { qualityGateDefaultRules } from "allure/rules";
 
+import { awesomeReportSizeMetrics, bundleSizeMetrics } from "./.github/allure-bundle-size.metrics.mjs";
+
 const { ALLURE_QUALITY_GATE, ALLURE_REQUIRE_NEW_TESTS, ALLURE_SERVICE_ACCESS_TOKEN, ALLURE_PR_TITLE } = env;
 const qualityGateEnabled = Boolean(ALLURE_QUALITY_GATE);
 const requireNewTests = ALLURE_REQUIRE_NEW_TESTS === "1";
@@ -148,8 +150,10 @@ const config = {
       },
     ],
   },
-  performance: {
+  metrics: {
     groups: {
+      ...bundleSizeMetrics.groups,
+      ...awesomeReportSizeMetrics.groups,
       aql: {
         title: "AQL",
       },
@@ -173,6 +177,8 @@ const config = {
       },
     },
     metrics: {
+      ...bundleSizeMetrics.metrics,
+      ...awesomeReportSizeMetrics.metrics,
       "aql.parse.simple": msMetric({ title: "Parse simple condition", group: "aql" }),
       "aql.parse.complex": msMetric({ title: "Parse complex expression", group: "aql" }),
       "aql.parse.array": msMetric({ title: "Parse array condition", group: "aql" }),

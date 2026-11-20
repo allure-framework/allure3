@@ -51,6 +51,29 @@ describe("metric timeline", () => {
     );
   });
 
+  it("prefers a timed root and omits hidden samples while preserving their descendants", () => {
+    const input: MetricsWidgetData = {
+      current: [
+        sample("a-point", 0, 0),
+        sample("a-hidden", 0, 500),
+        sample("run", 0, 200),
+        sample("child", 80, 110),
+        sample("z-timed", 0, 10),
+      ],
+      history: [],
+      hierarchy: [
+        { key: "a-hidden", children: [], timeline: false },
+        { key: "run", timeline: false, children: [{ key: "child", children: [] }] },
+      ],
+    };
+    const model = metricTimeline(input, "a-hidden");
+    expect(model.roots).toEqual(["a-point", "run", "z-timed"]);
+    expect(model.root).toBe("run");
+    expect(model.duration).toBe(30);
+    expect(model.rows.map(({ depth }) => depth)).toEqual([1]);
+    expect(metricTimeline(input, "a-point").duration).toBe(0);
+  });
+
   it("rejects invalid intervals without hiding valid zero or negative metric values", () => {
     const input = data([
       sample("run", NaN, 1),
