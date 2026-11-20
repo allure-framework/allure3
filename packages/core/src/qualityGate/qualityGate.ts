@@ -1,9 +1,10 @@
-import { type MetricSample, type TestError, type TestResult } from "@allurereport/core-api";
-import type {
-  QualityGateConfig,
-  QualityGateMetricHistoryPoint,
-  QualityGateValidationResult,
-} from "@allurereport/plugin-api";
+import {
+  type AllureQualityGateResult,
+  type MetricSample,
+  type TestError,
+  type TestResult,
+} from "@allurereport/core-api";
+import type { QualityGateConfig, QualityGateMetricHistoryPoint } from "@allurereport/plugin-api";
 import { bold, gray, red } from "yoctocolors";
 
 import { isIgnoredFailure } from "../resolutions.js";
@@ -13,10 +14,13 @@ import { qualityGateDefaultRules } from "./rules.js";
  * Validation results contain every evaluated rule, no matter whether it has been passed or not.
  * Use it whenever only the failed ones matter, e.g. to calculate an exit code or to print an error.
  */
-export const filterFailedQualityGateResults = (results: QualityGateValidationResult[]) =>
-  results.filter(({ success }) => !success);
+export const filterFailedQualityGateResults = (results: AllureQualityGateResult[]) =>
+  results.filter(({ status }) => status === "failed");
 
 const formatQualityGateValue = (value: any) => (Array.isArray(value) ? value.join(", ") : String(value));
+
+const qualityGateResultMessage = (result: AllureQualityGateResult) =>
+  result.details?.message ?? result.details?.stderr ?? result.details?.stdout ?? "No message provided";
 
 /**
  * Fallback message for the rules which don't provide their own `successMessage`.
@@ -28,7 +32,7 @@ const defaultSuccessMessage = ({ actual, expected }: { actual: any; expected: an
  * Converts quality gate results to a terminal-friendly string.
  * Passed rules are omitted, only failures are reported.
  */
-export const stringifyQualityGateResults = (results: QualityGateValidationResult[]) => {
+export const stringifyQualityGateResults = (results: AllureQualityGateResult[]) => {
   const failedResults = filterFailedQualityGateResults(results);
 
   if (failedResults.length === 0) {
@@ -36,16 +40,17 @@ export const stringifyQualityGateResults = (results: QualityGateValidationResult
   }
 
   const lines = [red("Quality Gate failed with following issues:")];
-  const maxMessageLength = Math.max(...failedResults.map((r) => r.message.length));
+  const messages = failedResults.map(qualityGateResultMessage);
+  const maxMessageLength = Math.max(...messages.map((message) => message.length));
 
   lines.push("");
 
-  failedResults.forEach((result) => {
-    lines.push(` ${red("⨯")} ${result.message.padEnd(maxMessageLength, " ")}    ${gray(result.rule)}`);
+  failedResults.forEach((result, index) => {
+    lines.push(` ${red("⨯")} ${messages[index].padEnd(maxMessageLength, " ")}    ${gray(result.key)}`);
   });
 
   lines.push("");
-  lines.push(red(`${failedResults.length} quality gate rules have been failed.`));
+  lines.push(red(`${failedResults.length} quality gate checks have failed.`));
 
   return lines.join("\n");
 };
@@ -54,11 +59,11 @@ export const stringifyQualityGateResults = (results: QualityGateValidationResult
  * Converts quality gate results into test errors which can be send to the report and rendered.
  * Passed rules don't produce any error.
  */
-export const convertQualityGateResultsToTestErrors = (results: QualityGateValidationResult[]): TestError[] => {
+export const convertQualityGateResultsToTestErrors = (results: AllureQualityGateResult[]): TestError[] => {
   return filterFailedQualityGateResults(results).map((result) => ({
-    message: `Quality Gate (${result.rule}): ${result.message}`,
-    actual: result.actual,
-    expected: result.expected,
+    message: `Quality Gate (${result.key}): ${qualityGateResultMessage(result)}`,
+    actual: result.details?.actual,
+    expected: result.details?.expected,
   }));
 };
 
@@ -101,7 +106,7 @@ export class QualityGate {
     metrics?: MetricSample[];
     previousHistory?: QualityGateMetricHistoryPoint[];
     environment?: string;
-  }): Promise<{ fastFailed: boolean; results: QualityGateValidationResult[] }> {
+  }): Promise<{ fastFailed: boolean; results: AllureQualityGateResult[] }> {
     const { state, trs, metrics = [], previousHistory = [], environment } = payload;
     const trsToValidateById = new Map<string, TestResult>();
     const resolutionEvaluatedAt = Date.now();
@@ -116,7 +121,7 @@ export class QualityGate {
 
     const trsToValidate = [...trsToValidateById.values()];
     const { rules, use = [...qualityGateDefaultRules] as NonNullable<QualityGateConfig["use"]> } = this.config;
-    const results: QualityGateValidationResult[] = [];
+    const results: AllureQualityGateResult[] = [];
     let fastFailed = false;
 
     if (!rules?.length) {
@@ -166,14 +171,20 @@ export class QualityGate {
         };
 
         results.push({
-          ...result,
-          expected,
-          rule: ruleId,
-          message: result.success
-            ? (rule.successMessage ?? defaultSuccessMessage)(messagePayload)
-            : rule.message(messagePayload),
-          environment,
-          testResults: [...new Set([...(state?.getTestResults(ruleId) ?? []), ...result.testResults])],
+          status: result.success ? "passed" : "failed",
+          key: ruleId,
+          ...(environment ? { environment } : {}),
+          source: {
+            type: "rule",
+          },
+          details: {
+            message: result.success
+              ? (rule.successMessage ?? defaultSuccessMessage)(messagePayload)
+              : rule.message(messagePayload),
+            expected,
+            actual: result.actual,
+            testResults: [...new Set([...(state?.getTestResults(ruleId) ?? []), ...result.testResults])],
+          },
         });
 
         if (!result.success && ruleset.fastFail) {

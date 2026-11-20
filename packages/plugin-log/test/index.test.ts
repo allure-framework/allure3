@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
-import type { TestError, TestResult } from "@allurereport/core-api";
-import type { AllureStore, PluginContext, QualityGateValidationResult } from "@allurereport/plugin-api";
+import type { AllureQualityGateResult, TestError, TestResult } from "@allurereport/core-api";
+import type { AllureStore, PluginContext } from "@allurereport/plugin-api";
 import { story } from "allure-js-commons";
 import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
@@ -23,31 +23,40 @@ const fixtures = {
   ] as TestResult[],
   qualityGateResults: [
     {
-      success: false,
-      rule: "maxFailures",
-      message: "The number of failed tests 1 exceeds the allowed threshold value 0",
-      actual: 1,
-      expected: 0,
-      testResults: ["test-result-id"],
+      status: "failed",
+      key: "maxFailures",
+      source: { type: "rule" },
+      details: {
+        message: "The number of failed tests 1 exceeds the allowed threshold value 0",
+        actual: 1,
+        expected: 0,
+        testResults: ["test-result-id"],
+      },
     },
     {
-      success: true,
-      rule: "minTestsCount",
-      message: "The number of tests 2 exceeds the minimum threshold value 1",
-      actual: 2,
-      expected: 1,
-      testResults: ["test-result-id"],
+      status: "passed",
+      key: "minTestsCount",
+      source: { type: "rule" },
+      details: {
+        message: "The number of tests 2 exceeds the minimum threshold value 1",
+        actual: 2,
+        expected: 1,
+        testResults: ["test-result-id"],
+      },
     },
     {
-      success: true,
-      rule: "customRule",
-      message: "Custom rule has passed",
-      actual: 1,
-      expected: 1,
+      status: "passed",
+      key: "customRule",
+      source: { type: "rule" },
+      details: {
+        message: "Custom rule has passed",
+        actual: 1,
+        expected: 1,
+        testResults: ["test-result-id"],
+      },
       environment: "chrome",
-      testResults: ["test-result-id"],
     },
-  ] as QualityGateValidationResult[],
+  ] as AllureQualityGateResult[],
   globalErrors: [
     {
       message: "Global setup failed",
@@ -56,7 +65,7 @@ const fixtures = {
   ] as TestError[],
 };
 
-const failedQualityGateResults = fixtures.qualityGateResults.filter(({ success }) => !success);
+const failedQualityGateResults = fixtures.qualityGateResults.filter(({ status }) => status === "failed");
 
 vi.mock("../src/utils.js", async () => {
   return {
@@ -179,7 +188,7 @@ describe("plugin", () => {
   it("prints only quality gate results selected by a custom status filter", async () => {
     const store = createStore();
     const plugin = new LogPlugin({
-      qualityGateFilter: ({ success }) => success,
+      qualityGateFilter: ({ status }) => status === "passed",
     });
 
     await plugin.done({} as PluginContext, store);
@@ -190,7 +199,7 @@ describe("plugin", () => {
   it("prints only quality gate results selected by rule and environment", async () => {
     const store = createStore();
     const plugin = new LogPlugin({
-      qualityGateFilter: ({ environment, rule }) => environment === "chrome" && rule === "customRule",
+      qualityGateFilter: ({ environment, key }) => environment === "chrome" && key === "customRule",
     });
 
     await plugin.done({} as PluginContext, store);

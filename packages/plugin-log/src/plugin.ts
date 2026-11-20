@@ -1,18 +1,13 @@
 import * as console from "node:console";
 
-import type {
-  AllureStore,
-  Plugin,
-  PluginContext,
-  PluginExpressionFields,
-  QualityGateValidationResult,
-} from "@allurereport/plugin-api";
+import type { AllureQualityGateResult } from "@allurereport/core-api";
+import type { AllureStore, Plugin, PluginContext, PluginExpressionFields } from "@allurereport/plugin-api";
 import { gray } from "yoctocolors";
 
 import type { LogPluginOptions } from "./model.js";
 import { printGlobalErrors, printQualityGateResults, printSummary, printTest } from "./utils.js";
 
-const defaultQualityGateFilter = ({ success }: QualityGateValidationResult) => !success;
+const defaultQualityGateFilter = ({ status }: AllureQualityGateResult) => status === "failed";
 
 export class LogPlugin implements Plugin {
   static readonly configExpressions = {

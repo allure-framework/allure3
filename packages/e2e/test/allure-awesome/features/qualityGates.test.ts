@@ -1,4 +1,4 @@
-import type { QualityGateValidationResult } from "@allurereport/plugin-api";
+import type { AllureQualityGateResult } from "@allurereport/core-api";
 import { expect, test } from "@playwright/test";
 import { epic, feature, label, parameter, Stage, Status, story } from "allure-js-commons";
 import { QualityGatesPage } from "test/pageObjects/QualityGates.js";
@@ -6,6 +6,21 @@ import { QualityGatesPage } from "test/pageObjects/QualityGates.js";
 import { CommonPage } from "../../pageObjects/index.js";
 import { type ReportBootstrap, bootstrapReport } from "../utils/index.js";
 import { makeReportConfig } from "../utils/mocks.js";
+
+const qualityGateResult = (
+  status: AllureQualityGateResult["status"],
+  key: string,
+  message: string,
+  actual: number,
+  expected: number,
+  environment?: string,
+): AllureQualityGateResult => ({
+  status,
+  key,
+  source: { type: "rule" },
+  details: { message, actual, expected },
+  ...(environment ? { environment } : {}),
+});
 
 test.describe("quality gates", () => {
   let bootstrap: ReportBootstrap;
@@ -51,21 +66,9 @@ test.describe("quality gates", () => {
   test("should not render quality gate sections when there're results without any environment", async ({ page }) => {
     const fixture = {
       qualityGateResults: [
-        {
-          rule: "foo",
-          message: "bar",
-          success: false,
-          actual: 0,
-          expected: 0,
-        },
-        {
-          rule: "bar",
-          message: "baz",
-          success: false,
-          actual: 0,
-          expected: 0,
-        },
-      ] as QualityGateValidationResult[],
+        qualityGateResult("failed", "foo", "bar", 0, 0),
+        qualityGateResult("failed", "bar", "baz", 0, 0),
+      ] as AllureQualityGateResult[],
     };
     bootstrap = await bootstrapReport({
       reportConfig: makeReportConfig({
@@ -83,17 +86,17 @@ test.describe("quality gates", () => {
     await expect(qualityGatesPage.qualityGatesTabLocator).toContainText("2");
     await expect(qualityGatesPage.qualityGatesResultLocator).toHaveCount(2);
     await expect(qualityGatesPage.qualityGatesResultLocator.nth(0).getByTestId("quality-gate-result-rule")).toHaveText(
-      fixture.qualityGateResults[0].rule,
+      fixture.qualityGateResults[0].key,
     );
     await expect(
       qualityGatesPage.qualityGatesResultLocator.nth(0).getByTestId("quality-gate-result-message"),
-    ).toContainText(fixture.qualityGateResults[0].message);
+    ).toContainText(fixture.qualityGateResults[0].details?.message ?? "");
     await expect(qualityGatesPage.qualityGatesResultLocator.nth(1).getByTestId("quality-gate-result-rule")).toHaveText(
-      fixture.qualityGateResults[1].rule,
+      fixture.qualityGateResults[1].key,
     );
     await expect(
       qualityGatesPage.qualityGatesResultLocator.nth(1).getByTestId("quality-gate-result-message"),
-    ).toContainText(fixture.qualityGateResults[1].message);
+    ).toContainText(fixture.qualityGateResults[1].details?.message ?? "");
 
     await page.pause();
 
@@ -105,21 +108,15 @@ test.describe("quality gates", () => {
   test("should render both passed and failed rules of the same run, failures first", async ({ page }) => {
     const fixture = {
       qualityGateResults: [
-        {
-          rule: "maxFailures",
-          message: "The number of failed tests 1 is within the allowed threshold value 2",
-          success: true,
-          actual: 1,
-          expected: 2,
-        },
-        {
-          rule: "successRate",
-          message: "Success rate 0.66 is less, than expected 0.9",
-          success: false,
-          actual: 0.66,
-          expected: 0.9,
-        },
-      ] as QualityGateValidationResult[],
+        qualityGateResult(
+          "passed",
+          "maxFailures",
+          "The number of failed tests 1 is within the allowed threshold value 2",
+          1,
+          2,
+        ),
+        qualityGateResult("failed", "successRate", "Success rate 0.66 is less, than expected 0.9", 0.66, 0.9),
+      ] as AllureQualityGateResult[],
     };
     bootstrap = await bootstrapReport({
       reportConfig: makeReportConfig({
@@ -146,11 +143,11 @@ test.describe("quality gates", () => {
 
     await expect(failedResult.getByTestId("quality-gate-result-rule")).toHaveText("successRate");
     await expect(failedResult.getByTestId("quality-gate-result-message")).toContainText(
-      fixture.qualityGateResults[1].message,
+      fixture.qualityGateResults[1].details?.message ?? "",
     );
     await expect(passedResult.getByTestId("quality-gate-result-rule")).toHaveText("maxFailures");
     await expect(passedResult.getByTestId("quality-gate-result-message")).toContainText(
-      fixture.qualityGateResults[0].message,
+      fixture.qualityGateResults[0].details?.message ?? "",
     );
 
     await qualityGatesPage.attachScreenshot();
@@ -159,23 +156,9 @@ test.describe("quality gates", () => {
   test("should render quality gate sections with environments from validation results", async ({ page }) => {
     const fixture = {
       qualityGateResults: [
-        {
-          rule: "foo",
-          message: "bar",
-          success: false,
-          actual: 0,
-          expected: 0,
-          environment: "foo",
-        },
-        {
-          rule: "bar",
-          message: "baz",
-          success: false,
-          actual: 0,
-          expected: 0,
-          environment: "bar",
-        },
-      ] as QualityGateValidationResult[],
+        qualityGateResult("failed", "foo", "bar", 0, 0, "foo"),
+        qualityGateResult("failed", "bar", "baz", 0, 0, "bar"),
+      ] as AllureQualityGateResult[],
     };
     bootstrap = await bootstrapReport({
       reportConfig: makeReportConfig({
@@ -193,17 +176,17 @@ test.describe("quality gates", () => {
     await expect(qualityGatesPage.qualityGatesTabLocator).toContainText("2");
     await expect(qualityGatesPage.qualityGatesResultLocator).toHaveCount(2);
     await expect(qualityGatesPage.qualityGatesResultLocator.nth(0).getByTestId("quality-gate-result-rule")).toHaveText(
-      fixture.qualityGateResults[0].rule,
+      fixture.qualityGateResults[0].key,
     );
     await expect(
       qualityGatesPage.qualityGatesResultLocator.nth(0).getByTestId("quality-gate-result-message"),
-    ).toContainText(fixture.qualityGateResults[0].message);
+    ).toContainText(fixture.qualityGateResults[0].details?.message ?? "");
     await expect(qualityGatesPage.qualityGatesResultLocator.nth(1).getByTestId("quality-gate-result-rule")).toHaveText(
-      fixture.qualityGateResults[1].rule,
+      fixture.qualityGateResults[1].key,
     );
     await expect(
       qualityGatesPage.qualityGatesResultLocator.nth(1).getByTestId("quality-gate-result-message"),
-    ).toContainText(fixture.qualityGateResults[1].message);
+    ).toContainText(fixture.qualityGateResults[1].details?.message ?? "");
     await expect(qualityGatesPage.qualityGatesSectionLocator).toHaveCount(2);
 
     await qualityGatesPage.attachScreenshot();
@@ -273,23 +256,9 @@ test.describe("quality gates", () => {
         },
       ],
       qualityGateResults: [
-        {
-          rule: "foo",
-          message: "bar",
-          success: false,
-          actual: 0,
-          expected: 0,
-          environment: "foo",
-        },
-        {
-          rule: "bar",
-          message: "baz",
-          success: false,
-          actual: 0,
-          expected: 0,
-          environment: "bar",
-        },
-      ] as QualityGateValidationResult[],
+        qualityGateResult("failed", "foo", "bar", 0, 0, "foo"),
+        qualityGateResult("failed", "bar", "baz", 0, 0, "bar"),
+      ] as AllureQualityGateResult[],
     };
     bootstrap = await bootstrapReport({
       reportConfig: makeReportConfig({

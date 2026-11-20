@@ -9,6 +9,7 @@ import { attachResultFile, mockVisitor, readResults } from "./utils.js";
 
 const generateTestResultName = () => `${randomUUID()}-result.json`;
 const generateCheckResultName = () => `${randomUUID()}-check.json`;
+const generateQualityGateResultName = () => `${randomUUID()}-quality-gate.json`;
 const generateGlobalsName = () => `${randomUUID()}-globals.json`;
 
 const SIMPLE_ATTACHMENT_JSON = {
@@ -32,18 +33,39 @@ describe("allure2 reader", () => {
       "allure2data/check.json": generateCheckResultName(),
     });
 
-    expect(visitor.visitCheckResult).toHaveBeenCalledTimes(1);
+    expect(visitor.visitQualityGateResult).toHaveBeenCalledTimes(1);
     expect(visitor.visitTestResult).not.toHaveBeenCalled();
-    expect(visitor.visitCheckResult.mock.calls[0][0]).toEqual({
-      id: "0-0-0-0",
-      name: "Lint",
+    expect(visitor.visitQualityGateResult.mock.calls[0][0]).toEqual({
+      key: "Lint",
       status: "passed",
       tags: ["ci", "linux"],
+      source: { type: "command", command: "npm run lint" },
       details: {
-        command: "npm run lint",
-        message: "lint ok",
+        stdout: "lint ok",
       },
     });
+  });
+
+  it("should preserve details of a unified command result", async () => {
+    const visitor = mockVisitor();
+    const result = {
+      status: "failed",
+      key: "Lint",
+      environment: "Linux",
+      source: { type: "command", command: "npm run lint" },
+      details: {
+        message: "Lint quality gate failed",
+        expected: 0,
+        actual: 2,
+        testResults: ["test-1"],
+        stdout: "checking",
+        stderr: "lint failed",
+      },
+    };
+    const file = new BufferResultFile(Buffer.from(JSON.stringify(result)), generateQualityGateResultName());
+
+    expect(await allure2.read(visitor, file)).toBe(true);
+    expect(visitor.visitQualityGateResult).toHaveBeenCalledWith(result, expect.anything());
   });
 
   it("should match attachment files so they keep the allure2 reader context", async () => {
@@ -58,6 +80,12 @@ describe("allure2 reader", () => {
     expect(await allure2.matches?.(checkResult)).toBe(true);
   });
 
+  it("should match quality gate result files", async () => {
+    const qualityGateResult = new BufferResultFile(Buffer.from("{}"), generateQualityGateResultName());
+
+    expect(await allure2.matches?.(qualityGateResult)).toBe(true);
+  });
+
   it("should parse simple result", async () => {
     const visitor = await readResults(allure2, {
       "allure2data/simple.json": generateTestResultName(),
@@ -70,6 +98,15 @@ describe("allure2 reader", () => {
       start: 1566219149481,
       stop: 1566219149485,
     });
+  });
+
+  it("should not confuse a test result with the deprecated quality gate result filename proposal", async () => {
+    const visitor = await readResults(allure2, {
+      "allure2data/simple.json": `${randomUUID()}-quality-gate-result.json`,
+    });
+
+    expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+    expect(visitor.visitQualityGateResult).not.toHaveBeenCalled();
   });
 
   it("should parse fullName", async () => {

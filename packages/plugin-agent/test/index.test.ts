@@ -2,12 +2,18 @@ import { mkdtemp, mkdir, readFile, rm, stat, writeFile } from "node:fs/promises"
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
-import type { AttachmentLink, TestError, TestFixtureResult, TestResult, TestStepResult } from "@allurereport/core-api";
+import type {
+  AllureQualityGateResult,
+  AttachmentLink,
+  TestError,
+  TestFixtureResult,
+  TestResult,
+  TestStepResult,
+} from "@allurereport/core-api";
 import type {
   AllureStore,
   ExitCode,
   PluginContext,
-  QualityGateValidationResult,
   RealtimeListenerResult,
   RealtimeSubscriber,
   ResultFile,
@@ -101,7 +107,7 @@ const createRealtimeSubscriber = () => {
     globalAttachments: [] as Array<(payload: { attachment: ResultFile; fileName?: string }) => RealtimeListenerResult>,
     globalErrors: [] as Array<(error: TestError) => RealtimeListenerResult>,
     globalExitCodes: [] as Array<(payload: ExitCode) => RealtimeListenerResult>,
-    qualityGateResults: [] as Array<(payload: QualityGateValidationResult[]) => RealtimeListenerResult>,
+    qualityGateResults: [] as Array<(payload: AllureQualityGateResult[]) => RealtimeListenerResult>,
   };
 
   const subscriber: RealtimeSubscriber = {
@@ -138,7 +144,7 @@ const createRealtimeSubscriber = () => {
         listeners.globalExitCodes = listeners.globalExitCodes.filter((candidate) => candidate !== listener);
       };
     }),
-    onQualityGateResults: vi.fn((listener: (payload: QualityGateValidationResult[]) => RealtimeListenerResult) => {
+    onQualityGateResults: vi.fn((listener: (payload: AllureQualityGateResult[]) => RealtimeListenerResult) => {
       listeners.qualityGateResults.push(listener);
 
       return () => {
@@ -670,11 +676,20 @@ describe("AgentPlugin", () => {
       globalExitCode: vi.fn().mockResolvedValue({ actual: 1, original: 1 }),
       qualityGateResults: vi.fn().mockResolvedValue([
         {
-          success: false,
-          expected: 0,
-          actual: 1,
-          rule: "maxFailures",
-          message: "Too many failures",
+          status: "failed",
+          key: "maxFailures",
+          source: { type: "rule" },
+          details: {
+            expected: 0,
+            actual: 1,
+            message: "Too many failures",
+          },
+          environment: "default",
+        },
+        {
+          status: "failed",
+          key: "lint",
+          source: { type: "command", command: "npm run lint" },
           environment: "default",
         },
       ]),
@@ -692,6 +707,9 @@ describe("AgentPlugin", () => {
     expect(indexContent).toContain("stdout.txt");
     expect(indexContent).toContain("stderr.txt");
     expect(indexContent).toContain("Too many failures");
+    expect(indexContent).toContain("lint: No details provided");
+    expect(indexContent).not.toContain("lint: npm run lint");
+    expect(indexContent).toContain("Command: npm run lint");
     expect(await readText(join(outputDir, "artifacts", "global", "stdout.txt"))).toBe("stdout content");
     expect(await readText(join(outputDir, "artifacts", "global", "stderr.txt"))).toBe("stderr content");
     expect(await readText(join(outputDir, "AGENTS.md"), "text/markdown")).toContain("## Reading Order");

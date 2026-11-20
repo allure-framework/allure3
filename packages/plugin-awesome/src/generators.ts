@@ -3,6 +3,7 @@ import { randomUUID } from "node:crypto";
 import { defaultChartsConfig } from "@allurereport/charts-api";
 import {
   type AttachmentLink,
+  type AllureQualityGateResult,
   type EnvironmentIdentity,
   type EnvironmentItem,
   type HistoryTestResultUrlResolver,
@@ -53,7 +54,6 @@ import type {
   PluginContext,
   PluginGlobalError,
   PluginGlobals,
-  QualityGateValidationResult,
   ReportFiles,
   ResultFile,
   ReportResolutionCategories,
@@ -736,7 +736,7 @@ export const generateGlobals = async (
 
 export const generateQualityGateResults = async (
   writer: AwesomeDataWriter,
-  qualityGateResults: Record<string, QualityGateValidationResult[]> = {},
+  qualityGateResults: Record<string, AllureQualityGateResult[]> = {},
   options: {
     tests?: ReportTestResult[];
     labels?: string[];
@@ -749,7 +749,7 @@ export const generateQualityGateResults = async (
     Object.entries(qualityGateResults).map(([environment, results]) => [
       environment,
       results.map((result) => {
-        const relatedTests = [...new Set(result.testResults ?? [])]
+        const relatedTests = [...new Set(result.details?.testResults ?? [])]
           .map((testResultId) => testsById.get(testResultId))
           .filter((test): test is ReportTestResult => Boolean(test));
 

@@ -1,4 +1,5 @@
 import type {
+  AllureQualityGateResult,
   AttachmentTestStepResult,
   CiDescriptor,
   DefaultTreeGroup,
@@ -13,8 +14,6 @@ import type {
   TreeData,
   WithChildren,
 } from "@allurereport/core-api";
-
-import type { QualityGateValidationResult } from "./qualityGate.js";
 
 export type Layout = "base" | "split";
 
@@ -160,11 +159,11 @@ export type ReportTreeGroup = WithChildren & DefaultTreeGroup & { nodeId: string
 
 export type ReportTree = TreeData<ReportTreeLeaf, ReportTreeGroup>;
 
-export type ReportQualityGateValidationResult = QualityGateValidationResult & {
+export type ReportQualityGateResult = AllureQualityGateResult & {
   testResultsTree?: ReportTree;
 };
 
-export type ReportQualityGateResults = Record<string, ReportQualityGateValidationResult[]>;
+export type ReportQualityGateResults = Record<string, ReportQualityGateResult[]>;
 
 export type ReportSearchDocument = {
   id: string;

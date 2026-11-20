@@ -2,7 +2,7 @@ import console from "node:console";
 import tty from "node:tty";
 
 import type { DefaultTestStepResult, TestError, TestResult } from "@allurereport/core-api";
-import type { QualityGateValidationResult } from "@allurereport/plugin-api";
+import type { AllureQualityGateResult } from "@allurereport/core-api";
 import { story } from "allure-js-commons";
 import { afterEach, beforeEach, describe, expect, it, type MockedFunction, vi } from "vite-plus/test";
 
@@ -30,6 +30,18 @@ const stripAnsi = (value: string) => value.replace(new RegExp(`${String.fromChar
 const glueConsoleCalls = (calls: any[]) => stripAnsi(calls.flatMap((args: any[]) => args[0]).join("\n"));
 const mockConsoleInfo = () => vi.spyOn(console, "info").mockImplementation(() => undefined);
 const mockConsoleLog = () => vi.spyOn(console, "log").mockImplementation(() => undefined);
+const qualityGateResult = (
+  status: AllureQualityGateResult["status"],
+  key: string,
+  details: NonNullable<AllureQualityGateResult["details"]> = {},
+  environment?: string,
+): AllureQualityGateResult => ({
+  status,
+  key,
+  source: { type: "rule" },
+  details,
+  ...(environment ? { environment } : {}),
+});
 const withColorSupport = async <T>(callback: (utils: typeof import("../src/utils.js")) => T | Promise<T>) => {
   vi.resetModules();
 
@@ -146,21 +158,13 @@ describe("utils", () => {
 
   describe("stringifyQualityGateResultTitle", () => {
     it("returns failed title with status, rule and environment", () => {
-      const fixture = {
-        success: false,
-        rule: "maxFailures",
-        environment: "chrome",
-      } as QualityGateValidationResult;
+      const fixture = qualityGateResult("failed", "maxFailures", {}, "chrome");
 
       expect(stripAnsi(stringifyQualityGateResultTitle(fixture))).toBe("⨯ maxFailures [chrome]");
     });
 
     it("colors failed title status red when color is supported", async () => {
-      const fixture = {
-        success: false,
-        rule: "maxFailures",
-        environment: "chrome",
-      } as QualityGateValidationResult;
+      const fixture = qualityGateResult("failed", "maxFailures", {}, "chrome");
 
       await withColorSupport(({ stringifyQualityGateResultTitle: stringifyTitle }) => {
         expect(stringifyTitle(fixture)).toContain("\u001B[31m⨯\u001B[39m maxFailures");
@@ -168,19 +172,13 @@ describe("utils", () => {
     });
 
     it("returns passed title with status and rule", () => {
-      const fixture = {
-        success: true,
-        rule: "minTestsCount",
-      } as QualityGateValidationResult;
+      const fixture = qualityGateResult("passed", "minTestsCount");
 
       expect(stripAnsi(stringifyQualityGateResultTitle(fixture))).toBe("✓ minTestsCount");
     });
 
     it("colors passed title status green when color is supported", async () => {
-      const fixture = {
-        success: true,
-        rule: "minTestsCount",
-      } as QualityGateValidationResult;
+      const fixture = qualityGateResult("passed", "minTestsCount");
 
       await withColorSupport(({ stringifyQualityGateResultTitle: stringifyTitle }) => {
         expect(stringifyTitle(fixture)).toContain("\u001B[32m✓\u001B[39m minTestsCount");
@@ -194,15 +192,13 @@ describe("utils", () => {
       mockConsoleLog();
 
       const fixture = [
-        {
-          success: false,
-          rule: "maxFailures",
+        qualityGateResult("failed", "maxFailures", {
           message: "The number of failed tests 1 exceeds the allowed threshold value 0",
           actual: 1,
           expected: 0,
           testResults: ["test-result-id"],
-        },
-      ] as QualityGateValidationResult[];
+        }),
+      ];
 
       printQualityGateResults(fixture);
 
@@ -215,44 +211,58 @@ describe("utils", () => {
       expect(result).toContain("Quality gates: 1 failed");
     });
 
+    it("prints a command separately without using it as the message", () => {
+      mockConsoleInfo();
+      mockConsoleLog();
+
+      printQualityGateResults([
+        {
+          status: "failed",
+          key: "lint",
+          source: { type: "command", command: "npm run lint" },
+        },
+      ]);
+
+      // eslint-disable-next-line no-console
+      const resultLines = (console.info as MockedFunction<typeof console.info>).mock.calls.map(([message]) =>
+        stripAnsi(message),
+      );
+
+      expect(resultLines).toContain("    Command: npm run lint");
+      expect(resultLines).toContain("    No details provided");
+      expect(resultLines).not.toContain("    npm run lint");
+    });
+
     it("prints mixed quality gate results failure-first and summarizes displayed statuses", async () => {
       mockConsoleInfo();
       mockConsoleLog();
 
       const fixture = [
-        {
-          success: true,
-          rule: "minTestsCount",
+        qualityGateResult("passed", "minTestsCount", {
           message: "The number of tests 2 exceeds the minimum threshold value 1",
           actual: 2,
           expected: 1,
           testResults: ["passed-1"],
-        },
-        {
-          success: false,
-          rule: "maxFailures",
+        }),
+        qualityGateResult("failed", "maxFailures", {
           message: "The number of failed tests 1 exceeds the allowed threshold value 0",
           actual: 1,
           expected: 0,
           testResults: ["failed-1"],
-        },
-        {
-          success: false,
-          rule: "maxRetries",
+        }),
+        qualityGateResult("failed", "maxRetries", {
           message: "The number of retries 1 exceeds the allowed threshold value 0",
           actual: 1,
           expected: 0,
           testResults: ["failed-2"],
-        },
-        {
-          success: true,
-          rule: "minPassedTestsCount",
+        }),
+        qualityGateResult("passed", "minPassedTestsCount", {
           message: "The number of passed tests 1 exceeds the minimum threshold value 1",
           actual: 1,
           expected: 1,
           testResults: ["passed-2"],
-        },
-      ] as QualityGateValidationResult[];
+        }),
+      ];
 
       await withColorSupport(({ printQualityGateResults: printResults }) => {
         printResults(fixture);
@@ -281,23 +291,19 @@ describe("utils", () => {
       mockConsoleLog();
 
       const fixture = [
-        {
-          success: true,
-          rule: "minTestsCount",
+        qualityGateResult("passed", "minTestsCount", {
           message: "The number of tests 2 exceeds the minimum threshold value 1",
           actual: 2,
           expected: 1,
           testResults: ["passed-1"],
-        },
-        {
-          success: true,
-          rule: "minPassedTestsCount",
+        }),
+        qualityGateResult("passed", "minPassedTestsCount", {
           message: "The number of passed tests 1 exceeds the minimum threshold value 1",
           actual: 1,
           expected: 1,
           testResults: ["passed-2"],
-        },
-      ] as QualityGateValidationResult[];
+        }),
+      ];
 
       printQualityGateResults(fixture);
 

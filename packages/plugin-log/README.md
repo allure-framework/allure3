@@ -52,7 +52,7 @@ The plugin accepts the following options:
 | `withTrace`          | Include test, step, and global error traces in logs   | `boolean`                                           | `false`                         |
 | `groupBy`            | Group tests by given label                            | `suite \| feature \| package \| suites \| features \| packages \| none` | `suite`                         |
 | `qualityGateResults` | Include quality gate validation results in logs       | `boolean`                                           | `true`                          |
-| `qualityGateFilter`  | Select quality gate validation results shown in logs  | `(result: QualityGateValidationResult) => boolean`  | `({ success }) => !success`     |
+| `qualityGateFilter`  | Select quality gate validation results shown in logs  | `(result: AllureQualityGateResult) => boolean`  | `({ status }) => status === "failed"` |
 
 To show both successful and failed quality gate checks, configure the filter to include every result:
 
