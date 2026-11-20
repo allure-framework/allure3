@@ -41,7 +41,7 @@ export class TestPlanCommand extends Command {
   });
 
   mutedOnly = Option.Boolean("--muted-only", false, {
-    description: "Generate only the mutedTests array, including when it is empty",
+    description: "Generate only the excludedTests array, including when it is empty",
   });
 
   async execute() {

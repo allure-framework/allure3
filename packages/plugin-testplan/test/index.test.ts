@@ -50,7 +50,7 @@ describe("TestPlanPlugin", () => {
         plan: {
           version: "1.0",
           tests: [],
-          mutedTests: [{ selector: "mutedPassed" }],
+          excludedTests: [{ selector: "mutedPassed" }],
         },
       },
     ]);
@@ -77,7 +77,7 @@ describe("TestPlanPlugin", () => {
         plan: {
           version: "1.0",
           tests: [{ selector: "regularFailure" }, { selector: "mutedFailure" }],
-          mutedTests: [{ selector: "mutedFailure" }, { selector: "mutedPassed" }],
+          excludedTests: [{ selector: "mutedFailure" }, { selector: "mutedPassed" }],
         },
       },
     ]);
@@ -94,7 +94,7 @@ describe("TestPlanPlugin", () => {
     expect(files).toEqual([
       {
         name: "rerun.json",
-        plan: { version: "1.0", tests: [], mutedTests: [{ selector: "mutedPassed" }] },
+        plan: { version: "1.0", tests: [], excludedTests: [{ selector: "mutedPassed" }] },
       },
     ]);
   });
@@ -107,7 +107,7 @@ describe("TestPlanPlugin", () => {
     expect(files).toEqual([
       {
         name: "testplan.json",
-        plan: { version: "1.0", tests: [{ selector: "regularFailure" }], mutedTests: [] },
+        plan: { version: "1.0", tests: [{ selector: "regularFailure" }], excludedTests: [] },
       },
     ]);
   });
@@ -128,7 +128,7 @@ describe("TestPlanPlugin", () => {
     expect(files).toEqual([
       {
         name: "testplan.json",
-        plan: { version: "1.0", tests: [], mutedTests: [] },
+        plan: { version: "1.0", tests: [], excludedTests: [] },
       },
     ]);
   });

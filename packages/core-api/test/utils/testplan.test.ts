@@ -16,14 +16,14 @@ describe("createTestPlan", () => {
     expect(serialize(plan)).toEqual({
       version: "1.0",
       tests: [{ selector: "suite#regular" }],
-      mutedTests: [],
+      excludedTests: [],
     });
   });
 
   it("returns both empty arrays", () => {
     const plan = createTestPlan([], []);
 
-    expect(plan).toEqual({ version: "1.0", tests: [], mutedTests: [] });
+    expect(plan).toEqual({ version: "1.0", tests: [], excludedTests: [] });
   });
 
   it("maps muted result identifiers", () => {
@@ -43,7 +43,7 @@ describe("createTestPlan", () => {
     expect(serialize(plan)).toEqual({
       version: "1.0",
       tests: [],
-      mutedTests: [{ selector: "runner#selected", id: "42" }, { id: "43" }, { selector: "suite#fallback" }],
+      excludedTests: [{ selector: "runner#selected", id: "42" }, { id: "43" }, { selector: "suite#fallback" }],
     });
   });
 
@@ -55,7 +55,7 @@ describe("createTestPlan", () => {
     expect(serialize(plan)).toEqual({
       version: "1.0",
       tests: [{ selector: "suite#shared" }],
-      mutedTests: [{ selector: "suite#shared" }],
+      excludedTests: [{ selector: "suite#shared" }],
     });
   });
 });
