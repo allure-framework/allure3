@@ -79,11 +79,20 @@ const deepTree = {
         name: `l${level}`,
         statistic: {},
         groups: level < 5 ? [`g${level + 1}`] : undefined,
-        leaves: level === 5 ? ["tr-1"] : undefined,
+        leaves: level === 5 ? ["tr-1"] : [`sibling-${level}`],
       },
     ]),
   ),
-  leavesById: { "tr-1": { nodeId: "tr-1", name: "shouldLogin" } },
+  leavesById: {
+    "tr-1": { nodeId: "tr-1", name: "shouldLogin" },
+    ...Object.fromEntries(
+      Array.from({ length: 5 }, (_, level) => {
+        const id = `sibling-${level}`;
+
+        return [id, { nodeId: id, name: id }];
+      }),
+    ),
+  },
 };
 
 const testResult = {
@@ -129,10 +138,10 @@ const breadcrumbTexts = () =>
   screen.getAllByTestId("test-result-breadcrumb-button").map((button) => button.textContent);
 
 describe("components > TrBreadcrumbs", () => {
-  it("renders a clickable button per tree group", () => {
+  it("renders one breadcrumb for a compacted group row", () => {
     render(<TrBreadcrumbs testResult={testResult} />);
 
-    expect(breadcrumbTexts()).toEqual(["com.example", "LoginTest"]);
+    expect(breadcrumbTexts()).toEqual(["com.example / LoginTest"]);
   });
 
   it("reveals the group in the tree and navigates to the root on click", () => {
@@ -140,7 +149,7 @@ describe("components > TrBreadcrumbs", () => {
 
     fireEvent.click(screen.getAllByTestId("test-result-breadcrumb-button")[0]);
 
-    expect(revealTreeNode).toHaveBeenCalledWith("parent");
+    expect(revealTreeNode).toHaveBeenCalledWith("parent", "default");
     expect(navigateToRoot).toHaveBeenCalled();
   });
 
@@ -170,7 +179,7 @@ describe("components > TrBreadcrumbs", () => {
 
     fireEvent.click(screen.getAllByTestId("test-result-breadcrumb-button")[0]);
 
-    expect(revealTreeNode).toHaveBeenCalledWith("parent");
+    expect(revealTreeNode).toHaveBeenCalledWith("parent", "default");
     expect(navigateToRoot).not.toHaveBeenCalled();
   });
 
@@ -195,7 +204,7 @@ describe("components > TrBreadcrumbs", () => {
 
     fireEvent.click(hidden[1]);
 
-    expect(revealTreeNode).toHaveBeenCalledWith("g2");
+    expect(revealTreeNode).toHaveBeenCalledWith("g2", "default");
   });
 
   describe("when the width is limited", () => {
@@ -273,8 +282,7 @@ describe("components > TrBreadcrumbs", () => {
       fireEvent.click(screen.getByTestId("test-result-breadcrumb-more"));
 
       expect(screen.getAllByTestId("test-result-breadcrumb-hidden-item").map((item) => item.textContent)).toEqual([
-        "com.example",
-        "LoginTest",
+        "com.example / LoginTest",
       ]);
     });
 
@@ -283,7 +291,7 @@ describe("components > TrBreadcrumbs", () => {
 
       render(<TrBreadcrumbs testResult={testResult} />);
 
-      expect(breadcrumbTexts()).toEqual(["com.example", "LoginTest"]);
+      expect(breadcrumbTexts()).toEqual(["com.example / LoginTest"]);
       expect(screen.queryByTestId("test-result-breadcrumb-more")).toBeNull();
     });
   });

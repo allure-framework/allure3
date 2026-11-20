@@ -153,10 +153,12 @@ export const TrBreadcrumbs = ({ testResult }: TrBreadcrumbs) => {
     : [];
 
   const navigateToGroup = (index: number) => {
-    if (inCategories) {
-      revealCategoryNode(treeBreadcrumbs.slice(0, index + 1).map((breadcrumb) => breadcrumb.nodeId));
+    const breadcrumb = treeBreadcrumbs[index];
+
+    if ("environmentId" in breadcrumb && typeof breadcrumb.environmentId === "string") {
+      revealTreeNode(breadcrumb.nodeId, breadcrumb.environmentId);
     } else {
-      revealTreeNode(treeBreadcrumbs[index].nodeId);
+      revealCategoryNode(treeBreadcrumbs.slice(0, index + 1).map(({ nodeId }) => nodeId));
     }
 
     if (!isSplitMode.value) {

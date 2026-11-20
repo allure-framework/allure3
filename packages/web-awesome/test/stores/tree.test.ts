@@ -41,6 +41,7 @@ const makeEnvTree = (prefix: string): ReportTree =>
     leavesById: {
       [`${prefix}-leaf-1`]: makeLeaf(`${prefix}-leaf-1`),
       [`${prefix}-leaf-2`]: makeLeaf(`${prefix}-leaf-2`, "failed"),
+      [`${prefix}-leaf-3`]: makeLeaf(`${prefix}-leaf-3`),
     },
     groupsById: {
       [`${prefix}-passed`]: {
@@ -52,8 +53,9 @@ const makeEnvTree = (prefix: string): ReportTree =>
       [`${prefix}-failed`]: {
         nodeId: `${prefix}-failed`,
         name: "failed suite",
-        statistic: failedStatistic,
+        statistic: { total: 2, passed: 1, failed: 1 },
         groups: [`${prefix}-nested`],
+        leaves: [`${prefix}-leaf-3`],
       },
       [`${prefix}-nested`]: {
         nodeId: `${prefix}-nested`,
@@ -78,7 +80,7 @@ const setEnvironments = (ids: string[]) => {
   statsByEnvStore.value = {
     loading: false,
     error: undefined,
-    data: Object.fromEntries(ids.map((id) => [id, { total: 2, passed: 1, failed: 1 }])),
+    data: Object.fromEntries(ids.map((id) => [id, { total: 3, passed: 2, failed: 1 }])),
   };
 };
 
