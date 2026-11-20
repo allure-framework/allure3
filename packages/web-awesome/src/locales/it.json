@@ -303,10 +303,17 @@
         "history": "{{timestamp, timestamp_date}}"
       }
     },
+    "trendHelp": {
+      "label": "Come leggere le tendenze"
+    },
     "statusTransitions": {
+      "trendHelp": {
+        "description": "Linea continua: se sale, gli stati dei test migliorano nel complesso. Se scende, peggiorano. Se è piatta, rimangono stabili. Linea tratteggiata: se sale, il miglioramento accelera o il peggioramento rallenta. Se scende, il miglioramento rallenta o il peggioramento accelera. Se è piatta, il ritmo di cambiamento è costante."
+      },
       "title": "Transizioni di stato",
       "legend": {
-        "trend": "Tasso di correzione"
+        "cumulativeTrend": "Tendenza cumulativa",
+        "diffTrend": "Tendenza della variazione per esecuzione"
       },
       "transitions": {
         "new": "$t(transitions:new, capitalize)",
@@ -352,6 +359,9 @@
       }
     },
     "testBaseGrowthDynamics": {
+      "trendHelp": {
+        "description": "Linea continua: se sale, la base dei test cresce. Se scende, si riduce. Se è piatta, la dimensione è stabile. Linea tratteggiata: se sale, la crescita accelera o la riduzione rallenta. Se scende, la crescita rallenta o la riduzione accelera. Se è piatta, il ritmo di cambiamento è costante."
+      },
       "title": "Dinamica di crescita della base di test",
       "status": {
         "newpassed": "Nuovo $t(statuses:passed)",
@@ -366,11 +376,17 @@
         "removedunknown": "Rimosso $t(statuses:unknown)"
       },
       "legend": {
-        "trend": "Tendenza di crescita"
+        "cumulativeTrend": "Tendenza cumulativa",
+        "diffTrend": "Tendenza della variazione per esecuzione"
       },
       "no-history": "$t(empty:no-history-results)",
       "no-results": "$t(empty:no-results)",
       "tooltips": {
+        "newTests": "Nuovi test",
+        "removedTests": "Test rimossi",
+        "noChanges": "Nessuna modifica",
+        "number": "{{value, number}}",
+        "statusCount": "{{status}}: {{count}}",
         "current": "Ultimo report ({{timestamp, timestamp_long_no_seconds}})",
         "history": "Report del {{timestamp, timestamp_long_no_seconds}}"
       },

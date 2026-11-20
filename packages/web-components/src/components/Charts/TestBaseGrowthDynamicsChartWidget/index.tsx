@@ -1,17 +1,21 @@
 import type { TestStatus } from "@allurereport/core-api";
-import type { BarDatum } from "@nivo/bar";
 import type { FunctionalComponent } from "preact";
 import { useMemo } from "preact/hooks";
 
 import { EmptyView } from "@/components/EmptyView";
 import { allureIcons } from "@/components/SvgIcon";
+import { TreeItemIcon } from "@/components/Tree/TreeItemIcon";
+import { Text } from "@/components/Typography";
 import { Widget } from "@/components/Widget";
 
 import { BarChart } from "../BarChart/BarChart.js";
-import { formatNumber } from "../Legend/LegendItem/index.js";
+import { fitValueTrend } from "../BarChart/TrendLinesLayer.js";
+import { formatNumber, LegendItem } from "../Legend/LegendItem/index.js";
 import type { LegendItemValue } from "../Legend/LegendItem/types.js";
-import { getColorFromStatus, getTrendForDivergingChart } from "../utils.js";
+import { getColorFromStatus, withCumulativeTrend } from "../utils.js";
 import type { Props, StatusWithPrefix } from "./types.js";
+
+import styles from "./styles.scss";
 
 const isNewStatus = (status: StatusWithPrefix): boolean => {
   return status.startsWith("new:");
@@ -60,7 +64,11 @@ export const TestBaseGrowthDynamicsChartWidget: FunctionalComponent<Props> = (pr
     return result;
   }, [statuses]);
 
-  const legend: LegendItemValue<BarDatum>[] = useMemo(
+  const legend = useMemo<
+    LegendItemValue<
+      { id: string; timestamp: number; diffTrend: number; cumulativeTrend: number } & Record<StatusWithPrefix, number>
+    >[]
+  >(
     () => [
       ...statusesWithPrefixes.map((status) => {
         const statusForI18n = status.replace(":", "");
@@ -74,76 +82,52 @@ export const TestBaseGrowthDynamicsChartWidget: FunctionalComponent<Props> = (pr
         };
       }),
       {
-        id: "trend",
-        label: i18n("legend.trend"),
+        id: "cumulativeTrend",
+        label: i18n("legend.cumulativeTrend"),
         color: "var(--color-chart-categorical-9)",
         type: "point",
+        lineStyle: "solid",
+      },
+      {
+        id: "diffTrend",
+        label: i18n("legend.diffTrend"),
+        color: "var(--color-chart-categorical-10)",
+        type: "point",
+        lineStyle: "dashed",
       },
     ],
     [statusesWithPrefixes, i18n],
   );
 
-  const maxValue = Math.ceil(
-    Math.max(
-      ...data.map((item) => {
-        const negativeSumm = Math.abs(
-          statusesWithPrefixes
-            .filter((status) => isRemovedStatus(status))
-            .reduce((acc, value) => acc + (item[value] ?? 0), 0),
-        );
-
-        const positiveSumm = Math.abs(
-          statusesWithPrefixes
-            .filter((status) => isNewStatus(status))
-            .reduce((acc, value) => acc + (item[value] ?? 0), 0),
-        );
-
-        return Math.max(positiveSumm, negativeSumm);
-      }),
-    ) * 1.01,
-  );
-
-  const chartData = useMemo(
-    () =>
+  const { chartData, maxValue } = useMemo(() => {
+    let maxBarValue = 0;
+    const chartData = withCumulativeTrend(
       data.map((item) => {
-        const absTotal = maxValue * 2;
         const stats = getStatusStats(item, statusesWithPrefixes);
-        const negativeSumm = Math.abs(
-          statusesWithPrefixes
-            .filter((status) => isRemovedStatus(status))
-            .reduce((acc, value) => acc + (stats[value] ?? 0), 0),
-        );
+        const added = statusesWithPrefixes.filter(isNewStatus).reduce((sum, status) => sum + stats[status], 0);
+        const removed = statusesWithPrefixes.filter(isRemovedStatus).reduce((sum, status) => sum - stats[status], 0);
 
-        const positiveSumm = Math.abs(
-          statusesWithPrefixes
-            .filter((status) => isNewStatus(status))
-            .reduce((acc, value) => acc + (stats[value] ?? 0), 0),
-        );
+        maxBarValue = Math.max(maxBarValue, added, removed);
 
-        const trend = getTrendForDivergingChart({
-          positiveValue: positiveSumm,
-          negativeValue: negativeSumm,
-          absTotal,
-          // This means that the was no new nor removed tests at all,
-          // so we do not use it to calculate the trend line direction
-          noValuePercentage: -1,
-        });
-
-        return {
-          id: item.id,
-          timestamp: item.timestamp,
-          ...stats,
-          trend,
-        };
+        return { id: item.id, timestamp: item.timestamp, ...stats, diffTrend: added - removed };
       }),
-    [data, statusesWithPrefixes, maxValue],
-  );
+    );
+
+    return { chartData, maxValue: Math.ceil(maxBarValue * 1.01) };
+  }, [data, statusesWithPrefixes]);
+
+  const fittedTrends = useMemo(() => {
+    if (chartData.length < 2) return [];
+
+    return legend
+      .filter(({ type }) => type === "point")
+      .map((entry) => ({
+        entry,
+        fit: fitValueTrend(chartData, entry.id),
+      }));
+  }, [chartData, legend]);
 
   const isChartEmpty = chartData.every((item) => statusesWithPrefixes.every((status) => item[status] === 0));
-  const noChartHistory = chartData
-    .filter((item) => item.id !== "current")
-    .every((item) => statusesWithPrefixes.every((status) => item[status] === 0));
-
   // No data at all
   if (!currentData || isChartEmpty) {
     return (
@@ -154,7 +138,7 @@ export const TestBaseGrowthDynamicsChartWidget: FunctionalComponent<Props> = (pr
   }
 
   // We have data only for current run, but no history
-  if ((data.length === 1 && currentData) || noChartHistory) {
+  if (data.length < 2) {
     return (
       <Widget title={title}>
         <EmptyView title={i18n("no-history")} icon={allureIcons.lineChartsBarChartSquare} />
@@ -191,18 +175,72 @@ export const TestBaseGrowthDynamicsChartWidget: FunctionalComponent<Props> = (pr
           return i18n("ticks.history", { timestamp: item?.timestamp });
         }}
         bottomTickRotation={45}
-        formatLegendValue={({ value, id }) => {
-          if (id === "trend") {
-            return "";
-          }
+        renderTooltipContent={(item) => {
+          const groups = (["new", "removed"] as const)
+            .map((kind) => ({
+              kind,
+              counters: statuses
+                .map((status) => ({ status, count: Math.abs(item[`${kind}:${status}`]) }))
+                .filter(({ count }) => count > 0),
+            }))
+            .filter(({ counters }) => counters.length > 0);
+          const index = chartData.findIndex(({ id }) => id === item.id);
 
-          if (!value) {
-            return "-";
-          }
+          return (
+            <>
+              {groups.map(({ kind, counters }) => (
+                <div key={kind} className={styles.row}>
+                  <Text type="ui" size="s" bold>
+                    {i18n(kind === "new" ? "tooltips.newTests" : "tooltips.removedTests")}
+                  </Text>
+                  <div className={styles.counters}>
+                    {counters.map(({ status, count }) => {
+                      const value = i18n("tooltips.number", { value: count });
+                      return (
+                        <div
+                          key={status}
+                          className={styles.counter}
+                          style={{
+                            backgroundColor: `var(--color-status-${status}-bg)`,
+                            color: `var(--color-status-${status}-on-bg)`,
+                          }}
+                        >
+                          <span className={styles.statusText}>
+                            {i18n("tooltips.statusCount", { status: i18n(`statuses:${status}`), count: value })}
+                          </span>
+                          <TreeItemIcon status={status} className={styles.icon} />
+                          <b aria-hidden="true">{value}</b>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
+              {groups.length === 0 && (
+                <Text className={styles.empty} type="ui" size="s">
+                  {i18n("tooltips.noChanges")}
+                </Text>
+              )}
+              {fittedTrends.map(({ entry, fit }) => {
+                const scale = entry.id === "cumulativeTrend" ? chartData.length : 1;
+                const value = Number((fit.predict(index) * scale).toFixed(3));
 
-          return formatNumber(Math.abs(Number(value)));
+                return (
+                  <LegendItem
+                    key={entry.id}
+                    mode="menu"
+                    legend={{ ...entry, value: i18n("tooltips.number", { value: value || 0 }) }}
+                  />
+                );
+              })}
+            </>
+          );
         }}
         noLegend
+        valueTrends={{
+          helpLabel: i18n("trendHelp.label"),
+          helpDescription: i18n("trendHelp.description"),
+        }}
         formatLeftTick={(value) => {
           const numberedValue = Math.abs(Number(value));
 
@@ -217,14 +255,6 @@ export const TestBaseGrowthDynamicsChartWidget: FunctionalComponent<Props> = (pr
         // Also minValue should be negative and maxValue should be positive
         minValue={-maxValue}
         maxValue={maxValue}
-        formatTrendValue={(value) => {
-          if (value === -1) {
-            // Do not use this value to calculate the trend line direction
-            return undefined;
-          }
-
-          return value;
-        }}
       />
     </Widget>
   );

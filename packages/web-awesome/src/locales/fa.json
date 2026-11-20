@@ -375,10 +375,17 @@
         "history": "{{timestamp, timestamp_date}}"
       }
     },
+    "trendHelp": {
+      "label": "راهنمای خواندن روندها"
+    },
     "statusTransitions": {
+      "trendHelp": {
+        "description": "خط پیوسته: شیب رو به بالا یعنی وضعیت آزمون‌ها در مجموع بهتر می‌شود، شیب رو به پایین یعنی بدتر می‌شود و خط افقی یعنی وضعیت پایدار است. خط‌چین: شیب رو به بالا یعنی بهبود سریع‌تر می‌شود یا وخامت کندتر می‌شود. شیب رو به پایین یعنی بهبود کندتر می‌شود یا وخامت سریع‌تر می‌شود. خط افقی یعنی آهنگ تغییر ثابت است."
+      },
       "title": "تغییرات وضعیت",
       "legend": {
-        "trend": "نرخ رفع"
+        "cumulativeTrend": "روند تجمعی",
+        "diffTrend": "روند تغییر در هر اجرا"
       },
       "transitions": {
         "new": "$t(transitions:new, capitalize)",
@@ -424,6 +431,9 @@
       }
     },
     "testBaseGrowthDynamics": {
+      "trendHelp": {
+        "description": "خط پیوسته: شیب رو به بالا یعنی پایگاه آزمون‌ها بزرگ‌تر می‌شود، شیب رو به پایین یعنی کوچک‌تر می‌شود و خط افقی یعنی اندازه‌اش ثابت است. خط‌چین: شیب رو به بالا یعنی رشد سریع‌تر می‌شود یا کاهش کندتر می‌شود. شیب رو به پایین یعنی رشد کندتر می‌شود یا کاهش سریع‌تر می‌شود. خط افقی یعنی آهنگ تغییر ثابت است."
+      },
       "title": "روند رشد مجموعه‌ی تست‌ها",
       "status": {
         "newpassed": "$t(statuses:passed) جدید",
@@ -438,11 +448,17 @@
         "removedunknown": "$t(statuses:unknown) حذف‌شده"
       },
       "legend": {
-        "trend": "روند رشد"
+        "cumulativeTrend": "روند تجمعی",
+        "diffTrend": "روند تغییر در هر اجرا"
       },
       "no-history": "$t(empty:no-history-results)",
       "no-results": "$t(empty:no-results)",
       "tooltips": {
+        "newTests": "تست‌های جدید",
+        "removedTests": "تست‌های حذف‌شده",
+        "noChanges": "بدون تغییر",
+        "number": "{{value, number}}",
+        "statusCount": "{{status}}: {{count}}",
         "current": "آخرین گزارش ({{timestamp, timestamp_long_no_seconds}})",
         "history": "گزارش {{timestamp, timestamp_long_no_seconds}}"
       },

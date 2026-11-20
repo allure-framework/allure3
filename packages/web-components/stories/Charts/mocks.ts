@@ -15,6 +15,11 @@ const dictionary: Record<string, string> = {
   "ticks.current": "Current",
   "tooltips.current": "Current run",
   "legend.trend": "Trend",
+  "legend.cumulativeTrend": "Cumulative trend",
+  "legend.diffTrend": "Per-run change trend",
+  "trendHelp.label": "How to read the trends",
+  "trendHelp.description":
+    "The solid line fits the running total divided by the number of comparisons. Its height does not show a test count. The dashed line fits the net change per run.",
   "legend.duration": "Duration",
   "legend.speedup": "Speedup",
   "legend.value": "Tests",

@@ -78,10 +78,17 @@
         "history": "{{timestamp, timestamp_date}}"
       }
     },
+    "trendHelp": {
+      "label": "Ինչպես կարդալ միտումները"
+    },
     "statusTransitions": {
+      "trendHelp": {
+        "description": "Հոծ գծի բարձրանալը նշանակում է, որ թեստերի կարգավիճակներն ընդհանուր առմամբ բարելավվում են, իջնելը՝ որ վատթարանում են, իսկ հորիզոնական գիծը՝ որ կայուն են։ Ընդհատ գծի բարձրանալը նշանակում է, որ բարելավումն արագանում է կամ վատթարացումը դանդաղում է, իսկ իջնելը նշանակում է հակառակը։ Հորիզոնական գիծը ցույց է տալիս փոփոխության կայուն տեմպ։"
+      },
       "title": "Վիճակի անցումներ",
       "legend": {
-        "trend": "Ուղղման գործակից"
+        "cumulativeTrend": "Կուտակային միտում",
+        "diffTrend": "Փոփոխության միտում ըստ գործարկումների"
       },
       "transitions": {
         "new": "$t(transitions:new, capitalize)",
@@ -127,6 +134,9 @@
       }
     },
     "testBaseGrowthDynamics": {
+      "trendHelp": {
+        "description": "Հոծ գծի բարձրանալը նշանակում է, որ թեստերի բազան աճում է, իջնելը՝ որ կրճատվում է, իսկ հորիզոնական գիծը՝ որ չափը կայուն է։ Ընդհատ գծի բարձրանալը նշանակում է, որ աճն արագանում է կամ կրճատումը դանդաղում է, իսկ իջնելը նշանակում է հակառակը։ Հորիզոնական գիծը ցույց է տալիս փոփոխության կայուն տեմպ։"
+      },
       "title": "Թdelays delays delays delaysdelays delays",
       "status": {
         "newpassed": "Նor $t(statuses:passed)",
@@ -141,11 +151,17 @@
         "removedunknown": "Հdelays $t(statuses:unknown)"
       },
       "legend": {
-        "trend": "Աճի միտում"
+        "cumulativeTrend": "Կուտակային միտում",
+        "diffTrend": "Փոփոխության միտում ըստ գործարկումների"
       },
       "no-history": "$t(empty:no-history-results)",
       "no-results": "$t(empty:no-results)",
       "tooltips": {
+        "newTests": "Նոր թեստեր",
+        "removedTests": "Հեռացված թեստեր",
+        "noChanges": "Փոփոխություններ չկան",
+        "number": "{{value, number}}",
+        "statusCount": "{{status}}: {{count}}",
         "current": "Վdelays delays ({{timestamp, timestamp_long_no_seconds}})",
         "history": "Հdelays {{timestamp, timestamp_long_no_seconds}}"
       },

@@ -26,31 +26,14 @@ export const getColorFromStatus = (status: TestStatus, role: StatusColorRole = "
 
 export const getPercentage = (value: number, total: number) => Math.floor((value / total) * 10000) / 100;
 
-export const getTrendForDivergingChart = (props: {
-  positiveValue: number;
-  negativeValue: number;
-  absTotal: number;
-  noValuePercentage?: number;
-}) => {
-  const { positiveValue, negativeValue, absTotal, noValuePercentage = -1 } = props;
-  const summ = Math.abs(positiveValue) + Math.abs(negativeValue);
+export const withCumulativeTrend = <T extends { diffTrend: number }>(data: T[]) => {
+  let total = 0;
 
-  if (summ === 0) {
-    return noValuePercentage;
-  }
+  return data.map((item) => {
+    total += item.diffTrend;
 
-  const diff = Math.abs(positiveValue) - Math.abs(negativeValue);
-  const trendPercentage = getPercentage(Math.abs(diff), absTotal);
-
-  if (diff > 0) {
-    return 50 + trendPercentage;
-  }
-
-  if (diff < 0) {
-    return 50 - trendPercentage;
-  }
-
-  return 50;
+    return { ...item, cumulativeTrend: total / data.length };
+  });
 };
 
 export const getColorScale = (domain: [number, number], colors: string[]) => {

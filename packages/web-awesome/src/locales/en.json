@@ -375,10 +375,17 @@
         "history": "{{timestamp, timestamp_date}}"
       }
     },
+    "trendHelp": {
+      "label": "How to read the trends"
+    },
     "statusTransitions": {
+      "trendHelp": {
+        "description": "Solid line: rising means test status is improving overall, falling means it is deteriorating, and flat means it is stable. Dashed line: rising means improvement is speeding up or deterioration is slowing down. Falling means improvement is slowing down or deterioration is speeding up. A flat line means the rate of change is steady."
+      },
       "title": "Status transitions",
       "legend": {
-        "trend": "Fix rate"
+        "cumulativeTrend": "Cumulative trend",
+        "diffTrend": "Per-run change trend"
       },
       "transitions": {
         "new": "$t(transitions:new, capitalize)",
@@ -424,6 +431,9 @@
       }
     },
     "testBaseGrowthDynamics": {
+      "trendHelp": {
+        "description": "Solid line: rising means the test base is growing, falling means it is shrinking, and flat means its size is stable. Dashed line: rising means growth is speeding up or shrinkage is slowing down. Falling means growth is slowing down or shrinkage is speeding up. A flat line means the rate of change is steady."
+      },
       "title": "Test base growth dynamics",
       "status": {
         "newpassed": "New $t(statuses:passed)",
@@ -438,11 +448,17 @@
         "removedunknown": "Removed $t(statuses:unknown)"
       },
       "legend": {
-        "trend": "Growth trend"
+        "cumulativeTrend": "Cumulative trend",
+        "diffTrend": "Per-run change trend"
       },
       "no-history": "$t(empty:no-history-results)",
       "no-results": "$t(empty:no-results)",
       "tooltips": {
+        "newTests": "New tests",
+        "removedTests": "Removed tests",
+        "noChanges": "No changes",
+        "number": "{{value, number}}",
+        "statusCount": "{{status}}: {{count}}",
         "current": "Latest report ({{timestamp, timestamp_long_no_seconds}})",
         "history": "Report from {{timestamp, timestamp_long_no_seconds}}"
       },

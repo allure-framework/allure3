@@ -25,20 +25,22 @@ export const formatNumber = (value: number | string | undefined, locale: string 
   return String(value);
 };
 
-const PointIcon = ({ color }: { color: string }) => {
+const PointIcon = ({ color, lineStyle }: { color: string; lineStyle?: "solid" | "dashed" }) => {
   // @TODO: Move to icons
   return (
     <div className={styles.point}>
       <svg width="16" height="8" viewBox="0 0 16 8" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M0 4H16" stroke={color} stroke-width="2" />
-        <path
-          // eslint-disable-next-line max-len
-          d="M7.99902 7C9.65588 7 10.999 5.65685 10.999 4C10.999 2.34315 9.65588 1 7.99902 1C6.34217 1 4.99902 2.34315 4.99902 4C4.99902 5.65685 6.34217 7 7.99902 7Z"
-          fill="#FAFCFF"
-          fillOpacity="0.98"
-          stroke={color}
-          strokeWidth="2"
-        />
+        <path d="M0 4H16" stroke={color} stroke-width="2" stroke-dasharray={lineStyle === "dashed" ? "4" : undefined} />
+        {lineStyle !== "solid" && (
+          <path
+            // eslint-disable-next-line max-len
+            d="M7.99902 7C9.65588 7 10.999 5.65685 10.999 4C10.999 2.34315 9.65588 1 7.99902 1C6.34217 1 4.99902 2.34315 4.99902 4C4.99902 5.65685 6.34217 7 7.99902 7Z"
+            fill="#FAFCFF"
+            fillOpacity="0.98"
+            stroke={color}
+            strokeWidth="2"
+          />
+        )}
       </svg>
     </div>
   );
@@ -46,7 +48,7 @@ const PointIcon = ({ color }: { color: string }) => {
 
 export const LegendItem = <T extends Record<string, number | string>>(props: LegendItemProps<T>) => {
   const { onClick, legend, mode = "default", hideOnEmptyValue = true } = props;
-  const { color, border, label, link, value } = legend;
+  const { color, border, label, link, value, lineStyle } = legend;
 
   const Tag = link ? "a" : "div";
 
@@ -59,7 +61,7 @@ export const LegendItem = <T extends Record<string, number | string>>(props: Leg
   return (
     <Tag
       href={link}
-      className={clsx(styles.legendItem, link && styles.legendItemLink)}
+      className={clsx(styles.legendItem, lineStyle && styles.lineLegendItem, link && styles.legendItemLink)}
       onClick={
         typeof onClick === "function"
           ? () => {
@@ -70,7 +72,7 @@ export const LegendItem = <T extends Record<string, number | string>>(props: Leg
     >
       <div className={styles.legendName}>
         {type === "default" && <LegendIndicator color={color} border={border} />}
-        {type === "point" && <PointIcon color={color} />}
+        {type === "point" && <PointIcon color={color} lineStyle={lineStyle} />}
         <Text type="ui" size="s" className={styles.legendLabel}>
           {label}
         </Text>

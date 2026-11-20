@@ -254,10 +254,17 @@
     "pie": {
       "title": "Успішність тестування"
     },
+    "trendHelp": {
+      "label": "Як читати тренди"
+    },
     "statusTransitions": {
+      "trendHelp": {
+        "description": "Суцільна лінія: підйом означає загальне поліпшення статусів тестів, спад — погіршення, горизонтальна лінія — стабільність. Пунктир: підйом означає прискорення поліпшення або уповільнення погіршення. Спад означає уповільнення поліпшення або прискорення погіршення. Горизонтальна лінія означає сталий темп змін."
+      },
       "title": "Status transitions",
       "legend": {
-        "trend": "Коефіцієнт виправлень"
+        "cumulativeTrend": "Накопичувальний тренд",
+        "diffTrend": "Тренд змін за запусками"
       },
       "transitions": {
         "new": "$t(transitions:new, capitalize)",
@@ -303,6 +310,9 @@
       }
     },
     "testBaseGrowthDynamics": {
+      "trendHelp": {
+        "description": "Суцільна лінія: підйом означає зростання бази тестів, спад — її скорочення, горизонтальна лінія — стабільний розмір. Пунктир: підйом означає прискорення зростання або уповільнення скорочення. Спад означає уповільнення зростання або прискорення скорочення. Горизонтальна лінія означає сталий темп змін."
+      },
       "title": "Динаміка росту бази тестів",
       "status": {
         "newpassed": "Новий $t(statuses:passed)",
@@ -317,11 +327,17 @@
         "removedunknown": "Видалений $t(statuses:unknown)"
       },
       "legend": {
-        "trend": "Тренд зростання"
+        "cumulativeTrend": "Накопичувальний тренд",
+        "diffTrend": "Тренд змін за запусками"
       },
       "no-history": "$t(empty:no-history-results)",
       "no-results": "$t(empty:no-results)",
       "tooltips": {
+        "newTests": "Нові тести",
+        "removedTests": "Видалені тести",
+        "noChanges": "Немає змін",
+        "number": "{{value, number}}",
+        "statusCount": "{{status}}: {{count}}",
         "current": "Останній звіт ({{timestamp, timestamp_long_no_seconds}})",
         "history": "Звіт від {{timestamp, timestamp_long_no_seconds}}"
       },

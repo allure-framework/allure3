@@ -303,10 +303,17 @@
         "history": "{{timestamp, timestamp_date}}"
       }
     },
+    "trendHelp": {
+      "label": "추세를 읽는 방법"
+    },
     "statusTransitions": {
+      "trendHelp": {
+        "description": "실선이 상승하면 테스트 상태가 전반적으로 개선되고, 하락하면 악화되며, 수평이면 안정적입니다. 파선이 상승하면 개선이 빨라지거나 악화가 느려집니다. 하락하면 개선이 느려지거나 악화가 빨라집니다. 수평이면 변화 속도가 일정합니다."
+      },
       "title": "상태 전환",
       "legend": {
-        "trend": "수정률"
+        "cumulativeTrend": "누적 추세",
+        "diffTrend": "실행별 변화 추세"
       },
       "transitions": {
         "new": "$t(transitions:new, capitalize)",
@@ -352,6 +359,9 @@
       }
     },
     "testBaseGrowthDynamics": {
+      "trendHelp": {
+        "description": "실선이 상승하면 테스트 기반이 커지고, 하락하면 줄어들며, 수평이면 규모가 안정적입니다. 파선이 상승하면 증가가 빨라지거나 감소가 느려집니다. 하락하면 증가가 느려지거나 감소가 빨라집니다. 수평이면 변화 속도가 일정합니다."
+      },
       "title": "테스트 베이스 성장 동향",
       "status": {
         "newpassed": "새 $t(statuses:passed)",
@@ -366,11 +376,17 @@
         "removedunknown": "제거된 $t(statuses:unknown)"
       },
       "legend": {
-        "trend": "성장 추세"
+        "cumulativeTrend": "누적 추세",
+        "diffTrend": "실행별 변화 추세"
       },
       "no-history": "$t(empty:no-history-results)",
       "no-results": "$t(empty:no-results)",
       "tooltips": {
+        "newTests": "새 테스트",
+        "removedTests": "제거된 테스트",
+        "noChanges": "변경 없음",
+        "number": "{{value, number}}",
+        "statusCount": "{{status}}: {{count}}",
         "current": "최신 보고서 ({{timestamp, timestamp_long_no_seconds}})",
         "history": "{{timestamp, timestamp_long_no_seconds}} 보고서"
       },

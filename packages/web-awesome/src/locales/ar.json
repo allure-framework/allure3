@@ -298,10 +298,17 @@
         "history": "{{timestamp, timestamp_date}}"
       }
     },
+    "trendHelp": {
+      "label": "كيفية قراءة الاتجاهات"
+    },
     "statusTransitions": {
+      "trendHelp": {
+        "description": "الخط المتصل: صعوده يعني تحسن حالات الاختبارات إجمالاً، وهبوطه يعني تدهورها، واستواؤه يعني ثباتها. الخط المتقطع: صعوده يعني تسارع التحسن أو تباطؤ التدهور، وهبوطه يعني تباطؤ التحسن أو تسارع التدهور. الخط الأفقي يعني ثبات وتيرة التغير."
+      },
       "title": "انتقالات الحالة",
       "legend": {
-        "trend": "معدل الإصلاح"
+        "cumulativeTrend": "الاتجاه التراكمي",
+        "diffTrend": "اتجاه التغير لكل تشغيل"
       },
       "transitions": {
         "new": "$t(transitions:new, capitalize)",
@@ -347,6 +354,9 @@
       }
     },
     "testBaseGrowthDynamics": {
+      "trendHelp": {
+        "description": "الخط المتصل: صعوده يعني نمو قاعدة الاختبارات، وهبوطه يعني تقلصها، واستواؤه يعني ثبات حجمها. الخط المتقطع: صعوده يعني تسارع النمو أو تباطؤ التقلص، وهبوطه يعني تباطؤ النمو أو تسارع التقلص. الخط الأفقي يعني ثبات وتيرة التغير."
+      },
       "title": "نمو قاعدة الاختبارات",
       "status": {
         "newpassed": "جديد $t(statuses:passed)",
@@ -361,11 +371,17 @@
         "removedunknown": "محذوف $t(statuses:unknown)"
       },
       "legend": {
-        "trend": "اتجاه النمو"
+        "cumulativeTrend": "الاتجاه التراكمي",
+        "diffTrend": "اتجاه التغير لكل تشغيل"
       },
       "no-history": "$t(empty:no-history-results)",
       "no-results": "$t(empty:no-results)",
       "tooltips": {
+        "newTests": "اختبارات جديدة",
+        "removedTests": "اختبارات محذوفة",
+        "noChanges": "لا تغييرات",
+        "number": "{{value, number}}",
+        "statusCount": "{{status}}: {{count}}",
         "current": "أحدث تقرير ({{timestamp, timestamp_long_no_seconds}})",
         "history": "تقرير من {{timestamp, timestamp_long_no_seconds}}"
       },

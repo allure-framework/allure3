@@ -303,10 +303,17 @@
         "history": "{{timestamp, timestamp_date}}"
       }
     },
+    "trendHelp": {
+      "label": "Como ler as tendências"
+    },
     "statusTransitions": {
+      "trendHelp": {
+        "description": "Linha contínua: se sobe, os estados dos testes melhoram no geral. Se desce, pioram. Se é horizontal, mantêm-se estáveis. Linha tracejada: se sobe, a melhoria acelera ou a deterioração abranda. Se desce, a melhoria abranda ou a deterioração acelera. Se é horizontal, o ritmo de mudança é constante."
+      },
       "title": "Transições de status",
       "legend": {
-        "trend": "Taxa de correção"
+        "cumulativeTrend": "Tendência acumulada",
+        "diffTrend": "Tendência de variação por execução"
       },
       "transitions": {
         "new": "$t(transitions:new, capitalize)",
@@ -352,6 +359,9 @@
       }
     },
     "testBaseGrowthDynamics": {
+      "trendHelp": {
+        "description": "Linha contínua: se sobe, a base de testes cresce. Se desce, diminui. Se é horizontal, o tamanho é estável. Linha tracejada: se sobe, o crescimento acelera ou a redução abranda. Se desce, o crescimento abranda ou a redução acelera. Se é horizontal, o ritmo de mudança é constante."
+      },
       "title": "Dinâmica de crescimento da base de testes",
       "status": {
         "newpassed": "Novo $t(statuses:passed)",
@@ -366,11 +376,17 @@
         "removedunknown": "Removido $t(statuses:unknown)"
       },
       "legend": {
-        "trend": "Tendência de crescimento"
+        "cumulativeTrend": "Tendência acumulada",
+        "diffTrend": "Tendência de variação por execução"
       },
       "no-history": "$t(empty:no-history-results)",
       "no-results": "$t(empty:no-results)",
       "tooltips": {
+        "newTests": "Novos testes",
+        "removedTests": "Testes removidos",
+        "noChanges": "Sem alterações",
+        "number": "{{value, number}}",
+        "statusCount": "{{status}}: {{count}}",
         "current": "Último relatório ({{timestamp, timestamp_long_no_seconds}})",
         "history": "Relatório de {{timestamp, timestamp_long_no_seconds}}"
       },

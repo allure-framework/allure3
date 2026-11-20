@@ -78,10 +78,17 @@
         "history": "{{timestamp, timestamp_date}}"
       }
     },
+    "trendHelp": {
+      "label": "傾向の読み方"
+    },
     "statusTransitions": {
+      "trendHelp": {
+        "description": "実線が上向きならテストのステータスは全体として改善し、下向きなら悪化し、水平なら安定しています。破線が上向きなら改善が加速しているか悪化が鈍化しています。下向きなら改善が鈍化しているか悪化が加速しています。水平なら変化のペースは一定です。"
+      },
       "title": "ステータス遷移",
       "legend": {
-        "trend": "修正率"
+        "cumulativeTrend": "累積の傾向",
+        "diffTrend": "実行ごとの変化の傾向"
       },
       "transitions": {
         "new": "$t(transitions:new, capitalize)",
@@ -127,6 +134,9 @@
       }
     },
     "testBaseGrowthDynamics": {
+      "trendHelp": {
+        "description": "実線が上向きならテストの総数は増え、下向きなら減り、水平なら安定しています。破線が上向きなら増加が加速しているか減少が鈍化しています。下向きなら増加が鈍化しているか減少が加速しています。水平なら変化のペースは一定です。"
+      },
       "title": "テストベースの成長動態",
       "status": {
         "newpassed": "新規 $t(statuses:passed)",
@@ -141,11 +151,17 @@
         "removedunknown": "削除 $t(statuses:unknown)"
       },
       "legend": {
-        "trend": "成長トレンド"
+        "cumulativeTrend": "累積の傾向",
+        "diffTrend": "実行ごとの変化の傾向"
       },
       "no-history": "$t(empty:no-history-results)",
       "no-results": "$t(empty:no-results)",
       "tooltips": {
+        "newTests": "新規テスト",
+        "removedTests": "削除されたテスト",
+        "noChanges": "変更なし",
+        "number": "{{value, number}}",
+        "statusCount": "{{status}}: {{count}}",
         "current": "最新レポート ({{timestamp, timestamp_long_no_seconds}})",
         "history": "{{timestamp, timestamp_long_no_seconds}} のレポート"
       },

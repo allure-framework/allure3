@@ -78,10 +78,17 @@
         "history": "{{timestamp, timestamp_date}}"
       }
     },
+    "trendHelp": {
+      "label": "איך לקרוא את המגמות"
+    },
     "statusTransitions": {
+      "trendHelp": {
+        "description": "קו רציף: עלייה פירושה שמצבי הבדיקות משתפרים ככלל, ירידה פירושה שהם מחמירים, וקו אופקי פירושו שהם יציבים. קו מקווקו: עלייה פירושה שהשיפור מואץ או שההחמרה מואטת. ירידה פירושה שהשיפור מואט או שההחמרה מואצת. קו אופקי מציין קצב שינוי קבוע."
+      },
       "title": "מעברי סטטוס",
       "legend": {
-        "trend": "שיעור תיקון"
+        "cumulativeTrend": "מגמה מצטברת",
+        "diffTrend": "מגמת השינוי בכל הרצה"
       },
       "transitions": {
         "new": "$t(transitions:new, capitalize)",
@@ -127,6 +134,9 @@
       }
     },
     "testBaseGrowthDynamics": {
+      "trendHelp": {
+        "description": "קו רציף: עלייה פירושה שמאגר הבדיקות גדל, ירידה פירושה שהוא מצטמצם, וקו אופקי פירושו שגודלו יציב. קו מקווקו: עלייה פירושה שהגידול מואץ או שהצמצום מואט. ירידה פירושה שהגידול מואט או שהצמצום מואץ. קו אופקי מציין קצב שינוי קבוע."
+      },
       "title": "דינמיקת צמיחת בסיס הבדיקות",
       "status": {
         "newpassed": "חדש $t(statuses:passed)",
@@ -141,11 +151,17 @@
         "removedunknown": "הוסר $t(statuses:unknown)"
       },
       "legend": {
-        "trend": "מגמת צמיחה"
+        "cumulativeTrend": "מגמה מצטברת",
+        "diffTrend": "מגמת השינוי בכל הרצה"
       },
       "no-history": "$t(empty:no-history-results)",
       "no-results": "$t(empty:no-results)",
       "tooltips": {
+        "newTests": "בדיקות חדשות",
+        "removedTests": "בדיקות שהוסרו",
+        "noChanges": "אין שינויים",
+        "number": "{{value, number}}",
+        "statusCount": "{{status}}: {{count}}",
         "current": "דוח אחרון ({{timestamp, timestamp_long_no_seconds}})",
         "history": "דוח מ-{{timestamp, timestamp_long_no_seconds}}"
       },

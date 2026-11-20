@@ -303,10 +303,17 @@
         "history": "{{timestamp, timestamp_date}}"
       }
     },
+    "trendHelp": {
+      "label": "Eğilimler nasıl okunur?"
+    },
     "statusTransitions": {
+      "trendHelp": {
+        "description": "Düz çizgi yükseliyorsa test durumları genel olarak iyileşiyor, düşüyorsa kötüleşiyor, yataysa sabit kalıyor. Kesikli çizgi yükseliyorsa iyileşme hızlanıyor veya kötüleşme yavaşlıyor. Düşüyorsa iyileşme yavaşlıyor veya kötüleşme hızlanıyor. Yataysa değişim hızı sabit."
+      },
       "title": "Durum geçişleri",
       "legend": {
-        "trend": "Düzeltme oranı"
+        "cumulativeTrend": "Birikimli eğilim",
+        "diffTrend": "Çalıştırma başına değişim eğilimi"
       },
       "transitions": {
         "new": "$t(transitions:new, capitalize)",
@@ -352,6 +359,9 @@
       }
     },
     "testBaseGrowthDynamics": {
+      "trendHelp": {
+        "description": "Düz çizgi yükseliyorsa test tabanı büyüyor, düşüyorsa küçülüyor, yataysa boyutu sabit kalıyor. Kesikli çizgi yükseliyorsa büyüme hızlanıyor veya küçülme yavaşlıyor. Düşüyorsa büyüme yavaşlıyor veya küçülme hızlanıyor. Yataysa değişim hızı sabit."
+      },
       "title": "Test tabanı büyüme dinamikleri",
       "status": {
         "newpassed": "Yeni $t(statuses:passed)",
@@ -366,11 +376,17 @@
         "removedunknown": "Kaldırılan $t(statuses:unknown)"
       },
       "legend": {
-        "trend": "Büyüme trendi"
+        "cumulativeTrend": "Birikimli eğilim",
+        "diffTrend": "Çalıştırma başına değişim eğilimi"
       },
       "no-history": "$t(empty:no-history-results)",
       "no-results": "$t(empty:no-results)",
       "tooltips": {
+        "newTests": "Yeni testler",
+        "removedTests": "Kaldırılan testler",
+        "noChanges": "Değişiklik yok",
+        "number": "{{value, number}}",
+        "statusCount": "{{status}}: {{count}}",
         "current": "Son rapor ({{timestamp, timestamp_long_no_seconds}})",
         "history": "{{timestamp, timestamp_long_no_seconds}} tarihli rapor"
       },
