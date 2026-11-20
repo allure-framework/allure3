@@ -7,6 +7,7 @@ import { dirname, join, relative, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
 
+import { getGlobalLogLevel, setGlobalLogLevel } from "@allurereport/cli-commons";
 import { calculateParametersHash } from "@allurereport/core-api";
 import { AllureStoreDumpFiles, md5 } from "@allurereport/plugin-api";
 import { PathResultFile, type RawTestResult } from "@allurereport/reader-api";
@@ -669,6 +670,58 @@ describe("AllureReport.restoreState (dump zip)", () => {
       );
     });
   });
+
+  it.each(["info", "verbose", "error"] as const)(
+    "summarizes missing dump attachments at %s log level",
+    async (level) => {
+      const dir = await tempDir();
+      const report = new AllureReport({
+        ...(await resolveConfig({ name: "Allure Report", output: join(dir, "report") })),
+        dump: join(dir, "dump"),
+      });
+      const warn = vi.spyOn(nodeConsole, "warn").mockImplementation(() => {});
+      const debug = vi.spyOn(nodeConsole, "debug").mockImplementation(() => {});
+      const previousLevel = getGlobalLogLevel();
+
+      try {
+        setGlobalLogLevel(level);
+        await step("index twenty attachment paths whose source files are missing", async () => {
+          await report.start();
+          for (let index = 0; index < 20; index++) {
+            await report.store.visitAttachmentFile(new PathResultFile(join(dir, `${index}-attachment.txt`)));
+          }
+          await report.store.visitTestResult(
+            {
+              name: "missing attachment sources",
+              status: "passed",
+              steps: Array.from({ length: 20 }, (_, index) => ({
+                type: "attachment" as const,
+                name: `attachment ${index}`,
+                originalFileName: `${index}-attachment.txt`,
+              })),
+            },
+            { readerId: "dump-logging" },
+          );
+        });
+
+        await step("write a readable dump with bounded warnings and optional verbose details", async () => {
+          await report.done();
+          expect(warn).toHaveBeenCalledTimes(level === "error" ? 0 : 1);
+          if (level !== "error") {
+            expect(warn).toHaveBeenCalledWith(expect.stringContaining("Skipped 20 attachments while writing dump"));
+          }
+          expect(debug).toHaveBeenCalledTimes(level === "verbose" ? 20 : 0);
+          const restoredReport = new AllureReport(await resolveConfig({ name: "Allure Report" }));
+          await restoredReport.restoreState([join(dir, "dump.zip")]);
+          const attachments = await restoredReport.store.allAttachments({ includeMissed: true });
+          expect(attachments).toHaveLength(20);
+          expect(attachments.every((entry) => entry.missed)).toBe(true);
+        });
+      } finally {
+        setGlobalLogLevel(previousLevel);
+      }
+    },
+  );
 
   it("finalizes a dump when adding an attachment entry fails", async () => {
     const dir = await tempDir();
