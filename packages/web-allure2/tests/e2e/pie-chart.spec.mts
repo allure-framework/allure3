@@ -33,10 +33,19 @@ for (const mode of Object.values(REPORT_MODES)) {
       if (focused) {
         await caption.focus();
       }
-      await expect(caption).toBeVisible();
-      const bounds = (await caption.boundingBox())!;
-      const clientX = Math.round(bounds.x + bounds.width / 2);
-      const clientY = Math.round(bounds.y + bounds.height / 2);
+      let clientX = 0;
+      let clientY = 0;
+      await expect
+        .poll(async () => {
+          const bounds = await caption.boundingBox();
+          if (!bounds) {
+            return false;
+          }
+          clientX = Math.round(bounds.x + bounds.width / 2);
+          clientY = Math.round(bounds.y + bounds.height / 2);
+          return true;
+        })
+        .toBe(true);
       await page.mouse.move(clientX + 0.5, clientY + 0.25);
       await expect(tooltip).toHaveText("Success rate: 91.63%");
       if (!focused) {
