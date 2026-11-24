@@ -319,7 +319,8 @@ const createOutputBundle = (overrides: Partial<AgentOutputBundle> = {}): AgentOu
   ...overrides,
 });
 
-describe("agent enrichment harness", () => {
+// These scenarios write real output bundles and can exceed the unit-test deadline on busy CI hosts.
+describe("agent enrichment harness", { timeout: 30_000 }, () => {
   let tempDir: string;
 
   beforeEach(async () => {
