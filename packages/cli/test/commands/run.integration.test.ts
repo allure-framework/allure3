@@ -1729,11 +1729,12 @@ console.log(\`selected selectors: \${Array.from(selectors).join(",")}\`);
     "preserves redirected output with --ignore-logs (%s)",
     async (destination) => {
       const fixtureDir = join(tempDir, `ignore-logs-${destination}`);
+      const reportDir = join(fixtureDir, "report");
       await mkdir(fixtureDir, { recursive: true });
       const configPath = join(fixtureDir, "allurerc.mjs");
       const targetPath = join(fixtureDir, "target.mjs");
       const wrapperPath = join(fixtureDir, "redirect.mjs");
-      await writeFile(configPath, "export default { plugins: {} };\n");
+      await writeFile(configPath, `export default { output: ${JSON.stringify(reportDir)}, plugins: {} };\n`);
       await writeFile(
         targetPath,
         `
@@ -1788,6 +1789,10 @@ console.log(\`selected selectors: \${Array.from(selectors).join(",")}\`);
         expect(output.stdout).not.toContain("target-stderr-marker");
         expect(output.stderr).not.toContain("target-stdout-marker");
       });
+
+      await step("Verify the report is generated inside the fixture", async () => {
+        expect(await pathExists(join(reportDir, "index.html"))).toBe(true);
+      });
     },
     60_000,
   );
@@ -1827,6 +1832,7 @@ console.log(\`selected selectors: \${Array.from(selectors).join(",")}\`);
     "preserves console stdout and stderr with --ignore-logs ($scenario)",
     async ({ scenario, input, source, expected }) => {
       const fixtureDir = join(tempDir, `ignore-logs-console-${scenario.replaceAll(" ", "-")}`);
+      const reportDir = join(fixtureDir, "report");
       await mkdir(fixtureDir, { recursive: true });
 
       const configPath = join(fixtureDir, "allurerc.mjs");
@@ -1835,8 +1841,8 @@ console.log(\`selected selectors: \${Array.from(selectors).join(",")}\`);
       const outputPath = join(fixtureDir, "console.json");
       const tracePath = join(fixtureDir, "console.trace.log");
 
-      // allurerc.mjs: a minimal config with no report plugins
-      await writeFile(configPath, "export default { plugins: {} };\n");
+      // Keep report generation isolated from other integration tests.
+      await writeFile(configPath, `export default { output: ${JSON.stringify(reportDir)}, plugins: {} };\n`);
 
       // target.mjs: the final target script that writes to stdout and stderr
       //             if stdin is tested, create a marker file to indicate readiness for input.
@@ -1979,6 +1985,10 @@ console.log(\`selected selectors: \${Array.from(selectors).join(",")}\`);
           expect(output.stdout.match(/X/g)?.length).toBeGreaterThanOrEqual(131072);
           expect(output.stderr.match(/X/g)?.length).toBeGreaterThanOrEqual(131072);
         }
+      });
+
+      await step("Verify the report is generated inside the fixture", async () => {
+        expect(await pathExists(join(reportDir, "index.html"))).toBe(true);
       });
     },
     60_000,

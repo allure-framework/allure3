@@ -68,6 +68,10 @@ test.describe("Visual Parity", () => {
     });
 
     await settlePage(page);
+    // macOS runners can resolve D3's sans-serif to Arial instead of the baseline's Helvetica.
+    if (process.platform === "darwin") {
+      await page.addStyleTag({ content: ".chart__axis { font-family: Helvetica, sans-serif; }" });
+    }
     await expect(page.locator(".app")).toHaveScreenshot("graph-dashboard.png");
   });
 

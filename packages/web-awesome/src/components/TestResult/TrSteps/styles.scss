@@ -179,7 +179,7 @@ button.test-result-attachment-content {
   min-width: 0;
   padding: 0;
   font: inherit;
-  text-align: left;
+  text-align: start;
 
   &:not(:disabled) {
     cursor: pointer;

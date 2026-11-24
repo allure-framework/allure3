@@ -121,7 +121,7 @@ describe("configured performance hierarchy", () => {
 
   it("uses explicit parents in the real report config without nesting independent AQL benchmarks", async () => {
     const root = fileURLToPath(new URL("../../../", import.meta.url));
-    const config = await readConfig(root, "allurerc.mjs");
+    const config = await readConfig(root, "allurerc.mjs", { plugins: {} });
     const performance = config.metrics;
     if (!performance) {
       throw new Error("Expected the report configuration to define metrics");
@@ -142,7 +142,7 @@ describe("configured performance hierarchy", () => {
 
   it("keeps the shipped performance metric inventory stable", async () => {
     const root = fileURLToPath(new URL("../../../", import.meta.url));
-    const config = await readConfig(root, "allurerc.mjs");
+    const config = await readConfig(root, "allurerc.mjs", { plugins: {} });
     const metricKeys = Object.keys(config.metrics?.metrics ?? {});
 
     expect(metricKeys.filter((key) => key.startsWith("aql.parse."))).toHaveLength(5);

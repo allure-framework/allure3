@@ -33,6 +33,7 @@ for (const mode of Object.values(REPORT_MODES)) {
       if (focused) {
         await caption.focus();
       }
+      await expect(caption).toBeVisible();
       const bounds = (await caption.boundingBox())!;
       const clientX = Math.round(bounds.x + bounds.width / 2);
       const clientY = Math.round(bounds.y + bounds.height / 2);

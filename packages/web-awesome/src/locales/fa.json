@@ -1,0 +1,636 @@
+{
+  "statuses": {
+    "passed": "موفق",
+    "failed": "ناموفق",
+    "broken": "خراب",
+    "skipped": "ردشده",
+    "unknown": "نامشخص",
+    "total": "کل",
+    "flakyTests": "ناپایدار",
+    "newTests": "جدید",
+    "retryTests": "تکرارشده"
+  },
+  "testSummary": {
+    "total": "کل",
+    "flaky": "تست‌های ناپایدار",
+    "retries": "تست‌های تکرارشده",
+    "retriesStatusChange": "تغییر وضعیت در تکرار",
+    "new": "تست‌های جدید"
+  },
+  "tabs": {
+    "total": "همه",
+    "results": "نتایج",
+    "globalAttachments": "پیوست‌های سراسری",
+    "globalErrors": "خطاهای سراسری",
+    "qualityGates": "دروازه‌های کیفیت",
+    "categories": "دسته‌بندی‌ها",
+    "resolutionCategories": "رسیدگی‌ها"
+  },
+  "search": {
+    "search": "جستجو",
+    "search-placeholder": "جستجوی تست‌ها"
+  },
+  "filters": {
+    "flaky": "ناپایدار",
+    "nonFlaky": "پایدار",
+    "retry": "تکرارشده",
+    "new": "جدید",
+    "fixed": "رفع‌شده",
+    "regressed": "پسرفت‌کرده",
+    "malfunctioned": "دچار اختلال",
+    "transition": "تغییر وضعیت",
+    "status": "وضعیت",
+    "severity": "شدت",
+    "owner": "مسئول",
+    "layer": "لایه",
+    "tags": "برچسب‌ها",
+    "categories": "دسته‌بندی‌ها",
+    "goto_filter": "رفتن به فیلتر",
+    "errors": {
+      "max_values_one": "فقط {{count}} مقدار اول برای فیلتر استفاده می‌شود.\nمقادیر اضافه نادیده گرفته می‌شوند",
+      "max_values_other": "فقط {{count}} مقدار اول برای فیلتر استفاده می‌شوند.\nمقادیر اضافه نادیده گرفته می‌شوند"
+    },
+    "description": {
+      "flaky": "نمایش تست‌های ناپایدار",
+      "retry": "نمایش نتایجی که دوباره اجرا شده‌اند",
+      "new": "نمایش نتایجی که برای اولین بار در این گزارش آمده‌اند",
+      "fixed": "نمایش تست‌هایی که الان موفق‌اند ولی در گزارش قبلی «ناموفق» یا «خراب» بودند",
+      "regressed": "نمایش نتایجی که از وضعیت «موفق» یا «خراب» به «ناموفق» تغییر کرده‌اند",
+      "malfunctioned": "نمایش نتایجی که از وضعیت «موفق» یا «ناموفق» به «خراب» تغییر کرده‌اند",
+      "tags": "نمایش نتایجی که برچسب‌های مشخص‌شده را دارند",
+      "categories": "نمایش نتایجی که دسته‌بندی‌های مشخص‌شده را دارند",
+      "resolution": {
+        "issue": "نمایش نتایج مرتبط با Issue",
+        "muted": "نمایش نتایج بی‌صداشده",
+        "accepted": "نمایش نتایج پذیرفته‌شده",
+        "none": "نمایش نتایج ناموفق یا خرابِ بدون رسیدگی"
+      }
+    },
+    "resolution": "رسیدگی",
+    "resolutions": {
+      "issue": "Issue",
+      "muted": "بی‌صدا",
+      "accepted": "پذیرفته‌شده",
+      "none": "بدون رسیدگی",
+      "state": {
+        "active": "بی‌صدا تا {{timestamp, timestamp_long_no_seconds}}",
+        "outdated": "منقضی‌شده",
+        "permanent": "بی‌صدا برای همیشه",
+        "outdatedDescription": "مهلت بی‌صدا بودن در {{timestamp, timestamp_long_no_seconds}} تمام شد. این خطا دیگر نادیده گرفته نمی‌شود.",
+        "permanentDescription": "تاریخ انقضایی تعیین نشده. این خطا برای همیشه نادیده گرفته می‌شود و ممکن است مشکلی را در آینده پنهان کند."
+      }
+    }
+  },
+  "sort-by": {
+    "sort-by-text": "مرتب‌سازی بر اساس:",
+    "sort-by-category": "مرتب‌سازی بر اساس",
+    "direction-category": "جهت"
+  },
+  "sort-by.values": {
+    "order": "ترتیب",
+    "alphabet": "الفبا",
+    "duration": "مدت",
+    "status": "وضعیت"
+  },
+  "sort-by.directions": {
+    "order-desc": "جدیدترین – قدیمی‌ترین",
+    "order-asc": "قدیمی‌ترین – جدیدترین",
+    "order-asc-short": "قدیمی‌ترین",
+    "order-desc-short": "جدیدترین",
+    "alphabet-asc": "A – Z",
+    "alphabet-desc": "Z – A",
+    "alphabet-asc-short": "A – Z",
+    "alphabet-desc-short": "Z – A",
+    "duration-asc": "1 – 9",
+    "duration-desc": "9 – 1",
+    "duration-asc-short": "1 – 9",
+    "duration-desc-short": "9 – 1",
+    "status-asc": "مطابق لیست فیلتر",
+    "status-desc": "برعکس",
+    "status-asc-short": "عادی",
+    "status-desc-short": "برعکس"
+  },
+  "empty": {
+    "no-results": "نتیجه‌ای نیست",
+    "no-value": "بدون مقدار",
+    "no-value-for": "بدون مقدار: {{entity}}",
+    "no-transition": "بدون تغییر وضعیت",
+    "no-layer": "بدون لایه",
+    "no-owner": "بدون مسئول",
+    "no-severity": "بدون شدت",
+    "no-status": "بدون وضعیت",
+    "no-environment": "بدون محیط",
+    "no-flaky": "بدون ناپایدار",
+    "empty-value": "خالی",
+    "no-tests-found": "نتیجه‌ای پیدا نشد",
+    "no-message-provided": "پیامی ارائه نشده",
+    "clear-filters": "پاک کردن فیلترها",
+    "no-attachments-results": "اطلاعاتی از پیوست‌ها موجود نیست",
+    "no-global-errors-results": "اطلاعاتی از خطاهای سراسری موجود نیست",
+    "no-quality-gate-results": "نتیجه‌ای از دروازه‌ی کیفیت موجود نیست",
+    "no-history-results": "اطلاعاتی از تاریخچه موجود نیست",
+    "no-retries-results": "اطلاعاتی از تکرارها موجود نیست",
+    "no-test-steps-results": "اطلاعاتی از گام‌های تست موجود نیست",
+    "no-test-case-results": "نتیجه‌ای برای این تست‌کیس نیست",
+    "no-environments-results": "اطلاعاتی از محیط‌ها موجود نیست",
+    "no-categories-results": "نتیجه‌ای از دسته‌بندی‌ها موجود نیست",
+    "no-metrics-results": "معیاری موجود نیست",
+    "no-resolution-categories-results": "دسته‌بندی رسیدگی موجود نیست"
+  },
+  "severity": {
+    "blocker": "مسدودکننده",
+    "critical": "بحرانی",
+    "normal": "عادی",
+    "minor": "جزئی",
+    "trivial": "ناچیز",
+    "none": "بدون شدت"
+  },
+  "execution": {
+    "name": "اجرا",
+    "body": "بدنه‌ی تست",
+    "setup": "آماده‌سازی",
+    "teardown": "پاک‌سازی"
+  },
+  "environments": {
+    "environment_one": "محیط",
+    "environment_other": "محیط‌ها",
+    "all": "همه"
+  },
+  "ui": {
+    "labels": "برچسب‌ها",
+    "metadata": "فراداده",
+    "parameters": "پارامترها",
+    "category": "دسته‌بندی",
+    "description": "توضیحات",
+    "precondition": "پیش‌شرط",
+    "expectedResult": "نتیجه‌ی مورد انتظار",
+    "links": "لینک‌ها",
+    "relatedTestResults": "نتایج تست مرتبط ({{count}})",
+    "overview": "نمای کلی",
+    "history": "تاریخچه",
+    "attachments": "پیوست‌ها",
+    "retries": "تکرارها",
+    "environments": "محیط‌ها",
+    "error": "خطا",
+    "success": "موفقیت",
+    "goToStep": "رفتن به گام",
+    "showLess": "نمایش کمتر",
+    "showMore": "نمایش بیشتر",
+    "copy": "کپی",
+    "copy-email": "کپی ایمیل",
+    "open-link": "باز کردن لینک",
+    "copy-link": "کپی لینک",
+    "fullname": "نام کامل",
+    "retry-hash": "هش تکرار",
+    "test-case-id": "شناسه‌ی تست‌کیس",
+    "attempt": "تلاش {{attempt}} از {{total}}",
+    "retry": "تکرار {{attempt}} از {{total}}",
+    "at": "در",
+    "generated": "ساخته‌شده در",
+    "variables": "متغیرها",
+    "openPwTrace": "باز کردن Playwright Trace",
+    "pwTracePopupBlocked": "مرورگر از باز شدن Playwright Trace Viewer جلوگیری کرد.",
+    "pwTracePopupBlockedHint": "اجازه‌ی باز شدن پنجره‌ی بازشو را بدهید و دوباره امتحان کنید.",
+    "finishedAtOriginal": "{{formattedCreatedAt}}، با کد خروج {{original}}",
+    "finishedAtBoth": "{{formattedCreatedAt}}، با کد خروج {{actual}} (اصلی {{original}})",
+    "resolutionCategories": "رسیدگی‌ها",
+    "breadcrumbs": "مسیر",
+    "gitBranch": "برنچ",
+    "gitCommit": "کامیت",
+    "openPullRequest": "باز کردن PR",
+    "openJobRun": "باز کردن اجرای Job",
+    "breadcrumbs-hidden": "نمایش مسیرهای پنهان",
+    "failureSummary": {
+      "title": "گزارش ناموفق بود",
+      "unsuccessfulTests": "تست‌های ناموفق",
+      "failedQualityGates": "دروازه‌های کیفیت ردشده",
+      "globalErrors": "خطاهای سراسری"
+    }
+  },
+  "shortcuts": {
+    "title": "میان‌برهای صفحه‌کلید",
+    "groups": {
+      "global": "عمومی",
+      "tree": "درخت",
+      "testResult": "نتیجه‌ی تست"
+    },
+    "items": {
+      "toggleHelp": "نمایش یا پنهان کردن میان‌برها",
+      "focusSearch": "رفتن به جستجو",
+      "blurSearch": "خروج از جستجو",
+      "focusTree": "رفتن به پنل درخت",
+      "focusTestResult": "رفتن به پنل نتیجه‌ی تست",
+      "toggleLayout": "تغییر چیدمان دوستونه (Shift+L)",
+      "toggleLayoutAlt": "تغییر چیدمان دوستونه (Ctrl/Cmd+\\)",
+      "moveUp": "حرکت به بالا",
+      "moveDown": "حرکت به پایین",
+      "collapse": "بستن / رفتن به والد",
+      "expand": "باز کردن / اولین فرزند",
+      "parent": "رفتن به والد (p)",
+      "parentAlt": "رفتن به والد (u)",
+      "openNode": "باز کردن تست / باز و بسته کردن گروه (o)",
+      "collapseNode": "بستن گره (-)",
+      "expandNode": "باز کردن گره (+)",
+      "collapseAll": "بستن همه‌ی فرزندان (C)",
+      "expandAll": "باز کردن همه‌ی فرزندان (A)",
+      "subtreeCycle": "باز و بسته کردن چرخشی زیرشاخه — مثل فلش سرستون (>)",
+      "subtreeCollapse": "بستن کل زیرشاخه (Shift+C)",
+      "subtreeExpand": "باز کردن کل زیرشاخه (Shift+A)",
+      "subtreeFirstLevel": "باز کردن فقط سطح اول (f)",
+      "toggleNode": "باز و بسته کردن گروه یا محیط",
+      "openTest": "باز کردن نتیجه‌ی تست",
+      "firstTest": "رفتن به اولین تست (g g)، اسکرول لیست به بالا",
+      "lastTest": "رفتن به آخرین تست",
+      "treeTop": "اولین ردیف درخت + اسکرول لیست به بالا (Home)",
+      "scrollTreeTop": "اسکرول لیست به بالا — نمایش متغیرها و فیلترها (z t)",
+      "toggleReportVariables": "نمایش/پنهان کردن متغیرها",
+      "toggleReportMetadata": "نمایش/پنهان کردن فراداده",
+      "reportTabResults": "زبانه‌ی گزارش: نتایج",
+      "reportTabCategories": "زبانه‌ی گزارش: دسته‌بندی‌ها",
+      "reportTabQualityGate": "زبانه‌ی گزارش: دروازه‌ی کیفیت",
+      "reportTabGlobalAttachments": "زبانه‌ی گزارش: پیوست‌های سراسری",
+      "reportTabGlobalErrors": "زبانه‌ی گزارش: خطاهای سراسری",
+      "nextTest": "نتیجه‌ی تست بعدی",
+      "prevTest": "نتیجه‌ی تست قبلی",
+      "tabOverview": "زبانه‌ی نمای کلی",
+      "tabResolutionCategories": "زبانه‌ی رسیدگی‌ها",
+      "tabHistory": "زبانه‌ی تاریخچه",
+      "tabRetries": "زبانه‌ی تکرارها",
+      "tabAttachments": "زبانه‌ی پیوست‌ها",
+      "tabEnvironments": "زبانه‌ی محیط‌ها",
+      "toggleLabels": "نمایش/پنهان کردن برچسب‌ها",
+      "toggleParameters": "نمایش/پنهان کردن پارامترها",
+      "toggleLinks": "نمایش/پنهان کردن لینک‌ها",
+      "backToTree": "بازگشت به درخت",
+      "reportTabResolutionCategories": "زبانه‌ی گزارش: رسیدگی‌ها"
+    }
+  },
+  "controls": {
+    "retry": "تلاش دوباره",
+    "loadAttachmentViewerError": "بارگذاری نمایشگر پیوست ناموفق بود",
+    "loadComparisonError": "بارگذاری مقایسه ناموفق بود",
+    "newTabAttachment": "باز کردن پیوست در زبانه‌ی جدید",
+    "nextTR": "نتیجه‌ی تست بعدی",
+    "prevTR": "نتیجه‌ی تست قبلی",
+    "downloadAttachment": "دانلود پیوست",
+    "previewAttachment": "پیش‌نمایش",
+    "viewCode": "مشاهده‌ی کد",
+    "syntaxHighlight": "رنگ‌آمیزی کد",
+    "backto": "بازگشت به",
+    "backToOverview": "بازگشت به نمای کلی",
+    "clipboard": "کپی در کلیپ‌بورد",
+    "clipboardError": "کپی در کلیپ‌بورد ممکن نیست. به نظر می‌رسد مرورگر شما از این قابلیت پشتیبانی نمی‌کند",
+    "clipboardSuccess": "با موفقیت کپی شد",
+    "collapse": "بستن",
+    "collapseAll": "بستن همه",
+    "collapseAllPartial": "بستن همه (بعضی گروه‌ها باز هستند)",
+    "collapseToDefault": "بازگشت به نمای پیش‌فرض",
+    "expandFirstLevel": "باز کردن سطح اول",
+    "collapseToFirstLevel": "بستن تا سطح اول",
+    "showMore": "نمایش بیشتر",
+    "expand": "باز کردن",
+    "expandAll": "باز کردن همه",
+    "fullscreen": "تمام‌صفحه",
+    "language": "تغییر زبان",
+    "openInNewTab": "باز کردن در زبانه‌ی جدید",
+    "openPreview": "باز کردن پیش‌نمایش",
+    "noSelectedTR": "نتیجه‌ی تستی انتخاب نشده",
+    "comparison": "مقایسه",
+    "showDiff": "نمایش تفاوت",
+    "viewMode": "حالت نمایش",
+    "unified": "یکپارچه",
+    "side-by-side": "کنار هم",
+    "compareBy": "مقایسه بر اساس",
+    "chars": "کاراکتر",
+    "words": "کلمه",
+    "lines": "خط",
+    "actual": "واقعی",
+    "expected": "مورد انتظار"
+  },
+  "errors": {
+    "missedAttachment": "پیوست پیدا نشد"
+  },
+  "sections": {
+    "report": "گزارش",
+    "charts": "نمودارها",
+    "timeline": "خط زمانی",
+    "metrics": "معیارها"
+  },
+  "timeline": {
+    "empty": "داده‌ای نیست",
+    "empty_host": "داده‌ای برای {{ host }} نیست",
+    "selected_one": "{{ count }} تست ({{ percentage }}٪) با مدت بیشتر از {{ minDuration }} و کمتر از {{ maxDuration }} انتخاب شد",
+    "selected_other": "{{ count }} تست ({{ percentage }}٪) با مدت بیشتر از {{ minDuration }} و کمتر از {{ maxDuration }} انتخاب شدند",
+    "host": "میزبان: {{ host }}"
+  },
+  "charts": {
+    "trend": {
+      "title": "نمودار روند: {{type}}",
+      "type": {
+        "status": "وضعیت",
+        "severity": "شدت"
+      }
+    },
+    "currentStatus": {
+      "title": "وضعیت فعلی",
+      "status": {
+        "passed": "$t(statuses:passed, capitalize)",
+        "failed": "$t(statuses:failed, capitalize)",
+        "broken": "$t(statuses:broken, capitalize)",
+        "skipped": "$t(statuses:skipped, capitalize)",
+        "unknown": "$t(statuses:unknown, capitalize)"
+      },
+      "percentage": "{{percentage}}٪",
+      "of": "از {{total}}",
+      "total": "کل",
+      "tests": {
+        "new_zero": "تست جدیدی نیست",
+        "new_one": "{{count}} تست جدید",
+        "new_other": "{{count}} تست جدید",
+        "flaky_zero": "تست ناپایداری نیست",
+        "flaky_one": "{{count}} تست ناپایدار",
+        "flaky_other": "{{count}} تست ناپایدار",
+        "retries_zero": "تست تکرارشده‌ای نیست",
+        "retries_one": "{{count}} تست تکرارشده",
+        "retries_other": "{{count}} تست تکرارشده"
+      }
+    },
+    "statusDynamics": {
+      "title": "روند وضعیت‌ها",
+      "status": {
+        "passed": "$t(statuses:passed, capitalize)",
+        "failed": "$t(statuses:failed, capitalize)",
+        "broken": "$t(statuses:broken, capitalize)",
+        "skipped": "$t(statuses:skipped, capitalize)",
+        "unknown": "$t(statuses:unknown, capitalize)"
+      },
+      "no-history": "$t(empty:no-history-results)",
+      "no-results": "$t(empty:no-results)",
+      "tooltips": {
+        "current": "آخرین گزارش ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "گزارش {{timestamp, timestamp_long_no_seconds}}"
+      },
+      "ticks": {
+        "current": "آخرین",
+        "history": "{{timestamp, timestamp_date}}"
+      }
+    },
+    "statusTransitions": {
+      "title": "تغییرات وضعیت",
+      "legend": {
+        "trend": "نرخ رفع"
+      },
+      "transitions": {
+        "new": "$t(transitions:new, capitalize)",
+        "fixed": "$t(transitions:fixed, capitalize)",
+        "regressed": "$t(transitions:regressed, capitalize)",
+        "malfunctioned": "$t(transitions:malfunctioned, capitalize)"
+      },
+      "no-history": "$t(empty:no-history-results)",
+      "no-results": "$t(empty:no-results)",
+      "tooltips": {
+        "current": "آخرین گزارش ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "گزارش {{timestamp, timestamp_long_no_seconds}}"
+      },
+      "ticks": {
+        "current": "آخرین",
+        "history": "{{timestamp, timestamp_date}}"
+      }
+    },
+    "durations": {
+      "title": "هیستوگرام مدت اجرا بر اساس {{groupBy}}",
+      "title_none": "هیستوگرام مدت اجرا",
+      "no-results": "$t(empty:no-results)",
+      "groupBy": {
+        "none": "هیچ‌کدام",
+        "layer": "لایه"
+      },
+      "ticks": {
+        "durationRange": "{{from, format_duration}} - {{to, format_duration}}"
+      },
+      "tooltips": {
+        "durationRange": "{{from, format_duration}} - {{to, format_duration}}"
+      },
+      "legend": {
+        "value": "{{value}}",
+        "total": "تعداد تست‌ها"
+      }
+    },
+    "stabilityDistribution": {
+      "title": "توزیع پایداری",
+      "no-results": "$t(empty:no-results)",
+      "legend": {
+        "stabilityRate": "نرخ پایداری"
+      }
+    },
+    "testBaseGrowthDynamics": {
+      "title": "روند رشد مجموعه‌ی تست‌ها",
+      "status": {
+        "newpassed": "$t(statuses:passed) جدید",
+        "newfailed": "$t(statuses:failed) جدید",
+        "newbroken": "$t(statuses:broken) جدید",
+        "newskipped": "$t(statuses:skipped) جدید",
+        "newunknown": "$t(statuses:unknown) جدید",
+        "removedpassed": "$t(statuses:passed) حذف‌شده",
+        "removedfailed": "$t(statuses:failed) حذف‌شده",
+        "removedbroken": "$t(statuses:broken) حذف‌شده",
+        "removedskipped": "$t(statuses:skipped) حذف‌شده",
+        "removedunknown": "$t(statuses:unknown) حذف‌شده"
+      },
+      "legend": {
+        "trend": "روند رشد"
+      },
+      "no-history": "$t(empty:no-history-results)",
+      "no-results": "$t(empty:no-results)",
+      "tooltips": {
+        "current": "آخرین گزارش ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "گزارش {{timestamp, timestamp_long_no_seconds}}"
+      },
+      "ticks": {
+        "current": "آخرین",
+        "history": "{{timestamp, timestamp_date}}"
+      }
+    },
+    "statusAgePyramid": {
+      "title": "هرم سن وضعیت‌ها",
+      "status": {
+        "passed": "$t(statuses:passed, capitalize)",
+        "failed": "$t(statuses:failed, capitalize)",
+        "broken": "$t(statuses:broken, capitalize)",
+        "skipped": "$t(statuses:skipped, capitalize)",
+        "unknown": "$t(statuses:unknown, capitalize)"
+      },
+      "no-history": "$t(empty:no-history-results)",
+      "no-results": "$t(empty:no-results)",
+      "tooltips": {
+        "current": "آخرین گزارش ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "گزارش {{timestamp, timestamp_long_no_seconds}}"
+      },
+      "ticks": {
+        "current": "آخرین",
+        "history": "{{timestamp, timestamp_date}}"
+      }
+    },
+    "trSeverities": {
+      "title": "نتایج تست بر اساس شدت",
+      "no-results": "$t(empty:no-results)",
+      "status": {
+        "passed": "$t(statuses:passed, capitalize)",
+        "failed": "$t(statuses:failed, capitalize)",
+        "broken": "$t(statuses:broken, capitalize)",
+        "skipped": "$t(statuses:skipped, capitalize)",
+        "unknown": "$t(statuses:unknown, capitalize)"
+      },
+      "severity": {
+        "blocker": "$t(severity:blocker, capitalize)",
+        "critical": "$t(severity:critical, capitalize)",
+        "normal": "$t(severity:normal, capitalize)",
+        "minor": "$t(severity:minor, capitalize)",
+        "trivial": "$t(severity:trivial, capitalize)",
+        "unset": "بدون شدت"
+      }
+    },
+    "durationDynamics": {
+      "title": "روند مدت اجرا",
+      "durations": {
+        "sequential": "مدت ترتیبی",
+        "duration": "مدت تست",
+        "speedup": "افزایش سرعت"
+      },
+      "no-results": "$t(empty:no-results)",
+      "tooltips": {
+        "current": "آخرین گزارش ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "گزارش {{timestamp, timestamp_long_no_seconds}}"
+      },
+      "ticks": {
+        "current": "آخرین",
+        "history": "{{timestamp, timestamp_date}}"
+      },
+      "legend": {
+        "duration": "{{duration, format_duration}}",
+        "speedup": "{{speedup}}x"
+      }
+    },
+    "metrics": {
+      "tableView": "جدول",
+      "timelineView": "خط زمانی",
+      "timelineDescription": "میله‌ها بازه‌های شروع/پایان ثبت‌شده را نشان می‌دهند و ممکن است هم‌پوشانی داشته باشند. سلسله‌مراتب، کلیدهای معیار را گروه‌بندی می‌کند، نه فراخوانی‌های تکی را. بازه‌های بنچمارک کل اجرا را پوشش می‌دهند و مقدارشان میانگین تأخیر است.",
+      "timelineHelp": "درباره‌ی این نمودار",
+      "resetZoom": "بازنشانی بزرگ‌نمایی",
+      "zoomHint": "برای بزرگ‌نمایی بازه‌ی زمانی یک میله، روی آن کلیک کنید.",
+      "invalidIntervals": "اندازه‌گیری‌های حذف‌شده به دلیل بازه‌ی نامعتبر: {{count}}",
+      "noIntervals": "اندازه‌گیری‌ای با بازه‌ی زمانی معتبر وجود ندارد.",
+      "noMeasurement": "بدون اندازه‌گیری",
+      "good": "بهبودیافته",
+      "bad": "پسرفت‌کرده",
+      "neutral": "بدون تغییر / بدون مقایسه",
+      "interval": "بازه",
+      "previousValue": "میانگین قبلی",
+      "title": "معیارهای کارایی",
+      "phaseSummary": "خلاصه‌ی معیارها",
+      "currentValues": "مقادیر فعلی",
+      "historyTitle": "تاریخچه‌ی معیار",
+      "noHistory": "هنوز تاریخچه‌ای برای این معیار نیست",
+      "date": "{{timestamp, timestamp_long_no_seconds}}",
+      "table": {
+        "metric": "معیار",
+        "phase": "مجموعه‌ی معیار",
+        "count": "تعداد",
+        "total": "مجموع",
+        "avg": "میانگین",
+        "min": "کمینه",
+        "max": "بیشینه",
+        "value": "مقدار",
+        "delta": "تغییر",
+        "trend": "روند",
+        "source": "منبع",
+        "report": "گزارش",
+        "date": "تاریخ"
+      },
+      "summary": "{{groups}} ردیف خلاصه / {{metrics}} معیار",
+      "groups": {
+        "other": "سایر"
+      }
+    },
+    "successRate": {
+      "successRate": "نرخ موفقیت: {{rate}}",
+      "successRateDescription": "بر اساس تست‌های موفق، ناموفق و خراب محاسبه می‌شود. تست‌های ردشده و نامشخص حساب نمی‌شوند.",
+      "noResults": "هیچ نتیجه‌ی تستی وجود ندارد.",
+      "noEligibleResults": "هیچ تست موفق، ناموفق یا خرابی وجود ندارد. تست‌های ردشده و نامشخص در نرخ موفقیت حساب نمی‌شوند.",
+      "notAvailable": "ناموجود",
+      "slice_one": "{{count}} تست ({{percent}}٪ از کل تست‌ها)",
+      "slice_other": "{{count}} تست ({{percent}}٪ از کل تست‌ها)",
+      "layer": "لایه: {{layer}}",
+      "statusSlice": "{{count}} {{status}} ({{percent}}٪ از کل تست‌ها)",
+      "slice": "{{count}} تست ({{percent}}٪ از کل تست‌ها)"
+    },
+    "retry": "تلاش دوباره",
+    "loadError": "بارگذاری نمودار ناموفق بود",
+    "durationTrend": {
+      "title": "روند مدت اجرا",
+      "duration": "مدت",
+      "value": "{{duration, format_duration}}"
+    },
+    "retriesTrend": {
+      "title": "روند تکرارها",
+      "run": "تست‌ها",
+      "retry": "تکرارها"
+    },
+    "categoriesTrend": {
+      "title": "روند دسته‌بندی‌ها"
+    },
+    "runTrend": {
+      "empty": "چیزی برای نمایش وجود ندارد",
+      "tooltips": {
+        "current": "آخرین گزارش ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "گزارش {{timestamp, timestamp_long_no_seconds}}"
+      },
+      "ticks": {
+        "current": "آخرین",
+        "history": "{{timestamp, timestamp_date}}"
+      }
+    }
+  },
+  "transitions": {
+    "description": {
+      "new": "اولین بار است که این نتیجه‌ی تست در گزارش آمده",
+      "fixed": "تستی که قبلاً «ناموفق» یا «خراب» بوده و الان «موفق» است",
+      "regressed": "تستی که قبلاً «موفق» یا «خراب» بوده و الان «ناموفق» است",
+      "malfunctioned": "تستی که قبلاً «موفق» یا «ناموفق» بوده و الان «خراب» است",
+      "retries": "{{count}} تکرار",
+      "retriesStatusChange": "وضعیت در بین تلاش‌های تکرار تغییر کرده",
+      "flaky": "در اجراهای مختلف نتیجه‌ی یکسانی ندارد",
+      "resolution": {
+        "issue": "مرتبط با یک Issue",
+        "muted": "نتیجه‌ی تست بی‌صداشده",
+        "accepted": "نتیجه‌ی تست پذیرفته‌شده"
+      }
+    },
+    "new": "جدید",
+    "fixed": "رفع‌شده",
+    "regressed": "پسرفت‌کرده",
+    "malfunctioned": "دچار اختلال"
+  },
+  "trHistory": {
+    "unknown-date": "تاریخ نامشخص"
+  },
+  "attachments": {
+    "imageDiff": {
+      "mode": {
+        "diff": "تفاوت",
+        "actual": "واقعی",
+        "expected": "مورد انتظار",
+        "side-by-side": "کنار هم",
+        "overlay": "روی هم"
+      },
+      "empty": {
+        "failed-to-load": "بارگذاری تفاوت تصویر ناموفق بود"
+      },
+      "image": {
+        "diff": "تفاوت",
+        "actual": "واقعی",
+        "expected": "مورد انتظار"
+      }
+    }
+  }
+}
