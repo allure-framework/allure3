@@ -131,6 +131,7 @@ const isAllure2AttachmentFileName = (fileName: string): boolean => {
   return suffix === "" || suffix.startsWith(".");
 };
 
+// Keep reading the deprecated -perf.json and performance.json result formats.
 const isMetricResultFile = (fileName: string): boolean =>
   fileName.endsWith("-metric.json") || fileName.endsWith("-perf.json") || fileName === "performance.json";
 

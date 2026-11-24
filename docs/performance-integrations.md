@@ -47,6 +47,10 @@ node scripts/allure-bundle-size.mjs --allure-results ./out/bundle-size-results
 yarn allure generate ./out/bundle-size-results --config .github/allure-bundle-size.config.mjs --output ./out/bundle-size-report
 ```
 
+The report job also runs Playwright tests that build the CLI and generate Awesome reports in single-file and
+directory modes. They use the public `metric()` API to record the size of the CLI's `dist` directory, the
+single-file HTML, and the raw and gzipped JavaScript totals in the directory report. These measurements have
+their own history. The bundle-size quality gate compares the installed CLI footprint.
 
 A metric definition can set `timeline: false` to omit its measurements from the Awesome Timeline. Metrics are
 included by default. This setting preserves the metric’s table, history, and quality-gate values. A hidden parent

@@ -165,11 +165,15 @@ jobs:
           if [[ -f "$bundle_metrics" ]]; then
             cp "$bundle_metrics" ./allure-perf-results/
           fi
-      - name: Measure Awesome report size
+      - name: Measure CLI and Awesome output sizes
         continue-on-error: true
-        run: node ./scripts/measure-awesome-report-size.mjs ./allure-perf-results
+        env:
+          ALLURE_RESULTS_DIR: ${{ github.workspace }}/allure-size-test-results
+        run: |
+          mkdir -p "$ALLURE_RESULTS_DIR"
+          yarn workspace @allurereport/e2e exec playwright test --config=playwright.measurements.config.ts
       - name: Generate report
-        run: yarn allure generate --config=./allurerc.mjs --dump="allure-results-*/*.zip" ./allure-perf-results --output=./allure-report
+        run: yarn allure generate --config=./allurerc.mjs --dump="allure-results-*/*.zip" ./allure-perf-results ./allure-size-test-results --output=./allure-report
       - name: Allure Report Official
         if: ${{ !cancelled() }}
         uses: allure-framework/allure-action@v0

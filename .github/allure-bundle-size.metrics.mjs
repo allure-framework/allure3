@@ -2,6 +2,13 @@
 export const bundleSizeMetrics = {
   groups: { bundleSize: { title: "Bundle size" } },
   metrics: {
+    "allure.bundle.size.cliDist": {
+      title: "CLI build output (dist)",
+      unit: "bytes",
+      better: "lower",
+      timeline: false,
+      group: "bundleSize",
+    },
     "allure.bundle.size.self": {
       title: "Allure code",
       unit: "bytes",

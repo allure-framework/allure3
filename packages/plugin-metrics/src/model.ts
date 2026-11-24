@@ -69,11 +69,11 @@ export type MetricsPluginOptions = {
   /** InfluxDB export. Enabled when set to `true` or an object */
   influxdb?: boolean | InfluxDbOptions;
   /**
-   * Also exports the averaged per-run custom metrics (`store.allMetrics()`) as `launch_metric_<key>`.
-   * Not part of Allure 2, so disabled by default.
+   * Export values recorded with the Allure metrics API alongside test counts and durations.
+   * Samples with the same key are averaged and exported as `launch_metric_<key>`. Default: false.
    */
-  customMetrics?: boolean;
-  /** @deprecated Use customMetrics. */
+  exportRunMetrics?: boolean;
+  /** @deprecated Use exportRunMetrics. */
   performanceMetrics?: boolean;
   /** Fail the report generation when pushing fails. By default only a warning is printed */
   failOnPushError?: boolean;
@@ -92,7 +92,7 @@ export type MetricsInput = {
     categories?: ReadonlyArray<{ name: string }>;
   }>;
   retries: number;
-  customMetrics?: MetricSample[];
-  /** @deprecated Use customMetrics. */
+  runMetrics?: MetricSample[];
+  /** @deprecated Use runMetrics. */
   performanceMetrics?: MetricSample[];
 };
