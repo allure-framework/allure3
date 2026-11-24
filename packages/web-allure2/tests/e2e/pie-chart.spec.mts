@@ -33,10 +33,19 @@ for (const mode of Object.values(REPORT_MODES)) {
       if (focused) {
         await caption.focus();
       }
-      await expect(caption).toBeVisible();
-      const bounds = (await caption.boundingBox())!;
-      const clientX = Math.round(bounds.x + bounds.width / 2);
-      const clientY = Math.round(bounds.y + bounds.height / 2);
+      let clientX = 0;
+      let clientY = 0;
+      await expect
+        .poll(async () => {
+          const bounds = await caption.boundingBox();
+          if (!bounds || bounds.width <= 0 || bounds.height <= 0) {
+            return false;
+          }
+          clientX = Math.round(bounds.x + bounds.width / 2);
+          clientY = Math.round(bounds.y + bounds.height / 2);
+          return true;
+        })
+        .toBe(true);
       await page.mouse.move(clientX + 0.5, clientY + 0.25);
       await expect(tooltip).toHaveText("Success rate: 91.63%");
       if (!focused) {
@@ -46,11 +55,28 @@ for (const mode of Object.values(REPORT_MODES)) {
       await page.keyboard.press("Escape");
       await expect(tooltip).toHaveCount(0);
 
-      const description = (await caption.getAttribute("aria-describedby"))!;
+      const readCaption = () =>
+        caption.evaluate((element) => ({
+          description: element.getAttribute("aria-describedby"),
+          plotTransform: element.parentElement?.getAttribute("transform"),
+        }));
+      const beforeResize = await readCaption();
+      expect(beforeResize.description).toBeTruthy();
+      expect(beforeResize.plotTransform).toBeTruthy();
       const viewport = page.viewportSize()!;
-      await page.setViewportSize({ ...viewport, height: viewport.height + 1 });
+      // A small width change moves the plot while keeping the pointer inside the caption.
+      await page.setViewportSize({ ...viewport, width: viewport.width + 4 });
 
-      await expect(caption).not.toHaveAttribute("aria-describedby", description);
+      // A startup redraw can replace the caption at the same position.
+      await expect
+        .poll(async () => {
+          const afterResize = await readCaption();
+          return {
+            moved: Boolean(afterResize.plotTransform && afterResize.plotTransform !== beforeResize.plotTransform),
+            replaced: Boolean(afterResize.description && afterResize.description !== beforeResize.description),
+          };
+        })
+        .toEqual({ moved: true, replaced: true });
       if (focused) {
         await expect(caption).toBeFocused();
       } else {
