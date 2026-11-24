@@ -256,7 +256,8 @@ const createStoreWithGlobalLogs = (
 
 const expectationOutputName = (field: string, suffix: string) => `${field.replace(/\./g, "-")}-${suffix}`;
 
-describe("AgentPlugin", () => {
+// These scenarios write real output bundles and can exceed the unit-test deadline on busy CI hosts.
+describe("AgentPlugin", { timeout: 30_000 }, () => {
   let tempDir: string;
 
   const runInlineExpectationCase = async (params: {
