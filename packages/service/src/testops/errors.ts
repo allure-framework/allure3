@@ -1,8 +1,8 @@
 import { setTimeout as delay } from "node:timers/promises";
 
-import { KnownError, UnknownError } from "@allurereport/service";
 import { isAxiosError } from "axios";
 
+import { KnownError, UnknownError } from "../utils/http.js";
 import { retryAfterMs } from "./utils/httpRetry.js";
 
 export enum ErrorKind {

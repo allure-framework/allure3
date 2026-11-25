@@ -81,7 +81,7 @@ const expectMultipartUpload = async (expected: {
   expect(await (uploadedFile as Blob).text()).toBe(expected.content);
 };
 
-const { AllureTestOpsClient: AllureTestOpsClientClass } = await import("../src/testops.js");
+const { AllureTestOpsClient: AllureTestOpsClientClass, getTestOpsTestPlan } = await import("../src/testops.js");
 
 vi.mock("node:fs/promises", () => ({
   readFile: vi.fn(),
@@ -92,6 +92,19 @@ vi.mock("../src/utils/http.js", async (importOriginal) => ({
   createServiceHttpClient: createHttpClientMock,
   uploadReport: httpMock.uploadReport,
 }));
+
+it("fetches the expected cases for a TestOps job run with the API token", async () => {
+  const plan = [{ id: 123, selector: "suite.spec.ts#test one" }];
+  HttpClientMock.prototype.get.mockResolvedValueOnce(plan);
+
+  await expect(
+    getTestOpsTestPlan({ endpoint: fixtures.url, accessToken: fixtures.testOpsAccessToken, jobRunId: 42 }),
+  ).resolves.toEqual(plan);
+  expect(createHttpClientMock).toHaveBeenCalledWith(fixtures.url, { apiToken: fixtures.testOpsAccessToken });
+  expect(HttpClientMock.prototype.get).toHaveBeenCalledWith("/api/rs/jobrun/42/plan", {
+    params: { expected: "true" },
+  });
+});
 
 describe("AllureTestOpsClient", () => {
   let testOpsClient: AllureTestOpsClient;

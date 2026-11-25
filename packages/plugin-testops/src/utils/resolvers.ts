@@ -1,16 +1,17 @@
 import type { TestStepResult } from "@allurereport/core-api";
-import { AllureStore } from "@allurereport/plugin-api";
+import type { AllureStore } from "@allurereport/plugin-api";
+import {
+  type AttachmentForUpload,
+  type AttachmentsResolver,
+  type FixtureResolver,
+  type TestOpsFixtureResult,
+  getAttachmentIdsFromTestStepsResults,
+  normalizeTestStepsResults,
+  uploadFilenameForLink,
+  validateExecutableName,
+} from "@allurereport/service/testops";
 
-import type {
-  AttachmentForUpload,
-  AttachmentsResolver,
-  FixtureResolver,
-  TestOpsFixtureResult,
-  TestResultWithAttachments,
-} from "../model.js";
-import { getAttachmentIdsFromTestStepsResults, uploadFilenameForLink } from "./attachments.js";
-import { normalizeTestStepsResults } from "./testResults.js";
-import { validateExecutableName } from "./validation.js";
+import type { TestResultWithAttachments } from "../model.js";
 
 export const unwrapStepsAttachments = (steps: TestStepResult[]): TestStepResult[] =>
   steps.map((step) =>

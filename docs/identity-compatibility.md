@@ -87,7 +87,7 @@ Generated report data uses canonical identity fields:
 - Allure Agent output emits `retry_hash` (or `null`), without a duplicate
   `history_id`. Loading an existing agent manifest may normalize its old
   `history_id` field to `retry_hash`; this is input handling, not dual output.
-- `plugin-testops` temporarily reconstructs the pre-canonical `historyId` at
+- The TestOps uploader in `service` temporarily reconstructs the pre-canonical `historyId` at
   its upload boundary. Core retains only the deprecated per-result
   `legacyTestCaseHash` seed needed after label normalization and test-case
   interning. Remove both when Allure TestOps accepts `retryHash` directly.

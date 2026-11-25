@@ -1,13 +1,13 @@
 import { GitProvider, type CiDescriptor } from "@allurereport/core-api";
-
 import type {
-  GitFlowContext,
   GitProviderType,
   LaunchGitBranchDto,
   LaunchGitContextDto,
   LaunchPullRequestGitflowMetadata,
   LaunchStandaloneGitflowMetadata,
-} from "./types.js";
+} from "@allurereport/service/testops";
+
+import type { GitFlowContext } from "./types.js";
 
 export type ClassifiedPullRequestGitFlowContext = {
   kind: "pull_request";

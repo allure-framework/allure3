@@ -1,8 +1,7 @@
 import type { CategoryDefinition } from "@allurereport/core-api";
 import type { AllureStore } from "@allurereport/plugin-api";
+import type { TestOpsClient, TestOpsUploadTestResult, UploadCategory } from "@allurereport/service/testops";
 
-import type { TestOpsClient } from "../client.js";
-import type { TestOpsPluginTestResult, UploadCategory } from "../model.js";
 import { toUploadCategory } from "./categories.js";
 import { unwrapStepsAttachments } from "./resolvers.js";
 
@@ -11,10 +10,10 @@ export const categoryDisplayName = (cat: UploadCategory): string =>
 
 export const enrichWithCategories = async (
   store: AllureStore,
-  trs: TestOpsPluginTestResult[],
+  trs: TestOpsUploadTestResult[],
   contextCategories: CategoryDefinition[],
   resolveEnvironmentId: (environment: string | undefined) => string | undefined = (environment) => environment,
-): Promise<TestOpsPluginTestResult[]> => {
+): Promise<TestOpsUploadTestResult[]> => {
   return Promise.all(
     trs.map(async (tr) => {
       const environmentId = resolveEnvironmentId((await store.environmentIdByTrId(tr.id)) ?? tr.environment);
@@ -34,7 +33,7 @@ export const enrichWithCategories = async (
   );
 };
 
-const collectCategoryNamesByExternalId = (trs: TestOpsPluginTestResult[]): Map<string, string> => {
+const collectCategoryNamesByExternalId = (trs: TestOpsUploadTestResult[]): Map<string, string> => {
   const map = new Map<string, string>();
 
   for (const tr of trs) {
@@ -48,7 +47,7 @@ const collectCategoryNamesByExternalId = (trs: TestOpsPluginTestResult[]): Map<s
   return map;
 };
 
-const assignCreatedCategoryIds = (trs: TestOpsPluginTestResult[], idByExternalId: Map<string, number>): void => {
+const assignCreatedCategoryIds = (trs: TestOpsUploadTestResult[], idByExternalId: Map<string, number>): void => {
   for (const tr of trs) {
     const cat = tr.category;
 
@@ -66,7 +65,7 @@ const assignCreatedCategoryIds = (trs: TestOpsPluginTestResult[], idByExternalId
 
 export const syncLaunchCategories = async (
   client: TestOpsClient,
-  trs: TestOpsPluginTestResult[],
+  trs: TestOpsUploadTestResult[],
   contextCategories: CategoryDefinition[],
 ): Promise<Error | undefined> => {
   const categoryNamesByExternalId = collectCategoryNamesByExternalId(trs);

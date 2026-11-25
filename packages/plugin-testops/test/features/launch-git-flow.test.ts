@@ -26,10 +26,11 @@ vi.mock("@allurereport/git", async (importOriginal) => {
   };
 });
 
-vi.mock("../../src/client.js", async () => {
+vi.mock("@allurereport/service/testops", async (importOriginal) => {
   const utils = await import("../utils.js");
 
   return {
+    ...(await importOriginal()),
     TestOpsClient: utils.TestOpsClientMock,
   };
 });
