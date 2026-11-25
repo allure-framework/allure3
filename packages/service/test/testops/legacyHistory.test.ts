@@ -2,7 +2,7 @@ import type { TestParameter } from "@allurereport/core-api";
 import { epic, feature, story } from "allure-js-commons";
 import { beforeEach, describe, expect, it } from "vite-plus/test";
 
-import { calculateLegacyHistoryId } from "../src/utils/legacyHistory.js";
+import { calculateLegacyHistoryId } from "../../src/testops/utils/legacyHistory.js";
 
 const parameter = (name: string, value: string, excluded = false): TestParameter => ({
   name,

@@ -1,11 +1,12 @@
 import type { CiDescriptor } from "@allurereport/core-api";
 import { collectGitFacts, isGitAvailable } from "@allurereport/git";
+import type { LaunchGitContextDto } from "@allurereport/service/testops";
 
 import type { Logger } from "../logger.js";
 import { applyGitFactsOverrides } from "../utils/ciOverrides.js";
 import { buildGitFlowContext, shouldAttachGitFlow } from "./context.js";
 import { projectLaunchGitContext, type ClassifiedGitFlowContext } from "./projection.js";
-import type { GitFlowContext, LaunchGitContextDto } from "./types.js";
+import type { GitFlowContext } from "./types.js";
 
 export type LaunchGitFlowParams = {
   ci: CiDescriptor;

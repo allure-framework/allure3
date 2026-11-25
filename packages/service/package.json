@@ -19,8 +19,16 @@
   "main": "./dist/index.js",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "typesVersions": {
+    "*": {
+      "testops": [
+        "dist/testops/index.d.ts"
+      ]
+    }
+  },
   "exports": {
-    ".": "./dist/index.js"
+    ".": "./dist/index.js",
+    "./testops": "./dist/testops/index.js"
   },
   "scripts": {
     "build": "run clean && tsc --project ./tsconfig.json",
@@ -31,13 +39,20 @@
     "lint:fix": "vp lint --import-plugin --fix src test features stories"
   },
   "dependencies": {
+    "@allurereport/ci": "workspace:*",
+    "@allurereport/cli-commons": "workspace:*",
     "@allurereport/core-api": "workspace:*",
     "@allurereport/plugin-api": "workspace:*",
     "axios": "^1.20.0",
-    "open": "^11.0.0"
+    "form-data": "^4.0.6",
+    "lodash-es": "^4.18.1",
+    "open": "^11.0.0",
+    "p-limit": "^7.3.3",
+    "yoctocolors": "^2.2.0"
   },
   "devDependencies": {
     "@allurereport/common-config": "workspace:*",
+    "@types/lodash-es": "^4",
     "@types/node": "^20.19.43",
     "@vitest/coverage-istanbul": "^5.0.5",
     "@vitest/runner": "^4.1.12",

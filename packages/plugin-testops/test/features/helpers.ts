@@ -1,8 +1,12 @@
 import { AllureStore } from "@allurereport/plugin-api";
+import type {
+  LaunchCategoryBulkResult,
+  TestOpsLaunch,
+  TestOpsNamedEnv,
+  TestOpsSession,
+} from "@allurereport/service/testops";
 import axios, { AxiosRequestConfig, AxiosResponse } from "axios";
 import { vi } from "vite-plus/test";
-
-import { LaunchCategoryBulkResult, TestOpsLaunch, TestOpsNamedEnv, TestOpsSession } from "../../src/model";
 
 export const mockAllureStore = () => {
   // @ts-expect-error this is only for tests
@@ -14,6 +18,7 @@ export const mockAllureStore = () => {
     allEnvironmentIdentities = vi.fn().mockResolvedValue([]);
     environmentIdByTrId = vi.fn().mockResolvedValue(undefined);
     attachmentsByTrId = vi.fn().mockResolvedValue([]);
+    attachmentById = vi.fn().mockResolvedValue(undefined);
     attachmentContentById = vi.fn().mockResolvedValue(undefined);
     fixturesByTrId = vi.fn().mockResolvedValue([]);
     qualityGateResults = vi.fn().mockResolvedValue([]);

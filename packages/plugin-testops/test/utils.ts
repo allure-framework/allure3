@@ -1,7 +1,5 @@
 import { vi } from "vite-plus/test";
 
-export const BASE_URL = "http://allurereport.org";
-
 // eslint-disable-next-line prefer-arrow/prefer-arrow-functions
 export const TestOpsClientMock = vi.fn(function () {});
 
@@ -49,20 +47,3 @@ AllureStoreMock.prototype = {
   retriesByTr: vi.fn().mockResolvedValue([]),
   qualityGateResults: vi.fn().mockResolvedValue([]),
 };
-
-export const AxiosMock = {
-  defaults: {
-    baseURL: BASE_URL,
-  },
-  interceptors: {
-    request: {
-      use: vi.fn(),
-    },
-  },
-  get: vi.fn().mockResolvedValue({ data: { closed: false } }),
-  post: vi.fn(),
-  postForm: vi.fn(),
-  patch: vi.fn(),
-};
-
-export const AxiosCreateMock = vi.fn(() => AxiosMock);

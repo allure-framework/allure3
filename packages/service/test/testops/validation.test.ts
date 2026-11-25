@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vite-plus/test";
 
-import { getAttachmentIdsFromTestStepsResults } from "../src/utils/attachments.js";
-import { toUploadFixtureResultDto } from "../src/utils/fixtures.js";
-import { normalizeTestStepsResults, toUploadTestResultDto } from "../src/utils/testResults.js";
-import { validateExecutableName } from "../src/utils/validation.js";
+import { getAttachmentIdsFromTestStepsResults } from "../../src/testops/utils/attachments.js";
+import { toUploadFixtureResultDto } from "../../src/testops/utils/fixtures.js";
+import { normalizeTestStepsResults, toUploadTestResultDto } from "../../src/testops/utils/testResults.js";
+import { validateExecutableName } from "../../src/testops/utils/validation.js";
 
 describe("validateExecutableName", () => {
   it.each([

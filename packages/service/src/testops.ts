@@ -41,6 +41,22 @@ const createUploadBlob = (content: Buffer, filename: string) =>
 const createReportFileUrl = (baseUrl: string, reportUuid: string, reportFilename: string) =>
   `${baseUrl}/api/test-report/view/${joinPosix(reportUuid, reportFilename)}`;
 
+export const getTestOpsTestPlan = ({
+  endpoint,
+  accessToken,
+  jobRunId,
+}: {
+  endpoint: string;
+  accessToken: string;
+  jobRunId: number;
+}) => {
+  const client = createServiceHttpClient(endpoint, { apiToken: accessToken });
+
+  return client.get<{ id?: number; selector?: string }[]>(`/api/rs/jobrun/${jobRunId}/plan`, {
+    params: { expected: "true" },
+  });
+};
+
 export type AllureTestOpsClientConfig = AllureServiceApiClientConfig & {
   projectId?: number | string;
   url?: string;
