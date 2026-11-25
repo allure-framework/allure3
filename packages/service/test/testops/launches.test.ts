@@ -2,7 +2,7 @@ import type { TestStatus } from "@allurereport/core-api";
 import { epic, feature, label, story } from "allure-js-commons";
 import { beforeEach, describe, expect, it } from "vite-plus/test";
 
-import { testStatusToLaunchStatus } from "../src/utils/launches.js";
+import { testStatusToLaunchStatus } from "../../src/testops/utils/launches.js";
 
 const cases = [
   ["passed", "passed"],

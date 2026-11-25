@@ -1,8 +1,8 @@
 import type { CategoryDefinition, CategoryGroupSelector, TestResult } from "@allurereport/core-api";
 import { EMPTY_VALUE, extractErrorMatchingData, findLastByLabelName, matchCategory } from "@allurereport/core-api";
+import { calculateLegacyHistoryId, type UploadCategory } from "@allurereport/service/testops";
 
-import type { TestResultWithCategories, UploadCategory } from "../model.js";
-import { calculateLegacyHistoryId } from "./legacyHistory.js";
+import type { TestResultWithCategories } from "../model.js";
 
 const formatGroupName = (key: string, value: string) => `${key}: ${value === EMPTY_VALUE ? `No ${key}` : value}`;
 

@@ -20,9 +20,8 @@ beforeEach(async () => {
   await label("coverage", "testops-integration");
 });
 
-import { TestOpsClient } from "../src/client.js";
-import type { TestOpsLaunch, TestOpsNamedEnv } from "../src/model.js";
-import { attachmentsResolverFactory } from "../src/utils/resolvers.js";
+import { TestOpsClient } from "../../src/testops/client.js";
+import type { TestOpsLaunch, TestOpsNamedEnv } from "../../src/testops/model.js";
 import { AxiosCreateMock, AxiosMock } from "./utils.js";
 
 const fixtures = {
@@ -2279,19 +2278,11 @@ describe("testops http client", () => {
         return Promise.resolve({ data: {} });
       });
 
-      const attachmentContentById = vi.fn().mockResolvedValue({
-        readContent: vi.fn().mockResolvedValue(Buffer.from("content")),
-        getContentLength: vi.fn().mockReturnValue(7),
-      });
-      const attachmentsResolver = attachmentsResolverFactory({
-        attachmentsByTrId: vi.fn().mockResolvedValue([
-          { id: "removed", originalFileName: "removed.txt" },
-          { id: "kept", originalFileName: "kept.txt" },
-        ]),
-        attachmentById: vi.fn().mockResolvedValue(undefined),
-        fixturesByTrId: vi.fn().mockResolvedValue([]),
-        attachmentContentById,
-      } as any);
+      const attachmentsResolver = vi
+        .fn()
+        .mockResolvedValue([
+          { originalFileName: "kept.txt", contentType: "text/plain", content: Buffer.from("content") },
+        ]);
       const client = new TestOpsClient({
         accessToken: fixtures.accessToken,
         projectId: fixtures.projectId,
@@ -2317,8 +2308,12 @@ describe("testops http client", () => {
         fixturesResolver: () => Promise.resolve([]),
       });
 
-      expect(attachmentContentById).toHaveBeenCalledTimes(1);
-      expect(attachmentContentById).toHaveBeenCalledWith("kept");
+      expect(attachmentsResolver).toHaveBeenCalledTimes(1);
+      expect(attachmentsResolver).toHaveBeenCalledWith(
+        expect.objectContaining({
+          steps: [{ type: "attachment", link: { id: "kept", originalFileName: "kept.txt" } }],
+        }),
+      );
       expect(AxiosMock.post).toHaveBeenCalledWith(
         "/api/upload/test-result/1/attachment",
         expect.any(FormData),

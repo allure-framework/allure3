@@ -1,7 +1,7 @@
 import { story } from "allure-js-commons";
 import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
-import { UploadQueue } from "../src/uploadQueue.js";
+import { UploadQueue } from "../../src/testops/uploadQueue.js";
 
 beforeEach(async () => {
   await story("uploadQueue");

@@ -5,14 +5,9 @@ import { env, exit } from "node:process";
 
 import { applyAllureCiEnv } from "@allurereport/ci";
 import type { TestPlan } from "@allurereport/core-api";
-import { createServiceHttpClient } from "@allurereport/service";
+import { getTestOpsTestPlan } from "@allurereport/service";
 import { Command, Option } from "clipanion";
 import { red } from "yoctocolors";
-
-type TestOpsTestCaseInfo = {
-  id?: number;
-  selector?: string;
-};
 
 export class TestOpsPlanCommand extends Command {
   static paths = [["testops-plan"]];
@@ -52,14 +47,11 @@ export class TestOpsPlanCommand extends Command {
       return;
     }
 
-    const client = createServiceHttpClient(endpoint, { apiToken: accessToken });
     const output = resolve(this.output ?? "./testplan.json");
-    let tests: TestOpsTestCaseInfo[] | undefined;
+    let tests: Awaited<ReturnType<typeof getTestOpsTestPlan>>;
 
     try {
-      tests = await client.get<TestOpsTestCaseInfo[]>(`/api/rs/jobrun/${jobRunId}/plan`, {
-        params: { expected: "true" },
-      });
+      tests = await getTestOpsTestPlan({ endpoint, accessToken, jobRunId });
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
 

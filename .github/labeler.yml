@@ -55,4 +55,9 @@
 
 "theme:testops":
   - changed-files:
-      - any-glob-to-any-file: "packages/plugin-testops/**"
+      - any-glob-to-any-file:
+          - "packages/plugin-testops/**"
+          - "packages/service/src/testops.ts"
+          - "packages/service/src/testops/**"
+          - "packages/service/test/testops.test.ts"
+          - "packages/service/test/testops/**"
