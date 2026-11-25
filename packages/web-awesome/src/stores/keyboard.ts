@@ -7,7 +7,7 @@ import {
   type MoveFocusResult,
   type SubtreeToggleState,
 } from "@allurereport/web-commons";
-import { computed, effect, signal } from "@preact/signals";
+import { batch, computed, effect, signal } from "@preact/signals";
 import type { ReportRecursiveTree as RecursiveTree } from "types";
 
 import { statsByEnvStore } from "@/stores";
@@ -325,13 +325,19 @@ const expandPathToNode = (tree: RecursiveTree, targetNodeId: string, prefix: str
 /**
  * Expands every ancestor of the node, then focuses it, so the tree scrolls it into view.
  */
-export const revealTreeNode = (nodeId: string) => {
+export const revealTreeNode = (nodeId: string, environmentId?: string) => {
   const envs = environmentsStore.peek().data ?? [];
   const trees = filteredTree.peek();
   const curEnv = currentEnvironment.peek();
-  const usePrefix = envs.length > 1 && !curEnv;
+  const selectedEnv = trees[curEnv] ? curEnv : undefined;
+  const usePrefix = envs.length > 1 && !selectedEnv;
+  const targetEnv = environmentId ?? selectedEnv;
 
   for (const env of envs) {
+    if (targetEnv && env.id !== targetEnv) {
+      continue;
+    }
+
     const envTree = trees[env.id];
 
     if (!envTree) {
@@ -340,8 +346,21 @@ export const revealTreeNode = (nodeId: string) => {
 
     const prefix = usePrefix ? `${env.id}:` : undefined;
 
-    if (expandPathToNode(envTree, nodeId, prefix)) {
+    const found = batch(() => {
+      if (!expandPathToNode(envTree, nodeId, prefix)) {
+        return false;
+      }
+
+      if (usePrefix && collapsedEnvironments.peek().includes(env.id)) {
+        collapsedEnvironments.value = collapsedEnvironments.peek().filter((id) => id !== env.id);
+      }
+
       treeFocusId.value = prefix ? `${prefix}${nodeId}` : nodeId;
+
+      return true;
+    });
+
+    if (found) {
       return;
     }
   }

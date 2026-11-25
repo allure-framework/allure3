@@ -62,7 +62,6 @@ import type {
   TestResultRelatedData,
 } from "@allurereport/plugin-api";
 import {
-  collapseTreeGroups,
   createTreeByLabels,
   createTreeByLabelsAndTitlePath,
   createTreeByTitlePath,
@@ -336,7 +335,13 @@ const generateTreeData = (
   if (labels.length === 0) {
     tree = buildTreeByTitlePath(visibleTests);
   } else if (appendTitlePath && labels.length) {
-    tree = buildTreeByLabelsAndTitlePathCombined(visibleTests, labels);
+    tree = createTreeByLabelsAndTitlePath<ReportTestResult, ReportTreeLeaf, ReportTreeGroup>(
+      visibleTests,
+      labels,
+      leafFactory,
+      undefined,
+      (group, leaf) => incrementStatistic(group.statistic, leaf.status),
+    );
   } else {
     tree = buildTreeByLabels(visibleTests, labels);
   }
@@ -440,20 +445,6 @@ const buildTreeByTitlePath = (tests: ReportTestResult[]): TreeData<ReportTreeLea
     groupsById: mergedGroupsById,
   };
 };
-
-const buildTreeByLabelsAndTitlePathCombined = (
-  tests: ReportTestResult[],
-  labels: string[],
-): TreeData<ReportTreeLeaf, ReportTreeGroup> =>
-  collapseTreeGroups(
-    createTreeByLabelsAndTitlePath<ReportTestResult, ReportTreeLeaf, ReportTreeGroup>(
-      tests,
-      labels,
-      leafFactory,
-      undefined,
-      (group: ReportTreeGroup, leaf: ReportTreeLeaf) => incrementStatistic(group.statistic, leaf.status),
-    ),
-  );
 
 const leafFactory = ({
   id,

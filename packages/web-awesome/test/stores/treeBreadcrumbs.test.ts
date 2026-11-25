@@ -1,7 +1,8 @@
 import { epic, feature, label, story } from "allure-js-commons";
 import { beforeEach, describe, expect, it } from "vite-plus/test";
 
-import { getTreeBreadcrumbs, treeStore } from "@/stores/tree";
+import { currentEnvironment } from "@/stores/env";
+import { filteredTree, getTreeBreadcrumbs, treeStore } from "@/stores/tree";
 
 beforeEach(async () => {
   await epic("coverage");
@@ -40,14 +41,23 @@ const setTrees = (data: Record<string, unknown>) => {
 describe("stores > tree > getTreeBreadcrumbs", () => {
   beforeEach(() => {
     setTrees({});
+    currentEnvironment.value = "";
   });
 
-  it("returns the chain of groups leading to the leaf", () => {
+  it("uses the compacted group row as the breadcrumb for a single-child chain", () => {
     setTrees({ default: treeWithNestedLeaf });
 
+    expect(filteredTree.value.default?.trees).toMatchObject([
+      {
+        nodeId: "parent",
+        name: "com.example > LoginTest",
+        statistic: { passed: 1, total: 1 },
+        leaves: [{ nodeId: "tr-1", name: "shouldLogin" }],
+        trees: [],
+      },
+    ]);
     expect(getTreeBreadcrumbs("tr-1")).toEqual([
-      { nodeId: "parent", name: "com.example" },
-      { nodeId: "child", name: "LoginTest" },
+      { environmentId: "default", nodeId: "parent", name: "com.example > LoginTest" },
     ]);
   });
 
@@ -70,8 +80,44 @@ describe("stores > tree > getTreeBreadcrumbs", () => {
     });
 
     expect(getTreeBreadcrumbs("tr-1")).toEqual([
-      { nodeId: "parent", name: "com.example" },
-      { nodeId: "child", name: "LoginTest" },
+      { environmentId: "chrome", nodeId: "parent", name: "com.example > LoginTest" },
+    ]);
+  });
+
+  it("returns no tree breadcrumbs for a result outside the selected environment", () => {
+    setTrees({
+      chrome: treeWithNestedLeaf,
+      firefox: { root: { groups: [], leaves: [] }, groupsById: {}, leavesById: {} },
+    });
+    currentEnvironment.value = "firefox";
+
+    expect(getTreeBreadcrumbs("tr-1")).toEqual([]);
+  });
+
+  it("keeps branches and groups with direct tests separate when those siblings are filtered out", () => {
+    setTrees({
+      default: {
+        ...treeWithNestedLeaf,
+        groupsById: {
+          parent: group("parent", "com.example", { groups: ["child", "sibling"] }),
+          child: group("child", "LoginTest", { groups: ["cases"], leaves: ["tr-2"] }),
+          cases: group("cases", "Nested cases", { leaves: ["tr-1"] }),
+          sibling: group("sibling", "OtherTest", { leaves: ["tr-3"] }),
+        },
+        leavesById: {
+          ...treeWithNestedLeaf.leavesById,
+          "tr-2": { nodeId: "tr-2", name: "shouldLogOut", status: "failed" },
+          "tr-3": { nodeId: "tr-3", name: "shouldRegister", status: "failed" },
+        },
+      },
+    });
+    setSearch("?status=passed");
+
+    expect(filteredTree.value.default?.statistic).toMatchObject({ passed: 1, total: 1 });
+    expect(getTreeBreadcrumbs("tr-1")).toEqual([
+      { environmentId: "default", nodeId: "parent", name: "com.example" },
+      { environmentId: "default", nodeId: "child", name: "LoginTest" },
+      { environmentId: "default", nodeId: "cases", name: "Nested cases" },
     ]);
   });
 

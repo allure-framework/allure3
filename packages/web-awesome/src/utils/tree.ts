@@ -1,5 +1,31 @@
 import type { ReportRecursiveTree as RecursiveTree } from "types";
-import type { ReportTreeLeaf } from "types";
+import type { ReportTree, ReportTreeLeaf } from "types";
+
+export const compactTreeGroups = (tree: RecursiveTree, groupsById: ReportTree["groupsById"]): RecursiveTree => ({
+  ...tree,
+  trees: tree.trees.map((group) => {
+    const names = [group.name];
+    let tail = group;
+
+    while (tail.trees.length === 1) {
+      const original = groupsById[tail.nodeId];
+
+      // Filters can hide siblings. Only compact chains that exist in the original tree.
+      if (original?.groups?.length !== 1 || original.leaves?.length) {
+        break;
+      }
+
+      tail = tail.trees[0]!;
+      names.push(tail.name);
+    }
+
+    return {
+      ...compactTreeGroups(tail, groupsById),
+      nodeId: group.nodeId,
+      name: names.join(" > "),
+    };
+  }),
+});
 
 type Localizer = (data: string, params?: Record<string, string | number>) => string;
 

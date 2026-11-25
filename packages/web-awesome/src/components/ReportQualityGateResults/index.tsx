@@ -11,7 +11,7 @@ import { currentEnvironment, environmentNameById } from "@/stores/env";
 import { qualityGateStore } from "@/stores/qualityGate";
 import { navigateToTestResult } from "@/stores/router";
 import { currentTrId } from "@/stores/testResult";
-import { createTreeLocalizer } from "@/utils/tree";
+import { compactTreeGroups, createTreeLocalizer } from "@/utils/tree";
 import { createRecursiveTree } from "@/utils/treeFilters";
 
 import * as styles from "./styles.scss";
@@ -38,8 +38,8 @@ const QualityGateTestResultsTree = ({ tree }: { tree: ReportTree }) => {
       createTreeLocalizer({
         tooltip: (key: string, options?: Record<string, unknown>) =>
           tooltip(`description.${key}`, options as Record<string, string>),
-      })(recursiveTree),
-    [recursiveTree, tooltip],
+      })(compactTreeGroups(recursiveTree, tree.groupsById)),
+    [recursiveTree, tree.groupsById, tooltip],
   );
   const toggleTree = (id: string) => {
     setOpenedTrees((current) => {
