@@ -928,7 +928,7 @@ describe("run command", () => {
           { selector: blockingFailure.fullName, id: undefined },
           { selector: relatedPassedTest.fullName, id: undefined },
         ],
-        mutedTests: [],
+        excludedTests: [],
       }),
     );
     expect(AllureReportMock.prototype.store.testResultById).toHaveBeenCalledTimes(2);
@@ -1656,7 +1656,7 @@ describe("with skipping muted tests", () => {
       JSON.stringify({
         version: "1.0",
         tests: [],
-        mutedTests: mutedTests,
+        excludedTests: mutedTests,
       }),
       "utf-8",
     );
@@ -1770,7 +1770,7 @@ describe("with skipping muted tests", () => {
       JSON.stringify({
         version: "1.0",
         tests: [{ selector: "suite#failed" }],
-        mutedTests: [],
+        excludedTests: [],
       }),
     );
     expect(mutedGetMock).toHaveBeenCalledTimes(1);
