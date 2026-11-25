@@ -78,13 +78,18 @@
         "history": "{{timestamp, timestamp_date}}"
       }
     },
-    "trendHelp": {
-      "label": "Eğilimler nasıl okunur?"
+    "trendDetails": {
+      "growthRate": "Çalıştırma başına {{value}} test",
+      "statusRate": "Çalıştırma başına {{value}} net durum geçişi",
+      "perRunShift": "Net değişim her çalıştırmada {{value}} kadar değişir",
+      "netChange": "Bu çalıştırmadaki net değişim",
+      "cumulativeChange": "Kümülatif net değişim",
+      "observed": "Gözlenen",
+      "estimate": "Eğilim tahmini",
+      "number": "{{value, number(signDisplay: exceptZero)}}",
+      "smallNumber": "{{value, number(signDisplay: exceptZero; maximumSignificantDigits: 3)}}"
     },
     "statusTransitions": {
-      "trendHelp": {
-        "description": "Düz çizgi yükseliyorsa test durumları genel olarak iyileşiyor, düşüyorsa kötüleşiyor, yataysa sabit kalıyor. Kesikli çizgi yükseliyorsa iyileşme hızlanıyor veya kötüleşme yavaşlıyor. Düşüyorsa iyileşme yavaşlıyor veya kötüleşme hızlanıyor. Yataysa değişim hızı sabit."
-      },
       "title": "Durum geçişleri",
       "legend": {
         "cumulativeTrend": "Birikimli eğilim",
@@ -134,9 +139,6 @@
       }
     },
     "testBaseGrowthDynamics": {
-      "trendHelp": {
-        "description": "Düz çizgi yükseliyorsa test tabanı büyüyor, düşüyorsa küçülüyor, yataysa boyutu sabit kalıyor. Kesikli çizgi yükseliyorsa büyüme hızlanıyor veya küçülme yavaşlıyor. Düşüyorsa büyüme yavaşlıyor veya küçülme hızlanıyor. Yataysa değişim hızı sabit."
-      },
       "title": "Test tabanı büyüme dinamikleri",
       "status": {
         "newpassed": "Yeni $t(statuses:passed)",

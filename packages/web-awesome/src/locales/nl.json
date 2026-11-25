@@ -303,13 +303,18 @@
         "history": "{{timestamp, timestamp_date}}"
       }
     },
-    "trendHelp": {
-      "label": "De trends lezen"
+    "trendDetails": {
+      "growthRate": "{{value}} tests per run",
+      "statusRate": "{{value}} netto statusovergangen per run",
+      "perRunShift": "De nettoverandering verschuift per run met {{value}}",
+      "netChange": "Nettoverandering in deze run",
+      "cumulativeChange": "Cumulatieve nettoverandering",
+      "observed": "Waargenomen",
+      "estimate": "Trendschatting",
+      "number": "{{value, number(signDisplay: exceptZero)}}",
+      "smallNumber": "{{value, number(signDisplay: exceptZero; maximumSignificantDigits: 3)}}"
     },
     "statusTransitions": {
-      "trendHelp": {
-        "description": "Doorgetrokken lijn: stijgend verbeteren de teststatussen in het algemeen, dalend verslechteren ze en vlak blijven ze stabiel. Gestreepte lijn: stijgend versnelt de verbetering of vertraagt de verslechtering. Dalend vertraagt de verbetering of versnelt de verslechtering. Vlak blijft het tempo van de verandering gelijk."
-      },
       "title": "Statusovergangen",
       "legend": {
         "cumulativeTrend": "Cumulatieve trend",
@@ -359,9 +364,6 @@
       }
     },
     "testBaseGrowthDynamics": {
-      "trendHelp": {
-        "description": "Doorgetrokken lijn: stijgend groeit de testbasis, dalend krimpt deze en vlak blijft de omvang stabiel. Gestreepte lijn: stijgend versnelt de groei of vertraagt de krimp. Dalend vertraagt de groei of versnelt de krimp. Vlak blijft het tempo van de verandering gelijk."
-      },
       "title": "Groeodynamiek van testbasis",
       "status": {
         "newpassed": "Nieuw $t(statuses:passed)",

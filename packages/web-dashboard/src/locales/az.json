@@ -78,13 +78,18 @@
         "history": "{{timestamp, timestamp_date}}"
       }
     },
-    "trendHelp": {
-      "label": "Trendləri necə oxumalı"
+    "trendDetails": {
+      "growthRate": "Hər icraya {{value}} test",
+      "statusRate": "Hər icraya {{value}} xalis status keçidi",
+      "perRunShift": "Xalis dəyişiklik hər icrada {{value}} qədər dəyişir",
+      "netChange": "Bu icrada xalis dəyişiklik",
+      "cumulativeChange": "Kumulyativ xalis dəyişiklik",
+      "observed": "Faktiki dəyər",
+      "estimate": "Trend qiyməti",
+      "number": "{{value, number(signDisplay: exceptZero)}}",
+      "smallNumber": "{{value, number(signDisplay: exceptZero; maximumSignificantDigits: 3)}}"
     },
     "statusTransitions": {
-      "trendHelp": {
-        "description": "Bütöv xətt yüksəlirsə, test statusları ümumilikdə yaxşılaşır, enirsə, pisləşir, üfüqidirsə, sabit qalır. Kəsik xətt yüksəlirsə, yaxşılaşma sürətlənir və ya pisləşmə yavaşıyır. Enirsə, yaxşılaşma yavaşıyır və ya pisləşmə sürətlənir. Üfüqidirsə, dəyişmə tempi sabitdir."
-      },
       "title": "Status keçidləri",
       "legend": {
         "cumulativeTrend": "Yığılan trend",
@@ -134,9 +139,6 @@
       }
     },
     "testBaseGrowthDynamics": {
-      "trendHelp": {
-        "description": "Bütöv xətt yüksəlirsə, test bazası böyüyür, enirsə, kiçilir, üfüqidirsə, ölçüsü sabit qalır. Kəsik xətt yüksəlirsə, böyümə sürətlənir və ya kiçilmə yavaşıyır. Enirsə, böyümə yavaşıyır və ya kiçilmə sürətlənir. Üfüqidirsə, dəyişmə tempi sabitdir."
-      },
       "title": "Test bazasının artım dinamikası",
       "status": {
         "newpassed": "Yeni $t(statuses:passed)",

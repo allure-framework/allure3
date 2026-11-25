@@ -78,13 +78,18 @@
         "history": "{{timestamp, timestamp_date}}"
       }
     },
-    "trendHelp": {
-      "label": "Cómo leer las tendencias"
+    "trendDetails": {
+      "growthRate": "{{value}} pruebas por ejecución",
+      "statusRate": "{{value}} transiciones netas por ejecución",
+      "perRunShift": "El cambio neto varía en {{value}} con cada ejecución",
+      "netChange": "Cambio neto de esta ejecución",
+      "cumulativeChange": "Cambio neto acumulado",
+      "observed": "Observado",
+      "estimate": "Estimación de tendencia",
+      "number": "{{value, number(signDisplay: exceptZero)}}",
+      "smallNumber": "{{value, number(signDisplay: exceptZero; maximumSignificantDigits: 3)}}"
     },
     "statusTransitions": {
-      "trendHelp": {
-        "description": "Línea continua: si sube, los estados de las pruebas mejoran en general. Si baja, empeoran. Si es plana, se mantienen estables. Línea discontinua: si sube, la mejora se acelera o el deterioro se ralentiza. Si baja, la mejora se ralentiza o el deterioro se acelera. Si es plana, el ritmo de cambio es constante."
-      },
       "title": "Transiciones de estado",
       "legend": {
         "cumulativeTrend": "Tendencia acumulada",
@@ -134,9 +139,6 @@
       }
     },
     "testBaseGrowthDynamics": {
-      "trendHelp": {
-        "description": "Línea continua: si sube, la base de pruebas crece. Si baja, se reduce. Si es plana, su tamaño es estable. Línea discontinua: si sube, el crecimiento se acelera o la reducción se ralentiza. Si baja, el crecimiento se ralentiza o la reducción se acelera. Si es plana, el ritmo de cambio es constante."
-      },
       "title": "Dinámica de crecimiento de la base de pruebas",
       "status": {
         "newpassed": "Nuevo $t(statuses:passed)",

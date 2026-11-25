@@ -303,13 +303,18 @@
         "history": "{{timestamp, timestamp_date}}"
       }
     },
-    "trendHelp": {
-      "label": "Como ler as tendências"
+    "trendDetails": {
+      "growthRate": "{{value}} testes por execução",
+      "statusRate": "{{value}} transições líquidas por execução",
+      "perRunShift": "A variação líquida muda em {{value}} a cada execução",
+      "netChange": "Variação líquida nesta execução",
+      "cumulativeChange": "Variação líquida acumulada",
+      "observed": "Observado",
+      "estimate": "Estimativa da tendência",
+      "number": "{{value, number(signDisplay: exceptZero)}}",
+      "smallNumber": "{{value, number(signDisplay: exceptZero; maximumSignificantDigits: 3)}}"
     },
     "statusTransitions": {
-      "trendHelp": {
-        "description": "Linha contínua: se sobe, os estados dos testes melhoram no geral. Se desce, pioram. Se é horizontal, mantêm-se estáveis. Linha tracejada: se sobe, a melhoria acelera ou a deterioração abranda. Se desce, a melhoria abranda ou a deterioração acelera. Se é horizontal, o ritmo de mudança é constante."
-      },
       "title": "Transições de status",
       "legend": {
         "cumulativeTrend": "Tendência acumulada",
@@ -359,9 +364,6 @@
       }
     },
     "testBaseGrowthDynamics": {
-      "trendHelp": {
-        "description": "Linha contínua: se sobe, a base de testes cresce. Se desce, diminui. Se é horizontal, o tamanho é estável. Linha tracejada: se sobe, o crescimento acelera ou a redução abranda. Se desce, o crescimento abranda ou a redução acelera. Se é horizontal, o ritmo de mudança é constante."
-      },
       "title": "Dinâmica de crescimento da base de testes",
       "status": {
         "newpassed": "Novo $t(statuses:passed)",

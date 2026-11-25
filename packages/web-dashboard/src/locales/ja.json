@@ -78,13 +78,18 @@
         "history": "{{timestamp, timestamp_date}}"
       }
     },
-    "trendHelp": {
-      "label": "傾向の読み方"
+    "trendDetails": {
+      "growthRate": "実行あたり {{value}} テスト",
+      "statusRate": "実行あたりのステータス遷移の純増減: {{value}}",
+      "perRunShift": "純増減は実行ごとに {{value}} 変化",
+      "netChange": "今回の純増減",
+      "cumulativeChange": "累積純増減",
+      "observed": "実測値",
+      "estimate": "傾向からの推定値",
+      "number": "{{value, number(signDisplay: exceptZero)}}",
+      "smallNumber": "{{value, number(signDisplay: exceptZero; maximumSignificantDigits: 3)}}"
     },
     "statusTransitions": {
-      "trendHelp": {
-        "description": "実線が上向きならテストのステータスは全体として改善し、下向きなら悪化し、水平なら安定しています。破線が上向きなら改善が加速しているか悪化が鈍化しています。下向きなら改善が鈍化しているか悪化が加速しています。水平なら変化のペースは一定です。"
-      },
       "title": "ステータス遷移",
       "legend": {
         "cumulativeTrend": "累積の傾向",
@@ -134,9 +139,6 @@
       }
     },
     "testBaseGrowthDynamics": {
-      "trendHelp": {
-        "description": "実線が上向きならテストの総数は増え、下向きなら減り、水平なら安定しています。破線が上向きなら増加が加速しているか減少が鈍化しています。下向きなら増加が鈍化しているか減少が加速しています。水平なら変化のペースは一定です。"
-      },
       "title": "テストベースの成長動態",
       "status": {
         "newpassed": "新規 $t(statuses:passed)",

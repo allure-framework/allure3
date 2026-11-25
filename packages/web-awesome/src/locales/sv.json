@@ -303,13 +303,18 @@
         "history": "{{timestamp, timestamp_date}}"
       }
     },
-    "trendHelp": {
-      "label": "Så läser du trenderna"
+    "trendDetails": {
+      "growthRate": "{{value}} tester per körning",
+      "statusRate": "{{value}} statusövergångar netto per körning",
+      "perRunShift": "Nettoförändringen förskjuts med {{value}} per körning",
+      "netChange": "Nettoförändring i den här körningen",
+      "cumulativeChange": "Ackumulerad nettoförändring",
+      "observed": "Observerat",
+      "estimate": "Trenduppskattning",
+      "number": "{{value, number(signDisplay: exceptZero)}}",
+      "smallNumber": "{{value, number(signDisplay: exceptZero; maximumSignificantDigits: 3)}}"
     },
     "statusTransitions": {
-      "trendHelp": {
-        "description": "Heldragen linje: uppåt betyder att teststatusarna förbättras överlag, nedåt att de försämras och plant att de är stabila. Streckad linje: uppåt betyder snabbare förbättring eller långsammare försämring. Nedåt betyder långsammare förbättring eller snabbare försämring. Plant betyder oförändrad förändringstakt."
-      },
       "title": "Statusövergångar",
       "legend": {
         "cumulativeTrend": "Kumulativ trend",
@@ -359,9 +364,6 @@
       }
     },
     "testBaseGrowthDynamics": {
-      "trendHelp": {
-        "description": "Heldragen linje: uppåt betyder att testbasen växer, nedåt att den krymper och plant att storleken är stabil. Streckad linje: uppåt betyder snabbare tillväxt eller långsammare krympning. Nedåt betyder långsammare tillväxt eller snabbare krympning. Plant betyder oförändrad förändringstakt."
-      },
       "title": "Tillväxtdynamik för testbas",
       "status": {
         "newpassed": "Ny $t(statuses:passed)",

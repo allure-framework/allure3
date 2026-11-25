@@ -303,13 +303,18 @@
         "history": "{{timestamp, timestamp_date}}"
       }
     },
-    "trendHelp": {
-      "label": "如何阅读趋势"
+    "trendDetails": {
+      "growthRate": "每次运行 {{value}} 个测试",
+      "statusRate": "每次运行 {{value}} 次净状态转换",
+      "perRunShift": "净变化量每次运行变动 {{value}}",
+      "netChange": "本次运行的净变化",
+      "cumulativeChange": "累计净变化",
+      "observed": "实际值",
+      "estimate": "趋势估计",
+      "number": "{{value, number(signDisplay: exceptZero)}}",
+      "smallNumber": "{{value, number(signDisplay: exceptZero; maximumSignificantDigits: 3)}}"
     },
     "statusTransitions": {
-      "trendHelp": {
-        "description": "实线上升表示测试状态整体改善，下降表示整体恶化，水平表示状态稳定。虚线上升表示改善加快或恶化放缓，下降表示改善放缓或恶化加快，水平表示变化速度稳定。"
-      },
       "title": "状态转换",
       "legend": {
         "cumulativeTrend": "累计趋势",
@@ -359,9 +364,6 @@
       }
     },
     "testBaseGrowthDynamics": {
-      "trendHelp": {
-        "description": "实线上升表示测试规模扩大，下降表示规模缩小，水平表示规模稳定。虚线上升表示增长加快或缩减放缓，下降表示增长放缓或缩减加快，水平表示变化速度稳定。"
-      },
       "title": "测试基础增长动态",
       "status": {
         "newpassed": "新增 $t(statuses:passed)",

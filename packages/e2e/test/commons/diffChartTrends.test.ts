@@ -50,11 +50,24 @@ const fitsViewport = async (tooltip: Locator, width: number) => {
   await expect.poll(() => tooltip.evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(true);
 };
 
+const expectTrendComparison = async (tooltip: Locator, metric: string, observed: string, estimate: string) => {
+  const row = tooltip.getByText(metric, { exact: true }).locator("..");
+  await expect(row.locator("dd").filter({ hasText: "Observed" })).toHaveText(`Observed ${observed}`);
+  await expect(row.locator("dd").filter({ hasText: "Trend estimate" })).toHaveText(`Trend estimate ${estimate}`);
+};
+
 let report: ReportBootstrap;
 let extremeReport: ReportBootstrap;
 let longHistoryReport: ReportBootstrap;
 
 test.beforeAll(async () => {
+  const previousAddition = {
+    name: "prior addition",
+    fullName: "prior addition",
+    historyId: "prior-addition",
+    status: Status.PASSED,
+  };
+  const previousFix = { name: "prior fix", fullName: "prior fix", historyId: "prior-fix", status: Status.PASSED };
   report = await bootstrapReport({
     history: [
       makeHistoryItem({
@@ -69,17 +82,21 @@ test.beforeAll(async () => {
           testResults: makeHistoryTestResults([
             makeTestResult({ name: "example", fullName: "example", historyId: "example", status: Status.FAILED }),
             makeTestResult({ name: "removed", fullName: "removed", historyId: "removed", status: Status.FAILED }),
+            makeTestResult({ ...previousFix, status: day === 4 ? Status.PASSED : Status.FAILED }),
+            ...(day === 4 ? [makeTestResult(previousAddition)] : []),
           ]),
         }),
       ),
     ],
     testResults: [
+      previousAddition,
+      previousFix,
       { name: "example", fullName: "example", historyId: "example", status: Status.PASSED },
       { name: "added", fullName: "added", historyId: "added", status: Status.PASSED },
       { name: "added again", fullName: "added again", historyId: "added-again", status: Status.SKIPPED },
     ],
     reportConfig: reportConfig([
-      { type: ChartType.StatusTransitions, limit: 2 },
+      { type: ChartType.StatusTransitions, limit: 3 },
       { type: ChartType.TestBaseGrowthDynamics, limit: 3 },
     ]),
   });
@@ -118,11 +135,14 @@ test.beforeAll(async () => {
 
   const stable = { name: "stable", fullName: "stable", historyId: "stable", status: Status.PASSED };
   const removed = { name: "removed", fullName: "removed", historyId: "removed", status: Status.PASSED };
+  const transient = { name: "transient", fullName: "transient", historyId: "transient", status: Status.BROKEN };
   longHistoryReport = await bootstrapReport({
     history: Array.from({ length: 60 }, (_, index) =>
       makeHistoryItem({
         timestamp: dayInOctober(index - 60),
-        testResults: makeHistoryTestResults([makeTestResult(stable), makeTestResult(removed)]),
+        testResults: makeHistoryTestResults(
+          (index === 1 ? [stable, removed, transient] : [stable, removed]).map((result) => makeTestResult(result)),
+        ),
       }),
     ),
     testResults: [stable, { name: "new", fullName: "new", historyId: "new", status: Status.FAILED }],
@@ -164,19 +184,9 @@ for (const frontend of ["awesome", "dashboard"] as const) {
     await expect(added.getByTestId(/tree-leaf-status-/)).toHaveCount(2);
     await expect(removed.getByTestId(/tree-leaf-status-/)).toHaveCount(1);
     await expect(tooltip.getByTestId(/tree-leaf-status-/)).toHaveCount(3);
-    // Fitting [0, 0, 1] gives 5/6 in the last run. The solid SVG line is scaled down by 3.
-    await expect(
-      tooltip
-        .locator("div")
-        .filter({ hasText: /^Cumulative trend0\.833$/ })
-        .last(),
-    ).toBeVisible();
-    await expect(
-      tooltip
-        .locator("div")
-        .filter({ hasText: /^Per-run change trend0\.833$/ })
-        .last(),
-    ).toBeVisible();
+    // Per-run [0, 1, 1] and cumulative [0, 1, 2] have distinct observations and fits.
+    await expectTrendComparison(tooltip, "Net change this run", "+1", "+1.167");
+    await expectTrendComparison(tooltip, "Cumulative net change", "+2", "+2");
   });
 
   test(`${frontend} keeps both extrema of filtered trends and shows the dense tooltip at 320 px`, async ({
@@ -188,7 +198,7 @@ for (const frontend of ["awesome", "dashboard"] as const) {
     const charts = page.locator(chartSelector);
     await expect(charts).toHaveCount(3);
     for (const [index, trendValue] of [
-      [0, "123.81"],
+      [0, "+123.81"],
       [1, "-123.81"],
     ] as const) {
       const chart = charts.nth(index);
@@ -224,7 +234,7 @@ for (const frontend of ["awesome", "dashboard"] as const) {
     for (const status of ["passed", "failed", "broken", "skipped", "unknown"]) {
       await expect(tooltip.getByText(new RegExp(`^${status}: [0-9]+$`, "i"))).toHaveCount(2);
     }
-    await expect(tooltip.getByText("0", { exact: true })).toHaveCount(2);
+    await expect(tooltip.getByText("0", { exact: true })).toHaveCount(4);
     await fitsViewport(tooltip, 320);
     await expect(tooltip.locator("..")).toHaveCSS("opacity", "1");
     await testInfo.attach("dense-tooltip-320px", { body: await page.screenshot(), contentType: "image/png" });
@@ -255,17 +265,17 @@ for (const frontend of ["awesome", "dashboard"] as const) {
       await expect(run).toBeFocused();
       await expect(tooltip).toContainText(frontend === "awesome" ? "تست‌های جدید" : "Nouveaux tests");
       await expect(run).toHaveAttribute("aria-describedby", /.+/);
-      const decimal = new Intl.NumberFormat(locale).format(0.833);
-      await expect(tooltip.getByText(decimal, { exact: true })).toHaveCount(2);
+      const decimal = new Intl.NumberFormat(locale, { signDisplay: "exceptZero" }).format(1.167);
+      await expect(tooltip.getByText(decimal, { exact: true })).toHaveCount(1);
       await fitsViewport(tooltip, 320);
       await run.hover();
       await page.mouse.move(1, 1);
       await expect(run).toBeFocused();
-      await expect(tooltip.getByText(decimal, { exact: true })).toHaveCount(2);
+      await expect(tooltip.getByText(decimal, { exact: true })).toHaveCount(1);
       await runs.first().hover();
       await expect(tooltip.getByText(decimal, { exact: true })).toHaveCount(0);
       await page.mouse.move(1, 1);
-      await expect(tooltip.getByText(decimal, { exact: true })).toHaveCount(2);
+      await expect(tooltip.getByText(decimal, { exact: true })).toHaveCount(1);
       await runs.first().hover();
       await expect(tooltip.getByText(decimal, { exact: true })).toHaveCount(0);
       await page.keyboard.press("Escape");
@@ -273,7 +283,7 @@ for (const frontend of ["awesome", "dashboard"] as const) {
       await page.mouse.move(1, 1);
       await expect(tooltip).toHaveCount(0);
       await run.tap();
-      await expect(tooltip.getByText(decimal, { exact: true })).toHaveCount(2);
+      await expect(tooltip.getByText(decimal, { exact: true })).toHaveCount(1);
       await fitsViewport(tooltip, 320);
       await expect(tooltip.locator("..")).toHaveCSS("opacity", "1");
       await testInfo.attach(`${locale}-tooltip-320px`, { body: await page.screenshot(), contentType: "image/png" });
@@ -299,7 +309,9 @@ for (const frontend of ["awesome", "dashboard"] as const) {
     expect(new Set(boxes.map(({ x }) => x)).size).toBe(60);
     expect(Math.min(...boxes.map(({ width }) => width))).toBeGreaterThan(2);
 
-    await runs.first().hover();
+    // The net series is [1, -1, 0, …, 0]. The slope is negative even though it rounds to zero at 3 decimals.
+    await expect(growth.getByTestId("trend-summary")).toContainText("Net change shifts by -0.0000556 each run");
+    await runs.nth(2).hover();
     const tooltip = page.getByTestId("chart-tooltip");
     await expect(tooltip).toContainText("No changes");
     await runs.last().hover();
@@ -310,7 +322,9 @@ for (const frontend of ["awesome", "dashboard"] as const) {
     await fitsViewport(tooltip, 320);
   });
 
-  test(`${frontend} preserves both charts when trend help expands in narrow and wide cards`, async ({ page }) => {
+  test(`${frontend} shows both slope summaries and transition comparisons in narrow and wide cards`, async ({
+    page,
+  }, testInfo) => {
     await feature("diff-chart-trends");
     const url = reportUrl(frontend, report);
 
@@ -319,32 +333,31 @@ for (const frontend of ["awesome", "dashboard"] as const) {
       await page.goto(url);
       const charts = page.locator(chartSelector);
       await expect(charts).toHaveCount(2);
-      await charts.first().getByTestId("hover-rect").last().hover();
-      const transitionsTooltip = page.getByTestId("chart-tooltip");
-      await expect(transitionsTooltip).toContainText(/Fixed\s*2/i);
       for (const [index, chart] of (await charts.all()).entries()) {
         const svg = chart.locator("svg").first();
         await expect(svg).toBeVisible();
-        const initial = await svg.boundingBox();
-        expect(initial!.height).toBeGreaterThanOrEqual(275);
-        const help = chart.getByText("How to read the trends", { exact: true });
-        await help.focus();
-        await page.keyboard.press("Enter");
-        await expect(chart.locator("details")).toHaveAttribute("open", "");
-        await expect(svg).toBeVisible();
+        const plot = await svg.boundingBox();
+        expect(plot!.height).toBeGreaterThanOrEqual(275);
         await expect(chart.getByTestId("trend-line")).toHaveCount(2);
-        const expanded = await svg.boundingBox();
-        expect(expanded!.height).toBeGreaterThanOrEqual(initial!.height);
-        await expect(chart.locator("p")).toContainText(
-          index === 0 ? "test status is improving" : "the test base is growing",
+        const summary = chart.getByTestId("trend-summary");
+        await expect(summary).toContainText(index === 0 ? "+1.5 net transitions per run" : "+1 tests per run");
+        await expect(summary).toContainText(
+          index === 0 ? "Net change shifts by +1 each run" : "Net change shifts by +0.5 each run",
         );
-        const bounds = await chart.boundingBox();
-        const explanation = await chart.locator("p").boundingBox();
-        expect(explanation!.y).toBeGreaterThanOrEqual(expanded!.y + expanded!.height);
-        expect(explanation!.y + explanation!.height).toBeLessThanOrEqual(bounds!.y + bounds!.height + 1);
-        await help.press("Enter");
-        await expect(chart.locator("details")).not.toHaveAttribute("open", "");
+        const summaryBox = await summary.boundingBox();
+        const chartBox = await chart.boundingBox();
+        expect(summaryBox!.y).toBeGreaterThanOrEqual(plot!.y + plot!.height);
+        expect(summaryBox!.x + summaryBox!.width).toBeLessThanOrEqual(chartBox!.x + chartBox!.width + 1);
       }
+      await charts.first().getByTestId("hover-rect").last().hover();
+      const tooltip = page.getByTestId("chart-tooltip");
+      await expect(tooltip).toContainText(/Fixed\s*2/i);
+      // The earlier status fix makes the cumulative series [0, 1, 3].
+      await expectTrendComparison(tooltip, "Net change this run", "+2", "+2");
+      await expectTrendComparison(tooltip, "Cumulative net change", "+3", "+2.833");
+      if (width === 320) await fitsViewport(tooltip, width);
+      await expect(tooltip.locator("..")).toHaveCSS("opacity", "1");
+      await testInfo.attach(`transition-details-${width}`, { body: await page.screenshot(), contentType: "image/png" });
     }
   });
 }

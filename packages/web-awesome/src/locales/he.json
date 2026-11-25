@@ -303,13 +303,18 @@
         "history": "{{timestamp, timestamp_date}}"
       }
     },
-    "trendHelp": {
-      "label": "איך לקרוא את המגמות"
+    "trendDetails": {
+      "growthRate": "{{value}} בדיקות בכל הרצה",
+      "statusRate": "{{value}} מעברי סטטוס נטו בכל הרצה",
+      "perRunShift": "השינוי נטו משתנה ב־{{value}} בכל הרצה",
+      "netChange": "שינוי נטו בהרצה זו",
+      "cumulativeChange": "שינוי נטו מצטבר",
+      "observed": "נצפה",
+      "estimate": "אומדן מגמה",
+      "number": "{{value, number(signDisplay: exceptZero)}}",
+      "smallNumber": "{{value, number(signDisplay: exceptZero; maximumSignificantDigits: 3)}}"
     },
     "statusTransitions": {
-      "trendHelp": {
-        "description": "קו רציף: עלייה פירושה שמצבי הבדיקות משתפרים ככלל, ירידה פירושה שהם מחמירים, וקו אופקי פירושו שהם יציבים. קו מקווקו: עלייה פירושה שהשיפור מואץ או שההחמרה מואטת. ירידה פירושה שהשיפור מואט או שההחמרה מואצת. קו אופקי מציין קצב שינוי קבוע."
-      },
       "title": "מעברי סטטוס",
       "legend": {
         "cumulativeTrend": "מגמה מצטברת",
@@ -359,9 +364,6 @@
       }
     },
     "testBaseGrowthDynamics": {
-      "trendHelp": {
-        "description": "קו רציף: עלייה פירושה שמאגר הבדיקות גדל, ירידה פירושה שהוא מצטמצם, וקו אופקי פירושו שגודלו יציב. קו מקווקו: עלייה פירושה שהגידול מואץ או שהצמצום מואט. ירידה פירושה שהגידול מואט או שהצמצום מואץ. קו אופקי מציין קצב שינוי קבוע."
-      },
       "title": "דינמיקת צמיחת בסיס הבדיקות",
       "status": {
         "newpassed": "חדש $t(statuses:passed)",

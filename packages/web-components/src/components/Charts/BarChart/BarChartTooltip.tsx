@@ -13,6 +13,7 @@ export interface BarChartTooltipProps<T extends BarDatum> {
   formatLegendValue?: (legend: LegendItemValue<T>) => string | number | undefined;
   allowZeroValues?: boolean;
   children?: ComponentChildren;
+  footer?: ComponentChildren;
 }
 
 export const BarChartTooltip = <T extends BarDatum>({
@@ -23,6 +24,7 @@ export const BarChartTooltip = <T extends BarDatum>({
   formatLegendValue = (l) => (l.value ?? 0).toString() ?? "",
   allowZeroValues = false,
   children,
+  footer,
 }: BarChartTooltipProps<T>) => {
   const chartLegend = allowZeroValues
     ? legend
@@ -44,6 +46,7 @@ export const BarChartTooltip = <T extends BarDatum>({
             }}
           />
         ))}
+      {footer}
     </ChartTooltip>
   );
 };

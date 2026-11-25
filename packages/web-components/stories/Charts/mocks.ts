@@ -17,9 +17,13 @@ const dictionary: Record<string, string> = {
   "legend.trend": "Trend",
   "legend.cumulativeTrend": "Cumulative trend",
   "legend.diffTrend": "Per-run change trend",
-  "trendHelp.label": "How to read the trends",
-  "trendHelp.description":
-    "The solid line fits the running total divided by the number of comparisons. Its height does not show a test count. The dashed line fits the net change per run.",
+  "trendDetails.growthRate": "{{value}} tests per run",
+  "trendDetails.statusRate": "{{value}} net transitions per run",
+  "trendDetails.perRunShift": "Net change shifts by {{value}} each run",
+  "trendDetails.netChange": "Net change this run",
+  "trendDetails.cumulativeChange": "Cumulative net change",
+  "trendDetails.observed": "Observed",
+  "trendDetails.estimate": "Trend estimate",
   "legend.duration": "Duration",
   "legend.speedup": "Speedup",
   "legend.value": "Tests",
@@ -68,5 +72,12 @@ export const chartI18n = (key: string, props?: Record<string, unknown>) => {
     return `${props?.from as string} - ${props?.to as string}`;
   }
 
-  return dictionary[key] ?? key;
+  if (key === "trendDetails.number" || key === "trendDetails.smallNumber") {
+    return new Intl.NumberFormat("en-US", {
+      signDisplay: "exceptZero",
+      ...(key === "trendDetails.smallNumber" ? { maximumSignificantDigits: 3 } : {}),
+    }).format(Number(props?.value));
+  }
+
+  return (dictionary[key] ?? key).replace("{{value}}", String(props?.value));
 };

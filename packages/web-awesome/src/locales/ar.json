@@ -298,13 +298,18 @@
         "history": "{{timestamp, timestamp_date}}"
       }
     },
-    "trendHelp": {
-      "label": "كيفية قراءة الاتجاهات"
+    "trendDetails": {
+      "growthRate": "{{value}} اختبار لكل تشغيل",
+      "statusRate": "{{value}} انتقالًا صافيًا لكل تشغيل",
+      "perRunShift": "يتغير صافي التغير بمقدار {{value}} في كل تشغيل",
+      "netChange": "صافي التغير في هذا التشغيل",
+      "cumulativeChange": "صافي التغير التراكمي",
+      "observed": "القيمة الفعلية",
+      "estimate": "تقدير الاتجاه",
+      "number": "{{value, number(signDisplay: exceptZero)}}",
+      "smallNumber": "{{value, number(signDisplay: exceptZero; maximumSignificantDigits: 3)}}"
     },
     "statusTransitions": {
-      "trendHelp": {
-        "description": "الخط المتصل: صعوده يعني تحسن حالات الاختبارات إجمالاً، وهبوطه يعني تدهورها، واستواؤه يعني ثباتها. الخط المتقطع: صعوده يعني تسارع التحسن أو تباطؤ التدهور، وهبوطه يعني تباطؤ التحسن أو تسارع التدهور. الخط الأفقي يعني ثبات وتيرة التغير."
-      },
       "title": "انتقالات الحالة",
       "legend": {
         "cumulativeTrend": "الاتجاه التراكمي",
@@ -354,9 +359,6 @@
       }
     },
     "testBaseGrowthDynamics": {
-      "trendHelp": {
-        "description": "الخط المتصل: صعوده يعني نمو قاعدة الاختبارات، وهبوطه يعني تقلصها، واستواؤه يعني ثبات حجمها. الخط المتقطع: صعوده يعني تسارع النمو أو تباطؤ التقلص، وهبوطه يعني تباطؤ النمو أو تسارع التقلص. الخط الأفقي يعني ثبات وتيرة التغير."
-      },
       "title": "نمو قاعدة الاختبارات",
       "status": {
         "newpassed": "جديد $t(statuses:passed)",

@@ -39,7 +39,7 @@ export const ChartRenderer = ({ chartData, t }: ChartWidgetProps) => {
         <StatusTransitionsChartWidget
           title={title}
           data={withReportTimestamp(chartData.data)}
-          i18n={(key, props = {}) => t(key === "trendHelp.label" ? key : `statusTransitions.${key}`, props)}
+          i18n={(key, props = {}) => t(key.startsWith("trendDetails.") ? key : `statusTransitions.${key}`, props)}
         />
       );
     }
@@ -82,7 +82,10 @@ export const ChartRenderer = ({ chartData, t }: ChartWidgetProps) => {
           data={withReportTimestamp(chartData.data)}
           statuses={chartData.statuses}
           i18n={(key, props = {}) =>
-            t(key === "trendHelp.label" || key.startsWith("statuses:") ? key : `testBaseGrowthDynamics.${key}`, props)
+            t(
+              key.startsWith("trendDetails.") || key.startsWith("statuses:") ? key : `testBaseGrowthDynamics.${key}`,
+              props,
+            )
           }
         />
       );

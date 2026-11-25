@@ -78,13 +78,18 @@
         "history": "{{timestamp, timestamp_date}}"
       }
     },
-    "trendHelp": {
-      "label": "추세를 읽는 방법"
+    "trendDetails": {
+      "growthRate": "실행당 {{value}}개 테스트",
+      "statusRate": "실행당 순 상태 전환 {{value}}건",
+      "perRunShift": "순변화량은 실행마다 {{value}}만큼 변함",
+      "netChange": "이번 실행의 순변화량",
+      "cumulativeChange": "누적 순변화량",
+      "observed": "실측값",
+      "estimate": "추세 추정값",
+      "number": "{{value, number(signDisplay: exceptZero)}}",
+      "smallNumber": "{{value, number(signDisplay: exceptZero; maximumSignificantDigits: 3)}}"
     },
     "statusTransitions": {
-      "trendHelp": {
-        "description": "실선이 상승하면 테스트 상태가 전반적으로 개선되고, 하락하면 악화되며, 수평이면 안정적입니다. 파선이 상승하면 개선이 빨라지거나 악화가 느려집니다. 하락하면 개선이 느려지거나 악화가 빨라집니다. 수평이면 변화 속도가 일정합니다."
-      },
       "title": "상태 전환",
       "legend": {
         "cumulativeTrend": "누적 추세",
@@ -134,9 +139,6 @@
       }
     },
     "testBaseGrowthDynamics": {
-      "trendHelp": {
-        "description": "실선이 상승하면 테스트 기반이 커지고, 하락하면 줄어들며, 수평이면 규모가 안정적입니다. 파선이 상승하면 증가가 빨라지거나 감소가 느려집니다. 하락하면 증가가 느려지거나 감소가 빨라집니다. 수평이면 변화 속도가 일정합니다."
-      },
       "title": "테스트 베이스 성장 동향",
       "status": {
         "newpassed": "새 $t(statuses:passed)",

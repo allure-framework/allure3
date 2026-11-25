@@ -311,13 +311,18 @@
         "history": "{{timestamp, timestamp_date}}"
       }
     },
-    "trendHelp": {
-      "label": "Jak odczytywać trendy"
+    "trendDetails": {
+      "growthRate": "{{value}} testów na uruchomienie",
+      "statusRate": "{{value}} zmian statusu netto na uruchomienie",
+      "perRunShift": "Zmiana netto przesuwa się o {{value}} z każdym uruchomieniem",
+      "netChange": "Zmiana netto w tym uruchomieniu",
+      "cumulativeChange": "Skumulowana zmiana netto",
+      "observed": "Wartość zaobserwowana",
+      "estimate": "Oszacowanie trendu",
+      "number": "{{value, number(signDisplay: exceptZero)}}",
+      "smallNumber": "{{value, number(signDisplay: exceptZero; maximumSignificantDigits: 3)}}"
     },
     "statusTransitions": {
-      "trendHelp": {
-        "description": "Linia ciągła: wzrost oznacza ogólną poprawę statusów testów, spadek ich pogorszenie, a pozioma linia stabilność. Linia przerywana: wzrost oznacza szybszą poprawę lub wolniejsze pogorszenie. Spadek oznacza wolniejszą poprawę lub szybsze pogorszenie. Pozioma linia oznacza stałe tempo zmian."
-      },
       "title": "Przejścia statusu",
       "legend": {
         "cumulativeTrend": "Trend skumulowany",
@@ -367,9 +372,6 @@
       }
     },
     "testBaseGrowthDynamics": {
-      "trendHelp": {
-        "description": "Linia ciągła: wzrost oznacza powiększanie bazy testów, spadek jej kurczenie, a pozioma linia stabilny rozmiar. Linia przerywana: wzrost oznacza szybsze powiększanie lub wolniejsze kurczenie. Spadek oznacza wolniejsze powiększanie lub szybsze kurczenie. Pozioma linia oznacza stałe tempo zmian."
-      },
       "title": "Dynamika wzrostu bazy testów",
       "status": {
         "newpassed": "Nowy $t(statuses:passed)",

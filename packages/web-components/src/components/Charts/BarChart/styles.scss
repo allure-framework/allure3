@@ -20,27 +20,34 @@
   height: 0;
 }
 
-.trendHelp {
+.trendSummary {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
   margin-block-start: 8px;
-  color: var(--color-text-secondary);
-  font-size: 12px;
+}
+
+.trendComparison {
+  margin: 4px;
+  font-size: var(--font-size-xs);
   line-height: 1.4;
+  white-space: normal;
   overflow-wrap: anywhere;
+}
 
-  summary {
-    width: fit-content;
-    margin-inline: auto;
-    cursor: pointer;
-    color: var(--color-text-primary);
+.trendComparisonRow {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 2px 8px;
+  border-block-start: 1px solid var(--color-border-subtle);
+  padding-block: 4px;
 
-    &:focus-visible {
-      outline: 2px solid var(--color-intent-primary-text);
-      outline-offset: 2px;
-      border-radius: 2px;
-    }
+  dt {
+    grid-column: 1 / -1;
+    font-weight: var(--font-weight-bold);
   }
 
-  p {
-    margin-block: 8px 0;
+  dd {
+    margin: 0;
   }
 }

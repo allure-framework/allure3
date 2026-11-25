@@ -6,7 +6,7 @@ import { useMemo } from "preact/hooks";
 
 import { CHART_MOTION_CONFIG, CHART_THEME, REDUCE_MOTION } from "../config";
 import { Legends } from "../Legend";
-import { formatNumber } from "../Legend/LegendItem";
+import { formatNumber, LegendItem } from "../Legend/LegendItem";
 import type { LegendItemValue } from "../Legend/LegendItem/types";
 import { BarChartTooltip } from "./BarChartTooltip";
 import { BottomAxisLine } from "./BottomAxisLine";
@@ -16,6 +16,9 @@ import { fitValueTrend, TrendLinesLayer } from "./TrendLinesLayer";
 import { computeVerticalAxisMargin, isEmptyChart } from "./utils";
 
 import styles from "./styles.scss";
+
+export type TrendDetailsKey =
+  `trendDetails.${"growthRate" | "statusRate" | "perRunShift" | "number" | "smallNumber" | "netChange" | "cumulativeChange" | "observed" | "estimate"}`;
 
 type BarChartProps<T extends BarDatum> = {
   data: T[];
@@ -29,7 +32,10 @@ type BarChartProps<T extends BarDatum> = {
     curveSharpness?: number;
   }[];
   hideEmptyTrendLines?: boolean;
-  valueTrends?: { helpLabel: string; helpDescription: string };
+  valueTrends?: {
+    rate: "growthRate" | "statusRate";
+    t: (key: TrendDetailsKey, props?: Record<string, unknown>) => string;
+  };
   formatTrendValue?: (value: number, trendKey: Extract<keyof T, string>) => number | undefined;
   formatLegendValue?: (legend: LegendItemValue<T>) => string | number | undefined;
   renderTooltipContent?: (value: T) => ComponentChildren;
@@ -90,17 +96,24 @@ export const BarChart = <T extends BarDatum>(props: BarChartProps<T>) => {
     () => (valueTrends ? legend.filter((item) => item.type !== "point") : legend),
     [legend, valueTrends],
   );
+  const fittedTrends = useMemo(() => {
+    if (!valueTrends || data.length < 2) return [];
+
+    return legend
+      .filter(({ type }) => type === "point")
+      .map((entry) => ({
+        entry,
+        fit: fitValueTrend(data, entry.id),
+        scale: entry.id === "cumulativeTrend" ? data.length : 1,
+      }));
+  }, [data, legend, valueTrends]);
   const domain = useMemo(() => {
     if (!valueTrends || minValue === undefined || maxValue === undefined || data.length < 2) {
       return { min: minValue, max: maxValue };
     }
 
     // The ends of a fitted line can extend beyond the tallest bars.
-    const trendExtent = Math.max(
-      ...legend
-        .filter((item) => item.type === "point")
-        .flatMap(({ id }) => fitValueTrend(data, id).map(([, value]) => Math.abs(value))),
-    );
+    const trendExtent = Math.max(...fittedTrends.flatMap(({ fit }) => fit.map(([, value]) => Math.abs(value))));
 
     if (trendExtent < Math.min(-minValue, maxValue)) {
       return { min: minValue, max: maxValue };
@@ -108,10 +121,41 @@ export const BarChart = <T extends BarDatum>(props: BarChartProps<T>) => {
 
     const limit = Math.ceil(trendExtent * 1.01);
     return { min: Math.min(minValue, -limit), max: Math.max(maxValue, limit) };
-  }, [data, legend, maxValue, minValue, valueTrends]);
+  }, [data.length, fittedTrends, maxValue, minValue, valueTrends]);
   const isEmpty = useMemo(() => isEmptyChart(data, indexBy), [data, indexBy]);
-  const visibleLegend =
-    !isEmpty && !noLegend ? legend : valueTrends ? legend.filter((item) => item.type === "point") : [];
+  const visibleLegend = !isEmpty && !noLegend ? legend : [];
+
+  const formatTrendNumber = (value: number) =>
+    valueTrends?.t("trendDetails.number", { value: Number(value.toFixed(3)) || 0 });
+  const formatTrendSlope = (value: number) => {
+    // Suppress floating-point noise from fitting the normalized series.
+    const slope = Number(value.toFixed(12));
+    return slope !== 0 && Math.abs(slope) < 0.001
+      ? valueTrends?.t("trendDetails.smallNumber", { value: slope })
+      : formatTrendNumber(slope);
+  };
+
+  const renderTrendComparison = (item: T) => {
+    if (!valueTrends) return;
+    const { t } = valueTrends;
+    const index = data.findIndex((entry) => entry[indexBy] === item[indexBy]);
+    return (
+      <dl className={styles.trendComparison}>
+        {[...fittedTrends].reverse().map(({ entry, fit, scale }) => (
+          <div key={entry.id} className={styles.trendComparisonRow}>
+            <dt>{t(entry.id === "cumulativeTrend" ? "trendDetails.cumulativeChange" : "trendDetails.netChange")}</dt>
+            <dd>
+              <span>{t("trendDetails.observed")}</span>{" "}
+              <b>{formatTrendNumber(Math.round(Number(item[entry.id]) * scale))}</b>
+            </dd>
+            <dd>
+              <span>{t("trendDetails.estimate")}</span> <b>{formatTrendNumber(fit.predict(index) * scale)}</b>
+            </dd>
+          </div>
+        ))}
+      </dl>
+    );
+  };
 
   const barSize = useMemo(() => {
     if (data.length >= 8) {
@@ -244,7 +288,9 @@ export const BarChart = <T extends BarDatum>(props: BarChartProps<T>) => {
                   {...layerProps}
                   hasValueFn={hasValueFn}
                   inspectionLabel={
-                    renderTooltipContent && formatIndexBy ? (item) => formatIndexBy(item, indexBy) : undefined
+                    (valueTrends || renderTooltipContent) && formatIndexBy
+                      ? (item) => formatIndexBy(item, indexBy)
+                      : undefined
                   }
                   indexBy={indexBy}
                   layout={layout}
@@ -258,6 +304,7 @@ export const BarChart = <T extends BarDatum>(props: BarChartProps<T>) => {
                         legend={tooltipLegend}
                         formatLegendValue={formatLegendValue}
                         formatIndexBy={formatIndexBy}
+                        footer={renderTrendComparison(value)}
                       >
                         {renderTooltipContent?.(value)}
                       </BarChartTooltip>
@@ -286,10 +333,21 @@ export const BarChart = <T extends BarDatum>(props: BarChartProps<T>) => {
       </div>
       {visibleLegend.length > 0 && <Legends data={visibleLegend} />}
       {valueTrends && (
-        <details className={styles.trendHelp}>
-          <summary>{valueTrends.helpLabel}</summary>
-          <p>{valueTrends.helpDescription}</p>
-        </details>
+        <div className={styles.trendSummary} data-testid="trend-summary">
+          {fittedTrends.map(({ entry, fit, scale }) => (
+            <LegendItem
+              key={entry.id}
+              legend={{
+                ...entry,
+                label: `${entry.label} · ${valueTrends.t(
+                  entry.id === "cumulativeTrend" ? `trendDetails.${valueTrends.rate}` : "trendDetails.perRunShift",
+                  { value: formatTrendSlope(fit.a * scale) },
+                )}`,
+              }}
+              hideOnEmptyValue={false}
+            />
+          ))}
+        </div>
       )}
     </div>
   );

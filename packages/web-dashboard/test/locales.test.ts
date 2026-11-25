@@ -73,7 +73,7 @@ it("defines the generated footer label and date separator in every dashboard loc
   }
 });
 
-it("defines both diff trend legends and their explanation in every locale", () => {
+it("defines diff trend summaries and comparisons in every locale", () => {
   const localeFiles = readdirSync(localesDir).filter((file) => file.endsWith(".json"));
   expect(localeFiles.length).toBeGreaterThan(0);
   for (const file of localeFiles) {
@@ -83,9 +83,10 @@ it("defines both diff trend legends and their explanation in every locale", () =
       charts.statusTransitions?.legend?.diffTrend,
       charts.testBaseGrowthDynamics?.legend?.cumulativeTrend,
       charts.testBaseGrowthDynamics?.legend?.diffTrend,
-      charts.trendHelp?.label,
-      charts.statusTransitions?.trendHelp?.description,
-      charts.testBaseGrowthDynamics?.trendHelp?.description,
+      charts.trendDetails?.netChange,
+      charts.trendDetails?.cumulativeChange,
+      charts.trendDetails?.observed,
+      charts.trendDetails?.estimate,
       charts.testBaseGrowthDynamics?.tooltips?.newTests,
       charts.testBaseGrowthDynamics?.tooltips?.removedTests,
       charts.testBaseGrowthDynamics?.tooltips?.noChanges,
@@ -95,5 +96,10 @@ it("defines both diff trend legends and their explanation in every locale", () =
       expect(value, file).toEqual(expect.any(String));
       expect(value.trim().length, file).toBeGreaterThan(0);
     }
+    for (const key of ["growthRate", "statusRate", "perRunShift"]) {
+      expect(charts.trendDetails?.[key], `${file}: ${key}`).toContain("{{value}}");
+    }
+    expect(charts.trendDetails?.number, file).toContain("number(signDisplay: exceptZero)");
+    expect(charts.trendDetails?.smallNumber, file).toContain("maximumSignificantDigits: 3");
   }
 });

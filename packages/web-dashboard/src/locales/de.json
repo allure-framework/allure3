@@ -78,13 +78,18 @@
         "history": "{{timestamp, timestamp_date}}"
       }
     },
-    "trendHelp": {
-      "label": "So liest du die Trends"
+    "trendDetails": {
+      "growthRate": "{{value}} Tests pro Lauf",
+      "statusRate": "{{value}} Netto-Statuswechsel pro Lauf",
+      "perRunShift": "Die Nettoänderung verschiebt sich pro Lauf um {{value}}",
+      "netChange": "Nettoänderung in diesem Lauf",
+      "cumulativeChange": "Kumulierte Nettoänderung",
+      "observed": "Beobachtet",
+      "estimate": "Trendschätzung",
+      "number": "{{value, number(signDisplay: exceptZero)}}",
+      "smallNumber": "{{value, number(signDisplay: exceptZero; maximumSignificantDigits: 3)}}"
     },
     "statusTransitions": {
-      "trendHelp": {
-        "description": "Durchgezogene Linie: Steigend bedeutet eine Verbesserung der Testergebnisse, fallend eine Verschlechterung und waagerecht stabile Ergebnisse. Gestrichelte Linie: Steigend bedeutet schnellere Verbesserung oder langsamere Verschlechterung, fallend langsamere Verbesserung oder schnellere Verschlechterung. Waagerecht bedeutet ein gleichbleibendes Änderungstempo."
-      },
       "title": "Statusübergänge",
       "legend": {
         "cumulativeTrend": "Kumulativer Trend",
@@ -134,9 +139,6 @@
       }
     },
     "testBaseGrowthDynamics": {
-      "trendHelp": {
-        "description": "Durchgezogene Linie: Steigend bedeutet, dass der Testbestand wächst, fallend, dass er schrumpft, und waagerecht, dass er stabil bleibt. Gestrichelte Linie: Steigend bedeutet schnelleres Wachstum oder langsameres Schrumpfen, fallend langsameres Wachstum oder schnelleres Schrumpfen. Waagerecht bedeutet ein gleichbleibendes Änderungstempo."
-      },
       "title": "Wachstumsdynamik der Testbasis",
       "status": {
         "newpassed": "Neu $t(statuses:passed)",

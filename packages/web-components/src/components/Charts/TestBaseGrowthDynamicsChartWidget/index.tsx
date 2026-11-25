@@ -9,8 +9,7 @@ import { Text } from "@/components/Typography";
 import { Widget } from "@/components/Widget";
 
 import { BarChart } from "../BarChart/BarChart.js";
-import { fitValueTrend } from "../BarChart/TrendLinesLayer.js";
-import { formatNumber, LegendItem } from "../Legend/LegendItem/index.js";
+import { formatNumber } from "../Legend/LegendItem/index.js";
 import type { LegendItemValue } from "../Legend/LegendItem/types.js";
 import { getColorFromStatus, withCumulativeTrend } from "../utils.js";
 import type { Props, StatusWithPrefix } from "./types.js";
@@ -116,17 +115,6 @@ export const TestBaseGrowthDynamicsChartWidget: FunctionalComponent<Props> = (pr
     return { chartData, maxValue: Math.ceil(maxBarValue * 1.01) };
   }, [data, statusesWithPrefixes]);
 
-  const fittedTrends = useMemo(() => {
-    if (chartData.length < 2) return [];
-
-    return legend
-      .filter(({ type }) => type === "point")
-      .map((entry) => ({
-        entry,
-        fit: fitValueTrend(chartData, entry.id),
-      }));
-  }, [chartData, legend]);
-
   const isChartEmpty = chartData.every((item) => statusesWithPrefixes.every((status) => item[status] === 0));
   // No data at all
   if (!currentData || isChartEmpty) {
@@ -184,7 +172,6 @@ export const TestBaseGrowthDynamicsChartWidget: FunctionalComponent<Props> = (pr
                 .filter(({ count }) => count > 0),
             }))
             .filter(({ counters }) => counters.length > 0);
-          const index = chartData.findIndex(({ id }) => id === item.id);
 
           return (
             <>
@@ -221,26 +208,11 @@ export const TestBaseGrowthDynamicsChartWidget: FunctionalComponent<Props> = (pr
                   {i18n("tooltips.noChanges")}
                 </Text>
               )}
-              {fittedTrends.map(({ entry, fit }) => {
-                const scale = entry.id === "cumulativeTrend" ? chartData.length : 1;
-                const value = Number((fit.predict(index) * scale).toFixed(3));
-
-                return (
-                  <LegendItem
-                    key={entry.id}
-                    mode="menu"
-                    legend={{ ...entry, value: i18n("tooltips.number", { value: value || 0 }) }}
-                  />
-                );
-              })}
             </>
           );
         }}
         noLegend
-        valueTrends={{
-          helpLabel: i18n("trendHelp.label"),
-          helpDescription: i18n("trendHelp.description"),
-        }}
+        valueTrends={{ rate: "growthRate", t: i18n }}
         formatLeftTick={(value) => {
           const numberedValue = Math.abs(Number(value));
 

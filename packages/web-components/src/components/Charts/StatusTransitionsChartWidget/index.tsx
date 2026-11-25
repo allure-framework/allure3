@@ -132,10 +132,7 @@ export const StatusTransitionsChartWidget: FunctionalComponent<Props> = (props) 
           return formatNumber(Math.abs(Number(value)));
         }}
         noLegend
-        valueTrends={{
-          helpLabel: i18n("trendHelp.label"),
-          helpDescription: i18n("trendHelp.description"),
-        }}
+        valueTrends={{ rate: "statusRate", t: i18n }}
         formatLeftTick={(value) => {
           const numberedValue = Math.abs(Number(value));
 

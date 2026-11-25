@@ -303,13 +303,18 @@
         "history": "{{timestamp, timestamp_date}}"
       }
     },
-    "trendHelp": {
-      "label": "Come leggere le tendenze"
+    "trendDetails": {
+      "growthRate": "{{value}} test per esecuzione",
+      "statusRate": "{{value}} transizioni nette per esecuzione",
+      "perRunShift": "La variazione netta cambia di {{value}} a ogni esecuzione",
+      "netChange": "Variazione netta in questa esecuzione",
+      "cumulativeChange": "Variazione netta cumulativa",
+      "observed": "Osservato",
+      "estimate": "Stima della tendenza",
+      "number": "{{value, number(signDisplay: exceptZero)}}",
+      "smallNumber": "{{value, number(signDisplay: exceptZero; maximumSignificantDigits: 3)}}"
     },
     "statusTransitions": {
-      "trendHelp": {
-        "description": "Linea continua: se sale, gli stati dei test migliorano nel complesso. Se scende, peggiorano. Se è piatta, rimangono stabili. Linea tratteggiata: se sale, il miglioramento accelera o il peggioramento rallenta. Se scende, il miglioramento rallenta o il peggioramento accelera. Se è piatta, il ritmo di cambiamento è costante."
-      },
       "title": "Transizioni di stato",
       "legend": {
         "cumulativeTrend": "Tendenza cumulativa",
@@ -359,9 +364,6 @@
       }
     },
     "testBaseGrowthDynamics": {
-      "trendHelp": {
-        "description": "Linea continua: se sale, la base dei test cresce. Se scende, si riduce. Se è piatta, la dimensione è stabile. Linea tratteggiata: se sale, la crescita accelera o la riduzione rallenta. Se scende, la crescita rallenta o la riduzione accelera. Se è piatta, il ritmo di cambiamento è costante."
-      },
       "title": "Dinamica di crescita della base di test",
       "status": {
         "newpassed": "Nuovo $t(statuses:passed)",

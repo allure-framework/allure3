@@ -1,14 +1,15 @@
 import type { TestBaseGrowthDynamicsChartData } from "@allurereport/charts-api";
 import type { TestStatus } from "@allurereport/core-api";
 
+import type { TrendDetailsKey } from "../BarChart/BarChart.js";
+
 type I18nKeys =
   | `statuses:${TestStatus}`
   | `status.new${TestStatus}`
   | `status.removed${TestStatus}`
   | "legend.cumulativeTrend"
   | "legend.diffTrend"
-  | "trendHelp.label"
-  | "trendHelp.description"
+  | TrendDetailsKey
   | "no-history"
   | "no-results"
   | "ticks.current"

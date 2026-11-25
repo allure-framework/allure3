@@ -15,8 +15,11 @@ tests, or added tests minus removed tests for the statuses shown in the chart.
 The dashed line is a linear fit of these changes. The solid line is a linear fit
 of the running totals divided by the number of displayed comparisons. This
 scaling keeps the accumulation inside the plot area without expanding the bar
-chart's Y-axis to the full running total. The growth chart tooltip shows the
-cumulative fitted value before scaling.
+chart's Y-axis to the full running total.
 
 The fitted slope uses the whole window. For example, net changes of
 10, −10, −10, and 11 sum to +1, while their running total has a downward slope.
+
+The legend shows the fitted slopes in original units over the visible comparisons.
+For each run, the tooltip pairs its observed net change and running total with
+their respective estimates. Plot scaling applies only to the displayed line.

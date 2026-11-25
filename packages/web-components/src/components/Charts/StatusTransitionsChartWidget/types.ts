@@ -1,6 +1,8 @@
 import type { StatusTransitionsChartData } from "@allurereport/charts-api";
 import type { TestStatus } from "@allurereport/core-api";
 
+import type { TrendDetailsKey } from "../BarChart/BarChart.js";
+
 type I18nKeys =
   | "transitions.new"
   | "transitions.fixed"
@@ -8,8 +10,7 @@ type I18nKeys =
   | "transitions.malfunctioned"
   | "legend.cumulativeTrend"
   | "legend.diffTrend"
-  | "trendHelp.label"
-  | "trendHelp.description"
+  | TrendDetailsKey
   | "no-history"
   | "no-results"
   | "ticks.current"
