@@ -141,7 +141,7 @@ describe("components > TrBreadcrumbs", () => {
   it("renders one breadcrumb for a compacted group row", () => {
     render(<TrBreadcrumbs testResult={testResult} />);
 
-    expect(breadcrumbTexts()).toEqual(["com.example / LoginTest"]);
+    expect(breadcrumbTexts()).toEqual(["com.example > LoginTest"]);
   });
 
   it("reveals the group in the tree and navigates to the root on click", () => {
@@ -282,7 +282,7 @@ describe("components > TrBreadcrumbs", () => {
       fireEvent.click(screen.getByTestId("test-result-breadcrumb-more"));
 
       expect(screen.getAllByTestId("test-result-breadcrumb-hidden-item").map((item) => item.textContent)).toEqual([
-        "com.example / LoginTest",
+        "com.example > LoginTest",
       ]);
     });
 
@@ -291,7 +291,7 @@ describe("components > TrBreadcrumbs", () => {
 
       render(<TrBreadcrumbs testResult={testResult} />);
 
-      expect(breadcrumbTexts()).toEqual(["com.example / LoginTest"]);
+      expect(breadcrumbTexts()).toEqual(["com.example > LoginTest"]);
       expect(screen.queryByTestId("test-result-breadcrumb-more")).toBeNull();
     });
   });

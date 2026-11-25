@@ -1,6 +1,7 @@
 import { epic, feature, label, story } from "allure-js-commons";
 import { beforeEach, describe, expect, it } from "vite-plus/test";
 
+import { currentEnvironment } from "@/stores/env";
 import { filteredTree, getTreeBreadcrumbs, treeStore } from "@/stores/tree";
 
 beforeEach(async () => {
@@ -40,6 +41,7 @@ const setTrees = (data: Record<string, unknown>) => {
 describe("stores > tree > getTreeBreadcrumbs", () => {
   beforeEach(() => {
     setTrees({});
+    currentEnvironment.value = "";
   });
 
   it("uses the compacted group row as the breadcrumb for a single-child chain", () => {
@@ -48,14 +50,14 @@ describe("stores > tree > getTreeBreadcrumbs", () => {
     expect(filteredTree.value.default?.trees).toMatchObject([
       {
         nodeId: "parent",
-        name: "com.example / LoginTest",
+        name: "com.example > LoginTest",
         statistic: { passed: 1, total: 1 },
         leaves: [{ nodeId: "tr-1", name: "shouldLogin" }],
         trees: [],
       },
     ]);
     expect(getTreeBreadcrumbs("tr-1")).toEqual([
-      { environmentId: "default", nodeId: "parent", name: "com.example / LoginTest" },
+      { environmentId: "default", nodeId: "parent", name: "com.example > LoginTest" },
     ]);
   });
 
@@ -78,8 +80,18 @@ describe("stores > tree > getTreeBreadcrumbs", () => {
     });
 
     expect(getTreeBreadcrumbs("tr-1")).toEqual([
-      { environmentId: "chrome", nodeId: "parent", name: "com.example / LoginTest" },
+      { environmentId: "chrome", nodeId: "parent", name: "com.example > LoginTest" },
     ]);
+  });
+
+  it("returns no tree breadcrumbs for a result outside the selected environment", () => {
+    setTrees({
+      chrome: treeWithNestedLeaf,
+      firefox: { root: { groups: [], leaves: [] }, groupsById: {}, leavesById: {} },
+    });
+    currentEnvironment.value = "firefox";
+
+    expect(getTreeBreadcrumbs("tr-1")).toEqual([]);
   });
 
   it("keeps branches and groups with direct tests separate when those siblings are filtered out", () => {

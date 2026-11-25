@@ -22,7 +22,7 @@ export const compactTreeGroups = (tree: RecursiveTree, groupsById: ReportTree["g
     return {
       ...compactTreeGroups(tail, groupsById),
       nodeId: group.nodeId,
-      name: names.join(" / "),
+      name: names.join(" > "),
     };
   }),
 });

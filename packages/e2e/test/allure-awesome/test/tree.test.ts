@@ -316,7 +316,7 @@ test.describe("suites", () => {
 
     await expect(treePage.leafLocator).toHaveCount(1);
     await expect(treePage.sectionsLocator).toHaveCount(1);
-    await expect(treePage.getNthSectionTitleLocator(0)).toHaveText("foo / bar / baz");
+    await expect(treePage.getNthSectionTitleLocator(0)).toHaveText("foo > bar > baz");
     await treePage.toggleNthSection(0);
 
     await expect(treePage.leafLocator).toHaveCount(2);
@@ -370,7 +370,7 @@ test.describe("suites", () => {
 
     await expect(treePage.leafLocator).toHaveCount(1);
     await expect(treePage.sectionsLocator).toHaveCount(1);
-    await expect(treePage.getNthSectionTitleLocator(0)).toHaveText("foo / bar");
+    await expect(treePage.getNthSectionTitleLocator(0)).toHaveText("foo > bar");
     await treePage.toggleNthSection(0);
 
     await expect(treePage.sectionsLocator).toHaveCount(1);
@@ -430,7 +430,7 @@ test.describe("suites", () => {
     await expect(treePage.leafLocator).toHaveCount(1);
     await expect(treePage.sectionsLocator).toHaveCount(2);
     await expect(treePage.getNthSectionTitleLocator(0)).toHaveText("Assign me please!");
-    await expect(treePage.getNthSectionTitleLocator(1)).toHaveText("foo / bar");
+    await expect(treePage.getNthSectionTitleLocator(1)).toHaveText("foo > bar");
     await treePage.toggleNthSection(1);
 
     await expect(treePage.leafLocator).toHaveCount(2);
@@ -489,7 +489,7 @@ test.describe("suites", () => {
     await page.goto(bootstrap.url);
 
     await expect(treePage.sectionsLocator).toHaveCount(2);
-    await expect(treePage.getNthSectionTitleLocator(0)).toHaveText("frontend / checkout");
+    await expect(treePage.getNthSectionTitleLocator(0)).toHaveText("frontend > checkout");
     await expect(treePage.getNthSectionTitleLocator(1)).toHaveText("payments");
 
     await treePage.toggleNthSection(0);
@@ -529,13 +529,51 @@ test("reveals a compact group in the test's environment from its breadcrumb", as
 
   try {
     await page.goto(report.url);
-    await expect(treePage.getNthSectionTitleLocator(0)).toHaveText("Shared / linux suite");
+    await expect(treePage.getNthSectionTitleLocator(0)).toHaveText("Shared > linux suite");
     await treePage.getLeafByTitle("windows test").click();
-    await page.getByRole("button", { name: "Shared / windows suite", exact: true }).click();
+    await page.getByRole("button", { name: "Shared > windows suite", exact: true }).click();
 
     await expect(
-      page.locator('[data-tree-node-id^="windows:"]').filter({ hasText: "Shared / windows suite" }),
+      page.locator('[data-tree-node-id^="windows:"]').filter({ hasText: "Shared > windows suite" }),
     ).toHaveClass(/tree-section-focused/);
+  } finally {
+    await report.shutdown?.();
+  }
+});
+
+test("reveals a test from a direct link inside a compact label and title path", async ({ page }) => {
+  const report = await bootstrapReport(
+    {
+      reportConfig: { name: "Compact label and title path", appendHistory: false },
+      testResults: [
+        {
+          name: "logs in",
+          fullName: "tests/login.spec.ts#logs in",
+          status: Status.PASSED,
+          stage: Stage.FINISHED,
+          labels: [{ name: "suite", value: "Authentication" }],
+          titlePath: ["tests/login.spec.ts", "Login"],
+        },
+      ],
+    },
+    { groupBy: ["suite"], appendTitlePath: true, layout: "split" },
+  );
+
+  try {
+    await page.goto(report.url);
+    await expect(treePage.getNthSectionTitleLocator(0)).toHaveText("Authentication > tests/login.spec.ts > Login");
+
+    await treePage.toggleNthSection(0);
+    const leaf = treePage.getLeafByTitle("logs in");
+    await expect(leaf).toBeVisible();
+    const testResultId = await leaf.getAttribute("id");
+
+    await treePage.toggleNthSection(0);
+    await expect(leaf).toHaveCount(0);
+    await page.goto(`${report.url}#${testResultId}`);
+
+    await expect(page.getByRole("heading", { name: "logs in" })).toBeVisible();
+    await expect(leaf).toHaveAttribute("aria-current", "true");
   } finally {
     await report.shutdown?.();
   }
