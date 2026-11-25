@@ -79,6 +79,8 @@
       }
     },
     "trendDetails": {
+      "comparisonCount_one": "Baserat på {{count, number}} jämförelse",
+      "comparisonCount_other": "Baserat på {{count, number}} jämförelser",
       "growthRate": "{{value}} tester per körning",
       "statusRate": "{{value}} statusövergångar netto per körning",
       "perRunShift": "Nettoförändringen förskjuts med {{value}} per körning",

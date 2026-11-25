@@ -79,6 +79,7 @@
       }
     },
     "trendDetails": {
+      "comparisonCount": "{{count, number}} karşılaştırmaya dayalı",
       "growthRate": "Çalıştırma başına {{value}} test",
       "statusRate": "Çalıştırma başına {{value}} net durum geçişi",
       "perRunShift": "Net değişim her çalıştırmada {{value}} kadar değişir",

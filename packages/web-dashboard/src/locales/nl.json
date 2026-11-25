@@ -79,6 +79,8 @@
       }
     },
     "trendDetails": {
+      "comparisonCount_one": "Gebaseerd op {{count, number}} vergelijking",
+      "comparisonCount_other": "Gebaseerd op {{count, number}} vergelijkingen",
       "growthRate": "{{value}} tests per run",
       "statusRate": "{{value}} netto statusovergangen per run",
       "perRunShift": "De nettoverandering verschuift per run met {{value}}",

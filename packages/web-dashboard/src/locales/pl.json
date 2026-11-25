@@ -85,6 +85,10 @@
       }
     },
     "trendDetails": {
+      "comparisonCount_one": "Na podstawie {{count, number}} porównania",
+      "comparisonCount_few": "Na podstawie {{count, number}} porównań",
+      "comparisonCount_many": "Na podstawie {{count, number}} porównań",
+      "comparisonCount_other": "Na podstawie {{count, number}} porównań",
       "growthRate": "{{value}} testów na uruchomienie",
       "statusRate": "{{value}} zmian statusu netto na uruchomienie",
       "perRunShift": "Zmiana netto przesuwa się o {{value}} z każdym uruchomieniem",

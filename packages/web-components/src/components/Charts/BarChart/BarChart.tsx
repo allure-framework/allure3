@@ -18,7 +18,7 @@ import { computeVerticalAxisMargin, isEmptyChart } from "./utils";
 import styles from "./styles.scss";
 
 export type TrendDetailsKey =
-  `trendDetails.${"growthRate" | "statusRate" | "perRunShift" | "number" | "smallNumber" | "netChange" | "cumulativeChange" | "observed" | "estimate"}`;
+  `trendDetails.${"comparisonCount" | "growthRate" | "statusRate" | "perRunShift" | "number" | "smallNumber" | "netChange" | "cumulativeChange" | "observed" | "estimate"}`;
 
 type BarChartProps<T extends BarDatum> = {
   data: T[];
@@ -332,8 +332,9 @@ export const BarChart = <T extends BarDatum>(props: BarChartProps<T>) => {
         </BarChartStateProvider>
       </div>
       {visibleLegend.length > 0 && <Legends data={visibleLegend} />}
-      {valueTrends && (
+      {valueTrends && fittedTrends.length > 0 && (
         <div className={styles.trendSummary} data-testid="trend-summary">
+          <p className={styles.trendWindow}>{valueTrends.t("trendDetails.comparisonCount", { count: data.length })}</p>
           {fittedTrends.map(({ entry, fit, scale }) => (
             <LegendItem
               key={entry.id}

@@ -79,5 +79,10 @@ export const chartI18n = (key: string, props?: Record<string, unknown>) => {
     }).format(Number(props?.value));
   }
 
+  if (key === "trendDetails.comparisonCount") {
+    const count = Number(props?.count);
+    return `Based on ${count} ${count === 1 ? "comparison" : "comparisons"}`;
+  }
+
   return (dictionary[key] ?? key).replace("{{value}}", String(props?.value));
 };

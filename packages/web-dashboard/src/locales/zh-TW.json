@@ -79,6 +79,7 @@
       }
     },
     "trendDetails": {
+      "comparisonCount": "根據 {{count, number}} 次比較",
       "growthRate": "每次執行 {{value}} 個測試",
       "statusRate": "每次執行 {{value}} 次淨狀態轉換",
       "perRunShift": "淨變化量每次執行變動 {{value}}",

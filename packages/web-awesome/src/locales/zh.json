@@ -304,6 +304,7 @@
       }
     },
     "trendDetails": {
+      "comparisonCount": "基于 {{count, number}} 次比较",
       "growthRate": "每次运行 {{value}} 个测试",
       "statusRate": "每次运行 {{value}} 次净状态转换",
       "perRunShift": "净变化量每次运行变动 {{value}}",

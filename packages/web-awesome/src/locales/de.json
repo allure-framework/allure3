@@ -304,6 +304,8 @@
       }
     },
     "trendDetails": {
+      "comparisonCount_one": "Basierend auf {{count, number}} Vergleich",
+      "comparisonCount_other": "Basierend auf {{count, number}} Vergleichen",
       "growthRate": "{{value}} Tests pro Lauf",
       "statusRate": "{{value}} Netto-Statuswechsel pro Lauf",
       "perRunShift": "Die Nettoänderung verschiebt sich pro Lauf um {{value}}",

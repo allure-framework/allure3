@@ -376,6 +376,7 @@
       }
     },
     "trendDetails": {
+      "comparisonCount": "بر اساس {{count, number}} مقایسه",
       "growthRate": "{{value}} آزمون در هر اجرا",
       "statusRate": "{{value}} تغییر وضعیت خالص در هر اجرا",
       "perRunShift": "تغییر خالص در هر اجرا {{value}} جابه‌جا می‌شود",

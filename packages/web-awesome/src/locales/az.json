@@ -304,6 +304,7 @@
       }
     },
     "trendDetails": {
+      "comparisonCount": "{{count, number}} müqayisə əsasında",
       "growthRate": "Hər icraya {{value}} test",
       "statusRate": "Hər icraya {{value}} xalis status keçidi",
       "perRunShift": "Xalis dəyişiklik hər icrada {{value}} qədər dəyişir",

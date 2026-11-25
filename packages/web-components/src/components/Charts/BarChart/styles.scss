@@ -27,6 +27,13 @@
   margin-block-start: 8px;
 }
 
+.trendWindow {
+  margin: 0 0 4px;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+  overflow-wrap: anywhere;
+}
+
 .trendComparison {
   margin: 4px;
   font-size: var(--font-size-xs);

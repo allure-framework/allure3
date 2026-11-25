@@ -304,6 +304,7 @@
       }
     },
     "trendDetails": {
+      "comparisonCount": "비교 {{count, number}}건 기준",
       "growthRate": "실행당 {{value}}개 테스트",
       "statusRate": "실행당 순 상태 전환 {{value}}건",
       "perRunShift": "순변화량은 실행마다 {{value}}만큼 변함",

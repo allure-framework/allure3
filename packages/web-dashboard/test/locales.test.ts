@@ -99,6 +99,10 @@ it("defines diff trend summaries and comparisons in every locale", () => {
     for (const key of ["growthRate", "statusRate", "perRunShift"]) {
       expect(charts.trendDetails?.[key], `${file}: ${key}`).toContain("{{value}}");
     }
+    const { comparisonCount, ...pluralDetails } = charts.trendDetails;
+    for (const category of new Intl.PluralRules(file.slice(0, -5)).resolvedOptions().pluralCategories) {
+      expect(comparisonCount ?? pluralDetails[`comparisonCount_${category}`], file).toContain("{{count, number}}");
+    }
     expect(charts.trendDetails?.number, file).toContain("number(signDisplay: exceptZero)");
     expect(charts.trendDetails?.smallNumber, file).toContain("maximumSignificantDigits: 3");
   }

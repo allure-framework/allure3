@@ -79,6 +79,9 @@
       }
     },
     "trendDetails": {
+      "comparisonCount_one": "Sulla base di {{count, number}} confronto",
+      "comparisonCount_many": "Sulla base di {{count, number}} confronti",
+      "comparisonCount_other": "Sulla base di {{count, number}} confronti",
       "growthRate": "{{value}} test per esecuzione",
       "statusRate": "{{value}} transizioni nette per esecuzione",
       "perRunShift": "La variazione netta cambia di {{value}} a ogni esecuzione",

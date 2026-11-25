@@ -257,6 +257,10 @@ for (const frontend of ["awesome", "dashboard"] as const) {
       await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
       await expect(page.locator("html")).toHaveAttribute("dir", frontend === "awesome" ? "rtl" : "ltr");
       const growth = page.locator(chartSelector).last();
+      const count = new Intl.NumberFormat(locale).format(3);
+      await expect(growth.getByTestId("trend-summary")).toContainText(
+        frontend === "awesome" ? `بر اساس ${count} مقایسه` : `Sur la base de ${count} comparaisons`,
+      );
       const runs = growth.getByTestId("hover-rect");
       const run = runs.last();
       const tooltip = page.getByTestId("chart-tooltip");
@@ -300,6 +304,7 @@ for (const frontend of ["awesome", "dashboard"] as const) {
     const runs = growth.getByTestId("hover-rect");
 
     await expect(runs).toHaveCount(60);
+    await expect(growth.getByTestId("trend-summary")).toContainText("Based on 60 comparisons");
     const boxes = await runs.evaluateAll((nodes) =>
       nodes.map((node) => {
         const { x, width } = node.getBoundingClientRect();
@@ -340,6 +345,7 @@ for (const frontend of ["awesome", "dashboard"] as const) {
         expect(plot!.height).toBeGreaterThanOrEqual(275);
         await expect(chart.getByTestId("trend-line")).toHaveCount(2);
         const summary = chart.getByTestId("trend-summary");
+        await expect(summary).toContainText("Based on 3 comparisons");
         await expect(summary).toContainText(index === 0 ? "+1.5 net transitions per run" : "+1 tests per run");
         await expect(summary).toContainText(
           index === 0 ? "Net change shifts by +1 each run" : "Net change shifts by +0.5 each run",
@@ -349,6 +355,7 @@ for (const frontend of ["awesome", "dashboard"] as const) {
         expect(summaryBox!.y).toBeGreaterThanOrEqual(plot!.y + plot!.height);
         expect(summaryBox!.x + summaryBox!.width).toBeLessThanOrEqual(chartBox!.x + chartBox!.width + 1);
       }
+      await testInfo.attach(`trend-summary-${width}`, { body: await page.screenshot(), contentType: "image/png" });
       await charts.first().getByTestId("hover-rect").last().hover();
       const tooltip = page.getByTestId("chart-tooltip");
       await expect(tooltip).toContainText(/Fixed\s*2/i);

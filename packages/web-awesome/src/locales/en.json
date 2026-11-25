@@ -376,6 +376,8 @@
       }
     },
     "trendDetails": {
+      "comparisonCount_one": "Based on {{count, number}} comparison",
+      "comparisonCount_other": "Based on {{count, number}} comparisons",
       "growthRate": "{{value}} tests per run",
       "statusRate": "{{value}} net transitions per run",
       "perRunShift": "Net change shifts by {{value}} each run",

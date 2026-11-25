@@ -304,6 +304,7 @@
       }
     },
     "trendDetails": {
+      "comparisonCount": "ეფუძნება {{count, number}} შედარებას",
       "growthRate": "{{value}} ტესტი თითო გაშვებაზე",
       "statusRate": "{{value}} წმინდა სტატუსის გადასვლა თითო გაშვებაზე",
       "perRunShift": "წმინდა ცვლილება ყოველ გაშვებაზე {{value}}-ით იცვლება",

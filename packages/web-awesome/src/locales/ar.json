@@ -299,6 +299,12 @@
       }
     },
     "trendDetails": {
+      "comparisonCount_zero": "استنادًا إلى {{count, number}} مقارنة",
+      "comparisonCount_one": "استنادًا إلى {{count, number}} مقارنة",
+      "comparisonCount_two": "استنادًا إلى {{count, number}} مقارنتين",
+      "comparisonCount_few": "استنادًا إلى {{count, number}} مقارنات",
+      "comparisonCount_many": "استنادًا إلى {{count, number}} مقارنة",
+      "comparisonCount_other": "استنادًا إلى {{count, number}} مقارنة",
       "growthRate": "{{value}} اختبار لكل تشغيل",
       "statusRate": "{{value}} انتقالًا صافيًا لكل تشغيل",
       "perRunShift": "يتغير صافي التغير بمقدار {{value}} في كل تشغيل",

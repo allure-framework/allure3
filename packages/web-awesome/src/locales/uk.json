@@ -255,6 +255,10 @@
       "title": "Успішність тестування"
     },
     "trendDetails": {
+      "comparisonCount_one": "На основі {{count, number}} порівняння",
+      "comparisonCount_few": "На основі {{count, number}} порівнянь",
+      "comparisonCount_many": "На основі {{count, number}} порівнянь",
+      "comparisonCount_other": "На основі {{count, number}} порівняння",
       "growthRate": "{{value}} тестів за запуск",
       "statusRate": "{{value}} чистих переходів за запуск",
       "perRunShift": "Чиста зміна зсувається на {{value}} за кожен запуск",

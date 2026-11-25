@@ -79,6 +79,9 @@
       }
     },
     "trendDetails": {
+      "comparisonCount_one": "מבוסס על {{count, number}} השוואה",
+      "comparisonCount_two": "מבוסס על {{count, number}} השוואות",
+      "comparisonCount_other": "מבוסס על {{count, number}} השוואות",
       "growthRate": "{{value}} בדיקות בכל הרצה",
       "statusRate": "{{value}} מעברי סטטוס נטו בכל הרצה",
       "perRunShift": "השינוי נטו משתנה ב־{{value}} בכל הרצה",

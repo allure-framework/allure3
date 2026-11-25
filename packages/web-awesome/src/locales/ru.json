@@ -375,6 +375,10 @@
       }
     },
     "trendDetails": {
+      "comparisonCount_one": "На основе {{count, number}} сравнения",
+      "comparisonCount_few": "На основе {{count, number}} сравнений",
+      "comparisonCount_many": "На основе {{count, number}} сравнений",
+      "comparisonCount_other": "На основе {{count, number}} сравнения",
       "growthRate": "{{value}} теста за запуск",
       "statusRate": "{{value}} чистых переходов за запуск",
       "perRunShift": "Чистое изменение сдвигается на {{value}} за запуск",

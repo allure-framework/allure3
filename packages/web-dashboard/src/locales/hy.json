@@ -79,6 +79,7 @@
       }
     },
     "trendDetails": {
+      "comparisonCount": "{{count, number}} համեմատության հիման վրա",
       "growthRate": "{{value}} թեստ մեկ գործարկման համար",
       "statusRate": "{{value}} զուտ անցում մեկ գործարկման համար",
       "perRunShift": "Զուտ փոփոխությունը յուրաքանչյուր գործարկման հետ փոխվում է {{value}}-ով",

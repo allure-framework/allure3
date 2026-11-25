@@ -79,6 +79,7 @@
       }
     },
     "trendDetails": {
+      "comparisonCount": "{{count, number}} 件の比較に基づく",
       "growthRate": "実行あたり {{value}} テスト",
       "statusRate": "実行あたりのステータス遷移の純増減: {{value}}",
       "perRunShift": "純増減は実行ごとに {{value}} 変化",
