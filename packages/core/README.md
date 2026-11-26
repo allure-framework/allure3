@@ -169,15 +169,83 @@ testops:
   filter: "${{ test.status == 'failed' }}"
 ```
 
-Set `ALLURE_ENDPOINT`, `ALLURE_TOKEN`, and `ALLURE_PROJECT_ID` for credentials and the destination
-project. The block takes the [existing TestOps options](../plugin-testops/README.md#options) directly.
-Omitting `enabled` uses the existing CI and environment activation rules. Setting it to `true`
-also enables local uploads. Setting it to `false` disables uploads even in CI.
+Set `ALLURE_ENDPOINT`, `ALLURE_TOKEN`, and `ALLURE_PROJECT_ID` for the destination and credentials.
+With `enabled` omitted, uploads run on supported CI systems or when a positive `ALLURE_JOB_RUN_ID`
+is present. To opt in locally, set `ALLURE_TESTOPS_ENABLED=true` or `CI=true` (`1` also works).
+Set `enabled: true` to enable uploads locally in the configuration, or `enabled: false` to disable
+them even in CI.
 
-When the block is present, it replaces all configured TestOps plugin entries, including aliases.
-Without it, existing `plugins.testops` configurations continue to work. Commands that replace the
-project's plugins use their own selection. Agent mode includes project uploads only with
-`--report config`.
+To migrate from `plugins.testops`, move its `options` fields directly into `testops` and carry over
+the descriptor's `enabled` value if present. The top-level block replaces all legacy TestOps entries,
+including aliases. Projects that omit the block can keep using their existing plugin entries.
+Commands that replace the project's plugins use their own selection. Agent mode includes project
+uploads only with `--report config`.
+
+#### TestOps options
+
+Explicit configuration takes precedence over the environment variables in the table.
+
+| Option | Purpose and default | Environment fallback |
+| --- | --- | --- |
+| `enabled` | Boolean. Omit to use CI and environment activation as described above. | |
+| `endpoint` | TestOps instance URL. Required for uploads. | `ALLURE_ENDPOINT` |
+| `accessToken` | TestOps API access token. Required for uploads. | `ALLURE_TOKEN` |
+| `projectId` | Destination project ID as a string. Required for uploads. | `ALLURE_PROJECT_ID` |
+| `launchName` | Name for a new launch, as a string or name expression. Defaults to `Allure Report`. | `ALLURE_LAUNCH_NAME` |
+| `launchTags` | Array of tag names for a new launch. Defaults to an empty array. | `ALLURE_LAUNCH_TAGS` (comma-separated) |
+| `launchId` | Positive integer ID of an existing launch to use when running outside a TestOps job run. | `ALLURE_LAUNCH_ID` |
+| `filter` | Select test results with a boolean CEL expression or a JavaScript predicate. Defaults to all results. | |
+| `autocloseLaunch` | Close the launch after uploads finish successfully. Defaults to `true`. | |
+| `reopenClosedLaunch` | Reopen a closed launch to continue uploading. Defaults to `false`. | `ALLURE_REOPEN_CLOSED_LAUNCH` |
+| `gitFlow` | Collect Git metadata for history linking on CI. Defaults to `false`. | `ALLURE_GIT_FLOW` |
+| `ancestorLimit` | Maximum number of first-parent ancestors for Git history linking. Defaults to `100`. | `ALLURE_GIT_ANCESTOR_LIMIT` |
+| `limit` | Number of test results whose attachments and fixtures can upload concurrently, from `1` to `5`. Defaults to `1`. | |
+| `uploadRateLimit` | Set `windowMs` and optional `maxRequestsPerWindow`, `maxFilesPerWindow`, and `maxBytesPerWindow`. Defaults to 20 requests, 1,000 files, and 1 GiB per second. Set to `false` to disable pacing. | |
+
+#### TestOps session environment variables
+
+Allure TestOps displays session variables whose keys match the project's environment variable schema.
+Matching is case-sensitive. For example, define `browser` in both the schema and the report configuration.
+
+When the same key appears in multiple sources, later entries in this list take precedence.
+
+1. Process environment variables, including values supplied by CI.
+2. Report-level `variables`.
+3. The `variables` of the matching entry in `environments`.
+
+Configuration values can be strings, numbers or booleans. Blank strings, unset values and other
+types leave the previous value in effect.
+
+```js
+import { defineConfig } from "allure";
+
+export default defineConfig({
+  variables: {
+    Stand: process.env.STAND ?? "staging",
+  },
+  environments: {
+    chrome: {
+      matcher: ({ labels }) => labels.some(({ name, value }) => name === "browser" && value === "chrome"),
+      variables: { browser: "chrome" },
+    },
+    firefox: {
+      matcher: ({ labels }) => labels.some(({ name, value }) => name === "browser" && value === "firefox"),
+      variables: { browser: "firefox" },
+    },
+  },
+  testops: {},
+});
+```
+
+Each environment with its own `variables` gets a separate upload session, reused for that environment
+throughout the run. Other results, global attachments and errors use the base upload session.
+
+When generating from several dumps, report-level variables apply to every result and the last dump
+wins for shared keys. Put values that vary across matrix jobs, such as the browser, in the matching
+environment's `variables` in the configuration used to generate the report.
+
+TestOps includes environment variables in test identity. Adding a schema-matched variable to a result
+starts a new history for that identity.
 
 ### Environment matching
 
