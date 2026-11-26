@@ -27,7 +27,7 @@
     "report": "yarn allure generate --config=./allurerc.mjs",
     "test": "yarn workspaces foreach -Avvp --exclude  @allurereport/monorepo --exclude @allurereport/common-config --exclude sandbox exec vp run -v vp:test",
     "test:unit": "yarn workspaces foreach -Avvp --exclude sandbox run test:unit",
-    "test:e2e": "yarn workspaces foreach -Avvp run test:e2e",
+    "test:e2e": "vp run -v --filter @allurereport/e2e vp:test:e2e",
     "lint": "yarn workspaces foreach -Avvp run lint",
     "lint:fix": "yarn workspaces foreach -Avvp run lint:fix",
     "lint:type": "vp lint --type-aware",

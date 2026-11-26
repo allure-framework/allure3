@@ -21,8 +21,12 @@ concurrency:
 
 jobs:
   lint:
-    name: Lint
-    runs-on: "ubuntu-latest"
+    name: Build on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy: &matrix-strategy
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -31,16 +35,14 @@ jobs:
         with:
           save-cache: "true"
       - name: Check formatting, typed lint and production types
+        if: ${{ matrix.os == 'ubuntu-latest' }}
         run: yarn verify
 
-  test:
+  test-packages:
     needs: lint
-    name: Build on ${{ matrix.os }}
+    name: Package tests on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+    strategy: *matrix-strategy
     steps:
       - name: Checkout project
         uses: actions/checkout@v7
@@ -49,25 +51,24 @@ jobs:
         id: build
         with:
           yarn-hardened-mode: "0"
-          save-cache: "${{ matrix.os != 'ubuntu-latest' }}"
       - parallel:
           - name: Install Playwright browsers
             timeout-minutes: 5
-            run: yarn workspace @allurereport/common-config playwright install chromium firefox webkit
+            run: yarn playwright install chromium firefox webkit
           - name: Install playwright dependencies for e2e
             timeout-minutes: 5
-            run: yarn workspace @allurereport/common-config playwright install-deps
-      - name: Test Project
+            run: yarn playwright install-deps
+      - name: Run tests
         env:
           ENABLE_COVERAGE: ${{ matrix.os == 'ubuntu-latest' && 'true' || 'false' }}
-        run: yarn allure run --config=./allurerc.mjs --environment=${{ matrix.os }} --dump=allure-results-${{ matrix.os }} -- yarn test
+        run: yarn allure run --config=./allurerc.mjs --environment=${{ matrix.os }} --dump=allure-results-packages-${{ matrix.os }} -- yarn test
       - name: Upload test results
         timeout-minutes: 10
         uses: actions/upload-artifact@v7
         if: ${{ !cancelled() }}
         with:
-          name: allure-results-${{ matrix.os }}
-          path: ./allure-results-${{ matrix.os }}.zip
+          name: allure-results-packages-${{ matrix.os }}
+          path: ./allure-results-packages-${{ matrix.os }}.zip
       - name: Upload blob reports
         uses: actions/upload-artifact@v7
         if: ${{ matrix.os == 'ubuntu-latest' && !cancelled() }}
@@ -77,11 +78,48 @@ jobs:
           include-hidden-files: true
           if-no-files-found: error
 
+  test-e2e:
+    needs: lint
+    name: E2E tests on ${{ matrix.os }} ${{ matrix.shard }}/2
+    runs-on: ${{ matrix.os }}
+    env:
+      SHARDS_TOTAL: "2"
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        shard: [1, 2]
+    steps:
+      - name: Checkout project
+        uses: actions/checkout@v7
+      - name: Build project
+        uses: ./.github/actions/build
+        id: build
+        with:
+          yarn-hardened-mode: "0"
+      - parallel:
+          - name: Install Playwright browsers
+            timeout-minutes: 5
+            run: yarn playwright install chromium firefox webkit
+          - name: Install playwright dependencies for e2e
+            timeout-minutes: 5
+            run: yarn playwright install-deps
+      - name: Run tests
+        shell: bash
+        run: yarn allure run --config=./allurerc.mjs --environment=${{ matrix.os }} --dump=allure-results-e2e-${{ matrix.os }} -- yarn test:e2e --shard "${{ matrix.shard }}/${SHARDS_TOTAL}"
+      - name: Upload test results
+        timeout-minutes: 10
+        uses: actions/upload-artifact@v7
+        if: ${{ !cancelled() }}
+        with:
+          name: allure-results-e2e-${{ matrix.os }}-${{ matrix.shard }}
+          path: ./allure-results-e2e-${{ matrix.os }}-${{ matrix.shard }}.zip
+
   coverage:
-    needs: [test]
+    needs: [test-packages]
     name: Upload test coverage
     runs-on: ubuntu-latest
-    if: ${{ always() && !cancelled() && contains(fromJSON('["success","failure"]'), needs.test.result) }}
+    if: ${{ !cancelled() && contains(fromJSON('["success","failure"]'), needs.test-packages.result) }}
     permissions:
       contents: read
       code-quality: write
@@ -114,10 +152,10 @@ jobs:
     uses: ./.github/workflows/allure-bundle-size.yml
 
   report:
-    needs: [lint, test, bundle-size]
+    needs: [lint, test-packages, test-e2e, bundle-size]
     name: Build report
     runs-on: ubuntu-latest
-    if: ${{ always() && !cancelled() && contains(fromJSON('["success","failure"]'), needs.test.result) && needs.lint.result != 'failure' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
+    if: ${{ !cancelled() && contains(fromJSON('["success","failure"]'), needs.test-packages.result) && contains(fromJSON('["success","failure"]'), needs.test-e2e.result) && needs.lint.result != 'failure' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
     permissions:
       actions: read
       contents: write
