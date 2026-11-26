@@ -1,0 +1,369 @@
+{
+  "playwrightRetry": {
+    "jobs": [
+      {
+        "runId": "42804941235",
+        "attempt": 1,
+        "jobId": "129807538214",
+        "checkout": "7911242dc94c4ce00294a57a75bf2452f827bae8",
+        "environment": "macos-latest",
+        "runnerOS": "macOS",
+        "arch": "ARM64",
+        "image": "macos-26-arm64",
+        "imageVersion": "20261102.0473.1",
+        "startedAt": 1794312060000,
+        "finishedAt": 1794313534000,
+        "results": [
+          {
+            "id": "7ffe967b668571d246cd926c96a5fb78",
+            "fullName": "allure-awesome/test/stepsSubtreeToggle.test.ts \u203a should cycle step subtree toggle state like categories",
+            "status": "failed",
+            "start": 1794313303009,
+            "stop": 1794313309405,
+            "retryHash": "0995aba92e8c9bea7d580f8d1b1b3353.969c352bee93c662f3c6f43279ecdeef.8898811ed10f1d469ac370241c131038",
+            "isRetry": true,
+            "labels": [
+              {
+                "name": "module",
+                "value": "e2e"
+              },
+              {
+                "name": "type",
+                "value": "playwright"
+              }
+            ],
+            "parameters": [
+              {
+                "name": "Project",
+                "value": "safari",
+                "excluded": false
+              }
+            ]
+          },
+          {
+            "id": "64c6e0250aa31cc2418b58115a0c6746",
+            "fullName": "allure-awesome/test/stepsSubtreeToggle.test.ts \u203a should cycle step subtree toggle state like categories",
+            "status": "passed",
+            "start": 1794313311666,
+            "stop": 1794313316102,
+            "retryHash": "0995aba92e8c9bea7d580f8d1b1b3353.969c352bee93c662f3c6f43279ecdeef.8898811ed10f1d469ac370241c131038",
+            "isRetry": false,
+            "labels": [
+              {
+                "name": "module",
+                "value": "e2e"
+              },
+              {
+                "name": "type",
+                "value": "playwright"
+              }
+            ],
+            "parameters": [
+              {
+                "name": "Project",
+                "value": "safari",
+                "excluded": false
+              },
+              {
+                "name": "Retry",
+                "value": "1",
+                "excluded": true
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "current": {
+      "runId": "42804941235",
+      "attempt": 1
+    }
+  },
+  "githubRerun": {
+    "jobs": [
+      {
+        "runId": "41031107948",
+        "attempt": 1,
+        "jobId": "123982009898",
+        "checkout": "fa0b0e7737a885624d3d0a2ee3b9d9e962289b0f",
+        "environment": "macos-latest",
+        "runnerOS": "macOS",
+        "arch": "ARM64",
+        "image": "macos-26-arm64",
+        "imageVersion": "20261013.0424.1",
+        "startedAt": 1793351739000,
+        "finishedAt": 1793352940000,
+        "results": [
+          {
+            "id": "attachment-failure-from-job-log",
+            "fullName": "allure-awesome/features/missingAttachmentDownload.test.ts \u203a disables missing attachment downloads and preserves empty files (singleFile=false)",
+            "status": "failed",
+            "start": 1793352900000,
+            "stop": 1793352910000,
+            "retryHash": "11250cf940e220836f1b5e036c7c043a.5bd835b0d6b1d4ada3b9f0db936e82c8.8898811ed10f1d469ac370241c131038",
+            "isRetry": false,
+            "labels": [
+              {
+                "name": "module",
+                "value": "e2e"
+              },
+              {
+                "name": "type",
+                "value": "playwright"
+              }
+            ],
+            "parameters": [
+              {
+                "name": "Project",
+                "value": "chromium",
+                "excluded": false
+              },
+              {
+                "name": "Retry",
+                "value": "1",
+                "excluded": true
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "runId": "41031107948",
+        "attempt": 2,
+        "jobId": "124049992134",
+        "checkout": "fa0b0e7737a885624d3d0a2ee3b9d9e962289b0f",
+        "environment": "macos-latest",
+        "runnerOS": "macOS",
+        "arch": "ARM64",
+        "image": "macos-26-arm64",
+        "imageVersion": "20261013.0424.1",
+        "startedAt": 1793362717000,
+        "finishedAt": 1793363840000,
+        "results": [
+          {
+            "id": "a119325bf41af14521fb0fa702b77de2",
+            "fullName": "allure-awesome/features/missingAttachmentDownload.test.ts \u203a disables missing attachment downloads and preserves empty files (singleFile=false)",
+            "status": "failed",
+            "start": 1793362814268,
+            "stop": 1793362823316,
+            "retryHash": "11250cf940e220836f1b5e036c7c043a.5bd835b0d6b1d4ada3b9f0db936e82c8.8898811ed10f1d469ac370241c131038",
+            "isRetry": true,
+            "labels": [
+              {
+                "name": "module",
+                "value": "e2e"
+              },
+              {
+                "name": "type",
+                "value": "playwright"
+              }
+            ],
+            "parameters": [
+              {
+                "name": "Project",
+                "value": "chromium",
+                "excluded": false
+              }
+            ]
+          },
+          {
+            "id": "fe8504f0108e3f8915df127918120508",
+            "fullName": "allure-awesome/features/missingAttachmentDownload.test.ts \u203a disables missing attachment downloads and preserves empty files (singleFile=false)",
+            "status": "passed",
+            "start": 1793362824936,
+            "stop": 1793362828345,
+            "retryHash": "11250cf940e220836f1b5e036c7c043a.5bd835b0d6b1d4ada3b9f0db936e82c8.8898811ed10f1d469ac370241c131038",
+            "isRetry": false,
+            "labels": [
+              {
+                "name": "module",
+                "value": "e2e"
+              },
+              {
+                "name": "type",
+                "value": "playwright"
+              }
+            ],
+            "parameters": [
+              {
+                "name": "Project",
+                "value": "chromium",
+                "excluded": false
+              },
+              {
+                "name": "Retry",
+                "value": "1",
+                "excluded": true
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "current": {
+      "runId": "41031107948",
+      "attempt": 2
+    },
+    "source": "Failed status from job 123982009898 logs. Failure ID and timestamps are placeholders; the passing job and its retry are from the published Allure result."
+  },
+  "reusedJob": {
+    "jobs": [
+      {
+        "runId": "42178146318",
+        "attempt": 1,
+        "jobId": "127765461740",
+        "checkout": "8a51ca44bda41a6ce50341d4350d1a933c9be2b0",
+        "environment": "ubuntu-latest",
+        "runnerOS": "Linux",
+        "arch": "X64",
+        "image": "ubuntu-26.04",
+        "imageVersion": "20261101.186.1",
+        "startedAt": 1793949439000,
+        "finishedAt": 1793950696000,
+        "results": [
+          {
+            "id": "ubuntu-fixture-fail",
+            "fullName": "allure-awesome/test/stepsSubtreeToggle.test.ts \u203a should cycle step subtree toggle state like categories",
+            "status": "failed",
+            "start": 1793949440000,
+            "stop": 1793949441000,
+            "retryHash": "0995aba92e8c9bea7d580f8d1b1b3353.969c352bee93c662f3c6f43279ecdeef.8898811ed10f1d469ac370241c131038",
+            "isRetry": true,
+            "labels": [
+              {
+                "name": "module",
+                "value": "e2e"
+              },
+              {
+                "name": "type",
+                "value": "playwright"
+              }
+            ],
+            "parameters": [
+              {
+                "name": "Project",
+                "value": "safari",
+                "excluded": false
+              }
+            ]
+          },
+          {
+            "id": "ubuntu-fixture-pass",
+            "fullName": "allure-awesome/test/stepsSubtreeToggle.test.ts \u203a should cycle step subtree toggle state like categories",
+            "status": "passed",
+            "start": 1793949442000,
+            "stop": 1793949443000,
+            "retryHash": "0995aba92e8c9bea7d580f8d1b1b3353.969c352bee93c662f3c6f43279ecdeef.8898811ed10f1d469ac370241c131038",
+            "isRetry": false,
+            "labels": [
+              {
+                "name": "module",
+                "value": "e2e"
+              },
+              {
+                "name": "type",
+                "value": "playwright"
+              }
+            ],
+            "parameters": [
+              {
+                "name": "Project",
+                "value": "safari",
+                "excluded": false
+              },
+              {
+                "name": "Retry",
+                "value": "1",
+                "excluded": true
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "current": {
+      "runId": "42178146318",
+      "attempt": 2
+    },
+    "source": "Actual Ubuntu job provenance from 42178146318. The result pair is synthetic so the replay would visibly count a retry if it mistook a reused artifact for a fresh job."
+  },
+  "changedCheckout": {
+    "jobs": [
+      {
+        "runId": "42815751155",
+        "attempt": 1,
+        "jobId": "129857504682",
+        "checkout": "5025bb31eb1fca054e91464c2721a3cf1f2eabda",
+        "environment": "macos-latest",
+        "runnerOS": "macOS",
+        "arch": "ARM64",
+        "image": "macos-26-arm64",
+        "imageVersion": "20261102.0473.1",
+        "startedAt": 1794317564000,
+        "finishedAt": 1794318504000,
+        "results": [
+          {
+            "id": "1019d0ee43a6ad06c88dc9e07f86160a",
+            "fullName": "@allurereport/plugin-classic:test/generators.test.ts#generateAllCharts should count every matching category of a test result in the categories trend",
+            "status": "broken",
+            "start": 1794317723624,
+            "stop": 1794317723631,
+            "retryHash": "7614931740007c72c7172cccb7494130.d41d8cd98f00b204e9800998ecf8427e.8898811ed10f1d469ac370241c131038",
+            "isRetry": false,
+            "labels": [
+              {
+                "name": "type",
+                "value": "vitest"
+              },
+              {
+                "name": "module",
+                "value": "plugin-classic"
+              }
+            ],
+            "parameters": []
+          }
+        ]
+      },
+      {
+        "runId": "42855284492",
+        "attempt": 1,
+        "jobId": "129970888779",
+        "checkout": "c15a4059e6e0d1480c8a7b574ea6cd41fec43478",
+        "environment": "macos-latest",
+        "runnerOS": "macOS",
+        "arch": "ARM64",
+        "image": "macos-26-arm64",
+        "imageVersion": "20261102.0473.1",
+        "startedAt": 1794329002000,
+        "finishedAt": 1794331497000,
+        "results": [
+          {
+            "id": "30833d09503fabf73b23857f2ca678df",
+            "fullName": "@allurereport/plugin-classic:test/generators.test.ts#generateAllCharts should count every matching category of a test result in the categories trend",
+            "status": "passed",
+            "start": 1794329630004,
+            "stop": 1794329630013,
+            "retryHash": "7614931740007c72c7172cccb7494130.d41d8cd98f00b204e9800998ecf8427e.8898811ed10f1d469ac370241c131038",
+            "isRetry": false,
+            "labels": [
+              {
+                "name": "type",
+                "value": "vitest"
+              },
+              {
+                "name": "module",
+                "value": "plugin-classic"
+              }
+            ],
+            "parameters": []
+          }
+        ]
+      }
+    ],
+    "current": {
+      "runId": "42855284492",
+      "attempt": 1
+    },
+    "source": "The audit linked the failing job in 42815751155 and its subsequent passing result in 42855284492."
+  }
+}
