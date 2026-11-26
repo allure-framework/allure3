@@ -1,7 +1,7 @@
 import { epic, feature, label, story } from "allure-js-commons";
 import { beforeEach, describe, expect, it } from "vite-plus/test";
 
-import { toSessionVariables } from "../src/utils/sessionEnvironment.js";
+import { toSessionVariables } from "../../src/testops/utils/sessionEnvironment.js";
 
 beforeEach(async () => {
   await epic("coverage");

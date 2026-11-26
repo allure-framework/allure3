@@ -2,8 +2,8 @@ import type { CategoryDefinition, Matcher } from "@allurereport/core-api";
 import { epic, feature, label, story } from "allure-js-commons";
 import { beforeEach, describe, expect, it } from "vite-plus/test";
 
-import type { TestResultWithCategories } from "../src/model.js";
-import { toUploadCategory } from "../src/utils/categories.js";
+import type { TestResultWithCategories } from "../../src/testops/model.js";
+import { toUploadCategory } from "../../src/testops/utils/categories.js";
 
 beforeEach(async () => {
   await epic("coverage");

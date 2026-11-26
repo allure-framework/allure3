@@ -5,7 +5,7 @@ import type { PluginContext } from "@allurereport/plugin-api";
 import { BufferResultFile } from "@allurereport/reader-api";
 import { afterEach, beforeEach, expect, it, vi } from "vite-plus/test";
 
-import { TestOpsPlugin } from "../../src/plugin.js";
+import { TestOpsPlugin } from "../../../src/testops/plugin.js";
 import { handleBeforeEach, mockAllureStore, mockRequests } from "./helpers.js";
 
 beforeEach(handleBeforeEach);

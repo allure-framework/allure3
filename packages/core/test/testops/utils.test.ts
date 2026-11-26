@@ -2,8 +2,8 @@ import type { TestStepResult } from "@allurereport/core-api";
 import { epic, feature, label, story } from "allure-js-commons";
 import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
-import { resolvePluginOptions } from "../src/utils/options.js";
-import { attachmentsResolverFactory, unwrapStepsAttachments } from "../src/utils/resolvers.js";
+import { resolvePluginOptions } from "../../src/testops/utils/options.js";
+import { attachmentsResolverFactory, unwrapStepsAttachments } from "../../src/testops/utils/resolvers.js";
 
 beforeEach(async () => {
   await epic("coverage");

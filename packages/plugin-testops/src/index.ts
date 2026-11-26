@@ -1,2 +1,2 @@
-export type { TestOpsPluginOptions as TestOpsUploaderPluginOptions } from "./model.js";
-export { TestOpsPlugin as default } from "./plugin.js";
+export type { TestOpsPluginOptions as TestOpsUploaderPluginOptions } from "@allurereport/core/testops";
+export { default } from "@allurereport/core/testops";
