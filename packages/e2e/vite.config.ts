@@ -47,12 +47,12 @@ export default defineConfig({
       },
       "vp:test:e2e": testTask,
       // exclude from "yarn test" on CI so it can be executed in a separate job
-      "vp:test": !ci
-        ? testTask
-        : {
+      "vp:test": ci
+        ? {
             command: "node -e \"console.log('This is a no-op task, nothing will be executed')\"",
             cache: false,
-          },
+          }
+        : testTask,
     },
   },
 });
