@@ -1,5 +1,6 @@
-import { type Statistic, type TestStatus, statusesList } from "@allurereport/core-api";
+import { type Statistic, type TestStatus, getSuccessRate, statusesList } from "@allurereport/core-api";
 
+import { formatChartPercentage } from "../SuccessRatePieChart/successRate";
 import { getColorFromStatus } from "../utils";
 import { MAX_PIE_WIDTH, PIE_PADDING } from "./constants";
 import type { ChartData, I18nProp } from "./types";
@@ -13,30 +14,26 @@ const UNITS = [
 ];
 
 export const getPercentOf = (value = 0, total = 0) => {
-  // Return 0 if value is zero since percentage calculation would result in 0
-  if (value === 0) {
+  if (value === 0 || total === 0) {
     return "0";
   }
 
-  // Return 0 if total is zero to avoid division by zero
-  if (total === 0) {
-    return "0";
+  return formatChartPercentage((value / total) * 100);
+};
+
+/**
+ * The default "passed" metric shows the success rate, so the chart matches the report overview
+ * and the quality gate. Any other metric shows its share among all results.
+ */
+export const getCenteredMetric = (data: Statistic, metric: TestStatus = "passed") => {
+  if (metric === "passed") {
+    return {
+      kind: "successRate" as const,
+      percentage: formatChartPercentage(getSuccessRate(data) * 100),
+    };
   }
 
-  const percentage = (value / total) * 100;
-
-  // Return as integer string if there's no decimal part
-  if (Number.isInteger(percentage)) {
-    return percentage.toString();
-  }
-
-  // Protect against floating-point representation slightly above 99.99 but less than 100
-  if (percentage > 99.99 && percentage < 100) {
-    return "99.99";
-  }
-
-  // Remove trailing zeros by converting to string without redundant zeros after decimal
-  return percentage.toFixed(2).replace(/\.?0+$/, "");
+  return { kind: "share" as const, percentage: getPercentOf(data[metric], data.total) };
 };
 
 export const formatPercentageToFitWidth = ({

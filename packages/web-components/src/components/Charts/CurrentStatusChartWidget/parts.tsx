@@ -1,8 +1,14 @@
+import type { Statistic, TestStatus } from "@allurereport/core-api";
 import type { PieCustomLayerProps } from "@nivo/pie";
 import { useMemo } from "preact/hooks";
 
 import type { ChartDatum, I18nProp } from "./types";
-import { formatDescriptionToFitWidth, formatPercentageToFitWidth, formatTotalToFitWidth, getPercentOf } from "./utils";
+import {
+  formatDescriptionToFitWidth,
+  formatPercentageToFitWidth,
+  formatTotalToFitWidth,
+  getCenteredMetric,
+} from "./utils";
 
 import styles from "./styles.scss";
 
@@ -13,20 +19,22 @@ export const CenteredMetric = ({
   isEmpty,
   i18n,
   total,
+  data,
 }: {
-  metric: string;
+  metric: TestStatus;
   metricType: "total" | "percent";
   layerProps: PieCustomLayerProps<ChartDatum>;
   isEmpty: boolean;
   i18n: I18nProp;
   total: number;
+  data: Statistic;
 }) => {
   if (metricType === "total" || isEmpty) {
     return <TotalMetric layer={layerProps} i18n={i18n} total={total} />;
   }
 
   if (metricType === "percent") {
-    return <PercentsMetric layer={layerProps} metric={metric} i18n={i18n} total={total} />;
+    return <PercentsMetric layer={layerProps} metric={metric} i18n={i18n} total={total} data={data} />;
   }
 
   return null;
@@ -51,16 +59,16 @@ const PercentsMetric = ({
   metric,
   i18n,
   total,
+  data,
 }: {
   layer: PieCustomLayerProps<ChartDatum>;
-  metric: string;
+  metric: TestStatus;
   i18n: I18nProp;
   total: number;
+  data: Statistic;
 }) => {
-  const { dataWithArc, radius, centerX, centerY } = layer;
-
-  const metricData = dataWithArc.find((item) => item.data.id === metric);
-  const percentage = getPercentOf(metricData?.data.value, total);
+  const { radius, centerX, centerY } = layer;
+  const { kind, percentage } = getCenteredMetric(data, metric);
 
   return (
     <CenteredText
@@ -68,9 +76,7 @@ const PercentsMetric = ({
       centerX={centerX}
       centerY={centerY}
       title={i18n("percentage", { percentage })}
-      description={i18n("of", {
-        total,
-      })}
+      description={kind === "successRate" ? i18n("successRate") : i18n("of", { total })}
     />
   );
 };
