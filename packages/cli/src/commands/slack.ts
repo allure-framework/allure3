@@ -75,7 +75,7 @@ export class SlackCommand extends Command {
       channel: this.channel,
       webhook: this.webhook,
     } as SlackPluginOptions;
-    const config = await readConfig(cwd, this.config);
+    const config = await readConfig(cwd, this.config, { plugins: {} });
     const { resultDirectories, patterns } = await resolveAndFindResultsDirs(cwd, this.resultsDir, config.resultsDir);
 
     if (!resultDirectories.length) {

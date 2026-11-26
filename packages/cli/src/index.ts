@@ -1,6 +1,8 @@
 import { readFileSync } from "node:fs";
 import process, { argv } from "node:process";
 
+import type { AllureConfig } from "@allurereport/core";
+import { defineConfig as definePluginConfig } from "@allurereport/plugin-api";
 import { Builtins, Cli, UsageError } from "clipanion";
 
 import {
@@ -122,5 +124,6 @@ void main().catch((error: unknown) => {
   process.exitCode = 1;
 });
 
-export { type Config as AllureConfig, defineConfig } from "@allurereport/plugin-api";
+export type { AllureConfig } from "@allurereport/core";
+export const defineConfig: (config: AllureConfig) => AllureConfig = definePluginConfig;
 export { defaultChartsConfig } from "@allurereport/charts-api";

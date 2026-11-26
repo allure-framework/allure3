@@ -1,6 +1,7 @@
 import { isExpression } from "@allurereport/core-api/expression";
-import type { Config, PluginExpressionFields } from "@allurereport/plugin-api";
+import type { PluginExpressionFields } from "@allurereport/plugin-api";
 
+import type { AllureConfig as Config } from "../api.js";
 import type { ConfigOverride } from "../config.js";
 
 export type ConfigExpressionPath = readonly (string | number)[];
@@ -22,6 +23,7 @@ const CORE_CONFIG_NULLISH_OVERRIDE_KEYS = [
 
 const SEPARATELY_SELECTED_CORE_CONFIG_KEYS = new Set<string>([
   "plugins",
+  "testops",
   "resolutions",
   ...CORE_CONFIG_NULLISH_OVERRIDE_KEYS,
 ]);

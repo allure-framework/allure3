@@ -74,7 +74,7 @@ export class LogCommand extends Command {
       qualityGateResults: this.qualityGateResults,
       qualityGateFilter: this.allQualityGateResults ? () => true : undefined,
     } as LogPluginOptions;
-    const config = await readConfig(cwd, this.config);
+    const config = await readConfig(cwd, this.config, { plugins: {} });
     const resolvedEnvironment = resolveCommandEnvironment(config, {});
     const { resultDirectories, patterns } = await resolveAndFindResultsDirs(cwd, this.resultsDir, config.resultsDir);
 

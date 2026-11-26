@@ -1,5 +1,5 @@
 import type { AttachmentLink, TestResult } from "@allurereport/core-api";
-import type { UploadCategoryGrouping, UploadRateLimit } from "@allurereport/service/testops";
+import type { TestOpsUploadOptions, UploadCategoryGrouping } from "@allurereport/service/testops";
 
 export type TestResultWithCategories = Pick<
   TestResult,
@@ -16,24 +16,7 @@ export type TestResultWithCategories = Pick<
     }[];
   };
 
-export type TestOpsUploaderOptions = {
-  endpoint: string;
-  accessToken: string;
-  projectId: string;
-  launchName: string;
-  launchTags: string[];
-  autocloseLaunch?: boolean;
-  reopenClosedLaunch?: boolean;
-  launchId?: number;
-  /** When false, Git Flow metadata is never collected or sent. Default: false */
-  gitFlow?: boolean;
-  /** First-parent ancestor limit (server N). Default: 100 */
-  ancestorLimit?: number;
-  filter?: (testResult: TestResult) => boolean;
-  limit?: number;
-  uploadRateLimit?: UploadRateLimit | false;
-};
-
+export type TestOpsUploaderOptions = TestOpsUploadOptions;
 export type TestOpsPluginOptions = TestOpsUploaderOptions;
 
 export interface TestResultWithAttachments extends TestResult {

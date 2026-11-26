@@ -127,6 +127,7 @@ describe("dashboard command", () => {
 
     expect(readConfig).toHaveBeenCalledTimes(1);
     expect(readConfig).toHaveBeenCalledWith(expect.any(String), undefined, {
+      plugins: {},
       output: "foo",
       name: "bar",
     });
@@ -140,6 +141,7 @@ describe("dashboard command", () => {
 
     expect(readConfig).toHaveBeenCalledTimes(1);
     expect(readConfig).toHaveBeenCalledWith(expect.any(String), undefined, {
+      plugins: {},
       output: undefined,
       name: undefined,
     });

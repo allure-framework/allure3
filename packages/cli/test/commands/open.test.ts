@@ -93,11 +93,14 @@ describe("open command", () => {
     expect(serve).toHaveBeenCalledWith(expect.objectContaining({ open: true }));
   });
 
-  it("should open an existing report", async () => {
+  it("opens an existing report with an invalid filter in the unused TestOps config", async () => {
     vi.mocked(existsSync).mockReturnValue(true);
     (glob as unknown as Mock).mockResolvedValue(["summary.json"]);
     vi.mocked(tmpdir).mockReturnValue("tmp");
-    (readConfig as Mock).mockResolvedValue({ output: "existing-report" });
+    const { resolveConfig } = await vi.importActual<typeof import("@allurereport/core")>("@allurereport/core");
+    vi.mocked(readConfig).mockImplementationOnce((_cwd, _configPath, override) =>
+      resolveConfig({ output: "existing-report", testops: { filter: "${{ invalid. }}" } }, override),
+    );
     const { serve } = mockServe();
 
     const exitCode = await run(OpenCommand, ["open", "results"]);

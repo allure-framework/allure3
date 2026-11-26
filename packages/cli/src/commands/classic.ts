@@ -81,6 +81,7 @@ export class ClassicCommand extends Command {
       reportLanguage: this.reportLanguage,
     } as ClassicPluginOptions;
     const config = await readConfig(cwd, this.config, {
+      plugins: {},
       output: this.output,
       name: this.reportName,
       resolutions: { knownIssuesPath: this.knownIssues },

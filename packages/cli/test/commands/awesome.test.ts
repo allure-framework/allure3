@@ -144,6 +144,7 @@ describe("awesome command", () => {
 
     expect(readConfig).toHaveBeenCalledTimes(1);
     expect(readConfig).toHaveBeenCalledWith(expect.any(String), undefined, {
+      plugins: {},
       name: "foo",
       output: "bar",
       resolutions: { knownIssuesPath: "baz" },
@@ -160,6 +161,7 @@ describe("awesome command", () => {
 
     expect(readConfig).toHaveBeenCalledTimes(1);
     expect(readConfig).toHaveBeenCalledWith(expect.any(String), undefined, {
+      plugins: {},
       output: undefined,
       name: undefined,
       resolutions: { knownIssuesPath: undefined },
@@ -178,6 +180,7 @@ describe("awesome command", () => {
     await run(AwesomeCommand, ["awesome", "--hide-labels", "owner", "--hide-labels", "tag", "./allure-results"]);
 
     expect(readConfig).toHaveBeenCalledWith(expect.any(String), undefined, {
+      plugins: {},
       output: undefined,
       name: undefined,
       resolutions: { knownIssuesPath: undefined },

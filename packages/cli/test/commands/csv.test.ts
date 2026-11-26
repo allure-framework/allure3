@@ -81,6 +81,7 @@ describe("csv command", () => {
     await run(CsvCommand, ["csv", fixtures.resultsDir]);
 
     expect(readConfig).toHaveBeenCalledWith(fixtures.cwd, undefined, {
+      plugins: {},
       resolutions: { knownIssuesPath: undefined },
     });
     expect(AllureReport).toHaveBeenCalledTimes(1);
@@ -152,6 +153,7 @@ describe("csv command", () => {
 
     expect(readConfig).toHaveBeenCalledTimes(1);
     expect(readConfig).toHaveBeenCalledWith(fixtures.cwd, undefined, {
+      plugins: {},
       resolutions: { knownIssuesPath: fixtures.knownIssues },
     });
     expect(AllureReport).toHaveBeenCalledWith(
@@ -178,6 +180,7 @@ describe("csv command", () => {
 
     expect(readConfig).toHaveBeenCalledTimes(1);
     expect(readConfig).toHaveBeenCalledWith(fixtures.cwd, undefined, {
+      plugins: {},
       resolutions: { knownIssuesPath: undefined },
     });
     expect(AllureReport).toHaveBeenCalledWith(
@@ -223,6 +226,7 @@ describe("csv command", () => {
     await run(CsvCommand, ["csv", "--config", fixtures.config, fixtures.resultsDir]);
 
     expect(readConfig).toHaveBeenCalledWith(fixtures.cwd, fixtures.config, {
+      plugins: {},
       resolutions: { knownIssuesPath: undefined },
     });
   });
@@ -237,6 +241,7 @@ describe("csv command", () => {
 
     expect(realpath).toHaveBeenCalledWith(customCwd);
     expect(readConfig).toHaveBeenCalledWith(customCwd, undefined, {
+      plugins: {},
       resolutions: { knownIssuesPath: undefined },
     });
   });
@@ -260,6 +265,7 @@ describe("csv command", () => {
 
     expect(realpath).toHaveBeenCalledWith(customCwd);
     expect(readConfig).toHaveBeenCalledWith(customCwd, fixtures.config, {
+      plugins: {},
       resolutions: { knownIssuesPath: undefined },
     });
     expect(AllureReport).toHaveBeenCalledWith(

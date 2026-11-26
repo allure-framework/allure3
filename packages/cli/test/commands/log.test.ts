@@ -107,6 +107,7 @@ describe("log command", () => {
       expect.stringContaining(`No test results directories found matching pattern: ${fixtures.resultsDir}`),
     );
     expect(exit).toHaveBeenCalledWith(1);
+    expect(readConfig).toHaveBeenCalledWith(expect.any(String), undefined, { plugins: {} });
     expect(AllureReport).not.toHaveBeenCalled();
   });
 

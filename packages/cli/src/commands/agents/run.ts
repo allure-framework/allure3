@@ -326,7 +326,7 @@ export const executeAgentInspectMode = async (params: ExecuteAgentInspectModePar
     throw new AgentUsageError(`No dump files found matching pattern: ${dumps.join(", ")}`);
   }
 
-  const resultsConfig = await readConfig(cwd, configPath);
+  const resultsConfig = await readConfig(cwd, configPath, { plugins: {} });
   const resolvedPatterns = resolveResultsPatterns(resultsDir, resultsConfig.resultsDir);
   // dumps-only: skip default results read only when CLI empty AND config unset AND dumps present
   const shouldReadResults = resolvedPatterns.length > 0 || dumpFiles.length === 0;

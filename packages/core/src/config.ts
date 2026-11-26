@@ -8,10 +8,10 @@ import {
   validateMetricsConfig,
 } from "@allurereport/core-api";
 import { type NameContext, createNameContext, resolveName } from "@allurereport/core-api/expression";
-import type { Config, PluginConstructor, PluginConstructorContext, PluginDescriptor } from "@allurereport/plugin-api";
+import type { PluginConstructor, PluginConstructorContext, PluginDescriptor } from "@allurereport/plugin-api";
 import { parse } from "yaml";
 
-import type { FullConfig, PluginInstance } from "./api.js";
+import type { AllureConfig as Config, FullConfig, PluginInstance } from "./api.js";
 import { resolveAllureService } from "./config/allureService.js";
 import { resolveCategories } from "./config/categories.js";
 import { resolveEnvironments } from "./config/environments.js";
@@ -33,7 +33,7 @@ import {
   normalizeEnvironmentDescriptorMap,
   validateAllowedEnvironmentId,
 } from "./utils/environment.js";
-import { importWrapper } from "./utils/module.js";
+import { importWrapper, isPackageEntry, resolveModulePath } from "./utils/module.js";
 import { assertNodeSupportsTsConfig } from "./utils/nodeVersion.js";
 import { normalizeImportPath } from "./utils/path.js";
 import { normalizeResultsDir } from "./utils/resultsDir.js";
@@ -186,6 +186,7 @@ export const validateConfig = (config: Config) => {
     "metrics",
     "performance",
     "allureService",
+    "testops",
     "categories",
     "globalAttachments",
     "resultsDir",
@@ -393,30 +394,12 @@ export const resolveConfig = async (config: Config, override: ConfigOverride = {
   const cwd = resolve(override.cwd ?? process.cwd());
   const variables = config.variables ?? {};
   const resultsDir = normalizeResultsDir(config.resultsDir);
-  let pluginInstances: PluginInstance[] = [];
-  const hasPluginsOverride = override.plugins !== undefined;
-
-  if (!hasPluginsOverride || Object.keys(override.plugins ?? {}).length > 0) {
-    const configuredPlugins = hasPluginsOverride ? override.plugins : config.plugins;
-    const basePlugins =
-      !hasPluginsOverride && Object.keys(configuredPlugins ?? {}).length === 0
-        ? {
-            awesome: {
-              options: {},
-            },
-          }
-        : configuredPlugins!;
-    const pluginsWithAgent = hasConfiguredAgent(basePlugins)
-      ? basePlugins
-      : {
-          ...basePlugins,
-          agent: {
-            options: {},
-          },
-        };
-
-    pluginInstances = await resolvePlugins(pluginsWithAgent, nameContext);
-  }
+  const pluginInstances =
+    override.plugins === undefined
+      ? await resolvePlugins(config.plugins ?? {}, nameContext, config.testops)
+      : Object.keys(override.plugins).length
+        ? await resolvePlugins(override.plugins, nameContext)
+        : [];
 
   return {
     name,
@@ -538,62 +521,119 @@ const isModuleNotFoundError = (err: unknown): err is Error & { code: "ERR_MODULE
   );
 };
 
-export const resolvePlugin = async (path: string): Promise<PluginConstructor> => {
-  // try to append @allurereport/plugin- scope
+const coreTestOpsImport = "@allurereport/core/testops";
+const legacyTestOpsImport = "@allurereport/plugin-testops";
+const testOpsImports = new Set(["testops", legacyTestOpsImport, coreTestOpsImport]);
+
+const resolvePluginModule = async (path: string, nativeTestOps?: PluginConstructor) => {
+  const load = async (specifier: string) => {
+    const entry = resolveModulePath(specifier);
+    const isTestOps =
+      specifier === coreTestOpsImport ||
+      isPackageEntry(entry, legacyTestOpsImport) ||
+      isPackageEntry(entry, coreTestOpsImport);
+
+    // A native override replaces the legacy uploader before its module is evaluated.
+    const Plugin: PluginConstructor = isTestOps && nativeTestOps ? nativeTestOps : (await importWrapper(entry)).default;
+
+    return { Plugin, isTestOps };
+  };
+
   if (!path.startsWith("@allurereport/plugin-")) {
     try {
-      const module = await importWrapper(`@allurereport/plugin-${path}`);
-
-      return module.default;
+      return await load(`@allurereport/plugin-${path}`);
     } catch (err) {
-      // Only suppress "module not found" errors
-      // because we will try to resolve plugin without "@allurereport/plugin-" prefix
       if (!isModuleNotFoundError(err)) {
-        // This means that there is a problem with the plugin code itself, so throw away!
         throw err;
       }
     }
   }
 
   try {
-    const module = await importWrapper(path);
-
-    return module.default;
+    return await load(path);
   } catch {
     throw new Error(`Cannot resolve plugin: ${path}`);
   }
 };
 
-const coreTestOpsImport = "@allurereport/core/testops";
-const testOpsImports = new Set(["testops", "@allurereport/plugin-testops", coreTestOpsImport]);
+export const resolvePlugin = async (path: string): Promise<PluginConstructor> =>
+  (await resolvePluginModule(path)).Plugin;
 
-const resolvePlugins = async (plugins: Record<string, PluginDescriptor>, context: NameContext) => {
+const testOpsOptionKeys = [
+  "endpoint",
+  "accessToken",
+  "projectId",
+  "launchName",
+  "launchTags",
+  "autocloseLaunch",
+  "reopenClosedLaunch",
+  "launchId",
+  "gitFlow",
+  "ancestorLimit",
+  "filter",
+  "limit",
+  "uploadRateLimit",
+] as const satisfies readonly (keyof NonNullable<Config["testops"]>)[];
+
+const resolvePlugins = async (
+  configured: Record<string, PluginDescriptor>,
+  context: NameContext,
+  testops?: Config["testops"],
+) => {
+  if (testops !== undefined && (testops === null || typeof testops !== "object" || Array.isArray(testops))) {
+    throw new TypeError("testops must be a configuration object");
+  }
+
+  const enabled = testops?.enabled;
+
+  if (enabled !== undefined && typeof enabled !== "boolean") {
+    throw new TypeError("testops.enabled must be a boolean");
+  }
+
+  const nativePlugin = testops === undefined ? undefined : await resolvePlugin(coreTestOpsImport);
   const pluginInstances: PluginInstance[] = [];
+  let hasAgent = false;
 
-  for (const id in plugins) {
+  const addPlugin = async (id: string, pluginConfig: PluginDescriptor, native?: PluginConstructor) => {
+    const pluginImport = pluginConfig.import ?? id;
+    const knownTestOps = testOpsImports.has(pluginImport);
+
+    if (!native && nativePlugin && knownTestOps) {
+      return;
+    }
+
     const pluginId = getPluginId(id);
-    const pluginConfig = plugins[id];
     const { options: rawOptions, ...descriptor } = pluginConfig;
+
     for (const path of findUnsupportedExpressions(descriptor, () => false, ["plugins", id])) {
       warnUnsupportedExpression(path);
     }
-    const pluginImport = pluginConfig.import ?? id;
-    const isTestOps = testOpsImports.has(pluginImport);
-    const Plugin = await resolvePlugin(isTestOps ? coreTestOpsImport : pluginImport);
+
+    const { Plugin, isTestOps } = native
+      ? { Plugin: native, isTestOps: true }
+      : await resolvePluginModule(knownTestOps ? coreTestOpsImport : pluginImport, nativePlugin);
+
+    if (!native && nativePlugin && Plugin === nativePlugin) {
+      return;
+    }
+
+    const optionsPath = native ? ["testops"] : ["plugins", id, "options"];
+
     for (const path of findUnsupportedExpressions(
       rawOptions,
-      (segments) => supportsPluginExpression(Plugin.configExpressions, segments.slice(3)),
-      ["plugins", id, "options"],
+      (segments) => supportsPluginExpression(Plugin.configExpressions, segments.slice(optionsPath.length)),
+      optionsPath,
     )) {
       warnUnsupportedExpression(path);
     }
+
     const options = resolvePluginOptions(
       isTestOps ? (rawOptions ?? {}) : rawOptions,
       Plugin.configExpressions,
-      `plugins[${JSON.stringify(id)}].options`,
+      native ? "testops" : `plugins[${JSON.stringify(id)}].options`,
       context,
     );
-    const enabled = pluginConfig.enabled ?? true;
+
     const constructorContext: PluginConstructorContext = {};
 
     if ("enabled" in pluginConfig) {
@@ -602,10 +642,49 @@ const resolvePlugins = async (plugins: Record<string, PluginDescriptor>, context
 
     pluginInstances.push({
       id: pluginId,
-      enabled,
+      enabled: pluginConfig.enabled ?? true,
       options: options ?? {},
       plugin: new Plugin(options, constructorContext),
     });
+
+    hasAgent ||= isAgentDescriptor(id) || isAgentDescriptor(pluginImport);
+  };
+
+  // Historically, appending the default agent copied only own descriptors. An explicit agent kept the prototype.
+  const plugins = hasConfiguredAgent(configured) ? configured : { ...configured };
+
+  for (const id in plugins) {
+    await addPlugin(id, plugins[id]);
+  }
+
+  if (!pluginInstances.length) {
+    await addPlugin("awesome", { options: {} });
+  }
+
+  if (testops && enabled !== false) {
+    const ids = new Set(pluginInstances.map(({ id }) => id));
+    let id = "testops";
+
+    for (let i = 2; ids.has(id); i++) {
+      id = `testops-${i}`;
+    }
+
+    // JS configs can expose supported options as non-enumerable properties or prototype getters.
+    const keys = new Set([...Object.keys(testops), ...testOpsOptionKeys]);
+    keys.delete("enabled");
+    const options = Object.fromEntries(
+      [...keys].filter((key) => key in testops).map((key) => [key, Reflect.get(testops, key)]),
+    );
+
+    await addPlugin(
+      id,
+      { import: coreTestOpsImport, options, ...(enabled === undefined ? {} : { enabled }) },
+      nativePlugin,
+    );
+  }
+
+  if (!hasAgent) {
+    await addPlugin("agent", { options: {} });
   }
 
   return pluginInstances;

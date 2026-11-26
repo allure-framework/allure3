@@ -81,6 +81,7 @@ export class Allure2Command extends Command {
       reportLanguage: this.reportLanguage,
     } as Allure2PluginOptions;
     const config = await readConfig(cwd, this.config, {
+      plugins: {},
       output: this.output,
       name: this.reportName,
       resolutions: { knownIssuesPath: this.knownIssues },

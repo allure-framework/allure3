@@ -1,4 +1,6 @@
 import * as console from "node:console";
+import { existsSync } from "node:fs";
+import { join } from "node:path";
 
 import {
   readConfig,
@@ -119,6 +121,7 @@ const recordFailedReport = (status: AgentHumanReportStatus, pluginId: string, er
 class AgentHumanReportPlugin implements Plugin {
   #realtime?: RealtimeSubscriber;
   #generated = false;
+  #summary?: Promise<PluginSummary | undefined>;
 
   constructor(private readonly params: AgentHumanReportPluginParams) {}
 
@@ -132,10 +135,6 @@ class AgentHumanReportPlugin implements Plugin {
 
     status.result_count = resultCount;
 
-    if (status.status === "skipped") {
-      return;
-    }
-
     if (mode === "auto" && resultCount > threshold) {
       status.status = "skipped";
       status.reason = `result count ${resultCount} exceeds threshold ${threshold}`;
@@ -146,7 +145,22 @@ class AgentHumanReportPlugin implements Plugin {
       await plugin.start?.(context, store, this.#realtime!);
       await plugin.done?.(context, store);
       this.#generated = true;
-      recordGeneratedReport(status, pluginId, reportPath);
+      this.#summary = undefined;
+
+      const path =
+        mode !== "config" || existsSync(join(context.output, reportPath))
+          ? reportPath
+          : (await this.info(context, store))?.remoteHref;
+
+      if (path) {
+        recordGeneratedReport(status, pluginId, path);
+        return;
+      }
+
+      if (status.status === "pending") {
+        status.status = "skipped";
+        status.reason = "no human report was generated";
+      }
     } catch (error) {
       recordFailedReport(status, pluginId, error);
       console.error(`agent human report ${pluginId} error`, error);
@@ -158,7 +172,9 @@ class AgentHumanReportPlugin implements Plugin {
       return undefined;
     }
 
-    return this.params.plugin.info?.(context, store);
+    this.#summary ??= this.params.plugin.info?.(context, store);
+
+    return this.#summary;
   };
 }
 
