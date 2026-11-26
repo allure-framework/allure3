@@ -79,6 +79,7 @@ export abstract class BaseServeCommand extends Command {
     const hideLabels = this.hideLabels?.length ? this.hideLabels : undefined;
 
     const config = await readConfig(cwd, this.config, {
+      plugins: {},
       port: this.port,
       host: this.host,
     });

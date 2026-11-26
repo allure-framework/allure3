@@ -78,7 +78,7 @@ export class TestOpsClient {
   #jobRunId?: number;
   #session?: TestOpsSession;
   #uploadInProgress: boolean = false;
-  #uploadLimit: number = 1;
+  #uploadLimit: number;
   #uploadPacer: UploadPacer;
   #namedEnvsIdsByEnv: Map<string, TestOpsNamedEnv> = new Map();
 
@@ -95,8 +95,9 @@ export class TestOpsClient {
       throw new Error("baseUrl is required");
     }
 
-    if (params.limit && params.limit > 5) {
-      throw new Error("limit can't be greater than 5");
+    const { limit = 1 } = params;
+    if (!Number.isInteger(limit) || limit < 1 || limit > 5) {
+      throw new RangeError("limit must be an integer from 1 to 5");
     }
 
     this.#baseUrl = params.baseUrl;
@@ -107,10 +108,7 @@ export class TestOpsClient {
       apiToken: this.#accessToken,
     });
 
-    if (params.limit) {
-      this.#uploadLimit = params.limit;
-    }
-
+    this.#uploadLimit = limit;
     this.#uploadPacer = new UploadPacer(params.uploadRateLimit);
   }
 

@@ -1,13 +1,16 @@
 import console from "node:console";
-import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { createRequire } from "node:module";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { basename, dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 
 import { BufferResultFile } from "@allurereport/reader-api";
 import { afterEach, describe, expect, it, vi } from "vite-plus/test";
 
-import { readConfig } from "../../src/config.js";
+import { readConfig, resolveConfig } from "../../src/config.js";
 import { AllureReport } from "../../src/report.js";
+import { mockRequests } from "../testops/features/helpers.js";
 
 const directories: string[] = [];
 const load = async (source: string) => {
@@ -39,10 +42,76 @@ const run = async (report: AllureReport) => {
 
 afterEach(async () => {
   vi.restoreAllMocks();
+  vi.unstubAllEnvs();
   await Promise.all(directories.splice(0).map((directory) => rm(directory, { recursive: true, force: true })));
 });
 
+it("recognizes a separately installed legacy TestOps package by npm alias and absolute entry", async () => {
+  // Put a unique npm alias on core's real package search path.
+  const dir = await mkdtemp(fileURLToPath(new URL("../../../../node_modules/legacy-testops-", import.meta.url)));
+  directories.push(dir);
+  const name = "@allurereport/plugin-testops";
+  await writeFile(join(dir, "package.json"), JSON.stringify({ name, exports: "./index.cjs" }));
+  await writeFile(join(dir, "index.cjs"), "module.exports = class LegacyTestOps {};");
+  const alias = basename(dir);
+  const entry = createRequire(import.meta.url).resolve(alias);
+  const plugins = { bare: { import: alias }, absolute: { import: entry } };
+
+  const legacy = await resolveConfig({ plugins });
+  expect(legacy.plugins?.slice(0, 2).map(({ plugin }) => plugin.constructor.name)).toEqual([
+    "LegacyTestOps",
+    "LegacyTestOps",
+  ]);
+  const disabled = await resolveConfig({ plugins, testops: { enabled: false } });
+  expect(disabled.plugins?.map(({ id }) => id)).toEqual(["awesome", "agent"]);
+
+  // The scoped candidate wins when both the scoped plugin and the npm alias exist.
+  const scopedDir = join(dirname(dir), "@allurereport", `plugin-${alias}`);
+  await mkdir(scopedDir);
+  directories.push(scopedDir);
+  await writeFile(join(scopedDir, "index.js"), "module.exports = class CustomReport {};");
+  const preferred = await resolveConfig({ plugins, testops: { enabled: false } });
+  expect(preferred.plugins?.map(({ id }) => id)).toEqual(["bare", "agent"]);
+  expect(preferred.plugins?.[0].plugin.constructor.name).toBe("CustomReport");
+});
+
 describe("plugin expressions through report generation", () => {
+  it("creates one TestOps launch from YAML and uploads only the selected results", async () => {
+    vi.stubEnv("ALLURE_CI_ENV", "");
+    vi.stubEnv("ALLURE_JOB_RUN_ID", "");
+    vi.stubEnv("ALLURE_LAUNCH_ID", "");
+    vi.stubEnv("ALLURE_TOKEN", "fixture-token");
+    vi.stubEnv("ALLURE_ENDPOINT", "https://example.invalid");
+    vi.stubEnv("ALLURE_PROJECT_ID", "42");
+    const { createLaunchRequest, uploadTestResultsRequest } = mockRequests();
+    const { config } = await load(`
+testops:
+  enabled: true
+  launchName: "\${{ 'Native launch' }}"
+  launchTags: [nightly]
+  filter: "\${{ test.name == 'slow' }}"
+plugins:
+  previous:
+    import: '@allurereport/plugin-testops'
+    options:
+      filter: "\${{ invalid. }}"
+`);
+    expect(config.plugins?.map(({ id }) => id)).toEqual(["awesome", "testops", "agent"]);
+    await run(new AllureReport(config));
+
+    expect(createLaunchRequest).toHaveBeenCalledTimes(1);
+    expect(createLaunchRequest.mock.calls[0][1]).toMatchObject({
+      projectId: "42",
+      name: "Native launch",
+      tags: [{ name: "nightly" }],
+    });
+    expect(
+      uploadTestResultsRequest.mock.calls.flatMap(([, data]) =>
+        data.results.map((result: { name: string }) => result.name),
+      ),
+    ).toEqual(["slow"]);
+  });
+
   it("generates filtered, sorted, escaped CSV from YAML configuration", async () => {
     const { config, output } = await load(`
 plugins:

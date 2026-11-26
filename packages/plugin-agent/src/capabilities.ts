@@ -179,7 +179,7 @@ export const createAgentCapabilities = () =>
       discovery: [
         "When a user asks for a human-readable report after an agent run, first use `allure agent latest` if no output directory is known.",
         "Read `<output>/manifest/human-report.json`, the Human Report section of `<output>/index.md`, or `allure agent query --latest summary` to check whether a report already exists.",
-        "If the status is `generated`, use `<output>/<path>` from the human-report manifest; for auto and awesome this is usually `<output>/awesome/index.html`.",
+        "If the status is `generated`, use `<output>/<path>` for local reports, or open the TestOps launch URL directly. Auto and awesome reports usually use `<output>/awesome/index.html`.",
         "If the status is `skipped`, `disabled`, `failed`, or the manifest is missing, generate a report only from available results or dumps with the requested `--report` mode.",
       ],
     },
@@ -226,8 +226,8 @@ export const AGENT_TASK_MAP_HELP = `Agent task map:
       Recover the newest agent output directory and index.md when --output was
       omitted or a follow-up task needs the previous run. If a user asks for a
       human-readable report from the last run, start here, then inspect
-      <output>/manifest/human-report.json and use <output>/<path> when status is
-      generated.
+      <output>/manifest/human-report.json. When status is generated, open the
+      launch URL directly or resolve a local path relative to <output>.
 
   allure agent state-dir
       Show the shared state directory that stores per-project run registries. Useful when
@@ -264,7 +264,7 @@ Human reports:
   regenerated. First run allure agent latest when the output directory is
   unknown, then read <output>/manifest/human-report.json or
   allure agent query --latest summary. If the human-report status is generated,
-  return or open <output>/<path> from that manifest. If the status is skipped,
+  open the launch URL directly or resolve a local path relative to <output>. If the status is skipped,
   disabled, failed, or missing, rerun or inspect existing results/dumps with the
   requested --report mode, for example --report awesome to force the single-file
   Awesome report or --report config to force configured report plugins.

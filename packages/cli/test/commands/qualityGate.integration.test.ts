@@ -41,6 +41,18 @@ afterEach(async () => {
 });
 
 describe("serialized quality-gate command", { timeout: 20000 }, () => {
+  it("evaluates the quality gate with an invalid filter in the unused TestOps config", async () => {
+    const result = await runGate(`
+testops:
+  filter: "\${{ invalid. }}"
+qualityGate:
+  rules:
+    - minTestsCount: 2
+`);
+    expect(result.code).toBe(1);
+    expect(result.stdout + result.stderr).toContain("minTestsCount");
+  });
+
   it("skips a disabled gate without requiring result directories", async () => {
     const result = await runGate(
       `

@@ -95,6 +95,7 @@ export class QualityGateCommand extends Command {
     const cwd = await realpath(this.cwd ?? processCwd());
     const { maxFailures, minTestsCount, successRate, fastFail } = this;
     const config = await readConfig(cwd, this.config, {
+      plugins: {},
       resolutions: { knownIssuesPath: this.knownIssues },
     });
     const resolvedEnvironment = resolveCommandEnvironment(config, environmentOptions);
@@ -115,8 +116,6 @@ export class QualityGateCommand extends Command {
     if (fastFail) {
       rules.fastFail = fastFail;
     }
-
-    config.plugins = [];
 
     // prioritize the cli options
     if (Object.keys(rules).length > 0) {

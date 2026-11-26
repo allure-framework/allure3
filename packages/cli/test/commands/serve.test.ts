@@ -251,6 +251,7 @@ describe("serve command", () => {
       cwd: resolve("bar", "allure-report"),
     });
     expect(readConfig).toHaveBeenCalledWith("bar", undefined, {
+      plugins: {},
       port: undefined,
     });
     expect(generate).not.toHaveBeenCalled();
@@ -281,6 +282,7 @@ describe("serve command", () => {
       cwd: resolve("baz", "bar"),
     });
     expect(readConfig).toHaveBeenCalledWith("baz", undefined, {
+      plugins: {},
       port: undefined,
     });
     expect(generate).not.toHaveBeenCalled();
@@ -303,6 +305,7 @@ describe("serve command", () => {
     expect(exitCode).toBe(0);
 
     expect(readConfig).toHaveBeenCalledWith(expect.any(String), undefined, {
+      plugins: {},
       port: undefined,
       host: "0.0.0.0",
     });
@@ -426,6 +429,7 @@ describe("serve command", () => {
       cwd: resolve("bar", "baz"),
     });
     expect(readConfig).toHaveBeenCalledWith("bar", undefined, {
+      plugins: {},
       port: undefined,
     });
     expect(generate).not.toHaveBeenCalled();
@@ -478,6 +482,7 @@ describe("serve command", () => {
 
     expect(exitCode).toBe(0);
     expect(readConfig).toHaveBeenCalledWith(expect.any(String), undefined, {
+      plugins: {},
       port: "10202",
     });
     expect(serve).toHaveBeenCalledWith(

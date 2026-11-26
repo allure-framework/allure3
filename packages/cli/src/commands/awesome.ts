@@ -94,6 +94,7 @@ export class AwesomeCommand extends Command {
     const before = new Date().getTime();
     const hideLabels = this.hideLabels?.length ? this.hideLabels : undefined;
     const config = await readConfig(cwd, this.config, {
+      plugins: {},
       output: this.output,
       name: this.reportName,
       resolutions: { knownIssuesPath: this.knownIssues },

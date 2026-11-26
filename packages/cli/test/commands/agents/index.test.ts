@@ -1,4 +1,4 @@
-import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import type { Writable } from "node:stream";
@@ -343,6 +343,7 @@ describe("agent command", () => {
         "the last run",
         "manifest/human-report.json",
         "usually awesome/index.html",
+        "TestOps links open the launch directly",
         "$ allure agent latest",
         "--cwd #0",
       ],
@@ -353,7 +354,7 @@ describe("agent command", () => {
       expected: ["Print the shared Allure agent state directory", "$ allure agent state-dir", "--cwd #0"],
     },
   ])("should expose $command help for local capability detection", async ({ args, expected }) => {
-    const output = await captureAgentHelp(args);
+    const output = (await captureAgentHelp(args)).replace(/\s+/g, " ");
 
     expected.forEach((line) => {
       expect(output).toContain(line);
@@ -851,37 +852,45 @@ describe("agent command", () => {
   });
 
   it("should force configured human reports beyond the auto threshold", async () => {
-    const configuredPlugin = {
-      id: "dashboard",
-      enabled: true,
-      options: {},
-      plugin: {
-        start: vi.fn(),
-        done: vi.fn(),
-      },
-    };
+    const outputDir = mkdtempSync(join(tmpdir(), "agent-configured-report-"));
+    try {
+      const configuredPlugin = {
+        id: "dashboard",
+        enabled: true,
+        options: {},
+        plugin: {
+          start: vi.fn(),
+          done: vi.fn(() => {
+            mkdirSync(join(outputDir, "dashboard"));
+            writeFileSync(join(outputDir, "dashboard", "index.html"), "<title>Dashboard</title>");
+          }),
+        },
+      };
 
-    (readConfig as Mock).mockResolvedValueOnce({
-      plugins: [configuredPlugin],
-    });
+      (readConfig as Mock).mockResolvedValueOnce({
+        plugins: [configuredPlugin],
+      });
 
-    const humanReport = await createAgentHumanReportConfig({
-      mode: "config",
-      cwd: "/cwd",
-      outputDir: agentOutputDir,
-    });
-    const store = {
-      allTestResults: vi.fn().mockResolvedValue(Array.from({ length: 1001 }, (_, index) => ({ id: `tr-${index}` }))),
-    };
-    const plugin = humanReport.plugins[0].plugin;
+      const humanReport = await createAgentHumanReportConfig({
+        mode: "config",
+        cwd: "/cwd",
+        outputDir,
+      });
+      const store = {
+        allTestResults: vi.fn().mockResolvedValue(Array.from({ length: 1001 }, (_, index) => ({ id: `tr-${index}` }))),
+      };
+      const plugin = humanReport.plugins[0].plugin;
 
-    await plugin.start?.({} as any, store as any, {} as any);
-    await plugin.done?.({} as any, store as any);
+      await plugin.start?.({} as any, store as any, {} as any);
+      await plugin.done?.({ output: outputDir } as any, store as any);
 
-    expect(configuredPlugin.plugin.done).toHaveBeenCalled();
-    expect(humanReport.status.status).toBe("generated");
-    expect(humanReport.status.result_count).toBe(1001);
-    expect(humanReport.status.path).toBe("dashboard/");
+      expect(configuredPlugin.plugin.done).toHaveBeenCalled();
+      expect(humanReport.status.status).toBe("generated");
+      expect(humanReport.status.result_count).toBe(1001);
+      expect(humanReport.status.path).toBe("dashboard/");
+    } finally {
+      rmSync(outputDir, { recursive: true, force: true });
+    }
   });
 
   it("should inspect repeated dump files and result directories into agent-mode output without running a command", async () => {
@@ -941,6 +950,7 @@ describe("agent command", () => {
       windowsPathsNoEscape: true,
       cwd: "/cwd",
     });
+    expect(readConfig).toHaveBeenNthCalledWith(1, "/cwd", "./allurerc.inspect.mjs", { plugins: {} });
     expect(readConfig).toHaveBeenCalledWith("/cwd", "./allurerc.inspect.mjs", {
       name: "Agent Inspect",
       output: resolvedOutput,

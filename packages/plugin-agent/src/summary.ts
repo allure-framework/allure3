@@ -114,10 +114,11 @@ export const formatAgentRunSummary = (params: {
   lines.push(`  guide      ${toAbsolute(run.paths.agents_md)}`);
   lines.push(`  inspect    allure agent query --from ${outputDir} summary|tests|findings|test`);
 
-  const reportPath = humanReport?.status === "generated" ? toAbsolute(humanReport.path) : undefined;
+  if (humanReport?.status === "generated" && humanReport.path) {
+    const path = humanReport.path;
+    const href = /^https?:\/\//i.test(path) ? path : toAbsolute(path);
 
-  if (reportPath) {
-    lines.push(`Here is the report: [report](${reportPath})`);
+    lines.push(`Here is the report: [report](${href})`);
   }
 
   return lines;

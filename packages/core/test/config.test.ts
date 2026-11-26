@@ -33,6 +33,8 @@ import { isWindows } from "../src/utils/windows.js";
 class PluginFixture {}
 
 vi.mock("../src/utils/module.js", () => ({
+  resolveModulePath: (specifier: string) => specifier,
+  isPackageEntry: () => false,
   importWrapper: vi.fn(),
 }));
 beforeEach(async () => {

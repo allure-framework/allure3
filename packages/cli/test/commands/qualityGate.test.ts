@@ -368,6 +368,7 @@ describe("quality-gate command", () => {
 
     expect(readConfig).toHaveBeenCalledTimes(1);
     expect(readConfig).toHaveBeenCalledWith(expect.any(String), undefined, {
+      plugins: {},
       resolutions: { knownIssuesPath: "foo" },
     });
   });
@@ -379,6 +380,7 @@ describe("quality-gate command", () => {
 
     expect(readConfig).toHaveBeenCalledTimes(1);
     expect(readConfig).toHaveBeenCalledWith(expect.any(String), undefined, {
+      plugins: {},
       resolutions: { knownIssuesPath: undefined },
     });
   });

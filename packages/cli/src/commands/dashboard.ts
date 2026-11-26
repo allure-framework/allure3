@@ -79,6 +79,7 @@ export class DashboardCommand extends Command {
       reportLanguage: this.reportLanguage ?? "en",
     } as DashboardPluginOptions;
     const config = await readConfig(cwd, this.config, {
+      plugins: {},
       output: this.output,
       name: this.reportName,
     });

@@ -1,3 +1,4 @@
+import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
 
 import type { TestResult } from "@allurereport/core-api";
@@ -51,6 +52,79 @@ describe("TestOps configuration", () => {
 
     expect(plugin.id).toBe("testops");
     expect(plugin.options.sections[0].title).toBe("Custom");
+  });
+
+  it("preserves inherited plugins when a JavaScript config explicitly selects the agent", async () => {
+    const plugins = Object.create({ upload: { import: "testops", enabled: false } });
+    plugins.agent = {};
+    const config = await resolveConfig({ plugins });
+    expect(config.plugins?.map(({ id }) => id)).toEqual(["agent", "upload"]);
+  });
+
+  it("does not activate inherited plugins when the agent is added by default", async () => {
+    const plugins = Object.create({ upload: { import: "testops" } });
+    const config = await resolveConfig({ plugins });
+    expect(config.plugins?.map(({ id }) => id)).toEqual(["awesome", "agent"]);
+  });
+
+  it("disabling the top-level integration suppresses every legacy alias and keeps the default report", async () => {
+    const ignored = { enabled: true, options: { filter: "${{ invalid. }}" } };
+    const config = await resolveConfig({
+      testops: { enabled: false },
+      plugins: {
+        testops: ignored,
+        second: { ...ignored, import: "@allurereport/plugin-testops" },
+        third: { ...ignored, import: "@allurereport/core/testops" },
+        absolute: { ...ignored, import: createRequire(import.meta.url).resolve("@allurereport/plugin-testops") },
+      },
+    });
+    expect(config.plugins?.map(({ id }) => id)).toEqual(["awesome", "agent"]);
+  });
+
+  it("preserves inherited and non-enumerable JavaScript options alongside CEL expressions", async () => {
+    const filter = (result: TestResult) => result.status === "failed";
+    class UploadOptions {
+      launchName = "${{ 'Nightly' }}";
+      get filter() {
+        return filter;
+      }
+    }
+    const testops = Object.defineProperty(new UploadOptions(), "launchId", { value: 42 });
+    const config = await resolveConfig({ testops });
+    const options = config.plugins?.find(({ id }) => id === "testops")?.options;
+    expect(options).toMatchObject({ launchName: "Nightly", launchId: 42, filter });
+  });
+
+  it("preserves custom plugins whose normalized IDs collide with the built-in adapter", async () => {
+    const config = await resolveConfig({
+      testops: { enabled: true, projectId: "1", accessToken: "fixture", endpoint: "https://example.invalid" },
+      plugins: { "@example/testops": { import: "csv" }, "testops-2": { import: "log" } },
+    });
+    expect(config.plugins?.map(({ id }) => id)).toEqual(["testops", "testops-2", "testops-3", "agent"]);
+    expect(config.plugins?.[2].plugin).toMatchObject({ enabled: true, options: { projectId: "1" } });
+  });
+
+  it("leaves project TestOps settings unread when a command overrides plugins", async () => {
+    const config = {
+      get testops(): never {
+        throw new Error("unexpected TestOps config access");
+      },
+      plugins: { testops: {} },
+    };
+    expect((await resolveConfig(config, { plugins: {} })).plugins).toEqual([]);
+    expect((await resolveConfig(config, { plugins: { agent: {} } })).plugins?.map(({ id }) => id)).toEqual(["agent"]);
+  });
+
+  it("reports native expression errors and warnings at the top-level config path", async () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    await expect(
+      resolveConfig({
+        testops: { accessToken: "${{ env.SECRET }}", launchName: "${{ 'Nightly' }}", filter: "${{ test. }}" },
+      }),
+    ).rejects.toThrow("testops.filter");
+    expect(warn.mock.calls).toEqual([
+      ["Dynamic expressions are not supported at config.testops.accessToken; the value will not be evaluated."],
+    ]);
   });
 
   describe("with credentials from the environment", () => {

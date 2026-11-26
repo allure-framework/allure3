@@ -156,6 +156,29 @@ A recognized token in an explicitly configured service block enables remote hist
 when no plugin publishes. Uploading reports still requires a plugin's `options.publish: true`.
 Service settings and upload defaults apply as usual.
 
+### Allure TestOps launch uploads
+
+Set `testops` at the top level to upload results alongside the configured reports. A project
+with only this block still generates the default Awesome report.
+
+```yaml
+testops:
+  enabled: true
+  launchName: "${{ 'Nightly ' + env.BUILD_NUMBER }}"
+  launchTags: [nightly]
+  filter: "${{ test.status == 'failed' }}"
+```
+
+Set `ALLURE_ENDPOINT`, `ALLURE_TOKEN`, and `ALLURE_PROJECT_ID` for credentials and the destination
+project. The block takes the [existing TestOps options](../plugin-testops/README.md#options) directly.
+Omitting `enabled` uses the existing CI and environment activation rules. Setting it to `true`
+also enables local uploads. Setting it to `false` disables uploads even in CI.
+
+When the block is present, it replaces all configured TestOps plugin entries, including aliases.
+Without it, existing `plugins.testops` configurations continue to work. Commands that replace the
+project's plugins use their own selection. Agent mode includes project uploads only with
+`--report config`.
+
 ### Environment matching
 
 Environment predicates receive `labels`, a list of `{ name, value }` maps. Match each name and value
