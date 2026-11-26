@@ -1,7 +1,7 @@
 import { fileURLToPath } from "node:url";
 
 import type { TestResult } from "@allurereport/core-api";
-import { afterEach, describe, expect, it, vi } from "vite-plus/test";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 import { getPluginId, resolveConfig } from "../../src/config.js";
 
@@ -17,7 +17,7 @@ afterEach(() => {
   vi.useRealTimers();
 });
 
-describe("legacy TestOps configuration", () => {
+describe("TestOps configuration", () => {
   it("preserves custom TestOps plugin IDs and legacy descriptor options", async () => {
     const { default: TestOpsPlugin } = await import("@allurereport/core/testops");
 
@@ -53,17 +53,33 @@ describe("legacy TestOps configuration", () => {
     expect(plugin.options.sections[0].title).toBe("Custom");
   });
 
-  it("accepts a legacy alias with omitted options when credentials come from the environment", async () => {
-    vi.stubEnv("ALLURE_TOKEN", "test-token");
-    vi.stubEnv("ALLURE_ENDPOINT", "https://example.com");
-    vi.stubEnv("ALLURE_PROJECT_ID", "1");
-    const { default: TestOpsPlugin } = await import("@allurereport/core/testops");
+  describe("with credentials from the environment", () => {
+    beforeEach(() => {
+      vi.stubEnv("CI", "true");
+      vi.stubEnv("ALLURE_TOKEN", "test-token");
+      vi.stubEnv("ALLURE_ENDPOINT", "https://example.com");
+      vi.stubEnv("ALLURE_PROJECT_ID", "1");
+    });
 
-    const config = await resolveConfig({ plugins: { upload: { import: "testops", enabled: true } } });
-    const plugin = config.plugins?.find(({ id }) => id === "upload")?.plugin;
+    it.each(["testops", "@allurereport/plugin-testops", "@allurereport/core/testops"])(
+      "accepts omitted options for %s",
+      async (pluginImport) => {
+        const config = await resolveConfig({ plugins: { upload: { import: pluginImport, enabled: true } } });
+        const instance = config.plugins?.find(({ id }) => id === "upload");
 
-    expect(plugin).toBeInstanceOf(TestOpsPlugin);
-    expect(plugin).toMatchObject({ enabled: true, options: {} });
+        expect(instance).toMatchObject({ enabled: true, plugin: { enabled: true, options: {} } });
+      },
+    );
+
+    it.each([
+      ["inherited", Object.create({ enabled: false })],
+      ["non-enumerable", Object.defineProperty({}, "enabled", { value: false })],
+    ] as const)("honors the %s disable flag in CI", async (_, descriptor) => {
+      const config = await resolveConfig({ plugins: { testops: descriptor } });
+      const instance = config.plugins?.find(({ id }) => id === "testops");
+
+      expect(instance).toMatchObject({ enabled: false, plugin: { enabled: false } });
+    });
   });
 });
 
