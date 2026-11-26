@@ -106,7 +106,7 @@ jobs:
             run: yarn playwright install-deps
       - name: Run tests
         shell: bash
-        run: yarn allure run --config=./allurerc.mjs --environment=${{ matrix.os }} --dump=allure-results-e2e-${{ matrix.os }} -- yarn test:e2e --shard "${{ matrix.shard }}/${SHARDS_TOTAL}"
+        run: yarn allure run --config=./allurerc.mjs --environment=${{ matrix.os }} --dump=allure-results-e2e-${{ matrix.os }}-${{ matrix.shard }} -- yarn test:e2e --shard "${{ matrix.shard }}/${SHARDS_TOTAL}"
       - name: Upload test results
         timeout-minutes: 10
         uses: actions/upload-artifact@v7
