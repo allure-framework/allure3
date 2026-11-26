@@ -262,18 +262,16 @@ export default defineConfig({
         groupBy: "none",
       },
     },
-    ...(sandboxTestopsEnabled
-      ? {
-          testops: {
-            options: {
-              accessToken: sandboxTestopsToken,
-              projectId: sandboxTestopsProjectId,
-              endpoint: sandboxTestopsEndpoint,
-            },
-          },
-        }
-      : {}),
   },
+  ...(sandboxTestopsEnabled
+    ? {
+        testops: {
+          accessToken: sandboxTestopsToken,
+          projectId: sandboxTestopsProjectId,
+          endpoint: sandboxTestopsEndpoint,
+        },
+      }
+    : {}),
   variables: {
     env_variable: "unknown",
   },

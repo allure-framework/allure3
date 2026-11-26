@@ -106,12 +106,10 @@ const config = {
         publish: true,
       },
     },
-    testops: {
-      options: {
-        launchName,
-        gitFlow: true,
-      },
-    },
+  },
+  testops: {
+    launchName,
+    gitFlow: true,
   },
   ...(qualityGateEnabled
     ? {

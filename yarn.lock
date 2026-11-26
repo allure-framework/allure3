@@ -606,7 +606,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@allurereport/plugin-testops@workspace:*, @allurereport/plugin-testops@workspace:packages/plugin-testops":
+"@allurereport/plugin-testops@workspace:packages/plugin-testops":
   version: 0.0.0-use.local
   resolution: "@allurereport/plugin-testops@workspace:packages/plugin-testops"
   dependencies:
@@ -16201,7 +16201,6 @@ __metadata:
     "@allurereport/plugin-awesome": "workspace:*"
     "@allurereport/plugin-csv": "workspace:*"
     "@allurereport/plugin-mail": "workspace:*"
-    "@allurereport/plugin-testops": "workspace:*"
     "@types/node": "npm:^20.19.43"
     "@vitest/runner": "npm:^4.1.12"
     allure: "workspace:*"
