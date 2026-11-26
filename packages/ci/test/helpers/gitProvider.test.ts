@@ -2,6 +2,7 @@ import { GitProvider } from "@allurereport/core-api";
 import { describe, expect, it } from "vite-plus/test";
 
 import {
+  buildPullRequestUrlForProvider,
   inferGitProviderFromUrl,
   normalizeGitRemoteUrl,
   parsePullRequestNumberFromUrl,
@@ -41,5 +42,17 @@ describe("gitProvider helpers", () => {
   it("parses pull request number from PR URLs", () => {
     expect(parsePullRequestNumberFromUrl("https://github.com/org/repo/pull/55")).toBe("55");
     expect(parsePullRequestNumberFromUrl("https://gitlab.com/org/repo/-/merge_requests/7")).toBe("7");
+  });
+
+  it("builds pull request URLs for known providers", () => {
+    expect(buildPullRequestUrlForProvider(GitProvider.Github, "https://github.com/org/repo.git", "55")).toBe(
+      "https://github.com/org/repo/pull/55",
+    );
+    expect(buildPullRequestUrlForProvider(GitProvider.Gitlab, "https://gitlab.com/org/repo/", "7")).toBe(
+      "https://gitlab.com/org/repo/-/merge_requests/7",
+    );
+    expect(buildPullRequestUrlForProvider(GitProvider.Bitbucket, "https://bitbucket.org/org/repo.git", "9")).toBe(
+      "https://bitbucket.org/org/repo/pull-requests/9",
+    );
   });
 });
