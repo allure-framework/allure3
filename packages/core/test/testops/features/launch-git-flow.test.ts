@@ -6,9 +6,9 @@ import { attachment, step } from "allure-js-commons";
 import type { Mock } from "vite-plus/test";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
-import type { TestOpsPluginOptions } from "../../src/model.js";
-import { TestOpsPlugin } from "../../src/plugin.js";
-import { resolvePluginOptions } from "../../src/utils/options.js";
+import type { TestOpsPluginOptions } from "../../../src/testops/model.js";
+import { TestOpsPlugin } from "../../../src/testops/plugin.js";
+import { resolvePluginOptions } from "../../../src/testops/utils/options.js";
 import { AllureStoreMock, TestOpsClientMock } from "../utils.js";
 
 vi.mock("@allurereport/ci", async (importOriginal) => ({
@@ -35,7 +35,7 @@ vi.mock("@allurereport/service/testops", async (importOriginal) => {
   };
 });
 
-vi.mock("../../src/utils/options.js", async (importOriginal) => {
+vi.mock("../../../src/testops/utils/options.js", async (importOriginal) => {
   return {
     ...(await importOriginal()),
     resolvePluginOptions: vi.fn(),

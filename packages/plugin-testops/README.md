@@ -33,17 +33,9 @@ Example:
 ALLURE_TESTOPS_ENABLED=true allure run ...
 ```
 
-## Install
+## Configure
 
-Use your favorite package manager to install the package:
-
-```shell
-npm add @allurereport/plugin-testops
-yarn add @allurereport/plugin-testops
-pnpm add @allurereport/plugin-testops
-```
-
-Then, add the plugin to the Allure configuration file:
+The TestOps plugin is built into Allure Report. Add `testops` to `plugins` in the Allure configuration file:
 
 ```diff
 import { defineConfig } from "allure";
@@ -65,6 +57,8 @@ export default defineConfig({
   },
 });
 ```
+
+Projects that import the plugin directly can use the `@allurereport/plugin-testops` compatibility package.
 
 ## Options
 

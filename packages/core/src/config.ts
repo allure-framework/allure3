@@ -564,12 +564,20 @@ export const resolvePlugin = async (path: string): Promise<PluginConstructor> =>
   }
 };
 
+const normalizeLegacyTestOpsDescriptor = (id: string, descriptor: PluginDescriptor): PluginDescriptor => {
+  const pluginImport = descriptor.import ?? id;
+  if (pluginImport !== "testops" && pluginImport !== "@allurereport/plugin-testops") {
+    return descriptor;
+  }
+  return { ...descriptor, import: "@allurereport/core/testops", options: descriptor.options ?? {} };
+};
+
 const resolvePlugins = async (plugins: Record<string, PluginDescriptor>, context: NameContext) => {
   const pluginInstances: PluginInstance[] = [];
 
   for (const id in plugins) {
-    const pluginConfig = plugins[id];
     const pluginId = getPluginId(id);
+    const pluginConfig = normalizeLegacyTestOpsDescriptor(id, plugins[id]);
     const { options: rawOptions, ...descriptor } = pluginConfig;
     for (const path of findUnsupportedExpressions(descriptor, () => false, ["plugins", id])) {
       warnUnsupportedExpression(path);
@@ -583,7 +591,7 @@ const resolvePlugins = async (plugins: Record<string, PluginDescriptor>, context
       warnUnsupportedExpression(path);
     }
     const options = resolvePluginOptions(
-      pluginConfig.options,
+      rawOptions,
       Plugin.configExpressions,
       `plugins[${JSON.stringify(id)}].options`,
       context,
