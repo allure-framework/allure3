@@ -1,6 +1,7 @@
 import type { ClientRequest } from "http";
 
 import { isLocalCiDescriptor } from "@allurereport/ci";
+import { Logger } from "@allurereport/cli-commons";
 import type {
   AttachmentLink,
   AllureQualityGateResult,
@@ -10,17 +11,16 @@ import type {
   TestResult,
   TestStatus,
 } from "@allurereport/core-api";
-import { KnownError, createServiceHttpClient } from "@allurereport/service";
 import { AxiosError, isAxiosError, type AxiosResponse } from "axios";
 import FormData from "form-data";
 import { chunk } from "lodash-es";
 import pLimit from "p-limit";
 import { bold } from "yoctocolors";
 
+import { KnownError, createServiceHttpClient } from "../utils/http.js";
 import type { RetryOptions } from "./errors.js";
 import { withUploadRetry } from "./errors.js";
-import type { LaunchGitContextDto } from "./gitFlow/index.js";
-import { Logger } from "./logger.js";
+import type { LaunchGitContextDto } from "./gitContext.js";
 import type {
   AttachmentForUpload,
   AttachmentsResolver,
@@ -29,16 +29,16 @@ import type {
   LaunchCategoryBulkItem,
   LaunchCategoryBulkResult,
   TestOpsClientParams,
+  TestOpsFixtureResult,
   TestOpsJob,
   TestOpsLaunch,
   TestOpsLaunchQualityGate,
   TestOpsNamedEnv,
-  TestOpsPluginTestResult,
   TestOpsSession,
+  TestOpsUploadTestResult,
   UploadResultsDto,
   UploadResultsResponseDto,
 } from "./model.js";
-import type { TestOpsFixtureResult } from "./model.js";
 import { UploadPacer } from "./uploadPacer.js";
 import { toUploadFixturesResultsDto } from "./utils/fixtures.js";
 import { attachmentByteLength, retryRequest } from "./utils/httpRetry.js";
@@ -511,7 +511,7 @@ export class TestOpsClient {
   }
 
   async uploadTestResults(params: {
-    trs: TestOpsPluginTestResult[];
+    trs: TestOpsUploadTestResult[];
     environments: EnvironmentIdentity[];
     attachmentsResolver: AttachmentsResolver;
     fixturesResolver: FixtureResolver;
@@ -583,11 +583,11 @@ export class TestOpsClient {
   }
 
   async #postTestResultsChunk(
-    trsChunk: TestOpsPluginTestResult[],
+    trsChunk: TestOpsUploadTestResult[],
     session: TestOpsSession,
   ): Promise<Record<string, number>> {
-    const extendedChunk: TestOpsPluginTestResult[] = trsChunk.map((testResult) => {
-      const extendedTestResult: TestOpsPluginTestResult = {
+    const extendedChunk: TestOpsUploadTestResult[] = trsChunk.map((testResult) => {
+      const extendedTestResult: TestOpsUploadTestResult = {
         ...testResult,
         uuid: testResult.id,
       };
@@ -628,7 +628,7 @@ export class TestOpsClient {
   }
 
   async #uploadChunkAttachmentsAndFixtures(
-    trsChunk: TestOpsPluginTestResult[],
+    trsChunk: TestOpsUploadTestResult[],
     reportIdsToTestOpsIds: Record<string, number>,
     attachmentsResolver: AttachmentsResolver,
     fixturesResolver: FixtureResolver,

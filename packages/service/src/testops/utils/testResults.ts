@@ -1,7 +1,7 @@
 import type { AttachmentLink, TestStepResult } from "@allurereport/core-api";
 
 import type { UploadResultsDto, UploadTestResultCategoryGroupingDto, UploadTestResultDto } from "../model.js";
-import type { TestOpsPluginTestResult } from "../model.js";
+import type { TestOpsUploadTestResult } from "../model.js";
 import { toUploadAttachmentDto } from "./attachments.js";
 import { calculateLegacyHistoryId } from "./legacyHistory.js";
 import { toUploadStepDto } from "./steps.js";
@@ -31,7 +31,7 @@ const hasString = (obj: Record<string, unknown>, key: string): obj is Record<str
   typeof obj[key] === "string";
 
 const normalizeCategory = (
-  category: TestOpsPluginTestResult["category"],
+  category: TestOpsUploadTestResult["category"],
 ): UploadTestResultDto["category"] | undefined => {
   if (!category) return undefined;
   const externalIdUnknown: unknown = (category as unknown as { externalId?: unknown }).externalId;
@@ -71,7 +71,7 @@ const optionalArray = <T>(v: unknown, isItem: (x: unknown) => x is T): T[] | und
 
 const isAttachmentLink = (v: unknown): v is AttachmentLink => isObject(v) && hasString(v, "id");
 
-export const toUploadTestResultDto = (tr: TestOpsPluginTestResult): UploadTestResultDto => {
+export const toUploadTestResultDto = (tr: TestOpsUploadTestResult): UploadTestResultDto => {
   const attachments = optionalArray((tr as unknown as Record<string, unknown>).attachments, isAttachmentLink)?.map(
     toUploadAttachmentDto,
   );
@@ -107,7 +107,7 @@ export const toUploadTestResultDto = (tr: TestOpsPluginTestResult): UploadTestRe
   };
 };
 
-export const toUploadResultsDto = (testSessionId: number, trs: TestOpsPluginTestResult[]): UploadResultsDto => ({
+export const toUploadResultsDto = (testSessionId: number, trs: TestOpsUploadTestResult[]): UploadResultsDto => ({
   testSessionId,
   results: trs.map(toUploadTestResultDto),
 });

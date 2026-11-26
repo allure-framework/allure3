@@ -1,6 +1,5 @@
 import { performance } from "node:perf_hooks";
 
-import { KnownError, UnknownError } from "@allurereport/service";
 import { story } from "allure-js-commons";
 import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
@@ -12,7 +11,8 @@ import {
   isTerminalUploadError,
   shouldRetryUpload,
   withUploadRetry,
-} from "../src/errors.js";
+} from "../../src/testops/errors.js";
+import { KnownError, UnknownError } from "../../src/utils/http.js";
 
 beforeEach(async () => {
   await story("errors");

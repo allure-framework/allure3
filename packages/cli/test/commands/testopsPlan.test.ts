@@ -15,7 +15,7 @@ const fixtures = {
   output: "./.tmp-testops-plan.json",
 };
 
-const getMock = vi.fn();
+const getPlanMock = vi.hoisted(() => vi.fn());
 
 vi.mock("node:console", async (importOriginal) => ({
   ...(await importOriginal()),
@@ -27,7 +27,7 @@ vi.mock("node:process", async (importOriginal) => ({
   exit: vi.fn(),
 }));
 vi.mock("@allurereport/service", () => ({
-  createServiceHttpClient: vi.fn(() => ({ get: getMock })),
+  getTestOpsTestPlan: getPlanMock,
 }));
 
 beforeEach(async () => {
@@ -50,7 +50,7 @@ describe("testops-plan command", () => {
     await run(TestOpsPlanCommand, ["testops-plan"]);
 
     expect(console.log).toHaveBeenCalledWith(expect.stringContaining("ALLURE_JOB_RUN_ID isn't set"));
-    expect(getMock).not.toHaveBeenCalled();
+    expect(getPlanMock).not.toHaveBeenCalled();
   });
 
   it("should exit with code 1 when TestOps credentials are missing", async () => {
@@ -61,22 +61,24 @@ describe("testops-plan command", () => {
     await run(TestOpsPlanCommand, ["testops-plan"]);
 
     expect(exit).toHaveBeenCalledWith(1);
-    expect(getMock).not.toHaveBeenCalled();
+    expect(getPlanMock).not.toHaveBeenCalled();
   });
 
   it("should fetch the job run's test plan and write testplan.json", async () => {
     vi.stubEnv("ALLURE_JOB_RUN_ID", fixtures.jobRunId);
     vi.stubEnv("ALLURE_ENDPOINT", fixtures.endpoint);
     vi.stubEnv("ALLURE_TOKEN", fixtures.token);
-    getMock.mockResolvedValueOnce([
+    getPlanMock.mockResolvedValueOnce([
       { id: 123, selector: "suite.spec.ts#test one" },
       { id: 456, selector: "suite.spec.ts#test two" },
     ]);
 
     await run(TestOpsPlanCommand, ["testops-plan", "--output", fixtures.output]);
 
-    expect(getMock).toHaveBeenCalledWith(`/api/rs/jobrun/${fixtures.jobRunId}/plan`, {
-      params: { expected: "true" },
+    expect(getPlanMock).toHaveBeenCalledWith({
+      endpoint: fixtures.endpoint,
+      accessToken: fixtures.token,
+      jobRunId: Number(fixtures.jobRunId),
     });
 
     const written = JSON.parse(await readFile(fixtures.output, "utf-8"));
@@ -95,7 +97,7 @@ describe("testops-plan command", () => {
     vi.stubEnv("ALLURE_JOB_RUN_ID", fixtures.jobRunId);
     vi.stubEnv("ALLURE_ENDPOINT", fixtures.endpoint);
     vi.stubEnv("ALLURE_TOKEN", fixtures.token);
-    getMock.mockRejectedValueOnce(new Error("network error"));
+    getPlanMock.mockRejectedValueOnce(new Error("network error"));
 
     await run(TestOpsPlanCommand, ["testops-plan", "--output", fixtures.output]);
 
@@ -109,7 +111,7 @@ describe("testops-plan command", () => {
     vi.stubEnv("ALLURE_ENDPOINT", fixtures.endpoint);
     vi.stubEnv("ALLURE_TOKEN", fixtures.token);
     await writeFile(fixtures.output, JSON.stringify({ version: "1.0", tests: [{ id: "stale" }] }), "utf-8");
-    getMock.mockRejectedValueOnce(new Error("network error"));
+    getPlanMock.mockRejectedValueOnce(new Error("network error"));
 
     await run(TestOpsPlanCommand, ["testops-plan", "--output", fixtures.output]);
 
@@ -120,7 +122,7 @@ describe("testops-plan command", () => {
     vi.stubEnv("ALLURE_JOB_RUN_ID", fixtures.jobRunId);
     vi.stubEnv("ALLURE_ENDPOINT", fixtures.endpoint);
     vi.stubEnv("ALLURE_TOKEN", fixtures.token);
-    getMock.mockResolvedValueOnce([]);
+    getPlanMock.mockResolvedValueOnce([]);
 
     await run(TestOpsPlanCommand, ["testops-plan", "--output", fixtures.output]);
 

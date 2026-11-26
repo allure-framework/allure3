@@ -5,11 +5,11 @@ import { detect } from "@allurereport/ci";
 import { setGlobalLogLevel } from "@allurereport/cli-commons";
 import type { AttachmentLink, CategoryDefinition, CiDescriptor, TestResult } from "@allurereport/core-api";
 import type { AllureStore, PluginContext } from "@allurereport/plugin-api";
+import type { TestOpsClient } from "@allurereport/service/testops";
 import { epic, feature, label, story } from "allure-js-commons";
 import type { Mock } from "vite-plus/test";
 import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
-import type { TestOpsClient } from "../src/client.js";
 import { Logger } from "../src/logger.js";
 import type { TestOpsPluginOptions } from "../src/model.js";
 import { TestOpsPlugin } from "../src/plugin.js";
@@ -35,10 +35,11 @@ vi.mock("@allurereport/git", async (importOriginal) => {
   };
 });
 
-vi.mock("../src/client.js", async () => {
+vi.mock("@allurereport/service/testops", async (importOriginal) => {
   const utils = await import("./utils.js");
 
   return {
+    ...(await importOriginal()),
     TestOpsClient: utils.TestOpsClientMock,
   };
 });
@@ -1335,7 +1336,8 @@ describe("testops plugin", () => {
 
         setLogLevelSpy.mockClear();
         setGlobalLogLevel("error");
-        await plugin.start({ realTime: true } as PluginContext, store);
+        const pluginWithGlobalLogLevel = new TestOpsPlugin(plugin.options);
+        await pluginWithGlobalLogLevel.start({ realTime: true } as PluginContext, store);
         expect(setLogLevelSpy).not.toHaveBeenCalled();
       } finally {
         setGlobalLogLevel(undefined);
