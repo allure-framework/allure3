@@ -140,6 +140,7 @@ describe("classic command", () => {
 
     expect(readConfig).toHaveBeenCalledTimes(1);
     expect(readConfig).toHaveBeenCalledWith(expect.any(String), undefined, {
+      plugins: {},
       name: "foo",
       output: "bar",
       resolutions: { knownIssuesPath: "baz" },
@@ -156,6 +157,7 @@ describe("classic command", () => {
 
     expect(readConfig).toHaveBeenCalledTimes(1);
     expect(readConfig).toHaveBeenCalledWith(expect.any(String), undefined, {
+      plugins: {},
       output: undefined,
       name: undefined,
       resolutions: { knownIssuesPath: undefined },

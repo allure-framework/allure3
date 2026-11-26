@@ -578,7 +578,7 @@ export class AgentLatestCommand extends Command {
   static usage = Command.Usage({
     description: "Print the latest Allure agent output directory and index path for the current project",
     details:
-      "This command prints the latest agent output directory and index.md path recorded for the resolved project cwd. When a user asks for a human-readable report from the last run, use this output directory to check manifest/human-report.json; if its status is generated, the report path is relative to that same output directory, usually awesome/index.html.",
+      "This command prints the latest agent output directory and index.md path recorded for the resolved project cwd. When a user asks for a human-readable report from the last run, use this output directory to check manifest/human-report.json; if its status is generated, open the recorded link. Resolve relative paths, usually awesome/index.html, against the output directory. TestOps links open the launch directly.",
     examples: [
       ["agent latest", "Print the latest agent output directory and index path for the current project"],
       [

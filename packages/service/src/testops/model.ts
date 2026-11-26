@@ -203,6 +203,30 @@ export type UploadRateLimit = {
   maxBytesPerWindow?: number;
 };
 
+export type TestOpsUploadOptions = {
+  endpoint: string;
+  accessToken: string;
+  projectId: string;
+  launchName: string;
+  launchTags: string[];
+  autocloseLaunch?: boolean;
+  reopenClosedLaunch?: boolean;
+  launchId?: number;
+  /** When false, Git Flow metadata is never collected or sent. Default: false */
+  gitFlow?: boolean;
+  /** First-parent ancestor limit (server N). Default: 100 */
+  ancestorLimit?: number;
+  filter?: (testResult: TestResult) => boolean;
+  limit?: number;
+  uploadRateLimit?: UploadRateLimit | false;
+};
+
+/** TestOps options may be supplied by the environment; declarative filters use CEL. */
+export type TestOpsConfig = Omit<Partial<TestOpsUploadOptions>, "filter"> & {
+  enabled?: boolean;
+  filter?: TestOpsUploadOptions["filter"] | string;
+};
+
 export type TestOpsClientParams = {
   baseUrl: string;
   projectId: string;

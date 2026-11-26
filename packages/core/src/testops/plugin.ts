@@ -89,6 +89,7 @@ export class TestOpsPlugin implements Plugin {
         baseUrl: endpoint,
         accessToken,
         projectId,
+        limit: options.limit,
         uploadRateLimit,
       });
       this.#uploader = new TestOpsUploader(this.#client, this.#logger, reopenClosedLaunch);

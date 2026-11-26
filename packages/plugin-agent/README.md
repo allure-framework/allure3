@@ -130,11 +130,12 @@ whether a report was generated.
 
 If you need the human-readable report from the most recent agent run, first run
 `npx allure agent latest` when the output directory is unknown. Then check
-`<output>/manifest/human-report.json`; when its status is `generated`, open
-`<output>/<path>` from that manifest, usually `<output>/awesome/index.html`.
+`<output>/manifest/human-report.json`. When its status is `generated`, resolve a
+relative `path` against the output directory, usually `<output>/awesome/index.html`.
+For TestOps, open the launch URL directly.
 Use `--report off` for agent-only artifacts, `--report awesome` to force the
 single-file Awesome report regardless of result count, or `--report config` to
-force the configured non-agent report plugins inside the agent output directory.
+run the configured non-agent report plugins.
 
 You can provide compact inline expectations for the common review path:
 

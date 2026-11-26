@@ -8,6 +8,11 @@ import type {
 } from "@allurereport/core-api";
 import type { Plugin, ReportFiles, Config, QualityGateConfig } from "@allurereport/plugin-api";
 import type { ResultsReader } from "@allurereport/reader-api";
+import type { TestOpsConfig } from "@allurereport/service/testops";
+
+export interface AllureConfig extends Config {
+  testops?: TestOpsConfig;
+}
 
 export interface PluginInstance {
   id: string;

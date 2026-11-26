@@ -329,26 +329,26 @@ describe("testops http client", () => {
       ).toThrow();
     });
 
-    it("should throw an error when limit is greater than 5", () => {
+    it.each([0, -1, 1.5, 6, NaN, Infinity])("rejects invalid upload concurrency %s during construction", (limit) => {
       expect(
         () =>
           new TestOpsClient({
             accessToken: fixtures.accessToken,
             projectId: fixtures.projectId,
             baseUrl: fixtures.endpoint,
-            limit: 6,
+            limit,
           }),
-      ).toThrow("limit can't be greater than 5");
+      ).toThrow("limit must be an integer from 1 to 5");
     });
 
-    it("should not throw when limit is 5 or less", () => {
+    it.each([1, 5])("accepts upload concurrency %i", (limit) => {
       expect(
         () =>
           new TestOpsClient({
             accessToken: fixtures.accessToken,
             projectId: fixtures.projectId,
             baseUrl: fixtures.endpoint,
-            limit: 5,
+            limit,
           }),
       ).not.toThrow();
     });

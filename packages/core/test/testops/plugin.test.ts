@@ -207,13 +207,14 @@ describe("testops plugin", () => {
         launchTags: [],
       });
 
-      plugin = new TestOpsPlugin({} as TestOpsPluginOptions);
+      plugin = new TestOpsPlugin({ limit: 3 } as TestOpsPluginOptions);
 
       expect(plugin).toBeInstanceOf(TestOpsPlugin);
       expect(TestOpsClientMock).toHaveBeenCalledWith({
         baseUrl: fixtures.endpoint,
         accessToken: fixtures.accessToken,
         projectId: fixtures.projectId,
+        limit: 3,
       });
     });
   });

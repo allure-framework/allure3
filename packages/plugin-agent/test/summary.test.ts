@@ -90,6 +90,15 @@ describe("agent run summary", () => {
     // Must resolve to an absolute path, never link the relative manifest value directly.
     expect(generated).not.toContain("[report](awesome/index.html)");
 
+    const remote = "https://testops.example/launch/42";
+    expect(
+      formatAgentRunSummary({
+        outputDir,
+        run: createRun(),
+        humanReport: { status: "generated", path: remote } as AgentHumanReportStatus,
+      }),
+    ).toContain(`Here is the report: [report](${remote})`);
+
     const skipped = formatAgentRunSummary({
       outputDir,
       run: createRun(),
