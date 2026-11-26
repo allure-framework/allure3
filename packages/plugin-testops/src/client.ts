@@ -3,13 +3,13 @@ import type { ClientRequest } from "http";
 import { isLocalCiDescriptor } from "@allurereport/ci";
 import type {
   AttachmentLink,
+  AllureQualityGateResult,
   CiDescriptor,
   EnvironmentIdentity,
   TestError,
   TestResult,
   TestStatus,
 } from "@allurereport/core-api";
-import type { QualityGateValidationResult } from "@allurereport/plugin-api";
 import { KnownError, createServiceHttpClient } from "@allurereport/service";
 import { AxiosError, isAxiosError, type AxiosResponse } from "axios";
 import FormData from "form-data";
@@ -725,7 +725,7 @@ export class TestOpsClient {
   }
 
   async uploadQualityGateResults(
-    results: QualityGateValidationResult[],
+    results: AllureQualityGateResult[],
     onProgress?: (percent: number, total: number) => void,
   ) {
     if (!this.#launch) {
@@ -734,9 +734,10 @@ export class TestOpsClient {
 
     const launchId = this.#launch.id;
     const items: Omit<TestOpsLaunchQualityGate, "id" | "launchId">[] = results.map((result) => {
+      const message = result.details?.message ?? result.details?.stderr ?? result.details?.stdout;
       const item: Omit<TestOpsLaunchQualityGate, "id" | "launchId"> = {
-        name: result.rule,
-        message: result.message,
+        name: result.key,
+        ...(message !== undefined ? { message } : {}),
       };
 
       // core reports quality gate results by environment name, named envs are keyed by environment id

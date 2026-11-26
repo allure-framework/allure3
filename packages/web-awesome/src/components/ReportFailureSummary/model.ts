@@ -17,7 +17,7 @@ export const getReportFailureSummary = (
   const unsuccessfulTests = (stats?.failed ?? 0) + (stats?.broken ?? 0);
   const failedQualityGates = Object.values(qualityGateResults ?? {})
     .flatMap((results) => results)
-    .filter(({ success }) => !success).length;
+    .filter(({ status }) => status === "failed").length;
   const globalErrors = globals?.errors.length ?? 0;
 
   return {

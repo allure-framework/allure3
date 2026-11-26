@@ -173,8 +173,9 @@ describe("report context", () => {
     ]);
     expect(context.qualityGate).toEqual([
       expect.objectContaining({
-        success: false,
-        rule: "maxFailures",
+        status: "failed",
+        key: "maxFailures",
+        source: { type: "rule" },
       }),
     ]);
   });
@@ -226,12 +227,10 @@ describe("report context", () => {
       artifacts: [{ name: "dump.zip", path: "dumps/linux.zip" }],
       qualityGate: [
         {
-          success: false,
-          expected: 0,
-          actual: 1,
-          rule: "maxFailures",
-          message: "Failed tests exceed threshold",
-          testResults: ["2"],
+          status: "failed",
+          key: "maxFailures",
+          source: { type: "rule" },
+          details: { expected: 0, actual: 1, message: "Failed tests exceed threshold", testResults: ["2"] },
         },
       ],
     });
@@ -260,8 +259,8 @@ describe("report context", () => {
     expect(context.artifacts).toEqual([{ name: "dump.zip", path: "dumps/linux.zip" }]);
     expect(context.qualityGate).toEqual([
       expect.objectContaining({
-        success: false,
-        rule: "maxFailures",
+        status: "failed",
+        key: "maxFailures",
       }),
     ]);
   });
@@ -370,15 +369,20 @@ describe("report context", () => {
     await writeJson(join(output, "quality-gate.json"), {
       ubuntu: [
         {
-          success: false,
-          expected: 0,
-          actual: 1,
-          rule: "maxFailures",
-          message: "Failed tests exceed threshold",
-          testResults: ["1"],
+          status: "failed",
+          key: "maxFailures",
+          source: { type: "rule" },
+          details: { expected: 0, actual: 1, message: "Failed tests exceed threshold", testResults: ["1"] },
         },
       ],
-      windows: [{ success: true, expected: 1, actual: 1, rule: "minTestsCount", message: "ok", testResults: [] }],
+      windows: [
+        {
+          status: "passed",
+          key: "minTestsCount",
+          source: { type: "rule" },
+          details: { expected: 1, actual: 1, message: "ok", testResults: [] },
+        },
+      ],
     });
 
     const context = await createReportContext(output);
@@ -386,15 +390,20 @@ describe("report context", () => {
     expect(context.qualityGate).toEqual({
       ubuntu: [
         {
-          success: false,
-          expected: 0,
-          actual: 1,
-          rule: "maxFailures",
-          message: "Failed tests exceed threshold",
-          testResults: ["1"],
+          status: "failed",
+          key: "maxFailures",
+          source: { type: "rule" },
+          details: { expected: 0, actual: 1, message: "Failed tests exceed threshold", testResults: ["1"] },
         },
       ],
-      windows: [{ success: true, expected: 1, actual: 1, rule: "minTestsCount", message: "ok", testResults: [] }],
+      windows: [
+        {
+          status: "passed",
+          key: "minTestsCount",
+          source: { type: "rule" },
+          details: { expected: 1, actual: 1, message: "ok", testResults: [] },
+        },
+      ],
     });
   });
 });

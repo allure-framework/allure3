@@ -374,7 +374,13 @@ describe("named environment variables", () => {
 
     // core reports quality gate results by environment name
     storeMock.qualityGateResults.mockResolvedValue([
-      { rule: "maxFailures", message: "too many failures", success: false, environment: "Chrome" },
+      {
+        key: "maxFailures",
+        status: "failed",
+        source: { type: "rule" },
+        details: { message: "too many failures" },
+        environment: "Chrome",
+      },
     ] as any);
 
     await createPlugin().start(context, store);

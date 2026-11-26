@@ -40,7 +40,12 @@ describe("quality-gate configuration", () => {
 
     expect(result.fastFailed).toBe(true);
     expect(result.results).toMatchObject([
-      { rule: "critical/maxFailures", actual: 1, success: false, testResults: ["critical"] },
+      {
+        key: "critical/maxFailures",
+        status: "failed",
+        source: { type: "rule" },
+        details: { actual: 1, testResults: ["critical"] },
+      },
     ]);
   });
 
@@ -61,7 +66,10 @@ describe("quality-gate configuration", () => {
       trs: [tr("ordinary", "failed"), tr("critical", "failed", true)],
     });
 
-    expect(result.results[0]).toMatchObject({ actual: 1, success: false, testResults: ["critical"] });
+    expect(result.results[0]).toMatchObject({
+      status: "failed",
+      details: { actual: 1, testResults: ["critical"] },
+    });
   });
 
   it("inherits builtin validation and success messages while overriding the failure message", async () => {
@@ -74,8 +82,8 @@ describe("quality-gate configuration", () => {
     const passed = await new QualityGate(config!).validate({ trs: [] });
 
     expect(config!.use?.[0].validate).toBe(maxFailuresRule.validate);
-    expect(failed.results[0].message).toBe("Failures: 1");
-    expect(passed.results[0].message).toBe(maxFailuresRule.successMessage!({ actual: 0, expected: 0 }));
+    expect(failed.results[0].details?.message).toBe("Failures: 1");
+    expect(passed.results[0].details?.message).toBe(maxFailuresRule.successMessage!({ actual: 0, expected: 0 }));
   });
 
   it("selects builtin names and replaces the default implementation list", async () => {
@@ -84,7 +92,7 @@ describe("quality-gate configuration", () => {
     const result = await new QualityGate(config!).validate({ trs: [] });
 
     expect(config!.use).toEqual([minTestsCountRule]);
-    expect(result.results[0].success).toBe(false);
+    expect(result.results[0].status).toBe("failed");
   });
 
   it("uses native validators and generic success messages even when the rule name is a builtin", async () => {
@@ -101,8 +109,8 @@ describe("quality-gate configuration", () => {
 
     const result = await new QualityGate(config!).validate({ trs: [] });
 
-    expect(result.results[0]).toMatchObject({ success: true, actual: 99 });
-    expect(result.results[0].message).toContain("The rule has been passed");
+    expect(result.results[0]).toMatchObject({ status: "passed", details: { actual: 99 } });
+    expect(result.results[0].details?.message).toContain("The rule has been passed");
   });
 
   it("requires a custom failure message when overriding a builtin validator", async () => {
@@ -137,8 +145,11 @@ describe("quality-gate configuration", () => {
     await gate.validate({ trs: [tr("1")], state });
     const result = await gate.validate({ trs: [tr("1"), tr("2")], state });
 
-    expect(result.results[0]).toMatchObject({ success: true, actual: 2, testResults: ["1", "2"] });
-    expect(result.results[0].message).toContain("The rule has been passed");
+    expect(result.results[0]).toMatchObject({
+      status: "passed",
+      details: { actual: 2, testResults: ["1", "2"] },
+    });
+    expect(result.results[0].details?.message).toContain("The rule has been passed");
   });
 
   it("preserves native callback identities", async () => {

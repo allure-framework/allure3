@@ -3,21 +3,48 @@ import type { ResolutionCategory } from "./resolutions.js";
 import type { TestCase } from "./testCase.js";
 
 export type TestStatus = "failed" | "broken" | "passed" | "skipped" | "unknown";
-export type AllureCheckStatus = "passed" | "failed";
 export type TestStatusTransition = "regressed" | "fixed" | "malfunctioned" | "new";
 export type SeverityLevel = "blocker" | "critical" | "normal" | "minor" | "trivial";
 
-export interface AllureCheckResult {
-  id: string;
-  name: string;
-  status: AllureCheckStatus;
+export type AllureQualityGateResult = {
+  status: "passed" | "failed";
+  /**
+   * Stable identifier of the rule or check.
+   * Previously represented by `rule` for Quality Gate results.
+   */
+  key: string;
+  environment?: string;
   tags?: string[];
-  details: {
+  source:
+    | {
+        /**
+         * Result of a Quality Gate rule or an externally supplied status without a command.
+         */
+        type: "rule" | "manual";
+        command?: never;
+      }
+    | {
+        /**
+         * Result of an external command.
+         */
+        type: "command";
+        /**
+         * Exact executed command.
+         */
+        command: string;
+      };
+  details?: {
     message?: string;
-    error?: string;
-    command: string;
+    expected?: any;
+    actual?: any;
+    /**
+     * Related test result UUIDs providing evidence for the result.
+     */
+    testResults?: string[];
+    stdout?: string;
+    stderr?: string;
   };
-}
+};
 
 /**
  * Stores source-specific metadata.

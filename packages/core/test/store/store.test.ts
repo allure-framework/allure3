@@ -1,6 +1,7 @@
 /* eslint-disable max-lines */
 import {
   type AllureHistory,
+  type AllureQualityGateResult,
   type TestResult,
   type AttachmentLinkLinked,
   ExpressionError,
@@ -36,6 +37,18 @@ class AllureTestHistory implements AllureHistory {
 }
 
 const readerId = "store.test.ts";
+const qualityGateResult = (
+  status: AllureQualityGateResult["status"],
+  key: string,
+  details: NonNullable<AllureQualityGateResult["details"]>,
+  environment?: string,
+): AllureQualityGateResult => ({
+  status,
+  key,
+  source: { type: "rule" },
+  details,
+  ...(environment ? { environment } : {}),
+});
 
 beforeEach(async () => {
   await epic("coverage");
@@ -4639,22 +4652,18 @@ describe("dump state", () => {
     const store = new DefaultAllureStore({
       realtimeSubscriber: mockRealtimeSubscriber as any,
     });
-    const qualityGateResult1 = {
-      success: true,
-      expected: 0,
-      actual: 0,
-      rule: "failed",
-      message: "No failed tests",
-      environment: "default",
-    };
-    const qualityGateResult2 = {
-      success: false,
-      expected: 100,
-      actual: 80,
-      rule: "coverage",
-      message: "Coverage is below threshold",
-      environment: "staging",
-    };
+    const qualityGateResult1 = qualityGateResult(
+      "passed",
+      "failed",
+      { expected: 0, actual: 0, message: "No failed tests" },
+      "default",
+    );
+    const qualityGateResult2 = qualityGateResult(
+      "failed",
+      "coverage",
+      { expected: 100, actual: 80, message: "Coverage is below threshold" },
+      "staging",
+    );
 
     const onQualityGateResultsCallback = mockRealtimeSubscriber.onQualityGateResults.mock.calls[0][0];
 
@@ -4738,7 +4747,6 @@ describe("dump state", () => {
       reportVariables: {},
       globalAttachmentIds: [globalAttachment1.id, globalAttachment2.id],
       globalErrors: [globalError1, globalError2],
-      checkResults: {},
       qualityGateResults: [],
       indexAttachmentByTestResult: {},
       indexTestResultByHistoryId: {},
@@ -4812,7 +4820,6 @@ describe("dump state", () => {
       reportVariables: {},
       globalAttachmentIds: [],
       globalErrors: [],
-      checkResults: {},
       qualityGateResults: [],
       indexAttachmentByTestResult: {
         "test-result-id": [attachmentId],
@@ -4902,7 +4909,6 @@ describe("dump state", () => {
       reportVariables: {},
       globalAttachmentIds: [dumpAttachment.id],
       globalErrors: [dumpError],
-      checkResults: {},
       qualityGateResults: [],
       indexAttachmentByTestResult: {},
       indexTestResultByHistoryId: {},
@@ -4943,7 +4949,6 @@ describe("dump state", () => {
       indexTestResultByHistoryId: {},
       environments: ["default"],
       reportVariables: {},
-      checkResults: {},
     };
 
     const store = new DefaultAllureStore();
@@ -4979,7 +4984,6 @@ describe("dump state", () => {
       fixtures: {},
       globalAttachments: [],
       globalErrors: [],
-      checkResults: {},
       indexAttachmentByTestResult: {},
       indexTestResultByHistoryId: {},
       // Missing new index properties to test graceful handling
@@ -5207,7 +5211,6 @@ describe("dump state", () => {
       reportVariables: {},
       globalAttachmentIds: [],
       globalErrors: [],
-      checkResults: {},
       qualityGateResults: [],
       indexAttachmentByTestResult: {},
       indexTestResultByRetryHash: {},
@@ -5311,14 +5314,7 @@ describe("dump state", () => {
       reportVariables: {},
       globalAttachmentIds: [],
       globalErrors: [],
-      qualityGateResults: [
-        {
-          rule: "maxFailures",
-          success: false,
-          message: "qa gate failure",
-          environment: "qa",
-        },
-      ],
+      qualityGateResults: [qualityGateResult("failed", "maxFailures", { message: "qa gate failure" }, "qa")],
       indexAttachmentByTestResult: {},
       indexTestResultByRetryHash: {},
       indexTestResultByTestCase: {
@@ -5327,7 +5323,6 @@ describe("dump state", () => {
       indexAttachmentByFixture: {},
       indexFixturesByTestResult: {},
       resolutionIssues: {},
-      checkResults: {},
     };
 
     await store.restoreState(dump as unknown as AllureStoreDump, {});
@@ -5343,7 +5338,7 @@ describe("dump state", () => {
     expect(await store.qualityGateResultsByEnvironmentId()).toEqual({
       qa: [
         expect.objectContaining({
-          message: "qa gate failure",
+          details: expect.objectContaining({ message: "qa gate failure" }),
           environment: "qa",
         }),
       ],
@@ -5351,7 +5346,7 @@ describe("dump state", () => {
     expect(await store.qualityGateResultsByEnv()).toEqual({
       "New QA": [
         expect.objectContaining({
-          message: "qa gate failure",
+          details: expect.objectContaining({ message: "qa gate failure" }),
         }),
       ],
     });
@@ -5392,22 +5387,13 @@ describe("dump state", () => {
       realtimeSubscriber: mockRealtimeSubscriber as any,
     });
     const qualityGateResults = [
-      {
-        success: true,
-        expected: 0,
-        actual: 0,
-        rule: "failed",
-        message: "No failed tests",
-        environment: "default",
-      },
-      {
-        success: false,
-        expected: 100,
-        actual: 80,
-        rule: "coverage",
-        message: "Coverage is below threshold",
-        environment: "staging",
-      },
+      qualityGateResult("passed", "failed", { expected: 0, actual: 0, message: "No failed tests" }, "default"),
+      qualityGateResult(
+        "failed",
+        "coverage",
+        { expected: 100, actual: 80, message: "Coverage is below threshold" },
+        "staging",
+      ),
     ];
 
     const onQualityGateResultsCallback = mockRealtimeSubscriber.onQualityGateResults.mock.calls[0][0];
@@ -5427,6 +5413,97 @@ describe("dump state", () => {
     expect(restoredResults).toEqual(qualityGateResults);
   });
 
+  it("should persist the resolved environment for directly and realtime-ingested quality gate results", async () => {
+    const mockRealtimeSubscriber = {
+      onQualityGateResults: vi.fn(),
+      onGlobalExitCode: vi.fn(),
+      onGlobalError: vi.fn(),
+      onGlobalAttachment: vi.fn(),
+    };
+    const store = new DefaultAllureStore({
+      realtimeSubscriber: mockRealtimeSubscriber as any,
+      environment: "linux",
+      environmentsConfig: {
+        linux: {
+          name: "Linux",
+          matcher: () => false,
+        },
+      },
+    });
+    const directResult: AllureQualityGateResult = {
+      status: "passed",
+      key: "lint",
+      source: { type: "command", command: "npm run lint" },
+    };
+    const realtimeResult: AllureQualityGateResult = {
+      status: "passed",
+      key: "approval",
+      source: { type: "manual" },
+    };
+
+    await store.addQualityGateResult(directResult);
+    await mockRealtimeSubscriber.onQualityGateResults.mock.calls[0][0]([realtimeResult]);
+
+    const dump = store.dumpState();
+
+    expect(dump.qualityGateResults).toEqual([
+      { ...directResult, environment: "Linux" },
+      { ...realtimeResult, environment: "Linux" },
+    ]);
+
+    const restoredStore = new DefaultAllureStore();
+
+    await restoredStore.restoreState(dump, {});
+
+    expect(await restoredStore.qualityGateResultsByEnvironmentId()).toEqual({
+      linux: [
+        { ...directResult, environment: "Linux" },
+        { ...realtimeResult, environment: "Linux" },
+      ],
+    });
+  });
+
+  it("should isolate nested quality gate result values from callers", async () => {
+    const store = new DefaultAllureStore();
+    const result: AllureQualityGateResult = {
+      status: "failed",
+      key: "metricMax",
+      source: { type: "rule" },
+      details: {
+        expected: { value: 100 },
+        actual: [80],
+        testResults: ["test-1"],
+      },
+    };
+
+    await store.addQualityGateResult(result);
+
+    (result.details!.expected as { value: number }).value = 50;
+    (result.details!.actual as number[]).push(90);
+    result.details!.testResults!.push("test-2");
+
+    const [storedResult] = await store.qualityGateResults();
+
+    expect(storedResult.details).toEqual({
+      expected: { value: 100 },
+      actual: [80],
+      testResults: ["test-1"],
+    });
+
+    (storedResult.details!.expected as { value: number }).value = 25;
+    (storedResult.details!.actual as number[]).push(70);
+
+    const byEnvironment = await store.qualityGateResultsByEnvironmentId();
+
+    (byEnvironment.default[0].details!.actual as number[]).push(60);
+
+    expect((await store.qualityGateResults())[0].details).toEqual({
+      expected: { value: 100 },
+      actual: [80],
+      testResults: ["test-1"],
+    });
+  });
+
   it("should append qualityGateResults when restoring to existing store", async () => {
     const mockRealtimeSubscriber = {
       onQualityGateResults: vi.fn(),
@@ -5437,24 +5514,20 @@ describe("dump state", () => {
     const store = new DefaultAllureStore({
       realtimeSubscriber: mockRealtimeSubscriber as any,
     });
-    const initialResult = {
-      success: true,
+    const initialResult = qualityGateResult("passed", "failed", {
       expected: 0,
       actual: 0,
-      rule: "failed",
       message: "No failed tests",
-    };
+    });
     const onQualityGateResultsCallback = mockRealtimeSubscriber.onQualityGateResults.mock.calls[0][0];
 
     await onQualityGateResultsCallback([initialResult]);
 
-    const dumpResult = {
-      success: false,
+    const dumpResult = qualityGateResult("failed", "coverage", {
       expected: 100,
       actual: 80,
-      rule: "coverage",
       message: "Coverage is below threshold",
-    };
+    });
     const dump = {
       testResults: {},
       attachments: {},
@@ -5464,7 +5537,6 @@ describe("dump state", () => {
       reportVariables: {},
       globalAttachmentIds: [],
       globalErrors: [],
-      checkResults: {},
       qualityGateResults: [dumpResult],
       indexAttachmentByTestResult: {},
       indexTestResultByHistoryId: {},
@@ -5481,50 +5553,6 @@ describe("dump state", () => {
     expect(results).toHaveLength(2);
     expect(results).toContainEqual(initialResult);
     expect(results).toContainEqual(dumpResult);
-  });
-
-  it("should add, dump, and restore check results", async () => {
-    const store = new DefaultAllureStore();
-    const checkResult = {
-      id: "check-result-id",
-      name: "Lint",
-      status: "passed" as const,
-      tags: ["ci", "linux"],
-      details: {
-        command: "npm run lint",
-        message: "lint ok",
-      },
-    };
-
-    await store.addCheckResult(checkResult);
-
-    const [initialResult] = await store.allCheckResults();
-
-    expect(initialResult).toEqual(checkResult);
-
-    initialResult.tags?.push("mutated");
-    initialResult.details.message = "changed";
-
-    expect(await store.allCheckResults()).toEqual([checkResult]);
-
-    const dump = store.dumpState();
-
-    expect(dump.checkResults).toEqual({
-      [checkResult.id]: checkResult,
-    });
-
-    const newStore = new DefaultAllureStore();
-
-    await newStore.restoreState(dump, {});
-
-    const [restoredResult] = await newStore.allCheckResults();
-
-    expect(restoredResult).toEqual(checkResult);
-
-    restoredResult.tags?.push("mutated");
-    restoredResult.details.message = "changed";
-
-    expect(await newStore.allCheckResults()).toEqual([checkResult]);
   });
 
   it("should reject restored test results assigned to environments outside allowedEnvironments", async () => {
@@ -5557,7 +5585,6 @@ describe("dump state", () => {
       reportVariables: {},
       globalAttachmentIds: [],
       globalErrors: [],
-      checkResults: {},
       qualityGateResults: [],
       indexAttachmentByTestResult: {},
       indexTestResultByHistoryId: {},
@@ -5595,7 +5622,6 @@ describe("dump state", () => {
       reportVariables: {},
       globalAttachmentIds: [],
       globalErrors: [{ message: "prod global error", environment: "Prod" }],
-      checkResults: {},
       qualityGateResults: [],
       indexAttachmentByTestResult: {},
       indexTestResultByHistoryId: {},
@@ -5633,8 +5659,7 @@ describe("dump state", () => {
       reportVariables: {},
       globalAttachmentIds: [],
       globalErrors: [],
-      checkResults: {},
-      qualityGateResults: [{ rule: "maxFailures", success: false, message: "prod qg", environment: "Prod" }],
+      qualityGateResults: [qualityGateResult("failed", "maxFailures", { message: "prod qg" }, "Prod")],
       indexAttachmentByTestResult: {},
       indexTestResultByHistoryId: {},
       indexTestResultByTestCase: {},
@@ -5661,7 +5686,6 @@ describe("dump state", () => {
       reportVariables: {},
       globalAttachmentIds: [],
       globalErrors: [],
-      checkResults: {},
       qualityGateResults: [],
       indexAttachmentByTestResult: {},
       indexTestResultByHistoryId: {},
@@ -5697,7 +5721,6 @@ describe("dump state", () => {
       reportVariables: {},
       globalAttachmentIds: [],
       globalErrors: [],
-      checkResults: {},
       qualityGateResults: [],
       indexAttachmentByTestResult: {},
       indexTestResultByHistoryId: {},
@@ -5985,30 +6008,9 @@ describe("dictionary safety", () => {
     const onQualityGateResultsCallback = mockRealtimeSubscriber.onQualityGateResults.mock.calls[0][0];
 
     await onQualityGateResultsCallback([
-      {
-        success: true,
-        expected: 0,
-        actual: 0,
-        rule: "failed",
-        message: "No failed tests",
-        environment: "__proto__",
-      },
-      {
-        success: false,
-        expected: 0,
-        actual: 1,
-        rule: "failed",
-        message: "Failed tests",
-        environment: "constructor",
-      },
-      {
-        success: false,
-        expected: 0,
-        actual: 1,
-        rule: "failed",
-        message: "Failed tests",
-        environment: "toString",
-      },
+      qualityGateResult("passed", "failed", { expected: 0, actual: 0, message: "No failed tests" }, "__proto__"),
+      qualityGateResult("failed", "failed", { expected: 0, actual: 1, message: "Failed tests" }, "constructor"),
+      qualityGateResult("failed", "failed", { expected: 0, actual: 1, message: "Failed tests" }, "toString"),
     ]);
 
     const byEnv = await store.qualityGateResultsByEnv();

@@ -34,10 +34,10 @@ it("resolves current display-name APIs without storing names as IDs", async () =
   expect(scopedHistory.testResults.key.environment).toBe("linux");
 
   const dump = JSON.parse(JSON.stringify(store.dumpState()));
-  dump.qualityGateResults = [{ rule: "maxFailures", success: true, environment: "Chrome" }];
+  dump.qualityGateResults = [{ key: "maxFailures", status: "passed", source: { type: "rule" }, environment: "Chrome" }];
   await store.restoreState(dump);
   expect(await store.qualityGateResultsByEnvironmentId()).toEqual({
-    linux: [expect.objectContaining({ environment: "Chrome", success: true })],
+    linux: [expect.objectContaining({ environment: "Chrome", status: "passed" })],
   });
 });
 

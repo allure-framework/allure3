@@ -4,20 +4,20 @@ import { join } from "node:path";
 import process, { exit } from "node:process";
 
 import { AllureReport, readConfig } from "@allurereport/core";
-import type { AllureCheckResult, AllureCheckStatus } from "@allurereport/core-api";
+import type { AllureQualityGateResult } from "@allurereport/core-api";
 import { Command, Option, UsageError } from "clipanion";
 
 import { runProcess, terminationOf } from "../utils/index.js";
 
-const checkStatuses: AllureCheckStatus[] = ["passed", "failed"];
+const CHECK_STATUSES = ["passed", "failed"] as const;
 
-const parseCheckStatus = (status: string | undefined): AllureCheckStatus | undefined => {
+const parseCheckStatus = (status: string | undefined): AllureQualityGateResult["status"] | undefined => {
   if (status === undefined) {
     return undefined;
   }
 
-  if (checkStatuses.includes(status as AllureCheckStatus)) {
-    return status as AllureCheckStatus;
+  if (CHECK_STATUSES.includes(status as AllureQualityGateResult["status"])) {
+    return status as AllureQualityGateResult["status"];
   }
 
   throw new UsageError(`Invalid --status value ${JSON.stringify(status)}. Expected one of: passed, failed`);
@@ -54,24 +54,68 @@ const resolveCheckCommand = (args: string[]) => {
   };
 };
 
-const buildCheckResult = (
-  name: string,
-  status: AllureCheckStatus,
-  tags: string[] | undefined,
-  command: string,
-  message: string | undefined,
-  error: string | undefined,
-): AllureCheckResult => ({
-  id: randomUUID(),
-  name,
+type BuildCheckResultOptions = {
+  key: string;
+  status: AllureQualityGateResult["status"];
+  tags?: string[];
+  command?: string;
+  message?: string;
+  stdout?: string;
+  stderr?: string;
+};
+
+const buildCheckResult = ({
+  key,
+  status,
+  tags,
+  command,
+  message,
+  stdout,
+  stderr,
+}: BuildCheckResultOptions): AllureQualityGateResult => ({
+  key,
   status,
   ...(tags?.length ? { tags } : {}),
-  details: {
-    command,
-    ...(message ? { message } : {}),
-    ...(error ? { error } : {}),
-  },
+  source: command
+    ? {
+        type: "command",
+        command,
+      }
+    : {
+        type: "manual",
+      },
+  ...(message || stdout || stderr
+    ? {
+        details: {
+          ...(message ? { message } : {}),
+          ...(stdout ? { stdout } : {}),
+          ...(stderr ? { stderr } : {}),
+        },
+      }
+    : {}),
 });
+
+const writeCheckResultFile = async (output: string, result: AllureQualityGateResult) => {
+  await mkdir(output, { recursive: true });
+  await writeFile(join(output, `${randomUUID()}-quality-gate.json`), `${JSON.stringify(result)}\n`, "utf-8");
+};
+
+const dumpCheckResult = async (
+  config: Awaited<ReturnType<typeof readConfig>>,
+  result: AllureQualityGateResult,
+  dump: string,
+) => {
+  const allureReport = new AllureReport({
+    ...config,
+    dump,
+    realTime: false,
+    plugins: [],
+  });
+
+  await allureReport.start();
+  await allureReport.store.addQualityGateResult(result);
+  await allureReport.done();
+};
 
 const collectCheckCommandOutput = (checkProcess: ReturnType<typeof runProcess>): CheckCommandOutput => {
   const output = {
@@ -89,28 +133,6 @@ const collectCheckCommandOutput = (checkProcess: ReturnType<typeof runProcess>):
   });
 
   return output;
-};
-
-const writeCheckResultFile = async (output: string, result: AllureCheckResult) => {
-  await mkdir(output, { recursive: true });
-  await writeFile(join(output, `${result.id}-check.json`), `${JSON.stringify(result)}\n`, "utf-8");
-};
-
-const dumpCheckResult = async (
-  config: Awaited<ReturnType<typeof readConfig>>,
-  result: AllureCheckResult,
-  dump: string,
-) => {
-  const allureReport = new AllureReport({
-    ...config,
-    dump,
-    realTime: false,
-    plugins: [],
-  });
-
-  await allureReport.start();
-  await allureReport.store.addCheckResult(result);
-  await allureReport.done();
 };
 
 export class CheckCommand extends Command {
@@ -136,7 +158,7 @@ export class CheckCommand extends Command {
   });
 
   message = Option.String("--message", {
-    description: "The manual check message",
+    description: "The check message",
   });
 
   tag = Option.Array("--tag", {
@@ -196,9 +218,15 @@ export class CheckCommand extends Command {
       status = originalExitCode === 0 ? "passed" : "failed";
     }
 
-    const message = (commandOutput ? commandOutput.stdout : this.message)?.trim() ?? "";
-    const error = commandOutput?.stderr?.trim() ?? "";
-    const result = buildCheckResult(this.name, status, this.tag, checkCommand?.commandLine ?? "", message, error);
+    const result = buildCheckResult({
+      key: this.name,
+      status,
+      tags: this.tag,
+      command: checkCommand?.commandLine,
+      message: this.message?.trim(),
+      stdout: commandOutput?.stdout,
+      stderr: commandOutput?.stderr,
+    });
     const config = await readConfig(cwd, this.config, {
       output: this.output,
       plugins: {},

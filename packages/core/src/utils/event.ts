@@ -2,11 +2,11 @@ import console from "node:console";
 import { EventEmitter } from "node:events";
 import { setTimeout } from "node:timers/promises";
 
+import type { AllureQualityGateResult } from "@allurereport/core-api";
 import type {
   BatchOptions,
   ExitCode,
   PluginGlobalError,
-  QualityGateValidationResult,
   RealtimeEventsDispatcher as RealtimeEventsDispatcherType,
   RealtimeListenerResult,
   RealtimeSubscriber as RealtimeSubscriberType,
@@ -27,7 +27,7 @@ export enum RealtimeEvents {
 }
 
 export interface AllureStoreEvents {
-  [RealtimeEvents.QualityGateResults]: [QualityGateValidationResult[]];
+  [RealtimeEvents.QualityGateResults]: [AllureQualityGateResult[]];
   [RealtimeEvents.TestResult]: [string];
   [RealtimeEvents.TestFixtureResult]: [string];
   [RealtimeEvents.AttachmentFile]: [string];
@@ -101,7 +101,7 @@ export class RealtimeEventsDispatcher implements RealtimeEventsDispatcherType {
     this.#emitter.emit(RealtimeEvents.ProcessGlobalsReset);
   }
 
-  sendQualityGateResults(payload: QualityGateValidationResult[]) {
+  sendQualityGateResults(payload: AllureQualityGateResult[]) {
     this.#emitter.emit(RealtimeEvents.QualityGateResults, payload ?? []);
   }
 
@@ -161,7 +161,7 @@ export class RealtimeSubscriber implements RealtimeSubscriberType {
     return this.#onEvent(RealtimeEvents.ProcessGlobalsReset, listener);
   }
 
-  onQualityGateResults(listener: (payload: QualityGateValidationResult[]) => RealtimeListenerResult) {
+  onQualityGateResults(listener: (payload: AllureQualityGateResult[]) => RealtimeListenerResult) {
     return this.#onEvent(RealtimeEvents.QualityGateResults, listener);
   }
 
