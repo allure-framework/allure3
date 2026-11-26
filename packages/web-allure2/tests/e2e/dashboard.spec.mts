@@ -277,8 +277,9 @@ test.describe("Dashboards", () => {
       mode: REPORT_MODES.DIRECTORY,
     });
 
-    const initialColumns = await readWidgetColumns(page);
-    expect(initialColumns[0]).not.toContain(uiDemo.widgets.executors);
+    const columns = page.locator(".widgets-grid__col");
+    const executors = exactWidgetTitle(page, uiDemo.widgets.executors);
+    await expect(columns.nth(1).locator(executors)).toBeVisible();
 
     await page.evaluate(() => {
       const storageKey = "ALLURE_REPORT_SETTINGS_WIDGETS";
@@ -300,9 +301,7 @@ test.describe("Dashboards", () => {
     });
 
     await page.reload();
-    await expect(page.locator(".side-nav__menu")).toBeVisible();
-    const persistedColumns = await readWidgetColumns(page);
-    expect(persistedColumns[0]).toContain(uiDemo.widgets.executors);
+    await expect(columns.first().locator(executors)).toBeVisible();
   });
 
   test("directory mode keeps chart tooltips and resize behavior after graph route changes", async ({ page }) => {
