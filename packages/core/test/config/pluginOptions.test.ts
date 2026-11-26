@@ -17,6 +17,56 @@ afterEach(() => {
   vi.useRealTimers();
 });
 
+describe("legacy TestOps configuration", () => {
+  it("preserves custom TestOps plugin IDs and legacy descriptor options", async () => {
+    const { default: TestOpsPlugin } = await import("@allurereport/core/testops");
+
+    const config = await resolveConfig({
+      plugins: {
+        "testops": { enabled: false, options: { launchName: "Primary" } },
+        "@allurereport/plugin-testops": { enabled: false, options: { launchName: "Secondary" } },
+        "custom-testops": {
+          import: "@allurereport/plugin-testops",
+          enabled: false,
+          options: { launchName: "${{ 'Custom launch' }}" },
+        },
+      },
+    });
+
+    const instances = config.plugins?.flatMap(({ id, enabled, options, plugin }) =>
+      plugin instanceof TestOpsPlugin
+        ? [{ id, enabled, launchName: options.launchName, uploadEnabled: plugin.enabled }]
+        : [],
+    );
+    expect(instances).toEqual([
+      { id: "testops", enabled: false, launchName: "Primary", uploadEnabled: false },
+      { id: "plugin-testops", enabled: false, launchName: "Secondary", uploadEnabled: false },
+      { id: "custom-testops", enabled: false, launchName: "Custom launch", uploadEnabled: false },
+    ]);
+  });
+
+  it("uses an explicit custom import even when the descriptor is named testops", async () => {
+    const customPath = fileURLToPath(new URL("../fixtures/expression-plugin.mjs", import.meta.url));
+    const plugin = await resolvePlugin("testops", { sections: [{ title: "${{ 'Custom' }}" }] }, customPath);
+
+    expect(plugin.id).toBe("testops");
+    expect(plugin.options.sections[0].title).toBe("Custom");
+  });
+
+  it("accepts a legacy alias with omitted options when credentials come from the environment", async () => {
+    vi.stubEnv("ALLURE_TOKEN", "test-token");
+    vi.stubEnv("ALLURE_ENDPOINT", "https://example.com");
+    vi.stubEnv("ALLURE_PROJECT_ID", "1");
+    const { default: TestOpsPlugin } = await import("@allurereport/core/testops");
+
+    const config = await resolveConfig({ plugins: { upload: { import: "testops", enabled: true } } });
+    const plugin = config.plugins?.find(({ id }) => id === "upload")?.plugin;
+
+    expect(plugin).toBeInstanceOf(TestOpsPlugin);
+    expect(plugin).toMatchObject({ enabled: true, options: {} });
+  });
+});
+
 describe("plugin expression warnings", () => {
   it("uses constructor metadata for nested fields and never scans evaluated results", async () => {
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});

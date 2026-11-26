@@ -4,7 +4,7 @@ import type { AllureStore, PluginState } from "@allurereport/plugin-api";
 import { epic, feature, label, story } from "allure-js-commons";
 import { beforeEach, describe, expect, test, vi } from "vite-plus/test";
 
-import { TestOpsPlugin } from "../../src/plugin.js";
+import { TestOpsPlugin } from "../../../src/testops/plugin.js";
 import { handleBeforeEach, mockAllureStore, mockRequests } from "./helpers.js";
 
 vi.mock("@allurereport/ci", async (importOriginal) => {

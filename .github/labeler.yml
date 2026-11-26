@@ -57,6 +57,8 @@
   - changed-files:
       - any-glob-to-any-file:
           - "packages/plugin-testops/**"
+          - "packages/core/src/testops/**"
+          - "packages/core/test/testops/**"
           - "packages/service/src/testops.ts"
           - "packages/service/src/testops/**"
           - "packages/service/test/testops.test.ts"
