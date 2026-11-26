@@ -1,20 +1,24 @@
-import type { AxisTickProps } from "@nivo/axes";
+import { Axes, type AxisProps, type AxisTickProps } from "@nivo/axes";
 import { type BarCustomLayerProps, type BarDatum, type ComputedDatum, ResponsiveBar } from "@nivo/bar";
 import type { CartesianMarkerProps } from "@nivo/core";
+import type { ComponentChildren } from "preact";
 import { useMemo } from "preact/hooks";
 
 import { CHART_MOTION_CONFIG, CHART_THEME, REDUCE_MOTION } from "../config";
 import { Legends } from "../Legend";
-import { formatNumber } from "../Legend/LegendItem";
+import { formatNumber, LegendItem } from "../Legend/LegendItem";
 import type { LegendItemValue } from "../Legend/LegendItem/types";
 import { BarChartTooltip } from "./BarChartTooltip";
 import { BottomAxisLine } from "./BottomAxisLine";
 import { BarChartStateProvider } from "./context";
 import { BarChartBars, BarChartItemHoverLayer } from "./Layers";
-import { TrendLinesLayer } from "./TrendLinesLayer";
+import { fitValueTrend, TrendLinesLayer } from "./TrendLinesLayer";
 import { computeVerticalAxisMargin, isEmptyChart } from "./utils";
 
 import styles from "./styles.scss";
+
+export type TrendDetailsKey =
+  `trendDetails.${"comparisonCount" | "growthRate" | "statusRate" | "perRunShift" | "number" | "smallNumber" | "netChange" | "cumulativeChange" | "observed" | "estimate"}`;
 
 type BarChartProps<T extends BarDatum> = {
   data: T[];
@@ -28,8 +32,13 @@ type BarChartProps<T extends BarDatum> = {
     curveSharpness?: number;
   }[];
   hideEmptyTrendLines?: boolean;
+  valueTrends?: {
+    rate: "growthRate" | "statusRate";
+    t: (key: TrendDetailsKey, props?: Record<string, unknown>) => string;
+  };
   formatTrendValue?: (value: number, trendKey: Extract<keyof T, string>) => number | undefined;
   formatLegendValue?: (legend: LegendItemValue<T>) => string | number | undefined;
+  renderTooltipContent?: (value: T) => ComponentChildren;
   formatIndexBy?: (value: T, indexBy: Extract<keyof T, string>) => string;
   renderBottomTick?: (props: AxisTickProps<number | string>) => any;
   bottomTickSize?: number;
@@ -59,6 +68,7 @@ export const BarChart = <T extends BarDatum>(props: BarChartProps<T>) => {
     onBarClick,
     padding = 0.5,
     formatLegendValue,
+    renderTooltipContent,
     formatIndexBy,
     hasValueFn,
     currentLocale = "en-US",
@@ -75,13 +85,77 @@ export const BarChart = <T extends BarDatum>(props: BarChartProps<T>) => {
     leftAxisTickValues,
     layout = "vertical",
     formatTrendValue,
+    valueTrends,
   } = props;
   const legendMap = useMemo(() => new Map(legend.map((item) => [item.id, item])), [legend]);
   const barKeys = useMemo(
     () => legend.filter((item) => item.type !== "point" && item.type !== "tree").map((item) => item.id),
     [legend],
   );
+  const tooltipLegend = useMemo(
+    () => (valueTrends ? legend.filter((item) => item.type !== "point") : legend),
+    [legend, valueTrends],
+  );
+  const fittedTrends = useMemo(() => {
+    if (!valueTrends || data.length < 2) return [];
+
+    return legend
+      .filter(({ type }) => type === "point")
+      .map((entry) => ({
+        entry,
+        fit: fitValueTrend(data, entry.id),
+        scale: entry.id === "cumulativeTrend" ? data.length : 1,
+      }));
+  }, [data, legend, valueTrends]);
+  const domain = useMemo(() => {
+    if (!valueTrends || minValue === undefined || maxValue === undefined || data.length < 2) {
+      return { min: minValue, max: maxValue };
+    }
+
+    // The ends of a fitted line can extend beyond the tallest bars.
+    const trendExtent = Math.max(...fittedTrends.flatMap(({ fit }) => fit.map(([, value]) => Math.abs(value))));
+
+    if (trendExtent < Math.min(-minValue, maxValue)) {
+      return { min: minValue, max: maxValue };
+    }
+
+    const limit = Math.ceil(trendExtent * 1.01);
+    return { min: Math.min(minValue, -limit), max: Math.max(maxValue, limit) };
+  }, [data.length, fittedTrends, maxValue, minValue, valueTrends]);
   const isEmpty = useMemo(() => isEmptyChart(data, indexBy), [data, indexBy]);
+  const visibleLegend = !isEmpty && !noLegend ? legend : [];
+
+  const formatTrendNumber = (value: number) =>
+    valueTrends?.t("trendDetails.number", { value: Number(value.toFixed(3)) || 0 });
+  const formatTrendSlope = (value: number) => {
+    // Suppress floating-point noise from fitting the normalized series.
+    const slope = Number(value.toFixed(12));
+    return slope !== 0 && Math.abs(slope) < 0.001
+      ? valueTrends?.t("trendDetails.smallNumber", { value: slope })
+      : formatTrendNumber(slope);
+  };
+
+  const renderTrendComparison = (item: T) => {
+    if (!valueTrends) return;
+    const { t } = valueTrends;
+    const index = data.findIndex((entry) => entry[indexBy] === item[indexBy]);
+    return (
+      <dl className={styles.trendComparison}>
+        {[...fittedTrends].reverse().map(({ entry, fit, scale }) => (
+          <div key={entry.id} className={styles.trendComparisonRow}>
+            <dt>{t(entry.id === "cumulativeTrend" ? "trendDetails.cumulativeChange" : "trendDetails.netChange")}</dt>
+            <dd>
+              <span>{t("trendDetails.observed")}</span>{" "}
+              <b>{formatTrendNumber(Math.round(Number(item[entry.id]) * scale))}</b>
+            </dd>
+            <dd>
+              <span>{t("trendDetails.estimate")}</span> <b>{formatTrendNumber(fit.predict(index) * scale)}</b>
+            </dd>
+          </div>
+        ))}
+      </dl>
+    );
+  };
 
   const barSize = useMemo(() => {
     if (data.length >= 8) {
@@ -97,8 +171,47 @@ export const BarChart = <T extends BarDatum>(props: BarChartProps<T>) => {
 
   const isInverted = layout === "horizontal";
 
+  const axisBottom: AxisProps<number | string> = {
+    tickSize: 0,
+    tickPadding: 5,
+    tickRotation: bottomTickRotation,
+    truncateTickAt: 0,
+    renderTick: renderBottomTick,
+    style: {
+      ticks: {
+        text: {
+          fontSize: bottomTickSize,
+        },
+      },
+    },
+    format: isInverted
+      ? formatLeftTick
+      : (id) =>
+          formatBottomTick(
+            id,
+            data.find((item) => item[indexBy] === id)!,
+          ),
+    tickValues: data.length > 30 ? data.filter((_, index) => !(index % 2)).map((item) => item[indexBy]) : undefined,
+  };
+  const axisLeft: AxisProps<number | string> = {
+    tickSize: 0,
+    tickPadding: 8,
+    tickRotation: 0,
+    truncateTickAt: 0,
+    format: isInverted
+      ? formatBottomTick
+        ? (id) =>
+            formatBottomTick(
+              id,
+              data.find((item) => item[indexBy] === id)!,
+            )
+        : undefined
+      : formatLeftTick,
+    tickValues: leftAxisTickValues,
+  };
+
   return (
-    <div className={styles.container}>
+    <div className={styles.container} data-value-trends={valueTrends ? true : undefined}>
       <div className={styles.barContainer}>
         <BarChartStateProvider>
           <ResponsiveBar
@@ -126,11 +239,29 @@ export const BarChart = <T extends BarDatum>(props: BarChartProps<T>) => {
             }}
             padding={padding}
             innerPadding={0}
-            valueScale={{ type: "linear", nice: true, min: minValue, max: maxValue }}
-            indexScale={{ type: "band", round: true }}
+            valueScale={{ type: "linear", nice: true, ...domain }}
+            indexScale={{ type: "band", round: !valueTrends }}
             layers={[
               "grid",
-              "axes",
+              valueTrends
+                ? ({ xScale, yScale, innerWidth, innerHeight }: BarCustomLayerProps<T>) => {
+                    // Thin date ticks on narrow cards while keeping the current run labeled.
+                    const domain = xScale.domain() as (string | number)[];
+                    const step = xScale.type === "band" ? Math.ceil(52 / Math.max(xScale.step(), 1)) : 1;
+                    const tickValues = domain.filter((_, i) => (domain.length - 1 - i) % step === 0);
+
+                    return (
+                      <Axes
+                        xScale={xScale}
+                        yScale={yScale}
+                        width={innerWidth}
+                        height={innerHeight}
+                        bottom={{ ...axisBottom, tickValues }}
+                        left={axisLeft}
+                      />
+                    );
+                  }
+                : "axes",
               BottomAxisLine,
               (layerProps: BarCustomLayerProps<T>) => (
                 <BarChartBars<T>
@@ -143,13 +274,24 @@ export const BarChart = <T extends BarDatum>(props: BarChartProps<T>) => {
                 />
               ),
               (layerProps: BarCustomLayerProps<T>) => (
-                <TrendLinesLayer {...layerProps} legend={legend} indexBy={indexBy} formatValue={formatTrendValue} />
+                <TrendLinesLayer
+                  {...layerProps}
+                  legend={legend}
+                  indexBy={indexBy}
+                  formatValue={formatTrendValue}
+                  valueTrendData={valueTrends ? data : undefined}
+                />
               ),
               "markers",
               (layerProps: BarCustomLayerProps<T>) => (
                 <BarChartItemHoverLayer<T>
                   {...layerProps}
                   hasValueFn={hasValueFn}
+                  inspectionLabel={
+                    (valueTrends || renderTooltipContent) && formatIndexBy
+                      ? (item) => formatIndexBy(item, indexBy)
+                      : undefined
+                  }
                   indexBy={indexBy}
                   layout={layout}
                   onBarClick={onBarClick}
@@ -159,10 +301,13 @@ export const BarChart = <T extends BarDatum>(props: BarChartProps<T>) => {
                         allowZeroValues
                         value={value}
                         indexBy={indexBy}
-                        legend={legend}
+                        legend={tooltipLegend}
                         formatLegendValue={formatLegendValue}
                         formatIndexBy={formatIndexBy}
-                      />
+                        footer={renderTrendComparison(value)}
+                      >
+                        {renderTooltipContent?.(value)}
+                      </BarChartTooltip>
                     ) as any
                   }
                 />
@@ -178,52 +323,33 @@ export const BarChart = <T extends BarDatum>(props: BarChartProps<T>) => {
             enableTotals={false}
             axisTop={null}
             axisRight={null}
-            axisBottom={{
-              tickSize: 0,
-              tickPadding: 5,
-              tickRotation: bottomTickRotation,
-              truncateTickAt: 0,
-              renderTick: renderBottomTick,
-              style: {
-                ticks: {
-                  text: {
-                    fontSize: bottomTickSize,
-                  },
-                },
-              },
-              format: isInverted
-                ? formatLeftTick
-                : (id) =>
-                    formatBottomTick(
-                      id,
-                      data.find((item) => item[indexBy] === id)!,
-                    ),
-              tickValues:
-                data.length > 30 ? data.filter((_, index) => !(index % 2)).map((item) => item[indexBy]) : undefined,
-            }}
-            axisLeft={{
-              tickSize: 0,
-              tickPadding: 8,
-              tickRotation: 0,
-              truncateTickAt: 0,
-              format: isInverted
-                ? formatBottomTick
-                  ? (id) =>
-                      formatBottomTick(
-                        id,
-                        data.find((item) => item[indexBy] === id)!,
-                      )
-                  : undefined
-                : formatLeftTick,
-              tickValues: leftAxisTickValues,
-            }}
+            axisBottom={valueTrends ? null : axisBottom}
+            axisLeft={valueTrends ? null : axisLeft}
             animate={!REDUCE_MOTION}
             motionConfig={CHART_MOTION_CONFIG}
             onClick={onBarClick}
           />
         </BarChartStateProvider>
       </div>
-      {!isEmpty && !noLegend && <Legends data={legend} />}
+      {visibleLegend.length > 0 && <Legends data={visibleLegend} />}
+      {valueTrends && fittedTrends.length > 0 && (
+        <div className={styles.trendSummary} data-testid="trend-summary">
+          <p className={styles.trendWindow}>{valueTrends.t("trendDetails.comparisonCount", { count: data.length })}</p>
+          {fittedTrends.map(({ entry, fit, scale }) => (
+            <LegendItem
+              key={entry.id}
+              legend={{
+                ...entry,
+                label: `${entry.label} · ${valueTrends.t(
+                  entry.id === "cumulativeTrend" ? `trendDetails.${valueTrends.rate}` : "trendDetails.perRunShift",
+                  { value: formatTrendSlope(fit.a * scale) },
+                )}`,
+              }}
+              hideOnEmptyValue={false}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 };

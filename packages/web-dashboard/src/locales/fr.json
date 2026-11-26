@@ -78,10 +78,25 @@
         "history": "{{timestamp, timestamp_date}}"
       }
     },
+    "trendDetails": {
+      "comparisonCount_one": "Sur la base de {{count, number}} comparaison",
+      "comparisonCount_many": "Sur la base de {{count, number}} comparaisons",
+      "comparisonCount_other": "Sur la base de {{count, number}} comparaisons",
+      "growthRate": "{{value}} tests par exécution",
+      "statusRate": "{{value}} transitions nettes par exécution",
+      "perRunShift": "La variation nette évolue de {{value}} par exécution",
+      "netChange": "Variation nette de cette exécution",
+      "cumulativeChange": "Variation nette cumulée",
+      "observed": "Observé",
+      "estimate": "Estimation",
+      "number": "{{value, number(signDisplay: exceptZero)}}",
+      "smallNumber": "{{value, number(signDisplay: exceptZero; maximumSignificantDigits: 3)}}"
+    },
     "statusTransitions": {
       "title": "Transitions de statut",
       "legend": {
-        "trend": "Taux de correction"
+        "cumulativeTrend": "Tendance cumulée",
+        "diffTrend": "Tendance des variations par exécution"
       },
       "transitions": {
         "new": "$t(transitions:new, capitalize)",
@@ -141,11 +156,17 @@
         "removedunknown": "Supprimé $t(statuses:unknown)"
       },
       "legend": {
-        "trend": "Tendance de croissance"
+        "cumulativeTrend": "Tendance cumulée",
+        "diffTrend": "Tendance des variations par exécution"
       },
       "no-history": "$t(empty:no-history-results)",
       "no-results": "$t(empty:no-results)",
       "tooltips": {
+        "newTests": "Nouveaux tests",
+        "removedTests": "Tests supprimés",
+        "noChanges": "Aucun changement",
+        "number": "{{value, number}}",
+        "statusCount": "{{status}}: {{count}}",
         "current": "Dernier rapport ({{timestamp, timestamp_long_no_seconds}})",
         "history": "Rapport du {{timestamp, timestamp_long_no_seconds}}"
       },

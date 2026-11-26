@@ -17,6 +17,10 @@ const linearRegression = regressionLinear<{ x: number; y: number }>()
   .x((d) => d.x)
   .y((d) => d.y);
 
+// Band centers are uniformly spaced. Fit in report units before applying the chart scales.
+export const fitValueTrend = <T extends BarDatum>(data: readonly T[], key: keyof T) =>
+  linearRegression(data.map((item, x) => ({ x, y: Number(item[key]) })));
+
 const lineGenerator = line<[number, number]>()
   .x((point) => point[0])
   .y((point) => point[1]);
@@ -31,69 +35,86 @@ export const TrendLinesLayer = <T extends BarDatum>(
   props: BarCustomLayerProps<T> & {
     legend: LegendItemValue<T>[];
     indexBy: Extract<keyof T, string>;
+    valueTrendData?: readonly T[];
     formatValue?: (value: number, trendKey: Extract<keyof T, string>) => number | undefined;
   },
 ) => {
-  const { legend, indexBy, bars: allBars, innerHeight, innerWidth, formatValue = (value) => toNumber(value) } = props;
+  const {
+    legend,
+    indexBy,
+    bars: allBars,
+    innerHeight,
+    innerWidth,
+    valueTrendData,
+    xScale,
+    yScale,
+    formatValue = (value) => toNumber(value),
+  } = props;
 
-  const trendKeys = useMemo(() => legend.filter((item) => item.type === "point").map((item) => item.id), [legend]);
+  const trends = useMemo(() => legend.filter((item) => item.type === "point"), [legend]);
   const clipPathId = useId();
-
-  const colors = useMemo(
-    () =>
-      legend
-        .filter((item) => item.type === "point")
-        .reduce(
-          (acc, item) => {
-            acc[item.id] = item.color;
-            return acc;
-          },
-          {} as Record<string, string>,
-        ),
-    [legend],
-  );
 
   const trendBars = useMemo(() => getTrendBars(allBars), [allBars]);
 
   const scale = useMemo(
     () =>
-      computeXYScalesForSeries(
-        trendKeys.map((trendKey) => ({
-          id: trendKey,
-          data: trendBars
-            .map((bar) => {
-              const y = formatValue(toNumber(bar.data.data[trendKey] ?? 0), trendKey);
+      valueTrendData
+        ? undefined
+        : computeXYScalesForSeries(
+            trends.map(({ id: trendKey }) => ({
+              id: trendKey,
+              data: trendBars
+                .map((bar) => {
+                  const y = formatValue(toNumber(bar.data.data[trendKey] ?? 0), trendKey);
 
-              // Skip bars where formatValue returns undefined
-              if (y === undefined) {
-                return null;
-              }
+                  // Skip bars where formatValue returns undefined
+                  if (y === undefined) {
+                    return null;
+                  }
 
-              return {
-                x: toNumber(bar.data.data[indexBy] ?? 0),
-                y,
-              };
-            })
-            .filter((point): point is { x: number; y: number } => point !== null),
-        })),
-        { type: "linear" },
-        { type: "linear", nice: true, min: 0, max: 100 },
-        innerWidth,
-        innerHeight,
-      ),
-    [trendKeys, trendBars, indexBy, formatValue, innerWidth, innerHeight],
+                  return {
+                    x: toNumber(bar.data.data[indexBy] ?? 0),
+                    y,
+                  };
+                })
+                .filter((point): point is { x: number; y: number } => point !== null),
+            })),
+            { type: "linear" },
+            { type: "linear", nice: true, min: 0, max: 100 },
+            innerWidth,
+            innerHeight,
+          ),
+    [trends, trendBars, indexBy, formatValue, innerWidth, innerHeight, valueTrendData],
   );
 
   const lineData = useMemo(
     () =>
-      trendKeys
-        .map((trendKey) => {
+      trends
+        .map(({ id: trendKey, color, lineStyle }) => {
+          if (valueTrendData) {
+            if (valueTrendData.length < 2 || xScale.type !== "band" || yScale.type !== "linear") {
+              return null;
+            }
+
+            const halfBand = xScale.bandwidth() / 2;
+            const points = valueTrendData.map((item) => {
+              const id = item[indexBy];
+              const value = Number(item[trendKey]);
+
+              return { id, x: Number(xScale(id)) + halfBand, y: yScale(value), value };
+            });
+
+            return { trendKey, color, lineStyle, points };
+          }
+
+          if (!scale) {
+            return null;
+          }
+
           // Regression won't work if we have less than 2 points to work with
           if (trendBars.length < 2) {
             return null;
           }
-
-          const color = colors[trendKey] ?? "";
 
           const points = trendBars
             .map((bar) => {
@@ -118,6 +139,7 @@ export const TrendLinesLayer = <T extends BarDatum>(
             return {
               trendKey,
               color,
+              lineStyle,
               points,
             };
           }
@@ -150,22 +172,19 @@ export const TrendLinesLayer = <T extends BarDatum>(
           return {
             trendKey,
             color,
+            lineStyle,
             points: predictedPoints,
           };
         })
         .filter((l) => l !== null),
-    [trendKeys, trendBars, formatValue, scale, colors],
+    [trends, trendBars, formatValue, scale, valueTrendData, indexBy, xScale, yScale],
   );
-
-  if (trendKeys.length === 0) {
-    return null;
-  }
 
   if (lineData.length === 0) {
     return null;
   }
 
-  const clipOffset = STROKE_WIDTH + CIRCLE_RADIUS;
+  const clipOffset = valueTrendData ? 0 : STROKE_WIDTH + CIRCLE_RADIUS;
 
   return (
     <animated.g data-testid="trend-lines-layer" pointerEvents="none" clipPath={`url(#${clipPathId})`}>
@@ -174,23 +193,23 @@ export const TrendLinesLayer = <T extends BarDatum>(
           <rect x={-clipOffset} y={-clipOffset} width={innerWidth + clipOffset} height={innerHeight + clipOffset} />
         </clipPath>
       </defs>
-      {lineData.map(({ trendKey, points, color }) => (
+      {lineData.map(({ trendKey, points, color, lineStyle }) => (
         <animated.g key={trendKey} data-testid="trend-line-group" data-trend-key={trendKey}>
-          <Line key={trendKey} points={points} color={color} />
-          {points
-            // Skip points where value is not in the range 0-100
-            .filter((point) => point.value !== undefined && point.value >= 0 && point.value <= 100)
-            .map(({ x, y, id }) => (
-              <Circle key={id} x={x} y={y} color={color} />
-            ))}
+          <Line key={trendKey} points={points} color={color} solid={lineStyle === "solid"} />
+          {lineStyle !== "solid" &&
+            points
+              .filter(
+                (point) => valueTrendData || (point.value !== undefined && point.value >= 0 && point.value <= 100),
+              )
+              .map(({ x, y, id }) => <Circle key={id} x={x} y={y} color={color} />)}
         </animated.g>
       ))}
     </animated.g>
   );
 };
 
-const Line = (props: { points: { x: number; y: number }[]; color: string }) => {
-  const { points, color } = props;
+const Line = (props: { points: { x: number; y: number }[]; color: string; solid: boolean }) => {
+  const { points, color, solid } = props;
   const { animate, config: motionConfig } = useMotionConfig();
 
   const trendLinePoints = useMemo(() => {
@@ -220,7 +239,7 @@ const Line = (props: { points: { x: number; y: number }[]; color: string }) => {
       strokeWidth={STROKE_WIDTH}
       strokeLinecap="round"
       pointerEvents="none"
-      strokeDasharray="4"
+      strokeDasharray={solid ? undefined : "4"}
     />
   );
 };

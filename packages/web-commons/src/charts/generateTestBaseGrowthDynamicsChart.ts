@@ -61,10 +61,8 @@ export const generateTestBaseGrowthDynamicsChart = (props: {
     };
   }
 
-  const [earliestHdp, ...hdps] = limitedHistoryPoints;
-
   const dataPoints = [
-    ...hdps.map((hdp) => ({
+    ...limitedHistoryPoints.map((hdp) => ({
       ...hdp,
       stats: createEmptyStats(statusList),
     })),
@@ -83,11 +81,9 @@ export const generateTestBaseGrowthDynamicsChart = (props: {
   ];
 
   dataPoints.forEach(({ testResults: trs, stats }, index) => {
-    const isFirst = index === 0;
-    const isLast = index === dataPoints.length - 1;
-    // Add earliest history point to the beginning of the array if it's the first data point
-    const hpsPriorToCurrent = isFirst ? [earliestHdp] : dataPoints.slice(0, index);
+    const hpsPriorToCurrent = dataPoints.slice(0, index);
     const hpsAfterCurrent = dataPoints.slice(index + 1);
+    const nextStats = dataPoints[index + 1]?.stats;
 
     const currentTrs: (TestResult | HistoryTestResult)[] = Object.values(trs).filter((tr) => {
       const selected = lookupHistoryTestResult<TestResult | HistoryTestResult>({ testResults: trs }, tr);
@@ -100,32 +96,25 @@ export const generateTestBaseGrowthDynamicsChart = (props: {
         continue;
       }
 
-      const htrsPriortoCurr = hpsPriorToCurrent.flatMap((historyDataPoint) => {
-        const historicalTestResult = lookupHistoryTestResult<TestResult | HistoryTestResult>(historyDataPoint, cTr);
-        return historicalTestResult ? [historicalTestResult] : [];
-      });
-
-      // Test result is new, because it has no history
-      if (htrsPriortoCurr.length === 0) {
+      // The baseline participates in matching but is not a displayed comparison.
+      if (
+        index > 0 &&
+        !hpsPriorToCurrent.some((hdp) => lookupHistoryTestResult<TestResult | HistoryTestResult>(hdp, cTr))
+      ) {
         stats[`new:${cTr.status}`]++;
       }
 
-      if (isLast) {
-        continue;
-      }
-
-      const htrsAfterCurrent = hpsAfterCurrent.flatMap((historyDataPoint) => {
-        const historicalTestResult = lookupHistoryTestResult<TestResult | HistoryTestResult>(historyDataPoint, cTr);
-        return historicalTestResult ? [historicalTestResult] : [];
-      });
-
-      if (htrsAfterCurrent.length === 0) {
-        stats[`removed:${cTr.status}`]++;
+      // Attribute a final disappearance to the next run, where absence is first observed.
+      if (
+        nextStats &&
+        !hpsAfterCurrent.some((hdp) => lookupHistoryTestResult<TestResult | HistoryTestResult>(hdp, cTr))
+      ) {
+        nextStats[`removed:${cTr.status}`]++;
       }
     }
   });
 
-  const data: DataItem[] = dataPoints.map(({ uuid, timestamp, stats }) => ({ ...stats, id: uuid, timestamp }));
+  const data: DataItem[] = dataPoints.slice(1).map(({ uuid, timestamp, stats }) => ({ ...stats, id: uuid, timestamp }));
 
   return {
     type: ChartType.TestBaseGrowthDynamics,

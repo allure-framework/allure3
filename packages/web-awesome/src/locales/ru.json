@@ -374,10 +374,26 @@
         "history": "{{timestamp, timestamp_date}}"
       }
     },
+    "trendDetails": {
+      "comparisonCount_one": "На основе {{count, number}} сравнения",
+      "comparisonCount_few": "На основе {{count, number}} сравнений",
+      "comparisonCount_many": "На основе {{count, number}} сравнений",
+      "comparisonCount_other": "На основе {{count, number}} сравнения",
+      "growthRate": "{{value}} теста за запуск",
+      "statusRate": "{{value}} чистых переходов за запуск",
+      "perRunShift": "Чистое изменение сдвигается на {{value}} за запуск",
+      "netChange": "Чистое изменение за запуск",
+      "cumulativeChange": "Накопленное чистое изменение",
+      "observed": "Факт",
+      "estimate": "Оценка тренда",
+      "number": "{{value, number(signDisplay: exceptZero)}}",
+      "smallNumber": "{{value, number(signDisplay: exceptZero; maximumSignificantDigits: 3)}}"
+    },
     "statusTransitions": {
       "title": "Переходы статусов",
       "legend": {
-        "trend": "Коэффициент исправлений"
+        "cumulativeTrend": "Накопительный тренд",
+        "diffTrend": "Тренд изменений по запускам"
       },
       "transitions": {
         "new": "$t(transitions:new, capitalize)",
@@ -437,11 +453,17 @@
         "removedunknown": "Удалённый $t(statuses:unknown)"
       },
       "legend": {
-        "trend": "Тренд роста"
+        "cumulativeTrend": "Накопительный тренд",
+        "diffTrend": "Тренд изменений по запускам"
       },
       "no-history": "$t(empty:no-history-results)",
       "no-results": "$t(empty:no-results)",
       "tooltips": {
+        "newTests": "Новые тесты",
+        "removedTests": "Удалённые тесты",
+        "noChanges": "Нет изменений",
+        "number": "{{value, number}}",
+        "statusCount": "{{status}}: {{count}}",
         "current": "Последний отчёт ({{timestamp, timestamp_long_no_seconds}})",
         "history": "Отчёт от {{timestamp, timestamp_long_no_seconds}}"
       },

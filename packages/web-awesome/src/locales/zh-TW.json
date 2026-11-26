@@ -303,10 +303,23 @@
         "history": "{{timestamp, timestamp_date}}"
       }
     },
+    "trendDetails": {
+      "comparisonCount": "根據 {{count, number}} 次比較",
+      "growthRate": "每次執行 {{value}} 個測試",
+      "statusRate": "每次執行 {{value}} 次淨狀態轉換",
+      "perRunShift": "淨變化量每次執行變動 {{value}}",
+      "netChange": "本次執行的淨變化",
+      "cumulativeChange": "累計淨變化",
+      "observed": "實際值",
+      "estimate": "趨勢估計",
+      "number": "{{value, number(signDisplay: exceptZero)}}",
+      "smallNumber": "{{value, number(signDisplay: exceptZero; maximumSignificantDigits: 3)}}"
+    },
     "statusTransitions": {
       "title": "狀態轉變",
       "legend": {
-        "trend": "修復率"
+        "cumulativeTrend": "累積趨勢",
+        "diffTrend": "每次執行的變化趨勢"
       },
       "transitions": {
         "new": "$t(transitions:new, capitalize)",
@@ -366,11 +379,17 @@
         "removedunknown": "移除 $t(statuses:unknown)"
       },
       "legend": {
-        "trend": "增長趨勢"
+        "cumulativeTrend": "累積趨勢",
+        "diffTrend": "每次執行的變化趨勢"
       },
       "no-history": "$t(empty:no-history-results)",
       "no-results": "$t(empty:no-results)",
       "tooltips": {
+        "newTests": "新增測試",
+        "removedTests": "移除的測試",
+        "noChanges": "沒有變更",
+        "number": "{{value, number}}",
+        "statusCount": "{{status}}: {{count}}",
         "current": "最新報告 ({{timestamp, timestamp_long_no_seconds}})",
         "history": "報告來自 {{timestamp, timestamp_long_no_seconds}}"
       },

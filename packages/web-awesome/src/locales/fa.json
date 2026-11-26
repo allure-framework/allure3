@@ -375,10 +375,23 @@
         "history": "{{timestamp, timestamp_date}}"
       }
     },
+    "trendDetails": {
+      "comparisonCount": "بر اساس {{count, number}} مقایسه",
+      "growthRate": "{{value}} آزمون در هر اجرا",
+      "statusRate": "{{value}} تغییر وضعیت خالص در هر اجرا",
+      "perRunShift": "تغییر خالص در هر اجرا {{value}} جابه‌جا می‌شود",
+      "netChange": "تغییر خالص این اجرا",
+      "cumulativeChange": "تغییر خالص تجمعی",
+      "observed": "مشاهده‌شده",
+      "estimate": "برآورد روند",
+      "number": "{{value, number(signDisplay: exceptZero)}}",
+      "smallNumber": "{{value, number(signDisplay: exceptZero; maximumSignificantDigits: 3)}}"
+    },
     "statusTransitions": {
       "title": "تغییرات وضعیت",
       "legend": {
-        "trend": "نرخ رفع"
+        "cumulativeTrend": "روند تجمعی",
+        "diffTrend": "روند تغییر در هر اجرا"
       },
       "transitions": {
         "new": "$t(transitions:new, capitalize)",
@@ -438,11 +451,17 @@
         "removedunknown": "$t(statuses:unknown) حذف‌شده"
       },
       "legend": {
-        "trend": "روند رشد"
+        "cumulativeTrend": "روند تجمعی",
+        "diffTrend": "روند تغییر در هر اجرا"
       },
       "no-history": "$t(empty:no-history-results)",
       "no-results": "$t(empty:no-results)",
       "tooltips": {
+        "newTests": "تست‌های جدید",
+        "removedTests": "تست‌های حذف‌شده",
+        "noChanges": "بدون تغییر",
+        "number": "{{value, number}}",
+        "statusCount": "{{status}}: {{count}}",
         "current": "آخرین گزارش ({{timestamp, timestamp_long_no_seconds}})",
         "history": "گزارش {{timestamp, timestamp_long_no_seconds}}"
       },

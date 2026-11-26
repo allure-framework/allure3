@@ -78,10 +78,23 @@
         "history": "{{timestamp, timestamp_date}}"
       }
     },
+    "trendDetails": {
+      "comparisonCount": "{{count, number}} 件の比較に基づく",
+      "growthRate": "実行あたり {{value}} テスト",
+      "statusRate": "実行あたりのステータス遷移の純増減: {{value}}",
+      "perRunShift": "純増減は実行ごとに {{value}} 変化",
+      "netChange": "今回の純増減",
+      "cumulativeChange": "累積純増減",
+      "observed": "実測値",
+      "estimate": "傾向からの推定値",
+      "number": "{{value, number(signDisplay: exceptZero)}}",
+      "smallNumber": "{{value, number(signDisplay: exceptZero; maximumSignificantDigits: 3)}}"
+    },
     "statusTransitions": {
       "title": "ステータス遷移",
       "legend": {
-        "trend": "修正率"
+        "cumulativeTrend": "累積の傾向",
+        "diffTrend": "実行ごとの変化の傾向"
       },
       "transitions": {
         "new": "$t(transitions:new, capitalize)",
@@ -141,11 +154,17 @@
         "removedunknown": "削除 $t(statuses:unknown)"
       },
       "legend": {
-        "trend": "成長トレンド"
+        "cumulativeTrend": "累積の傾向",
+        "diffTrend": "実行ごとの変化の傾向"
       },
       "no-history": "$t(empty:no-history-results)",
       "no-results": "$t(empty:no-results)",
       "tooltips": {
+        "newTests": "新規テスト",
+        "removedTests": "削除されたテスト",
+        "noChanges": "変更なし",
+        "number": "{{value, number}}",
+        "statusCount": "{{status}}: {{count}}",
         "current": "最新レポート ({{timestamp, timestamp_long_no_seconds}})",
         "history": "{{timestamp, timestamp_long_no_seconds}} のレポート"
       },

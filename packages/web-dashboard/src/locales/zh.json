@@ -78,10 +78,23 @@
         "history": "{{timestamp, timestamp_date}}"
       }
     },
+    "trendDetails": {
+      "comparisonCount": "基于 {{count, number}} 次比较",
+      "growthRate": "每次运行 {{value}} 个测试",
+      "statusRate": "每次运行 {{value}} 次净状态转换",
+      "perRunShift": "净变化量每次运行变动 {{value}}",
+      "netChange": "本次运行的净变化",
+      "cumulativeChange": "累计净变化",
+      "observed": "实际值",
+      "estimate": "趋势估计",
+      "number": "{{value, number(signDisplay: exceptZero)}}",
+      "smallNumber": "{{value, number(signDisplay: exceptZero; maximumSignificantDigits: 3)}}"
+    },
     "statusTransitions": {
       "title": "状态转换",
       "legend": {
-        "trend": "修复率"
+        "cumulativeTrend": "累计趋势",
+        "diffTrend": "每次运行的变化趋势"
       },
       "transitions": {
         "new": "$t(transitions:new, capitalize)",
@@ -141,11 +154,17 @@
         "removedunknown": "移除 $t(statuses:unknown)"
       },
       "legend": {
-        "trend": "增长趋势"
+        "cumulativeTrend": "累计趋势",
+        "diffTrend": "每次运行的变化趋势"
       },
       "no-history": "$t(empty:no-history-results)",
       "no-results": "$t(empty:no-results)",
       "tooltips": {
+        "newTests": "新增测试",
+        "removedTests": "移除的测试",
+        "noChanges": "没有变化",
+        "number": "{{value, number}}",
+        "statusCount": "{{status}}: {{count}}",
         "current": "最新报告 ({{timestamp, timestamp_long_no_seconds}})",
         "history": "报告来自 {{timestamp, timestamp_long_no_seconds}}"
       },

@@ -84,10 +84,26 @@
         "history": "{{timestamp, timestamp_date}}"
       }
     },
+    "trendDetails": {
+      "comparisonCount_one": "На основі {{count, number}} порівняння",
+      "comparisonCount_few": "На основі {{count, number}} порівнянь",
+      "comparisonCount_many": "На основі {{count, number}} порівнянь",
+      "comparisonCount_other": "На основі {{count, number}} порівняння",
+      "growthRate": "{{value}} тестів за запуск",
+      "statusRate": "{{value}} чистих переходів за запуск",
+      "perRunShift": "Чиста зміна зсувається на {{value}} за кожен запуск",
+      "netChange": "Чиста зміна в цьому запуску",
+      "cumulativeChange": "Накопичена чиста зміна",
+      "observed": "Фактичне значення",
+      "estimate": "Оцінка за трендом",
+      "number": "{{value, number(signDisplay: exceptZero)}}",
+      "smallNumber": "{{value, number(signDisplay: exceptZero; maximumSignificantDigits: 3)}}"
+    },
     "statusTransitions": {
       "title": "Переходи статусів",
       "legend": {
-        "trend": "Коефіцієнт виправлень"
+        "cumulativeTrend": "Накопичувальний тренд",
+        "diffTrend": "Тренд змін за запусками"
       },
       "transitions": {
         "new": "$t(transitions:new, capitalize)",
@@ -147,11 +163,17 @@
         "removedunknown": "Видалений $t(statuses:unknown)"
       },
       "legend": {
-        "trend": "Тренд зростання"
+        "cumulativeTrend": "Накопичувальний тренд",
+        "diffTrend": "Тренд змін за запусками"
       },
       "no-history": "$t(empty:no-history-results)",
       "no-results": "$t(empty:no-results)",
       "tooltips": {
+        "newTests": "Нові тести",
+        "removedTests": "Видалені тести",
+        "noChanges": "Немає змін",
+        "number": "{{value, number}}",
+        "statusCount": "{{status}}: {{count}}",
         "current": "Останній звіт ({{timestamp, timestamp_long_no_seconds}})",
         "history": "Звіт від {{timestamp, timestamp_long_no_seconds}}"
       },

@@ -78,10 +78,23 @@
         "history": "{{timestamp, timestamp_date}}"
       }
     },
+    "trendDetails": {
+      "comparisonCount": "{{count, number}} müqayisə əsasında",
+      "growthRate": "Hər icraya {{value}} test",
+      "statusRate": "Hər icraya {{value}} xalis status keçidi",
+      "perRunShift": "Xalis dəyişiklik hər icrada {{value}} qədər dəyişir",
+      "netChange": "Bu icrada xalis dəyişiklik",
+      "cumulativeChange": "Kumulyativ xalis dəyişiklik",
+      "observed": "Faktiki dəyər",
+      "estimate": "Trend qiyməti",
+      "number": "{{value, number(signDisplay: exceptZero)}}",
+      "smallNumber": "{{value, number(signDisplay: exceptZero; maximumSignificantDigits: 3)}}"
+    },
     "statusTransitions": {
       "title": "Status keçidləri",
       "legend": {
-        "trend": "Düzəltmə dərəcəsi"
+        "cumulativeTrend": "Yığılan trend",
+        "diffTrend": "İcra üzrə dəyişiklik trendi"
       },
       "transitions": {
         "new": "$t(transitions:new, capitalize)",
@@ -141,11 +154,17 @@
         "removedunknown": "Silinmiş $t(statuses:unknown)"
       },
       "legend": {
-        "trend": "Artım trendi"
+        "cumulativeTrend": "Yığılan trend",
+        "diffTrend": "İcra üzrə dəyişiklik trendi"
       },
       "no-history": "$t(empty:no-history-results)",
       "no-results": "$t(empty:no-results)",
       "tooltips": {
+        "newTests": "Yeni testlər",
+        "removedTests": "Silinmiş testlər",
+        "noChanges": "Dəyişiklik yoxdur",
+        "number": "{{value, number}}",
+        "statusCount": "{{status}}: {{count}}",
         "current": "Son hesabat ({{timestamp, timestamp_long_no_seconds}})",
         "history": "{{timestamp, timestamp_long_no_seconds}} tarixli hesabat"
       },

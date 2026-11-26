@@ -78,10 +78,24 @@
         "history": "{{timestamp, timestamp_date}}"
       }
     },
+    "trendDetails": {
+      "comparisonCount_one": "Baserat på {{count, number}} jämförelse",
+      "comparisonCount_other": "Baserat på {{count, number}} jämförelser",
+      "growthRate": "{{value}} tester per körning",
+      "statusRate": "{{value}} statusövergångar netto per körning",
+      "perRunShift": "Nettoförändringen förskjuts med {{value}} per körning",
+      "netChange": "Nettoförändring i den här körningen",
+      "cumulativeChange": "Ackumulerad nettoförändring",
+      "observed": "Observerat",
+      "estimate": "Trenduppskattning",
+      "number": "{{value, number(signDisplay: exceptZero)}}",
+      "smallNumber": "{{value, number(signDisplay: exceptZero; maximumSignificantDigits: 3)}}"
+    },
     "statusTransitions": {
       "title": "Statusövergångar",
       "legend": {
-        "trend": "Korrigeringsgrad"
+        "cumulativeTrend": "Kumulativ trend",
+        "diffTrend": "Trend för förändring per körning"
       },
       "transitions": {
         "new": "$t(transitions:new, capitalize)",
@@ -141,11 +155,17 @@
         "removedunknown": "Borttagen $t(statuses:unknown)"
       },
       "legend": {
-        "trend": "Tillväxttrend"
+        "cumulativeTrend": "Kumulativ trend",
+        "diffTrend": "Trend för förändring per körning"
       },
       "no-history": "$t(empty:no-history-results)",
       "no-results": "$t(empty:no-results)",
       "tooltips": {
+        "newTests": "Nya tester",
+        "removedTests": "Borttagna tester",
+        "noChanges": "Inga ändringar",
+        "number": "{{value, number}}",
+        "statusCount": "{{status}}: {{count}}",
         "current": "Senaste rapport ({{timestamp, timestamp_long_no_seconds}})",
         "history": "Rapport från {{timestamp, timestamp_long_no_seconds}}"
       },

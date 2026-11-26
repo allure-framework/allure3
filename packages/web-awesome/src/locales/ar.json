@@ -298,10 +298,28 @@
         "history": "{{timestamp, timestamp_date}}"
       }
     },
+    "trendDetails": {
+      "comparisonCount_zero": "استنادًا إلى {{count, number}} مقارنة",
+      "comparisonCount_one": "استنادًا إلى {{count, number}} مقارنة",
+      "comparisonCount_two": "استنادًا إلى {{count, number}} مقارنتين",
+      "comparisonCount_few": "استنادًا إلى {{count, number}} مقارنات",
+      "comparisonCount_many": "استنادًا إلى {{count, number}} مقارنة",
+      "comparisonCount_other": "استنادًا إلى {{count, number}} مقارنة",
+      "growthRate": "{{value}} اختبار لكل تشغيل",
+      "statusRate": "{{value}} انتقالًا صافيًا لكل تشغيل",
+      "perRunShift": "يتغير صافي التغير بمقدار {{value}} في كل تشغيل",
+      "netChange": "صافي التغير في هذا التشغيل",
+      "cumulativeChange": "صافي التغير التراكمي",
+      "observed": "القيمة الفعلية",
+      "estimate": "تقدير الاتجاه",
+      "number": "{{value, number(signDisplay: exceptZero)}}",
+      "smallNumber": "{{value, number(signDisplay: exceptZero; maximumSignificantDigits: 3)}}"
+    },
     "statusTransitions": {
       "title": "انتقالات الحالة",
       "legend": {
-        "trend": "معدل الإصلاح"
+        "cumulativeTrend": "الاتجاه التراكمي",
+        "diffTrend": "اتجاه التغير لكل تشغيل"
       },
       "transitions": {
         "new": "$t(transitions:new, capitalize)",
@@ -361,11 +379,17 @@
         "removedunknown": "محذوف $t(statuses:unknown)"
       },
       "legend": {
-        "trend": "اتجاه النمو"
+        "cumulativeTrend": "الاتجاه التراكمي",
+        "diffTrend": "اتجاه التغير لكل تشغيل"
       },
       "no-history": "$t(empty:no-history-results)",
       "no-results": "$t(empty:no-results)",
       "tooltips": {
+        "newTests": "اختبارات جديدة",
+        "removedTests": "اختبارات محذوفة",
+        "noChanges": "لا تغييرات",
+        "number": "{{value, number}}",
+        "statusCount": "{{status}}: {{count}}",
         "current": "أحدث تقرير ({{timestamp, timestamp_long_no_seconds}})",
         "history": "تقرير من {{timestamp, timestamp_long_no_seconds}}"
       },

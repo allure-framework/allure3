@@ -303,10 +303,23 @@
         "history": "{{timestamp, timestamp_date}}"
       }
     },
+    "trendDetails": {
+      "comparisonCount": "비교 {{count, number}}건 기준",
+      "growthRate": "실행당 {{value}}개 테스트",
+      "statusRate": "실행당 순 상태 전환 {{value}}건",
+      "perRunShift": "순변화량은 실행마다 {{value}}만큼 변함",
+      "netChange": "이번 실행의 순변화량",
+      "cumulativeChange": "누적 순변화량",
+      "observed": "실측값",
+      "estimate": "추세 추정값",
+      "number": "{{value, number(signDisplay: exceptZero)}}",
+      "smallNumber": "{{value, number(signDisplay: exceptZero; maximumSignificantDigits: 3)}}"
+    },
     "statusTransitions": {
       "title": "상태 전환",
       "legend": {
-        "trend": "수정률"
+        "cumulativeTrend": "누적 추세",
+        "diffTrend": "실행별 변화 추세"
       },
       "transitions": {
         "new": "$t(transitions:new, capitalize)",
@@ -366,11 +379,17 @@
         "removedunknown": "제거된 $t(statuses:unknown)"
       },
       "legend": {
-        "trend": "성장 추세"
+        "cumulativeTrend": "누적 추세",
+        "diffTrend": "실행별 변화 추세"
       },
       "no-history": "$t(empty:no-history-results)",
       "no-results": "$t(empty:no-results)",
       "tooltips": {
+        "newTests": "새 테스트",
+        "removedTests": "제거된 테스트",
+        "noChanges": "변경 없음",
+        "number": "{{value, number}}",
+        "statusCount": "{{status}}: {{count}}",
         "current": "최신 보고서 ({{timestamp, timestamp_long_no_seconds}})",
         "history": "{{timestamp, timestamp_long_no_seconds}} 보고서"
       },

@@ -14,13 +14,10 @@ import {
 
 import { limitHistoryDataPoints } from "./chart-utils.js";
 
-type TrWithStatusAndTransition = Pick<TestResult, "status" | "transition" | "start">;
+type TrWithStatusAndTransition = Pick<TestResult, "status" | "transition">;
 
 const getLastSignificantStatus = (history: TrWithStatusAndTransition[] = []): string | undefined => {
-  const significantHtr = [...history]
-    // Sort by start descending, so latest first and earliest last
-    .sort((a, b) => (b.start ?? 0) - (a.start ?? 0))
-    .find((htr: TrWithStatusAndTransition) => htr.status !== "unknown" && htr.status !== "skipped");
+  const significantHtr = history.find((htr) => htr.status !== "unknown" && htr.status !== "skipped");
 
   return significantHtr?.status;
 };
@@ -29,17 +26,17 @@ const getStatusTransition = (
   tr: TrWithStatusAndTransition,
   history: TrWithStatusAndTransition[] = [],
 ): TestStatusTransition | undefined => {
-  if (history.length === 0) {
-    return "new";
-  }
-
   if (tr.transition) {
     return tr.transition;
   }
 
+  if (history.length === 0) {
+    return "new";
+  }
+
   const lastStatus = getLastSignificantStatus(history);
 
-  if (lastStatus === tr.status) {
+  if (lastStatus === undefined || lastStatus === tr.status) {
     return;
   }
 
@@ -54,7 +51,7 @@ const getStatusTransition = (
 };
 
 type DataItem = {
-  id: string | "current";
+  id: string;
   timestamp: number;
   prevItemTimestamp: number;
   /**
@@ -122,7 +119,7 @@ export const generateStatusTransitionsChart = (props: {
       timestamp: currentReportTimestamp,
     },
   ].forEach(({ testResults: trs, uuid, timestamp }, index, dataPoints) => {
-    const hpsPriorToCurrent = index === 0 ? [earliestHdp] : dataPoints.slice(0, index);
+    const hpsPriorToCurrent = [earliestHdp, ...dataPoints.slice(0, index)];
     const latestHpPriorToCurrent = hpsPriorToCurrent[hpsPriorToCurrent.length - 1];
 
     const newDataItem: DataItem = {
@@ -142,8 +139,8 @@ export const generateStatusTransitionsChart = (props: {
     });
 
     for (const cTr of cTrs) {
-      // Compare only to latest history point, as we don't know the previous history
-      const htrs = hpsPriorToCurrent.flatMap((historyDataPoint) => {
+      // Run order defines recency, including historical results without a start timestamp.
+      const htrs = [...hpsPriorToCurrent].reverse().flatMap((historyDataPoint) => {
         const historicalTestResult = lookupHistoryTestResult<TestResult | HistoryTestResult>(historyDataPoint, cTr);
         return historicalTestResult ? [historicalTestResult] : [];
       });

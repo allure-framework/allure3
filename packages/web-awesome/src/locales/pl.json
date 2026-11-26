@@ -311,10 +311,26 @@
         "history": "{{timestamp, timestamp_date}}"
       }
     },
+    "trendDetails": {
+      "comparisonCount_one": "Na podstawie {{count, number}} porównania",
+      "comparisonCount_few": "Na podstawie {{count, number}} porównań",
+      "comparisonCount_many": "Na podstawie {{count, number}} porównań",
+      "comparisonCount_other": "Na podstawie {{count, number}} porównań",
+      "growthRate": "{{value}} testów na uruchomienie",
+      "statusRate": "{{value}} zmian statusu netto na uruchomienie",
+      "perRunShift": "Zmiana netto przesuwa się o {{value}} z każdym uruchomieniem",
+      "netChange": "Zmiana netto w tym uruchomieniu",
+      "cumulativeChange": "Skumulowana zmiana netto",
+      "observed": "Wartość zaobserwowana",
+      "estimate": "Oszacowanie trendu",
+      "number": "{{value, number(signDisplay: exceptZero)}}",
+      "smallNumber": "{{value, number(signDisplay: exceptZero; maximumSignificantDigits: 3)}}"
+    },
     "statusTransitions": {
       "title": "Przejścia statusu",
       "legend": {
-        "trend": "Wskaźnik napraw"
+        "cumulativeTrend": "Trend skumulowany",
+        "diffTrend": "Trend zmian w poszczególnych uruchomieniach"
       },
       "transitions": {
         "new": "$t(transitions:new, capitalize)",
@@ -374,11 +390,17 @@
         "removedunknown": "Usunięty $t(statuses:unknown)"
       },
       "legend": {
-        "trend": "Trend wzrostu"
+        "cumulativeTrend": "Trend skumulowany",
+        "diffTrend": "Trend zmian w poszczególnych uruchomieniach"
       },
       "no-history": "$t(empty:no-history-results)",
       "no-results": "$t(empty:no-results)",
       "tooltips": {
+        "newTests": "Nowe testy",
+        "removedTests": "Usunięte testy",
+        "noChanges": "Brak zmian",
+        "number": "{{value, number}}",
+        "statusCount": "{{status}}: {{count}}",
         "current": "Najnowszy raport ({{timestamp, timestamp_long_no_seconds}})",
         "history": "Raport z {{timestamp, timestamp_long_no_seconds}}"
       },

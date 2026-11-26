@@ -375,10 +375,24 @@
         "history": "{{timestamp, timestamp_date}}"
       }
     },
+    "trendDetails": {
+      "comparisonCount_one": "Based on {{count, number}} comparison",
+      "comparisonCount_other": "Based on {{count, number}} comparisons",
+      "growthRate": "{{value}} tests per run",
+      "statusRate": "{{value}} net transitions per run",
+      "perRunShift": "Net change shifts by {{value}} each run",
+      "netChange": "Net change this run",
+      "cumulativeChange": "Cumulative net change",
+      "observed": "Observed",
+      "estimate": "Trend estimate",
+      "number": "{{value, number(signDisplay: exceptZero)}}",
+      "smallNumber": "{{value, number(signDisplay: exceptZero; maximumSignificantDigits: 3)}}"
+    },
     "statusTransitions": {
       "title": "Status transitions",
       "legend": {
-        "trend": "Fix rate"
+        "cumulativeTrend": "Cumulative trend",
+        "diffTrend": "Per-run change trend"
       },
       "transitions": {
         "new": "$t(transitions:new, capitalize)",
@@ -438,11 +452,17 @@
         "removedunknown": "Removed $t(statuses:unknown)"
       },
       "legend": {
-        "trend": "Growth trend"
+        "cumulativeTrend": "Cumulative trend",
+        "diffTrend": "Per-run change trend"
       },
       "no-history": "$t(empty:no-history-results)",
       "no-results": "$t(empty:no-results)",
       "tooltips": {
+        "newTests": "New tests",
+        "removedTests": "Removed tests",
+        "noChanges": "No changes",
+        "number": "{{value, number}}",
+        "statusCount": "{{status}}: {{count}}",
         "current": "Latest report ({{timestamp, timestamp_long_no_seconds}})",
         "history": "Report from {{timestamp, timestamp_long_no_seconds}}"
       },

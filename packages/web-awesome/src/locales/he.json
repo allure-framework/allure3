@@ -303,10 +303,25 @@
         "history": "{{timestamp, timestamp_date}}"
       }
     },
+    "trendDetails": {
+      "comparisonCount_one": "מבוסס על {{count, number}} השוואה",
+      "comparisonCount_two": "מבוסס על {{count, number}} השוואות",
+      "comparisonCount_other": "מבוסס על {{count, number}} השוואות",
+      "growthRate": "{{value}} בדיקות בכל הרצה",
+      "statusRate": "{{value}} מעברי סטטוס נטו בכל הרצה",
+      "perRunShift": "השינוי נטו משתנה ב־{{value}} בכל הרצה",
+      "netChange": "שינוי נטו בהרצה זו",
+      "cumulativeChange": "שינוי נטו מצטבר",
+      "observed": "נצפה",
+      "estimate": "אומדן מגמה",
+      "number": "{{value, number(signDisplay: exceptZero)}}",
+      "smallNumber": "{{value, number(signDisplay: exceptZero; maximumSignificantDigits: 3)}}"
+    },
     "statusTransitions": {
       "title": "מעברי סטטוס",
       "legend": {
-        "trend": "שיעור תיקון"
+        "cumulativeTrend": "מגמה מצטברת",
+        "diffTrend": "מגמת השינוי בכל הרצה"
       },
       "transitions": {
         "new": "$t(transitions:new, capitalize)",
@@ -366,11 +381,17 @@
         "removedunknown": "הוסר $t(statuses:unknown)"
       },
       "legend": {
-        "trend": "מגמת צמיחה"
+        "cumulativeTrend": "מגמה מצטברת",
+        "diffTrend": "מגמת השינוי בכל הרצה"
       },
       "no-history": "$t(empty:no-history-results)",
       "no-results": "$t(empty:no-results)",
       "tooltips": {
+        "newTests": "בדיקות חדשות",
+        "removedTests": "בדיקות שהוסרו",
+        "noChanges": "אין שינויים",
+        "number": "{{value, number}}",
+        "statusCount": "{{status}}: {{count}}",
         "current": "דוח אחרון ({{timestamp, timestamp_long_no_seconds}})",
         "history": "דוח מ-{{timestamp, timestamp_long_no_seconds}}"
       },

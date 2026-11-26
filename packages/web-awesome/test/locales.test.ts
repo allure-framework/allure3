@@ -135,3 +135,38 @@ describe("awesome locales", () => {
     });
   });
 });
+
+it("defines diff trend summaries and comparisons in every locale", () => {
+  const localeFiles = readdirSync(localesDir).filter((file) => file.endsWith(".json"));
+  expect(localeFiles.length).toBeGreaterThan(0);
+  for (const file of localeFiles) {
+    const { charts } = JSON.parse(readFileSync(join(localesDir, file), "utf8"));
+    for (const value of [
+      charts.statusTransitions?.legend?.cumulativeTrend,
+      charts.statusTransitions?.legend?.diffTrend,
+      charts.testBaseGrowthDynamics?.legend?.cumulativeTrend,
+      charts.testBaseGrowthDynamics?.legend?.diffTrend,
+      charts.trendDetails?.netChange,
+      charts.trendDetails?.cumulativeChange,
+      charts.trendDetails?.observed,
+      charts.trendDetails?.estimate,
+      charts.testBaseGrowthDynamics?.tooltips?.newTests,
+      charts.testBaseGrowthDynamics?.tooltips?.removedTests,
+      charts.testBaseGrowthDynamics?.tooltips?.noChanges,
+      charts.testBaseGrowthDynamics?.tooltips?.number,
+      charts.testBaseGrowthDynamics?.tooltips?.statusCount,
+    ]) {
+      expect(value, file).toEqual(expect.any(String));
+      expect(value.trim().length, file).toBeGreaterThan(0);
+    }
+    for (const key of ["growthRate", "statusRate", "perRunShift"]) {
+      expect(charts.trendDetails?.[key], `${file}: ${key}`).toContain("{{value}}");
+    }
+    const { comparisonCount, ...pluralDetails } = charts.trendDetails;
+    for (const category of new Intl.PluralRules(file.slice(0, -5)).resolvedOptions().pluralCategories) {
+      expect(comparisonCount ?? pluralDetails[`comparisonCount_${category}`], file).toContain("{{count, number}}");
+    }
+    expect(charts.trendDetails?.number, file).toContain("number(signDisplay: exceptZero)");
+    expect(charts.trendDetails?.smallNumber, file).toContain("maximumSignificantDigits: 3");
+  }
+});

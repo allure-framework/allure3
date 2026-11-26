@@ -303,10 +303,24 @@
         "history": "{{timestamp, timestamp_date}}"
       }
     },
+    "trendDetails": {
+      "comparisonCount_one": "Gebaseerd op {{count, number}} vergelijking",
+      "comparisonCount_other": "Gebaseerd op {{count, number}} vergelijkingen",
+      "growthRate": "{{value}} tests per run",
+      "statusRate": "{{value}} netto statusovergangen per run",
+      "perRunShift": "De nettoverandering verschuift per run met {{value}}",
+      "netChange": "Nettoverandering in deze run",
+      "cumulativeChange": "Cumulatieve nettoverandering",
+      "observed": "Waargenomen",
+      "estimate": "Trendschatting",
+      "number": "{{value, number(signDisplay: exceptZero)}}",
+      "smallNumber": "{{value, number(signDisplay: exceptZero; maximumSignificantDigits: 3)}}"
+    },
     "statusTransitions": {
       "title": "Statusovergangen",
       "legend": {
-        "trend": "Correctieratio"
+        "cumulativeTrend": "Cumulatieve trend",
+        "diffTrend": "Trend van veranderingen per uitvoering"
       },
       "transitions": {
         "new": "$t(transitions:new, capitalize)",
@@ -366,11 +380,17 @@
         "removedunknown": "Verwijderd $t(statuses:unknown)"
       },
       "legend": {
-        "trend": "Groeitrend"
+        "cumulativeTrend": "Cumulatieve trend",
+        "diffTrend": "Trend van veranderingen per uitvoering"
       },
       "no-history": "$t(empty:no-history-results)",
       "no-results": "$t(empty:no-results)",
       "tooltips": {
+        "newTests": "Nieuwe tests",
+        "removedTests": "Verwijderde tests",
+        "noChanges": "Geen wijzigingen",
+        "number": "{{value, number}}",
+        "statusCount": "{{status}}: {{count}}",
         "current": "Laatste rapport ({{timestamp, timestamp_long_no_seconds}})",
         "history": "Rapport van {{timestamp, timestamp_long_no_seconds}}"
       },

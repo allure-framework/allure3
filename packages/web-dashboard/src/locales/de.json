@@ -78,10 +78,24 @@
         "history": "{{timestamp, timestamp_date}}"
       }
     },
+    "trendDetails": {
+      "comparisonCount_one": "Basierend auf {{count, number}} Vergleich",
+      "comparisonCount_other": "Basierend auf {{count, number}} Vergleichen",
+      "growthRate": "{{value}} Tests pro Lauf",
+      "statusRate": "{{value}} Netto-Statuswechsel pro Lauf",
+      "perRunShift": "Die Nettoänderung verschiebt sich pro Lauf um {{value}}",
+      "netChange": "Nettoänderung in diesem Lauf",
+      "cumulativeChange": "Kumulierte Nettoänderung",
+      "observed": "Beobachtet",
+      "estimate": "Trendschätzung",
+      "number": "{{value, number(signDisplay: exceptZero)}}",
+      "smallNumber": "{{value, number(signDisplay: exceptZero; maximumSignificantDigits: 3)}}"
+    },
     "statusTransitions": {
       "title": "Statusübergänge",
       "legend": {
-        "trend": "Korrekturrate"
+        "cumulativeTrend": "Kumulativer Trend",
+        "diffTrend": "Änderungstrend pro Lauf"
       },
       "transitions": {
         "new": "$t(transitions:new, capitalize)",
@@ -141,11 +155,17 @@
         "removedunknown": "Entfernt $t(statuses:unknown)"
       },
       "legend": {
-        "trend": "Wachstumstrend"
+        "cumulativeTrend": "Kumulativer Trend",
+        "diffTrend": "Änderungstrend pro Lauf"
       },
       "no-history": "$t(empty:no-history-results)",
       "no-results": "$t(empty:no-results)",
       "tooltips": {
+        "newTests": "Neue Tests",
+        "removedTests": "Entfernte Tests",
+        "noChanges": "Keine Änderungen",
+        "number": "{{value, number}}",
+        "statusCount": "{{status}}: {{count}}",
         "current": "Neuester Bericht ({{timestamp, timestamp_long_no_seconds}})",
         "history": "Bericht vom {{timestamp, timestamp_long_no_seconds}}"
       },
