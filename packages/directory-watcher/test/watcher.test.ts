@@ -492,32 +492,27 @@ describe("delayedFileProcessingWatcher", () => {
     }
   });
 
-  it("should delay file execution until file stop changing", async () => {
+  it("processes a stable file before a file that changed after registration", async () => {
+    const changing = await realpath(await randomFile(fixturesDir, "changing.txt"));
+    const stable = await realpath(await randomFile(fixturesDir, "stable.txt"));
     const handler = vi.fn();
     const watcher = delayedFileProcessingWatcher(handler, {
       indexDelay: 10,
-      minProcessingDelay: 200,
+      minProcessingDelay: 50,
       abortController,
     });
-    const file = join(fixturesDir, "changing-file.txt");
-    const writeStream = createWriteStream(file, { flags: "a", encoding: "utf-8" });
-    await once(writeStream, "open");
-    writeStream.write("first\n");
-    await watcher.addFile(file);
-    for (let i = 0; i < 10; i++) {
-      await setTimeout(10);
-      writeStream.write(`line${i}\n`);
+    // Both files become eligible on the same scan, regardless of filesystem speed.
+    const clock = vi.spyOn(Date, "now").mockReturnValue(0);
+    try {
+      await watcher.addFile(changing);
+      await watcher.addFile(stable);
+      await writeFile(changing, "updated");
+    } finally {
+      clock.mockRestore();
     }
-    writeStream.end();
-    await once(writeStream, "finish");
 
-    expect(handler).toBeCalledTimes(0);
-
-    await setTimeout(120);
-
-    expect(handler).toBeCalledTimes(1);
-    const expectedPath = await realpath(file);
-    expect(handler).toBeCalledWith(expectedPath);
+    await vi.waitFor(() => expect(handler).toHaveBeenCalledTimes(2));
+    expect(handler.mock.calls).toEqual([[stable], [changing]]);
   });
 
   it("should wait for processing delay on abort", async () => {

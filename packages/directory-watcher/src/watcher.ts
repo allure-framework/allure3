@@ -322,6 +322,8 @@ interface FileChangingWaitOptions {
   minWait: number;
 }
 
+const sameFileState = (a: FileInfo, b: FileInfo): boolean => a.size === b.size && a.mtimeMs === b.mtimeMs;
+
 const waitUntilFileStopChanging = async (
   file: string,
   info: FileInfo,
@@ -352,9 +354,7 @@ const waitUntilFileStopChanging = async (
       return false;
     }
 
-    const sameSize = current.size === prev.size;
-    const sameMtimeMs = current.mtimeMs === prev.mtimeMs;
-    if (sameSize && sameMtimeMs) {
+    if (sameFileState(prev, current)) {
       // no changes since last check
       return true;
     }
@@ -399,6 +399,18 @@ export const delayedFileProcessingWatcher = (
         continue;
       }
       try {
+        const current = await calculateInfo(file);
+        if (files.get(file) !== info) {
+          continue;
+        }
+        if (!current) {
+          files.delete(file);
+          continue;
+        }
+        if (!sameFileState(info, current)) {
+          files.set(file, current);
+          continue;
+        }
         await processFile(file);
       } catch (e) {
         if (!isFileNotFoundError(e)) {
@@ -406,7 +418,9 @@ export const delayedFileProcessingWatcher = (
         }
         errors.add(file);
       }
-      files.delete(file);
+      if (files.get(file) === info) {
+        files.delete(file);
+      }
       success.add(file);
     }
   };
