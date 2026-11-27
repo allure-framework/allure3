@@ -8,10 +8,13 @@
   "author": "Qameta Software",
   "type": "module",
   "scripts": {
+    "check:passed": "yarn allure check --name \"Sandbox passing check\" --output ./allure-results -- node -e \"console.log('The sandbox passing check succeeded')\"",
+    "check:failed": "yarn allure check --name \"Sandbox failing check\" --output ./allure-results -- node -e \"console.error('The sandbox failing check failed'); process.exit(1)\"",
     "g": "yarn allure generate --config=./allurerc.mjs",
     "o": "yarn allure open ./allure-report",
     "pret": "rimraf ./allure-results",
-    "t": "yarn allure run -- vitest run",
+    "t": "yarn pret && yarn allure run -- yarn t:run",
+    "t:run": "yarn check:passed && (yarn check:failed || true) && vitest run",
     "test": "rimraf out && vp test run",
     "lint": "vp lint --import-plugin src test features stories",
     "lint:fix": "vp lint --import-plugin --fix src test features stories"

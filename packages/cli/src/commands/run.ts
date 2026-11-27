@@ -193,7 +193,7 @@ export class RunCommand extends Command {
         if (testPlanNotSet && accessToken) {
           const client = new AllureTestOpsClient({ accessToken, projectId, url }, runLogger);
           const mutedTests = await client.getMutedTests();
-          const testPlan: TestPlan = { version: "1.0", tests: [], mutedTests };
+          const testPlan: TestPlan = { version: "1.0", tests: [], excludedTests: mutedTests };
 
           if (mutedTests.length > 0) {
             mutedPlanDirectory = await mkdtemp(join(tmpdir(), "allure-run-muted-"));
@@ -264,7 +264,7 @@ export class RunCommand extends Command {
     const resultsPatterns = resolveResultsPatterns(this.resultsDir ?? [], config.resultsDir);
 
     const resolvedEnvironment = resolveCommandEnvironment(config, environmentOptions);
-    const withQualityGate = !!config.qualityGate;
+    const withQualityGate = !!config.qualityGate && config.qualityGate.enabled !== false;
 
     try {
       await rm(config.output, { recursive: true });

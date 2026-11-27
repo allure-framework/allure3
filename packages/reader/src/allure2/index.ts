@@ -1,7 +1,7 @@
 import * as console from "node:console";
 import { randomUUID } from "node:crypto";
 
-import { type AllureCheckResult, type AllureMetricResult, ExpressionError, notNull } from "@allurereport/core-api";
+import { type AllureMetricResult, ExpressionError, normalizeQualityGateResult, notNull } from "@allurereport/core-api";
 import type {
   RawGlobalAttachment,
   RawGlobalError,
@@ -131,13 +131,23 @@ const isAllure2AttachmentFileName = (fileName: string): boolean => {
   return suffix === "" || suffix.startsWith(".");
 };
 
+const QUALITY_GATE_RESULT_FILE_SUFFIX = "-quality-gate.json";
+
+/**
+ * @deprecated Kept only for reading AllureCheckResult files created before unified quality gate results.
+ */
+const LEGACY_CHECK_RESULT_FILE_SUFFIX = "-check.json";
+
+const isQualityGateResultFileName = (fileName: string): boolean =>
+  fileName.endsWith(QUALITY_GATE_RESULT_FILE_SUFFIX) || fileName.endsWith(LEGACY_CHECK_RESULT_FILE_SUFFIX);
+
 // Keep reading the deprecated -perf.json and performance.json result formats.
 const isMetricResultFile = (fileName: string): boolean =>
   fileName.endsWith("-metric.json") || fileName.endsWith("-perf.json") || fileName === "performance.json";
 
 const matchesAllure2File = (fileName: string): boolean => {
+  if (isQualityGateResultFileName(fileName)) return true;
   if (fileName.endsWith("-result.json")) return true;
-  if (fileName.endsWith("-check.json")) return true;
   if (isMetricResultFile(fileName)) return true;
   if (fileName.endsWith("-container.json")) return true;
   if (fileName.endsWith("-globals.json")) return true;
@@ -155,12 +165,17 @@ export const allure2: ResultsReader = {
   read: async (visitor, data) => {
     const originalFileName = data.getOriginalFileName();
 
-    if (originalFileName.endsWith("-check.json")) {
+    if (isQualityGateResultFileName(originalFileName)) {
       try {
         const parsed = await data.asJson<unknown>();
 
         if (parsed && isStringAnyRecord(parsed)) {
-          await processCheckResult(visitor, parsed, originalFileName);
+          await processQualityGateResult(
+            visitor,
+            parsed,
+            originalFileName,
+            originalFileName.endsWith(LEGACY_CHECK_RESULT_FILE_SUFFIX),
+          );
         }
 
         return true;
@@ -389,30 +404,19 @@ const processTestResult = async (visitor: ResultsVisitor, result: Partial<TestRe
   });
 };
 
-const processCheckResult = async (
+const processQualityGateResult = async (
   visitor: ResultsVisitor,
-  result: Partial<AllureCheckResult>,
+  result: Record<string, any>,
   originalFileName: string,
+  legacy: boolean,
 ) => {
-  const tags = Array.isArray(result.tags) ? result.tags.map((tag) => ensureString(tag)).filter(notNull) : [];
-  const details: Record<string, any> = isStringAnyRecord(result.details) ? result.details : {};
-  const message = ensureString(details.message);
-  const error = ensureString(details.error);
+  const normalizedResult = normalizeQualityGateResult(result, {
+    ...(legacy ? { legacyCheckFallbackKey: originalFileName.replace(/-check\.json$/, "") } : {}),
+  });
 
-  await visitor.visitCheckResult(
-    {
-      id: ensureString(result.id, ""),
-      name: ensureString(result.name, originalFileName.replace(/-check\.json$/, "")),
-      status: convertCheckStatus(result.status),
-      ...(tags.length ? { tags } : {}),
-      details: {
-        command: ensureString(details.command, ""),
-        ...(message ? { message } : {}),
-        ...(error ? { error } : {}),
-      },
-    },
-    { readerId, metadata: { originalFileName } },
-  );
+  if (normalizedResult) {
+    await visitor.visitQualityGateResult(normalizedResult, { readerId, metadata: { originalFileName } });
+  }
 };
 
 const processExecutor = async (visitor: ResultsVisitor, result: Partial<ExecutorInfo>) => {
@@ -555,10 +559,6 @@ const processGlobals = async (visitor: ResultsVisitor, globals: Globals) => {
     },
     { readerId },
   );
-};
-
-const convertCheckStatus = (status: unknown): AllureCheckResult["status"] => {
-  return status === "passed" ? "passed" : "failed";
 };
 
 const convertStatus = (status: Status | string | null | undefined): RawTestStatus => {

@@ -3,6 +3,7 @@ import { randomUUID } from "node:crypto";
 import { defaultChartsConfig } from "@allurereport/charts-api";
 import {
   type AttachmentLink,
+  type AllureQualityGateResult,
   type EnvironmentIdentity,
   type EnvironmentItem,
   type HistoryTestResultUrlResolver,
@@ -53,7 +54,6 @@ import type {
   PluginContext,
   PluginGlobalError,
   PluginGlobals,
-  QualityGateValidationResult,
   ReportFiles,
   ResultFile,
   ReportResolutionCategories,
@@ -62,7 +62,6 @@ import type {
   TestResultRelatedData,
 } from "@allurereport/plugin-api";
 import {
-  collapseTreeGroups,
   createTreeByLabels,
   createTreeByLabelsAndTitlePath,
   createTreeByTitlePath,
@@ -336,7 +335,13 @@ const generateTreeData = (
   if (labels.length === 0) {
     tree = buildTreeByTitlePath(visibleTests);
   } else if (appendTitlePath && labels.length) {
-    tree = buildTreeByLabelsAndTitlePathCombined(visibleTests, labels);
+    tree = createTreeByLabelsAndTitlePath<ReportTestResult, ReportTreeLeaf, ReportTreeGroup>(
+      visibleTests,
+      labels,
+      leafFactory,
+      undefined,
+      (group, leaf) => incrementStatistic(group.statistic, leaf.status),
+    );
   } else {
     tree = buildTreeByLabels(visibleTests, labels);
   }
@@ -440,20 +445,6 @@ const buildTreeByTitlePath = (tests: ReportTestResult[]): TreeData<ReportTreeLea
     groupsById: mergedGroupsById,
   };
 };
-
-const buildTreeByLabelsAndTitlePathCombined = (
-  tests: ReportTestResult[],
-  labels: string[],
-): TreeData<ReportTreeLeaf, ReportTreeGroup> =>
-  collapseTreeGroups(
-    createTreeByLabelsAndTitlePath<ReportTestResult, ReportTreeLeaf, ReportTreeGroup>(
-      tests,
-      labels,
-      leafFactory,
-      undefined,
-      (group: ReportTreeGroup, leaf: ReportTreeLeaf) => incrementStatistic(group.statistic, leaf.status),
-    ),
-  );
 
 const leafFactory = ({
   id,
@@ -736,7 +727,7 @@ export const generateGlobals = async (
 
 export const generateQualityGateResults = async (
   writer: AwesomeDataWriter,
-  qualityGateResults: Record<string, QualityGateValidationResult[]> = {},
+  qualityGateResults: Record<string, AllureQualityGateResult[]> = {},
   options: {
     tests?: ReportTestResult[];
     labels?: string[];
@@ -749,7 +740,7 @@ export const generateQualityGateResults = async (
     Object.entries(qualityGateResults).map(([environment, results]) => [
       environment,
       results.map((result) => {
-        const relatedTests = [...new Set(result.testResults ?? [])]
+        const relatedTests = [...new Set(result.details?.testResults ?? [])]
           .map((testResultId) => testsById.get(testResultId))
           .filter((test): test is ReportTestResult => Boolean(test));
 

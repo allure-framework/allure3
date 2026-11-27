@@ -271,7 +271,7 @@ test.describe("SearchBox component with debounce", () => {
 });
 
 test.describe("suites", () => {
-  test("should display tree groups with a correct suites hierarchy", async ({ page }) => {
+  test("should compact a chain of suites into one group", async ({ page }) => {
     bootstrap = await bootstrapReport(
       {
         reportConfig: {
@@ -315,19 +315,9 @@ test.describe("suites", () => {
     await page.goto(bootstrap.url);
 
     await expect(treePage.leafLocator).toHaveCount(1);
-    await expect(treePage.getNthSectionTitleLocator(0)).toHaveText("foo");
+    await expect(treePage.sectionsLocator).toHaveCount(1);
+    await expect(treePage.getNthSectionTitleLocator(0)).toHaveText("foo > bar > baz");
     await treePage.toggleNthSection(0);
-
-    await expect(treePage.leafLocator).toHaveCount(1);
-    await expect(treePage.getNthSectionTitleLocator(0)).toHaveText("foo");
-    await expect(treePage.getNthSectionTitleLocator(1)).toHaveText("bar");
-    await treePage.toggleNthSection(1);
-
-    await expect(treePage.leafLocator).toHaveCount(1);
-    await expect(treePage.getNthSectionTitleLocator(0)).toHaveText("foo");
-    await expect(treePage.getNthSectionTitleLocator(1)).toHaveText("bar");
-    await expect(treePage.getNthSectionTitleLocator(2)).toHaveText("baz");
-    await treePage.toggleNthSection(2);
 
     await expect(treePage.leafLocator).toHaveCount(2);
     await expect(treePage.getNthLeafTitleLocator(0)).toHaveText("0 sample passed test");
@@ -380,16 +370,10 @@ test.describe("suites", () => {
 
     await expect(treePage.leafLocator).toHaveCount(1);
     await expect(treePage.sectionsLocator).toHaveCount(1);
-    await expect(treePage.getNthSectionTitleLocator(0)).toHaveText("foo");
+    await expect(treePage.getNthSectionTitleLocator(0)).toHaveText("foo > bar");
     await treePage.toggleNthSection(0);
 
-    await expect(treePage.leafLocator).toHaveCount(1);
-    await expect(treePage.sectionsLocator).toHaveCount(2);
-    await expect(treePage.getNthSectionTitleLocator(0)).toHaveText("foo");
-    await expect(treePage.getNthSectionTitleLocator(1)).toHaveText("bar");
-    await treePage.toggleNthSection(1);
-
-    await expect(treePage.sectionsLocator).toHaveCount(2);
+    await expect(treePage.sectionsLocator).toHaveCount(1);
     await expect(treePage.leafLocator).toHaveCount(2);
     await expect(treePage.getNthLeafTitleLocator(0)).toHaveText("0 sample passed test");
     await expect(treePage.getNthLeafOrderLocator(0)).toHaveText("1");
@@ -444,17 +428,10 @@ test.describe("suites", () => {
     await page.goto(bootstrap.url);
 
     await expect(treePage.leafLocator).toHaveCount(1);
-    // all nodes locates in the group, so tree can't be collapsed and we see two groups intially
     await expect(treePage.sectionsLocator).toHaveCount(2);
     await expect(treePage.getNthSectionTitleLocator(0)).toHaveText("Assign me please!");
-    await expect(treePage.getNthSectionTitleLocator(1)).toHaveText("foo");
+    await expect(treePage.getNthSectionTitleLocator(1)).toHaveText("foo > bar");
     await treePage.toggleNthSection(1);
-
-    await expect(treePage.sectionsLocator).toHaveCount(3);
-    await expect(treePage.getNthSectionTitleLocator(0)).toHaveText("Assign me please!");
-    await expect(treePage.getNthSectionTitleLocator(1)).toHaveText("foo");
-    await expect(treePage.getNthSectionTitleLocator(2)).toHaveText("bar");
-    await treePage.toggleNthSection(2);
 
     await expect(treePage.leafLocator).toHaveCount(2);
     await expect(treePage.getNthLeafTitleLocator(0)).toHaveText("0 sample passed test");
@@ -512,25 +489,94 @@ test.describe("suites", () => {
     await page.goto(bootstrap.url);
 
     await expect(treePage.sectionsLocator).toHaveCount(2);
-    await expect(treePage.getNthSectionTitleLocator(0)).toHaveText("frontend");
+    await expect(treePage.getNthSectionTitleLocator(0)).toHaveText("frontend > checkout");
     await expect(treePage.getNthSectionTitleLocator(1)).toHaveText("payments");
 
     await treePage.toggleNthSection(0);
-    await expect(treePage.getNthSectionTitleLocator(1)).toHaveText("checkout");
+    await expect(treePage.getNthSectionTitleLocator(1)).toHaveText("happy path");
     await expect(treePage.getNthSectionTitleLocator(2)).toHaveText("payments");
+    await expect(treePage.getLeafByTitle("1 without subSuite")).toHaveCount(1);
 
     await treePage.toggleNthSection(1);
-    await expect(treePage.getNthSectionTitleLocator(2)).toHaveText("happy path");
-    await expect(treePage.getNthSectionTitleLocator(3)).toHaveText("payments");
-
     await treePage.toggleNthSection(2);
-    await treePage.toggleNthSection(3);
 
     await expect(treePage.leafLocator).toHaveCount(3);
     await expect(treePage.getLeafByTitle("0 with full depth")).toHaveCount(1);
     await expect(treePage.getLeafByTitle("1 without subSuite")).toHaveCount(1);
     await expect(treePage.getLeafByTitle("2 without parentSuite")).toHaveCount(1);
   });
+});
+
+test("reveals a compact group in the test's environment from its breadcrumb", async ({ page }) => {
+  const report = await bootstrapReport({
+    reportConfig: {
+      name: "Compact groups across environments",
+      appendHistory: false,
+      environments: {
+        linux: { matcher: ({ labels }) => labels.some(({ name, value }) => name === "env" && value === "linux") },
+        windows: { matcher: ({ labels }) => labels.some(({ name, value }) => name === "env" && value === "windows") },
+      },
+    },
+    testResults: ["linux", "windows"].map((env) => ({
+      name: `${env} test`,
+      fullName: `${env} test`,
+      status: Status.FAILED,
+      stage: Stage.FINISHED,
+      labels: [{ name: "env", value: env }],
+      titlePath: ["Shared", `${env} suite`],
+    })),
+  });
+
+  try {
+    await page.goto(report.url);
+    await expect(treePage.getNthSectionTitleLocator(0)).toHaveText("Shared > linux suite");
+    await treePage.getLeafByTitle("windows test").click();
+    await page.getByRole("button", { name: "Shared > windows suite", exact: true }).click();
+
+    await expect(
+      page.locator('[data-tree-node-id^="windows:"]').filter({ hasText: "Shared > windows suite" }),
+    ).toHaveClass(/tree-section-focused/);
+  } finally {
+    await report.shutdown?.();
+  }
+});
+
+test("reveals a test from a direct link inside a compact label and title path", async ({ page }) => {
+  const report = await bootstrapReport(
+    {
+      reportConfig: { name: "Compact label and title path", appendHistory: false },
+      testResults: [
+        {
+          name: "logs in",
+          fullName: "tests/login.spec.ts#logs in",
+          status: Status.PASSED,
+          stage: Stage.FINISHED,
+          labels: [{ name: "suite", value: "Authentication" }],
+          titlePath: ["tests/login.spec.ts", "Login"],
+        },
+      ],
+    },
+    { groupBy: ["suite"], appendTitlePath: true, layout: "split" },
+  );
+
+  try {
+    await page.goto(report.url);
+    await expect(treePage.getNthSectionTitleLocator(0)).toHaveText("Authentication > tests/login.spec.ts > Login");
+
+    await treePage.toggleNthSection(0);
+    const leaf = treePage.getLeafByTitle("logs in");
+    await expect(leaf).toBeVisible();
+    const testResultId = await leaf.getAttribute("id");
+
+    await treePage.toggleNthSection(0);
+    await expect(leaf).toHaveCount(0);
+    await page.goto(`${report.url}#${testResultId}`);
+
+    await expect(page.getByRole("heading", { name: "logs in" })).toBeVisible();
+    await expect(leaf).toHaveAttribute("aria-current", "true");
+  } finally {
+    await report.shutdown?.();
+  }
 });
 
 test.describe("features", () => {

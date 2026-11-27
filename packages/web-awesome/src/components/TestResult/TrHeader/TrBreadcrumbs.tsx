@@ -133,7 +133,8 @@ export const TrBreadcrumbs = ({ testResult }: TrBreadcrumbs) => {
   useEffect(() => clearCloseTimer, []);
   const { breadcrumbs, name, id } = testResult || {};
   const inCategories = categoriesRoute.value.matches;
-  const treeBreadcrumbs = inCategories ? getCategoriesBreadcrumbs(id) : getTreeBreadcrumbs(id);
+  const resultBreadcrumbs = inCategories ? [] : getTreeBreadcrumbs(id);
+  const treeBreadcrumbs = inCategories ? getCategoriesBreadcrumbs(id) : resultBreadcrumbs;
   const fallbackBreadcrumbs = treeBreadcrumbs.length ? [] : (breadcrumbs?.[0] ?? []);
   const navigateToTreeRoot = inCategories ? navigateToCategoriesRoot : navigateToRoot;
 
@@ -154,9 +155,10 @@ export const TrBreadcrumbs = ({ testResult }: TrBreadcrumbs) => {
 
   const navigateToGroup = (index: number) => {
     if (inCategories) {
-      revealCategoryNode(treeBreadcrumbs.slice(0, index + 1).map((breadcrumb) => breadcrumb.nodeId));
+      revealCategoryNode(treeBreadcrumbs.slice(0, index + 1).map(({ nodeId }) => nodeId));
     } else {
-      revealTreeNode(treeBreadcrumbs[index].nodeId);
+      const { nodeId, environmentId } = resultBreadcrumbs[index];
+      revealTreeNode(nodeId, environmentId);
     }
 
     if (!isSplitMode.value) {

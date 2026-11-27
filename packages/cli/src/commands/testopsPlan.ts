@@ -71,7 +71,7 @@ export class TestOpsPlanCommand extends Command {
     const testPlan: TestPlan = {
       version: "1.0",
       // TODO: add support for returning list of muted tests on testops side
-      mutedTests: [],
+      excludedTests: [],
       tests: (tests ?? []).map(({ id, selector }) => ({
         ...(id !== undefined ? { id: String(id) } : {}),
         ...(selector !== undefined ? { selector } : {}),

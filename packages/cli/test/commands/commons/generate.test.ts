@@ -22,11 +22,11 @@ vi.mock("@allurereport/core", async () => {
   return {
     AllureReport: utils.AllureReportMock,
     readConfig: vi.fn(),
-    filterFailedQualityGateResults: vi.fn((results: { success: boolean }[]) =>
-      results.filter(({ success }) => !success),
+    filterFailedQualityGateResults: vi.fn((results: { status: string }[]) =>
+      results.filter(({ status }) => status === "failed"),
     ),
-    stringifyQualityGateResults: vi.fn((results: { success: boolean }[]) =>
-      results.some(({ success }) => !success) ? "quality gate failed" : "",
+    stringifyQualityGateResults: vi.fn((results: { status: string }[]) =>
+      results.some(({ status }) => status === "failed") ? "quality gate failed" : "",
     ),
   };
 });
@@ -530,12 +530,10 @@ describe("generate function", () => {
     const testResults = [{ id: "passed", status: "passed" }];
     const validationResults = [
       {
-        success: true,
-        expected: 0,
-        actual: 0,
-        rule: "maxFailures",
-        message: "No failed tests",
-        testResults: [],
+        status: "passed",
+        key: "maxFailures",
+        source: { type: "rule" },
+        details: { expected: 0, actual: 0, message: "No failed tests", testResults: [] },
         environment: "Linux",
       },
     ];
@@ -573,12 +571,10 @@ describe("generate function", () => {
     const testResults = [{ id: "failed", status: "failed" }];
     const validationResults = [
       {
-        success: false,
-        expected: 0,
-        actual: 1,
-        rule: "maxFailures",
-        message: "Too many failed tests",
-        testResults: ["failed"],
+        status: "failed",
+        key: "maxFailures",
+        source: { type: "rule" },
+        details: { expected: 0, actual: 1, message: "Too many failed tests", testResults: ["failed"] },
         environment: "Windows",
       },
     ];

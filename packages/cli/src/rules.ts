@@ -9,4 +9,5 @@ export {
   metricMaxDeltaRule,
   metricMaxDeltaPercentRule,
 } from "@allurereport/core";
-export type { QualityGateRule, QualityGateRuleState, QualityGateValidationResult } from "@allurereport/plugin-api";
+export type { AllureQualityGateResult } from "@allurereport/core-api";
+export type { QualityGateRule, QualityGateRuleState } from "@allurereport/plugin-api";

@@ -1114,12 +1114,15 @@ describe("generateQualityGateResults", () => {
       {
         default: [
           {
-            rule: "maxFailures",
-            success: false,
-            expected: 0,
-            actual: 1,
-            message: "Too many failures",
-            testResults: ["tr-related", "tr-related", "tr-missing"],
+            key: "maxFailures",
+            status: "failed",
+            source: { type: "rule" },
+            details: {
+              expected: 0,
+              actual: 1,
+              message: "Too many failures",
+              testResults: ["tr-related", "tr-related", "tr-missing"],
+            },
           },
         ],
       },
@@ -1129,7 +1132,7 @@ describe("generateQualityGateResults", () => {
     const results = writtenWidgets.get("quality-gate.json") as ReportQualityGateResults;
     const [result] = results.default;
 
-    expect(result.testResults).toEqual(["tr-related", "tr-related", "tr-missing"]);
+    expect(result.details?.testResults).toEqual(["tr-related", "tr-related", "tr-missing"]);
     expect(Object.keys(result.testResultsTree?.leavesById ?? {})).toEqual(["tr-related"]);
     expect(result.testResultsTree?.leavesById["tr-related"]).toMatchObject({
       nodeId: "tr-related",
@@ -1164,12 +1167,15 @@ describe("generateQualityGateResults", () => {
       {
         default: [
           {
-            rule: "maxFailures",
-            success: false,
-            expected: 0,
-            actual: 2,
-            message: "Too many failures",
-            testResults: ["tr-blocker", "tr-no-severity"],
+            key: "maxFailures",
+            status: "failed",
+            source: { type: "rule" },
+            details: {
+              expected: 0,
+              actual: 2,
+              message: "Too many failures",
+              testResults: ["tr-blocker", "tr-no-severity"],
+            },
           },
         ],
       },
@@ -1194,12 +1200,15 @@ describe("generateQualityGateResults", () => {
     await generateQualityGateResults(writer, {
       default: [
         {
-          rule: "maxFailures",
-          success: false,
-          expected: 0,
-          actual: 0,
-          message: "Too many failures",
-          testResults: [],
+          key: "maxFailures",
+          status: "failed",
+          source: { type: "rule" },
+          details: {
+            expected: 0,
+            actual: 0,
+            message: "Too many failures",
+            testResults: [],
+          },
         },
       ],
     });

@@ -1,13 +1,12 @@
 import { gunzipSync } from "node:zlib";
 
-import type { EnvironmentIdentity, Statistic, TestResult } from "@allurereport/core-api";
+import type { AllureQualityGateResult, EnvironmentIdentity, Statistic, TestResult } from "@allurereport/core-api";
 import { collectGitHead } from "@allurereport/git";
 import type { AllureStore, PluginContext, ReportFiles } from "@allurereport/plugin-api";
 import { readReportStaticAssets } from "@allurereport/plugin-api/static-assets";
 import { epic, feature, label, story } from "allure-js-commons";
 import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
-import { AllureCheckResult } from "../../core-api/src/model.js";
 import AwesomePlugin from "../src/index.js";
 
 // the report must not depend on the git repository the tests are run in
@@ -85,16 +84,19 @@ const fixtures: any = {
       status: "skipped",
     },
   },
-  checkResults: [
+  qualityGateResults: [
     {
-      name: "foo",
       status: "passed",
+      key: "approval",
+      source: { type: "manual" },
     },
     {
-      name: "bar",
       status: "failed",
+      key: "lint",
+      source: { type: "command", command: "npm run lint" },
+      details: { stderr: "lint failed" },
     },
-  ] as AllureCheckResult[],
+  ] satisfies AllureQualityGateResult[],
   context: {
     reportUuid: "report-uuid",
   } as PluginContext,
@@ -112,10 +114,10 @@ const fixtures: any = {
       return trs;
     },
     allNewTestResults: () => Promise.resolve([]),
-    allCheckResults: () => Promise.resolve([]),
     retriesByTr: () => Promise.resolve([]),
     globalExitCode: () => Promise.resolve(undefined),
     allGlobalErrors: () => Promise.resolve([]),
+    qualityGateResults: () => Promise.resolve([]),
     testsStatistic: async (filter: (tr: TestResult) => boolean) => {
       const all = await fixtures.store.allTestResults();
 
@@ -147,7 +149,6 @@ describe("plugin", () => {
         newTests: [],
         flakyTests: [],
         retryTests: [],
-        checks: [],
         meta: {
           reportId: fixtures.context.reportUuid,
           singleFile: false,
@@ -176,7 +177,6 @@ describe("plugin", () => {
         newTests: [],
         flakyTests: [],
         retryTests: [],
-        checks: [],
         filtered: true,
         meta: {
           reportId: fixtures.context.reportUuid,
@@ -186,46 +186,29 @@ describe("plugin", () => {
       });
     });
 
-    it("should returns info for all check results in the store", async () => {
+    it("should return compact unified quality gate results in the summary", async () => {
       const plugin = new AwesomePlugin({ reportName: "Sample report" });
       const info = await plugin.info(fixtures.context, {
         ...fixtures.store,
-        allCheckResults: () => Promise.resolve(fixtures.checkResults),
+        qualityGateResults: () => Promise.resolve(fixtures.qualityGateResults),
       });
 
-      expect(info).toEqual({
-        createdAt: 0,
-        duration: 0,
-        name: "Sample report",
-        plugin: "Awesome",
-        status: "failed",
-        stats: {
-          passed: 1,
-          failed: 1,
-          broken: 1,
-          skipped: 1,
-          unknown: 1,
-          total: 5,
-        },
-        newTests: [],
-        flakyTests: [],
-        retryTests: [],
-        checks: [
-          {
-            name: fixtures.checkResults[0].name,
-            status: fixtures.checkResults[0].status,
-          },
-          {
-            name: fixtures.checkResults[1].name,
-            status: fixtures.checkResults[1].status,
-          },
-        ],
-        meta: {
-          reportId: fixtures.context.reportUuid,
-          singleFile: false,
-          withTestResultsLinks: true,
-        },
-      });
+      expect(info).toEqual(
+        expect.objectContaining({
+          qualityGateResults: [
+            {
+              status: "passed",
+              key: "approval",
+              source: { type: "manual" },
+            },
+            {
+              status: "failed",
+              key: "lint",
+              source: { type: "command", command: "npm run lint" },
+            },
+          ],
+        }),
+      );
     });
 
     it("should add single file mode flag to the summary meta", async () => {

@@ -111,7 +111,7 @@ jobs:
           failure() && !cancelled() && steps.budgets.conclusion == 'failure' &&
           github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
         run: |
-          if ! jq -e 'any(.[]; .success == false and .actual.value != null)' \
+          if ! jq -e 'any(.[]; .status == "failed" and .details.actual.value != null)' \
             ./out/bundle-size-report/quality-gate.json >/dev/null 2>&1; then
             exit 0
           fi

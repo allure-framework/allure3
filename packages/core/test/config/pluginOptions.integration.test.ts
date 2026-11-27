@@ -109,7 +109,7 @@ plugins:
     options:
       groupBy: none
       filter: "\${{ test.name == 'fast' }}"
-      qualityGateFilter: "\${{ !result.success && result.rule == 'maxFailures' }}"
+      qualityGateFilter: "\${{ result.status == 'failed' && result.key == 'maxFailures' }}"
 qualityGate:
   rules:
     - maxFailures: 0

@@ -1,8 +1,12 @@
-import { type AllureCheckResult, type AllureHistory, type TestResult, getWorstStatus } from "@allurereport/core-api";
+import {
+  type AllureHistory,
+  type AllureQualityGateResult,
+  type TestResult,
+  getWorstStatus,
+} from "@allurereport/core-api";
 import { describe, expect, it, vi } from "vite-plus/test";
 
 import {
-  convertToSummaryCheckResult,
   convertToTestResultSummary,
   calculateRunDuration,
   createPluginSummary,
@@ -11,9 +15,10 @@ import {
   resolveReportStatus,
 } from "../src/utils/summary.js";
 
-const emptyStoreGlobals = () => ({
+const emptyStoreGlobals = (qualityGateResults: AllureQualityGateResult[] = []) => ({
   globalExitCode: vi.fn().mockResolvedValue(undefined),
   allGlobalErrors: vi.fn().mockResolvedValue([]),
+  qualityGateResults: vi.fn().mockResolvedValue(qualityGateResults),
 });
 
 const testResult = (args: Partial<TestResult> = {}): TestResult => ({
@@ -86,18 +91,8 @@ describe("summary utils", () => {
     });
   });
 
-  it("convertToSummaryCheckResult maps fields", () => {
-    const check = { name: "lint", status: "failed" } as AllureCheckResult;
-
-    expect(convertToSummaryCheckResult(check)).toEqual({
-      name: "lint",
-      status: "failed",
-    });
-  });
-
   it("createPluginSummary aggregates store data and history", async () => {
     const filter = vi.fn((tr: TestResult) => tr.status !== "skipped");
-    const allChecks = [{ name: "lint", status: "passed" }] as AllureCheckResult[];
     const allTrs = [
       testResult({
         id: "t1",
@@ -116,13 +111,20 @@ describe("summary utils", () => {
     const historyReadHistory = vi.fn().mockResolvedValue([{ branch: "main" }]);
     const history = { readHistory: historyReadHistory } as unknown as AllureHistory;
     const retriesByTr = vi.fn().mockResolvedValue([]);
+    const qualityGateResults: AllureQualityGateResult[] = [
+      {
+        status: "failed",
+        key: "lint",
+        source: { type: "command", command: "npm run lint" },
+        details: { stderr: "lint failed" },
+      },
+    ];
     const store = {
-      allCheckResults: vi.fn().mockResolvedValue(allChecks),
       allTestResults: vi.fn(({ includeRetries } = {}) => Promise.resolve(includeRetries ? allTrsWithRetries : allTrs)),
       allNewTestResults: vi.fn().mockResolvedValue(newTrs),
       testsStatistic: vi.fn().mockResolvedValue(stats),
       retriesByTr,
-      ...emptyStoreGlobals(),
+      ...emptyStoreGlobals(qualityGateResults),
     };
     const summary = await createPluginSummary({
       name: "summary-name",
@@ -133,12 +135,12 @@ describe("summary utils", () => {
       meta: { build: 1 },
     });
 
-    expect(store.allCheckResults).toHaveBeenCalledTimes(1);
     expect(store.allTestResults).toHaveBeenCalledWith({ filter });
     expect(store.allTestResults).toHaveBeenCalledWith({ includeRetries: true });
     expect(historyReadHistory).toHaveBeenCalledWith({ branch: "" });
     expect(store.allNewTestResults).toHaveBeenCalledWith(filter, [{ branch: "main" }]);
     expect(store.testsStatistic).toHaveBeenCalledWith(filter);
+    expect(store.qualityGateResults).toHaveBeenCalledTimes(1);
     expect(retriesByTr).not.toHaveBeenCalled();
     expect(summary).toEqual({
       stats,
@@ -146,7 +148,13 @@ describe("summary utils", () => {
       newTests: ["t1", "t2"],
       flakyTests: ["t2"],
       retryTests: ["t1"],
-      checks: [{ name: "lint", status: "passed" }],
+      qualityGateResults: [
+        {
+          status: "failed",
+          key: "lint",
+          source: { type: "command", command: "npm run lint" },
+        },
+      ],
       name: "summary-name",
       duration: 35,
       createdAt: 250,
@@ -213,7 +221,6 @@ describe("summary utils", () => {
     const current = testResult({ id: "current", retryHash: "retry-current" });
     const existing = testResult({ id: "existing" });
     const store = {
-      allCheckResults: vi.fn().mockResolvedValue([]),
       allTestResults: vi.fn(({ includeRetries } = {}) =>
         Promise.resolve(
           includeRetries
@@ -278,7 +285,6 @@ describe("summary utils", () => {
 
   it("createPluginSummary falls back to passed when status is empty", async () => {
     const store = {
-      allCheckResults: vi.fn().mockResolvedValue([]),
       allTestResults: vi.fn().mockResolvedValue([testResult({ status: "passed" })]),
       allNewTestResults: vi.fn().mockResolvedValue([]),
       testsStatistic: vi.fn().mockResolvedValue({ total: 1 }),
@@ -305,13 +311,13 @@ describe("summary utils", () => {
   it("createPluginSummary marks failed when global errors exist even with passed tests and exit 0", async () => {
     const exitCode = { original: 0, actual: 0 };
     const store = {
-      allCheckResults: vi.fn().mockResolvedValue([]),
       allTestResults: vi.fn().mockResolvedValue([testResult({ status: "passed" })]),
       allNewTestResults: vi.fn().mockResolvedValue([]),
       testsStatistic: vi.fn().mockResolvedValue({ total: 1, passed: 1 }),
       retriesByTr: vi.fn().mockResolvedValue([]),
       globalExitCode: vi.fn().mockResolvedValue(exitCode),
       allGlobalErrors: vi.fn().mockResolvedValue([{ message: "runner crashed" }]),
+      qualityGateResults: vi.fn().mockResolvedValue([]),
     };
     const summary = await createPluginSummary({
       name: "summary-name",
@@ -329,13 +335,13 @@ describe("summary utils", () => {
   it("createPluginSummary marks failed when exit code is nonzero", async () => {
     const exitCode = { original: 1 };
     const store = {
-      allCheckResults: vi.fn().mockResolvedValue([]),
       allTestResults: vi.fn().mockResolvedValue([testResult({ status: "passed" })]),
       allNewTestResults: vi.fn().mockResolvedValue([]),
       testsStatistic: vi.fn().mockResolvedValue({ total: 1, passed: 1 }),
       retriesByTr: vi.fn().mockResolvedValue([]),
       globalExitCode: vi.fn().mockResolvedValue(exitCode),
       allGlobalErrors: vi.fn().mockResolvedValue([]),
+      qualityGateResults: vi.fn().mockResolvedValue([]),
     };
     const summary = await createPluginSummary({
       name: "summary-name",
@@ -354,13 +360,13 @@ describe("summary utils", () => {
     const exitCode = { original: 1 };
     const passedOnly = testResult({ id: "passed-1", status: "passed" });
     const store = {
-      allCheckResults: vi.fn().mockResolvedValue([]),
       allTestResults: vi.fn(({ includeRetries } = {}) => Promise.resolve(includeRetries ? [passedOnly] : [passedOnly])),
       allNewTestResults: vi.fn().mockResolvedValue([]),
       testsStatistic: vi.fn().mockResolvedValue({ total: 1, passed: 1 }),
       retriesByTr: vi.fn().mockResolvedValue([]),
       globalExitCode: vi.fn().mockResolvedValue(exitCode),
       allGlobalErrors: vi.fn().mockResolvedValue([{ message: "env setup failed" }]),
+      qualityGateResults: vi.fn().mockResolvedValue([]),
     };
     const summary = await createPluginSummary({
       name: "Passed tests",
@@ -380,7 +386,6 @@ describe("summary utils", () => {
   it("createPluginSummary marks passed when the quality gate passed with failed tests", async () => {
     const exitCode = { original: 1, actual: 0 };
     const store = {
-      allCheckResults: vi.fn().mockResolvedValue([]),
       allTestResults: vi
         .fn()
         .mockResolvedValue([
@@ -392,6 +397,7 @@ describe("summary utils", () => {
       retriesByTr: vi.fn().mockResolvedValue([]),
       globalExitCode: vi.fn().mockResolvedValue(exitCode),
       allGlobalErrors: vi.fn().mockResolvedValue([]),
+      qualityGateResults: vi.fn().mockResolvedValue([]),
     };
     const summary = await createPluginSummary({
       name: "summary-name",
@@ -409,13 +415,13 @@ describe("summary utils", () => {
   it("createPluginSummary includes exitCode and globalErrorsCount when set", async () => {
     const exitCode = { original: 0, actual: 0 };
     const store = {
-      allCheckResults: vi.fn().mockResolvedValue([]),
       allTestResults: vi.fn().mockResolvedValue([testResult({ status: "failed" })]),
       allNewTestResults: vi.fn().mockResolvedValue([]),
       testsStatistic: vi.fn().mockResolvedValue({ total: 1, failed: 1 }),
       retriesByTr: vi.fn().mockResolvedValue([]),
       globalExitCode: vi.fn().mockResolvedValue(exitCode),
       allGlobalErrors: vi.fn().mockResolvedValue([{ message: "err-1" }, { message: "err-2" }]),
+      qualityGateResults: vi.fn().mockResolvedValue([]),
     };
     const summary = await createPluginSummary({
       name: "summary-name",

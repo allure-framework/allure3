@@ -13,6 +13,7 @@ import type { ReportRecursiveTree as RecursiveTree } from "types";
 import type { ReportTree, ReportTreeGroup } from "types";
 
 import type { StoreSignalState } from "@/stores/types";
+import { compactTreeGroups } from "@/utils/tree";
 import { createRecursiveTree, isRecursiveTreeEmpty } from "@/utils/treeFilters";
 
 import { collapsedEnvironments, currentEnvironment, environmentsStore } from "./env";
@@ -204,7 +205,7 @@ export const filteredTree = computed(() => {
       });
 
       return Object.assign(acc, {
-        [key]: tree,
+        [key]: compactTreeGroups(tree, groupsById),
       });
     },
     {} as Record<string, RecursiveTree>,
@@ -215,7 +216,8 @@ export const noTestsFound = computed(
   () => !Object.values(filteredTree.value).some((tree) => !isRecursiveTreeEmpty(tree)),
 );
 
-export type TreeBreadcrumb = {
+type TreeBreadcrumb = {
+  environmentId: string;
   nodeId: string;
   name: string;
 };
@@ -223,6 +225,7 @@ export type TreeBreadcrumb = {
 const findBreadcrumbs = (
   tree: RecursiveTree,
   leafNodeId: string,
+  environmentId: string,
   path: TreeBreadcrumb[],
 ): TreeBreadcrumb[] | undefined => {
   if (tree.leaves.some((leaf) => leaf.nodeId === leafNodeId)) {
@@ -230,7 +233,10 @@ const findBreadcrumbs = (
   }
 
   for (const subTree of tree.trees) {
-    const found = findBreadcrumbs(subTree, leafNodeId, [...path, { nodeId: subTree.nodeId, name: subTree.name }]);
+    const found = findBreadcrumbs(subTree, leafNodeId, environmentId, [
+      ...path,
+      { environmentId, nodeId: subTree.nodeId, name: subTree.name },
+    ]);
 
     if (found) {
       return found;
@@ -249,8 +255,16 @@ export const getTreeBreadcrumbs = (testResultId?: string): TreeBreadcrumb[] => {
     return [];
   }
 
-  for (const tree of Object.values(filteredTree.value)) {
-    const path = findBreadcrumbs(tree, testResultId, []);
+  const trees = filteredTree.value;
+  const selectedEnv = currentEnvironment.value;
+  const selectedTree = trees[selectedEnv];
+
+  if (selectedTree) {
+    return findBreadcrumbs(selectedTree, testResultId, selectedEnv, []) ?? [];
+  }
+
+  for (const [environmentId, tree] of Object.entries(trees)) {
+    const path = findBreadcrumbs(tree, testResultId, environmentId, []);
 
     if (path) {
       return path;
