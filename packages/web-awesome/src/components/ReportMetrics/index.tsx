@@ -131,8 +131,8 @@ const MetricHistoryDetails = ({
               <tr>
                 <th>{t("metrics.table.report")}</th>
                 <th>{t("metrics.table.date")}</th>
-                <th>{t("metrics.table.value")}</th>
-                <th>{t("metrics.table.delta")}</th>
+                <th className={styles.numericCell}>{t("metrics.table.value")}</th>
+                <th className={styles.numericCell}>{t("metrics.table.delta")}</th>
               </tr>
             </thead>
             <tbody>
@@ -148,8 +148,10 @@ const MetricHistoryDetails = ({
                     )}
                   </td>
                   <td>{t("metrics.date", { timestamp: historyRow.timestamp })}</td>
-                  <td>{formatValue(historyRow.value, row.unit)}</td>
-                  <td>{formatDelta({ delta: historyRow.delta, unit: row.unit, better: row.better })}</td>
+                  <td className={styles.numericCell}>{formatValue(historyRow.value, row.unit)}</td>
+                  <td className={styles.numericCell}>
+                    {formatDelta({ delta: historyRow.delta, unit: row.unit, better: row.better })}
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -325,12 +327,12 @@ const ReportMetricsTable = ({ data, rows }: { data: MetricsWidgetData; rows: Met
         <thead>
           <tr>
             <th>{t("metrics.table.phase")}</th>
-            <th>{t("metrics.table.count")}</th>
-            <th>{t("metrics.table.total")}</th>
-            <th>{t("metrics.table.avg")}</th>
-            <th>{t("metrics.table.min")}</th>
-            <th>{t("metrics.table.max")}</th>
-            <th>{t("metrics.table.delta")}</th>
+            <th className={styles.numericCell}>{t("metrics.table.count")}</th>
+            <th className={styles.numericCell}>{t("metrics.table.total")}</th>
+            <th className={styles.numericCell}>{t("metrics.table.avg")}</th>
+            <th className={styles.numericCell}>{t("metrics.table.min")}</th>
+            <th className={styles.numericCell}>{t("metrics.table.max")}</th>
+            <th className={styles.numericCell}>{t("metrics.table.delta")}</th>
             <th>{t("metrics.table.trend")}</th>
           </tr>
         </thead>
@@ -358,11 +360,15 @@ const ReportMetricsTable = ({ data, rows }: { data: MetricsWidgetData; rows: Met
                       </button>
                     </div>
                   </td>
-                  <td>{typeof row.count === "number" ? formatValue(row.count) : ""}</td>
+                  <td className={styles.numericCell}>{typeof row.count === "number" ? formatValue(row.count) : ""}</td>
                   {(["totalMs", "avgMs", "minMs", "maxMs"] as SummaryValueField[]).map((field) => (
-                    <td key={field}>{typeof row[field] === "number" ? formatValue(row[field], row.unit) : ""}</td>
+                    <td className={styles.numericCell} key={field}>
+                      {typeof row[field] === "number" ? formatValue(row[field], row.unit) : ""}
+                    </td>
                   ))}
-                  <td>{formatDelta({ delta: row.delta, unit: row.unit, better: row.better })}</td>
+                  <td className={styles.numericCell}>
+                    {formatDelta({ delta: row.delta, unit: row.unit, better: row.better })}
+                  </td>
                   <td>
                     <Sparkline values={row.trend} />
                   </td>
@@ -388,8 +394,8 @@ const ReportMetricsTable = ({ data, rows }: { data: MetricsWidgetData; rows: Met
         <thead>
           <tr>
             <th>{t("metrics.table.metric")}</th>
-            <th>{t("metrics.table.value")}</th>
-            <th>{t("metrics.table.delta")}</th>
+            <th className={styles.numericCell}>{t("metrics.table.value")}</th>
+            <th className={styles.numericCell}>{t("metrics.table.delta")}</th>
             <th>{t("metrics.table.source")}</th>
           </tr>
         </thead>
@@ -419,8 +425,8 @@ const ReportMetricsTable = ({ data, rows }: { data: MetricsWidgetData; rows: Met
                       </button>
                     </div>
                   </td>
-                  <td>{formatValue(row.value, row.unit)}</td>
-                  <td>{formatDelta(row)}</td>
+                  <td className={styles.numericCell}>{formatValue(row.value, row.unit)}</td>
+                  <td className={styles.numericCell}>{formatDelta(row)}</td>
                   <td>{row.source ?? ""}</td>
                 </tr>
                 {isExpanded && renderHistoryRow(row, 4, detailsId)}

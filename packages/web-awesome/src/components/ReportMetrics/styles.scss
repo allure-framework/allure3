@@ -187,6 +187,10 @@ summary.sectionTitle {
     border-bottom: 0;
   }
 
+  .numericCell {
+    text-align: right;
+  }
+
   td:not(:first-child) {
     white-space: nowrap;
   }
