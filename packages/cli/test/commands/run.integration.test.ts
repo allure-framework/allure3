@@ -7,6 +7,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import { promisify } from "node:util";
 
 import { formatProcessLogAttachmentName } from "@allurereport/plugin-agent";
+import AdmZip from "adm-zip";
 import { attachment, epic, feature, label, step, story } from "allure-js-commons";
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from "vite-plus/test";
 
@@ -816,6 +817,169 @@ await new Promise((resolve) => setTimeout(resolve, 2500));
       });
     });
   }, 240_000);
+
+  it.each(["dump", "report"])(
+    "preserves earlier attachments when reruns clean results (%s)",
+    async (mode) => {
+      const fixtureDir = join(tempDir, `cleaning-reruns-${mode}`);
+      const resultsDir = join(fixtureDir, "allure-results");
+      const configPath = join(fixtureDir, "allurerc.json");
+      const runnerPath = join(fixtureDir, "runner.mjs");
+      const pluginPath = join(fixtureDir, "probe.mjs");
+      const observedPath = join(fixtureDir, "observed.json");
+      const dumpPath = join(fixtureDir, "dump");
+      let stderr = "";
+      const expectedFiles = [
+        "test-attachment.bin",
+        "fixture-attachment.txt",
+        "global-attachment.txt",
+        "attempt-0-attachment.txt",
+        "attempt-1-attachment.txt",
+        "attempt-2-attachment.txt",
+        "shared-attachment.txt",
+      ];
+      const expectedContents: Record<string, Buffer> = {
+        ...Object.fromEntries(expectedFiles.map((name) => [name, Buffer.from(`body of ${name}`)])),
+        "test-attachment.bin": Buffer.from([0, 1, 127, 128, 255]),
+        "shared-attachment.txt": Buffer.from("shared payload 2"),
+      };
+      const runnerSource = `
+import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
+import { join } from "node:path";
+
+const resultsDir = ${JSON.stringify(resultsDir)};
+const attempt = process.env.ALLURE_RERUN === undefined ? 0 : Number(process.env.ALLURE_RERUN) + 1;
+const writeJson = (name, value) => writeFile(join(resultsDir, name), JSON.stringify(value));
+const link = (source) => ({
+  name: source, source, type: source.endsWith(".bin") ? "application/octet-stream" : "text/plain"
+});
+
+if (attempt > 0) {
+  const plan = JSON.parse(await readFile(process.env.ALLURE_TESTPLAN_PATH, "utf8"));
+  if (JSON.stringify(plan.tests) !== JSON.stringify([{ selector: "suite.retry" }])) {
+    throw new Error("Unexpected retry selection: " + JSON.stringify(plan));
+  }
+  await rm(resultsDir, { recursive: true });
+}
+await mkdir(resultsDir, { recursive: true });
+
+if (attempt === 0) {
+  for (const name of ${JSON.stringify(expectedFiles.slice(0, 3))}) {
+    await writeFile(join(resultsDir, name), name.endsWith(".bin") ? Buffer.from([0, 1, 127, 128, 255]) : "body of " + name);
+  }
+  await writeJson("passed-result.json", {
+    uuid: "passed", name: "passed", fullName: "suite.passed", status: "passed",
+    attachments: [link("test-attachment.bin")]
+  });
+  await writeJson("setup-container.json", {
+    uuid: "setup", children: ["passed"],
+    befores: [{ name: "setup", status: "passed", attachments: [link("fixture-attachment.txt")] }]
+  });
+  await writeJson("run-globals.json", { attachments: [link("global-attachment.txt")] });
+}
+const name = "attempt-" + attempt + "-attachment.txt";
+await writeFile(join(resultsDir, name), "body of " + name);
+await writeFile(join(resultsDir, "shared-attachment.txt"), "shared payload " + attempt);
+await writeJson("retry-" + attempt + "-result.json", {
+  uuid: "retry-" + attempt, name: "retry", fullName: "suite.retry",
+  status: attempt < 2 ? "failed" : "passed", start: attempt * 10 + 1, stop: attempt * 10 + 2,
+  attachments: [link(name), link("shared-attachment.txt")]
+});
+process.exitCode = attempt < 2 ? 1 : 0;
+`.trimStart();
+      const pluginSource = `
+import { writeFile } from "node:fs/promises";
+export default class {
+  async done(context, store) {
+    const observed = [];
+    for (const attachment of await store.allAttachments()) {
+      const content = await store.attachmentContentById(attachment.id);
+      if (!content) continue;
+      observed.push({
+        name: attachment.originalFileName,
+        body: (await content.asBuffer())?.toString("base64"),
+        path: content.path
+      });
+    }
+    await writeFile(${JSON.stringify(observedPath)}, JSON.stringify(observed));
+  }
+}
+`.trimStart();
+
+      await step("prepare a runner that deletes all earlier results on every retry", async () => {
+        await mkdir(fixtureDir, { recursive: true });
+        await writeFile(runnerPath, runnerSource);
+        await writeFile(pluginPath, pluginSource);
+        await writeJson(configPath, {
+          output: join(fixtureDir, "report"),
+          plugins: { probe: { import: pluginPath } },
+        });
+        await attachment("cleaning retry runner", runnerSource, "text/plain");
+      });
+
+      await step("run three attempts through the built CLI", async () => {
+        const result = await runCommandWithExitCode(process.execPath, [
+          cliPath,
+          "run",
+          "--cwd",
+          fixtureDir,
+          "--config",
+          configPath,
+          "--rerun",
+          "2",
+          "--results-dir",
+          resultsDir,
+          ...(mode === "dump" ? ["--dump", dumpPath] : []),
+          "--",
+          process.execPath,
+          runnerPath,
+        ]);
+        await attachCommandOutput("cleaning retries", result);
+        stderr = result.stderr;
+        expect(result.exitCode).toBe(0);
+        expect(stripAnsi(result.stdout)).toContain("Attempt 3/3 finished with code 0");
+      });
+
+      await step("verify test, fixture, global and retry attachment bytes survive cleanup", async () => {
+        if (mode === "dump") {
+          const zip = new AdmZip(`${dumpPath}.zip`);
+          const attachments = JSON.parse(zip.readAsText("attachments.json")) as Record<
+            string,
+            { id: string; originalFileName: string; missed?: boolean; used?: boolean }
+          >;
+          for (const name of expectedFiles) {
+            const record = Object.values(attachments).find((entry) => entry.originalFileName === name && entry.used);
+            expect(record, name).toBeDefined();
+            expect(record?.missed, name).toBe(false);
+            expect(zip.readFile(record!.id)).toEqual(expectedContents[name]);
+          }
+        } else {
+          const observed = JSON.parse(await readFile(observedPath, "utf8")) as {
+            name: string;
+            body: string;
+            path?: string;
+          }[];
+          await attachment(
+            "attachment content observed by the report plugin",
+            JSON.stringify(observed),
+            "application/json",
+          );
+          for (const name of expectedFiles) {
+            expect(observed).toContainEqual(
+              expect.objectContaining({ name, body: expectedContents[name].toString("base64") }),
+            );
+          }
+          const cached = observed.filter(({ path }) => path?.includes("allure-run-attachments-"));
+          expect(cached).toHaveLength(5);
+          for (const { path } of cached) {
+            expect(await pathExists(path!)).toBe(false);
+          }
+        }
+        expect(stderr).toBe("");
+      });
+    },
+    240_000,
+  );
 
   it("prints quality gate results from the built log command after test results", async () => {
     const fixtureDir = join(tempDir, "log-quality-gates");
