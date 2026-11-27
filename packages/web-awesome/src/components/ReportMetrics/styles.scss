@@ -1,3 +1,23 @@
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.search {
+  flex: 1 1 240px;
+  min-width: 0;
+}
+
+.metricCell {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+}
+
 .metrics {
   padding: 24px;
   min-height: 320px;
@@ -165,6 +185,10 @@ summary.sectionTitle {
 
   tbody tr:last-child > td {
     border-bottom: 0;
+  }
+
+  .numericCell {
+    text-align: right;
   }
 
   td:not(:first-child) {

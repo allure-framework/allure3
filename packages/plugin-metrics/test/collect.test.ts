@@ -90,10 +90,10 @@ describe("collectMetrics", () => {
     expect(value(lines, "launch_retries", "run")).toBe(3);
   });
 
-  it("averages performance metrics per key and skips invalid samples", () => {
+  it.each(["runMetrics", "performanceMetrics"] as const)("averages %s per key and skips invalid samples", (field) => {
     const lines = collectMetrics(
       input({
-        performanceMetrics: [
+        [field]: [
           { id: "1", key: "ttfb", value: 10, start: 0, stop: 1 },
           { id: "2", key: "ttfb", value: 20, start: 0, stop: 1 },
           { id: "3", key: "lcp", value: Number.NaN, start: 0, stop: 1 },

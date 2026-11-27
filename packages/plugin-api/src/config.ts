@@ -6,7 +6,7 @@ import type {
   DynamicEnvironmentsConfig,
   EnvironmentDescriptor,
   FlakyDetectionConfig,
-  PerformanceConfig,
+  MetricsConfig,
   ReportVariables,
   ResolutionsConfig,
 } from "@allurereport/core-api";
@@ -92,7 +92,9 @@ export interface Config {
   plugins?: Record<string, PluginDescriptor>;
   appendHistory?: boolean;
   qualityGate?: QualityGateConfigInput;
-  performance?: PerformanceConfig;
+  metrics?: MetricsConfig;
+  /** @deprecated Use metrics. */
+  performance?: MetricsConfig;
   allureService?: AllureServiceConfig;
   categories?: CategoriesConfigInput;
   /**

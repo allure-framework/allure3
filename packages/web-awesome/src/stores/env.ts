@@ -12,6 +12,7 @@ import {
   loadFromLocalStorage,
   migrateStoredEnvironmentSelection,
   normalizeEnvironmentsWidget,
+  writeLocalStorage,
 } from "@allurereport/web-commons";
 import { effect, signal } from "@preact/signals";
 
@@ -112,9 +113,9 @@ export const fetchTestEnvGroup = async (id: string) => {
 };
 
 effect(() => {
-  localStorage.setItem(getReportStorageKey("currentEnvironment"), JSON.stringify(currentEnvironment.value));
+  writeLocalStorage(getReportStorageKey("currentEnvironment"), JSON.stringify(currentEnvironment.value));
 });
 
 effect(() => {
-  localStorage.setItem(getReportStorageKey("collapsedEnvironments"), JSON.stringify([...collapsedEnvironments.value]));
+  writeLocalStorage(getReportStorageKey("collapsedEnvironments"), JSON.stringify([...collapsedEnvironments.value]));
 });

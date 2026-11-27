@@ -29,7 +29,7 @@ export class MetricsPlugin implements Plugin {
     const {
       prometheus: prometheusOption,
       influxdb: influxdbOption,
-      performanceMetrics,
+      exportRunMetrics = this.options.performanceMetrics,
       failOnPushError,
       pushTimeout,
     } = this.options;
@@ -47,10 +47,10 @@ export class MetricsPlugin implements Plugin {
       influxDbWriteUrl(influxdb.push);
     }
 
-    const [statistic, allResults, performance] = await Promise.all([
+    const [statistic, allResults, metrics] = await Promise.all([
       store.testsStatistic(),
       store.allTestResults({ includeRetries: true }),
-      performanceMetrics ? store.allMetrics() : Promise.resolve(undefined),
+      exportRunMetrics ? store.allMetrics() : Promise.resolve(undefined),
     ]);
     const testResults = allResults.filter((tr) => !tr.isRetry);
     const categories = context.categories ?? [];
@@ -62,7 +62,7 @@ export class MetricsPlugin implements Plugin {
         return { start: tr.start, stop: tr.stop, duration: tr.duration, categories: category ? [category] : [] };
       }),
       retries: allResults.length - testResults.length,
-      performanceMetrics: performance,
+      runMetrics: metrics,
     });
     const pushes: (() => Promise<void>)[] = [];
 

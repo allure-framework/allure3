@@ -59,7 +59,7 @@ for (const singleFile of [false, true]) {
     report = await bootstrapReport({
       reportConfig: {
         appendHistory: false,
-        performance: {
+        metrics: {
           metrics: {
             run: { title: "Run", unit: "ms", better: "lower" },
             missing: { title: "Missing", unit: "ms", better: "lower", parent: "run" },

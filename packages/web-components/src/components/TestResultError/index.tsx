@@ -118,7 +118,7 @@ export const TestResultError: FunctionalComponent<TestResultErrorProps> = ({
         <button
           type="button"
           className={styles["test-result-error-message"]}
-          aria-label={i18n("error")}
+          aria-label={title ?? i18n("error")}
           aria-expanded={hasTrace ? isOpen : undefined}
           onClick={toggleTrace}
         >

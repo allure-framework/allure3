@@ -6,6 +6,7 @@ import {
   getReportStorageKey,
   loadFromLocalStorage,
   type SubtreeNodeState,
+  writeLocalStorage,
 } from "@allurereport/web-commons";
 import { batch, computed, effect, signal } from "@preact/signals";
 import type { ReportRecursiveTree as RecursiveTree } from "types";
@@ -38,11 +39,11 @@ export const collapsedTrees = signal(
 export const expandedTrees = signal(new Set(loadFromLocalStorage<string[]>(getReportStorageKey("expandedTrees"), [])));
 
 effect(() => {
-  localStorage.setItem(getReportStorageKey("collapsedTrees"), JSON.stringify([...collapsedTrees.value]));
+  writeLocalStorage(getReportStorageKey("collapsedTrees"), JSON.stringify([...collapsedTrees.value]));
 });
 
 effect(() => {
-  localStorage.setItem(getReportStorageKey("expandedTrees"), JSON.stringify([...expandedTrees.value]));
+  writeLocalStorage(getReportStorageKey("expandedTrees"), JSON.stringify([...expandedTrees.value]));
 });
 
 export const isTreeOpened = (id: string, openedByDefault = true): boolean => {

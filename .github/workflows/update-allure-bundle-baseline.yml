@@ -1,4 +1,4 @@
-# Measures PR HEAD and commits .github/allure-bundle-size.baseline.json.
+# Measures the PR merge checkout and commits .github/allure-bundle-size.baseline.json.
 # Trigger: workflow_dispatch only (trusted actors). Slash command front door is
 # update-allure-bundle-baseline-command.yml — keeps issue_comment from checking
 # out / executing PR code (CodeQL actions/untrusted-checkout).
@@ -20,6 +20,9 @@ on:
 permissions:
   contents: read
 
+env:
+  GH_REPO: ${{ github.repository }}
+
 concurrency:
   group: update-bundle-baseline-${{ inputs.pr_number }}
   cancel-in-progress: true
@@ -37,7 +40,7 @@ jobs:
       pr_number: ${{ steps.resolve.outputs.pr_number }}
       head_ref: ${{ steps.resolve.outputs.head_ref }}
       head_sha: ${{ steps.resolve.outputs.head_sha }}
-      head_repo: ${{ steps.resolve.outputs.head_repo }}
+      base_sha: ${{ steps.resolve.outputs.base_sha }}
       can_push: ${{ steps.resolve.outputs.can_push }}
       actor: ${{ steps.resolve.outputs.actor }}
     steps:
@@ -75,7 +78,7 @@ jobs:
           head_ref="$(printf '%s' "${pr_json}" | jq -r '.head.ref')"
           head_sha="$(printf '%s' "${pr_json}" | jq -r '.head.sha')"
           head_repo="$(printf '%s' "${pr_json}" | jq -r '.head.repo.full_name // empty')"
-          is_fork="$(printf '%s' "${pr_json}" | jq -r '.head.repo.fork // true')"
+          base_sha="$(printf '%s' "${pr_json}" | jq -r '.base.sha')"
 
           if [[ "${state}" != "open" ]]; then
             message="Cannot update baseline: PR #${PR_NUMBER} is not open (state=${state})."
@@ -90,7 +93,7 @@ jobs:
             exit 1
           fi
 
-          if [[ "${head_repo}" == "${GITHUB_REPOSITORY}" && "${is_fork}" != "true" ]]; then
+          if [[ "${head_repo}" == "${GITHUB_REPOSITORY}" ]]; then
             can_push=true
           else
             can_push=false
@@ -101,7 +104,7 @@ jobs:
             echo "pr_number=${PR_NUMBER}"
             echo "head_ref=${head_ref}"
             echo "head_sha=${head_sha}"
-            echo "head_repo=${head_repo}"
+            echo "base_sha=${base_sha}"
             echo "can_push=${can_push}"
             echo "actor=${REQUESTER}"
           } >> "${GITHUB_OUTPUT}"
@@ -116,8 +119,6 @@ jobs:
     timeout-minutes: 30
     permissions:
       contents: read
-    container:
-      image: node:24-bookworm
     outputs:
       changed: ${{ steps.measure.outputs.changed }}
       before_self_mb: ${{ steps.measure.outputs.before_self_mb }}
@@ -130,12 +131,22 @@ jobs:
       delta_deps_mb: ${{ steps.measure.outputs.delta_deps_mb }}
       delta_total_mb: ${{ steps.measure.outputs.delta_total_mb }}
     steps:
-      - name: Checkout PR head
+      - name: Checkout PR merge ref
         uses: actions/checkout@v7
         with:
-          repository: ${{ needs.gate.outputs.head_repo }}
-          ref: ${{ needs.gate.outputs.head_sha }}
+          ref: refs/pull/${{ needs.gate.outputs.pr_number }}/merge
+          fetch-depth: 2
           persist-credentials: false
+
+      - name: Verify merge checkout
+        env:
+          BASE_SHA: ${{ needs.gate.outputs.base_sha }}
+          HEAD_SHA: ${{ needs.gate.outputs.head_sha }}
+        run: |
+          if [[ "$(git rev-parse HEAD^1)" != "$BASE_SHA" || "$(git rev-parse HEAD^2)" != "$HEAD_SHA" ]]; then
+            echo "::error::PR base or head moved. Re-run /update-bundle-baseline."
+            exit 1
+          fi
 
       - name: Build project
         uses: ./.github/actions/build
@@ -214,8 +225,6 @@ jobs:
         run: |
           set -euo pipefail
 
-          command -v jq >/dev/null || (apt-get update -qq && apt-get install -y -qq jq >/dev/null)
-
           SRC=".github/allure-bundle-size.baseline.json"
           DEST_DIR=".ci-artifacts"
           DEST="${DEST_DIR}/allure-bundle-size.baseline.json"
@@ -264,6 +273,7 @@ jobs:
         with:
           name: updated-allure-bundle-size-baseline
           path: .ci-artifacts/
+          include-hidden-files: true
 
       - name: Upload report
         if: ${{ !cancelled() }}
@@ -271,6 +281,7 @@ jobs:
         with:
           name: allure-bundle-size-update-report
           path: .github/allure-bundle-size.report.json
+          include-hidden-files: true
 
   notify-measure-failure:
     name: Comment on measure failure
@@ -324,7 +335,7 @@ jobs:
         run: |
           set -euo pipefail
           gh pr comment "${PR_NUMBER}" --body "$(cat <<EOF
-          Baseline already matches the current measurement for this PR head.
+          Baseline already matches the current measurement for this PR merge checkout.
 
           | Metric | Size |
           | --- | ---: |
@@ -354,6 +365,7 @@ jobs:
           PR_NUMBER: ${{ needs.gate.outputs.pr_number }}
           EXPECTED_REF: ${{ needs.gate.outputs.head_ref }}
           EXPECTED_SHA: ${{ needs.gate.outputs.head_sha }}
+          EXPECTED_BASE: ${{ needs.gate.outputs.base_sha }}
         run: |
           set -euo pipefail
           pr_json="$(gh api "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}")"
@@ -361,13 +373,13 @@ jobs:
           head_ref="$(printf '%s' "${pr_json}" | jq -r '.head.ref')"
           head_sha="$(printf '%s' "${pr_json}" | jq -r '.head.sha')"
           head_repo="$(printf '%s' "${pr_json}" | jq -r '.head.repo.full_name // empty')"
-          is_fork="$(printf '%s' "${pr_json}" | jq -r '.head.repo.fork // true')"
+          base_sha="$(printf '%s' "${pr_json}" | jq -r '.base.sha')"
 
           if [[ "${state}" != "open" ]]; then
             echo "::error::PR #${PR_NUMBER} is no longer open (state=${state})."
             exit 1
           fi
-          if [[ "${head_repo}" != "${GITHUB_REPOSITORY}" || "${is_fork}" == "true" ]]; then
+          if [[ "${head_repo}" != "${GITHUB_REPOSITORY}" ]]; then
             echo "::error::PR #${PR_NUMBER} is no longer a same-repo PR."
             exit 1
           fi
@@ -375,17 +387,10 @@ jobs:
             echo "::error::PR head ref changed (${EXPECTED_REF} -> ${head_ref}). Re-run /update-bundle-baseline."
             exit 1
           fi
-          if [[ "${head_sha}" != "${EXPECTED_SHA}" ]]; then
-            echo "::error::PR head moved (${EXPECTED_SHA} -> ${head_sha}). Re-run /update-bundle-baseline."
+          if [[ "${head_sha}" != "${EXPECTED_SHA}" || "${base_sha}" != "${EXPECTED_BASE}" ]]; then
+            echo "::error::PR base or head moved. Re-run /update-bundle-baseline."
             exit 1
           fi
-
-      - name: Checkout PR head
-        if: needs.measure.outputs.changed == 'true'
-        uses: actions/checkout@v7
-        with:
-          token: ${{ steps.app-token.outputs.token }}
-          ref: ${{ needs.gate.outputs.head_sha }}
 
       - name: Download updated baseline
         if: needs.measure.outputs.changed == 'true'
@@ -437,45 +442,41 @@ jobs:
           jq '.' "${BASELINE_PATH}" > "${BASELINE_PATH}.validated"
           mv "${BASELINE_PATH}.validated" "${BASELINE_PATH}"
 
-      - name: Commit and push baseline
+      - name: Publish signed baseline approval
         id: push
         if: needs.measure.outputs.changed == 'true'
         env:
-          GIT_COMMIT_AUTHOR_NAME: ${{ vars.ALLURE_CI_APP_SLUG }}[bot]
-          GIT_COMMIT_AUTHOR_EMAIL: ${{ vars.ALLURE_CI_APP_USER_ID }}+${{ vars.ALLURE_CI_APP_SLUG }}[bot]@users.noreply.github.com
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
           HEAD_REF: ${{ needs.gate.outputs.head_ref }}
           HEAD_SHA: ${{ needs.gate.outputs.head_sha }}
+          BASE_SHA: ${{ needs.gate.outputs.base_sha }}
+          PR_NUMBER: ${{ needs.gate.outputs.pr_number }}
         run: |
           set -euo pipefail
 
-          echo "push_failed=false" >> "${GITHUB_OUTPUT}"
-
-          cp .ci-artifacts/allure-bundle-size.baseline.json .github/allure-bundle-size.baseline.json
-
-          git config user.name "${GIT_COMMIT_AUTHOR_NAME}"
-          git config user.email "${GIT_COMMIT_AUTHOR_EMAIL}"
-
-          git add -- .github/allure-bundle-size.baseline.json
-          if [[ "$(git diff --cached --name-only)" != ".github/allure-bundle-size.baseline.json" ]]; then
-            echo "::error::Unexpected files were staged for the baseline update."
+          # GitHub signs the API commit and rejects it if the branch head has moved.
+          contents="$(base64 -w0 .ci-artifacts/allure-bundle-size.baseline.json)"
+          if ! commit_sha="$(jq -n \
+            --arg repo "$GITHUB_REPOSITORY" --arg ref "$HEAD_REF" --arg head "$HEAD_SHA" \
+            --arg body "Bundle size baseline for PR #$PR_NUMBER against $BASE_SHA" --arg contents "$contents" '
+              {
+                query: "mutation($input: CreateCommitOnBranchInput!) { createCommitOnBranch(input: $input) { commit { oid } } }",
+                variables: {
+                  input: {
+                    branch: {repositoryNameWithOwner: $repo, refName: $ref},
+                    expectedHeadOid: $head,
+                    message: {headline: "chore: update allure bundle size baseline", body: $body},
+                    fileChanges: {additions: [{path: ".github/allure-bundle-size.baseline.json", contents: $contents}]}
+                  }
+                }
+              }
+            ' | gh api graphql --input - --jq '.data.createCommitOnBranch.commit.oid')"; then
+            echo "push_failed=true" >> "$GITHUB_OUTPUT"
             exit 1
           fi
-
-          if git diff --cached --quiet; then
-            echo "changed=false" >> "${GITHUB_OUTPUT}"
-            exit 0
-          fi
-
-          git commit -m "chore: update allure bundle size baseline"
-          if ! git push origin "HEAD:refs/heads/${HEAD_REF}"; then
-            echo "push_failed=true" >> "${GITHUB_OUTPUT}"
-            echo "changed=true" >> "${GITHUB_OUTPUT}"
-            echo "::error::Failed to push baseline update to ${HEAD_REF} (head may have moved from ${HEAD_SHA}). Re-run /update-bundle-baseline."
-            exit 1
-          fi
-
-          echo "changed=true" >> "${GITHUB_OUTPUT}"
-          echo "commit_sha=$(git rev-parse HEAD)" >> "${GITHUB_OUTPUT}"
+          [[ "$commit_sha" =~ ^[0-9a-f]{40}$ ]]
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+          echo "commit_sha=$commit_sha" >> "$GITHUB_OUTPUT"
 
       - name: Comment push failure
         if: failure() && !cancelled() && steps.push.outputs.push_failed == 'true'
@@ -543,26 +544,27 @@ jobs:
     permissions:
       pull-requests: write
     steps:
-      - name: Verify PR head has not moved
-        id: verify-head
+      - name: Verify PR inputs have not moved
+        id: verify-inputs
         env:
           GH_TOKEN: ${{ github.token }}
           PR_NUMBER: ${{ needs.gate.outputs.pr_number }}
           EXPECTED_SHA: ${{ needs.gate.outputs.head_sha }}
+          EXPECTED_BASE: ${{ needs.gate.outputs.base_sha }}
         run: |
           set -euo pipefail
 
-          current_sha="$(gh api "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}" --jq '.head.sha')"
-          if [[ "${current_sha}" != "${EXPECTED_SHA}" ]]; then
+          current_pair="$(gh api "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}" --jq '[.base.sha, .head.sha] | join(" ")')"
+          if [[ "${current_pair}" != "${EXPECTED_BASE} ${EXPECTED_SHA}" ]]; then
             echo "current=false" >> "${GITHUB_OUTPUT}"
-            gh pr comment "${PR_NUMBER}" --body "The PR head moved after the bundle-size measurement. Please run \`/update-bundle-baseline\` again."
+            gh pr comment "${PR_NUMBER}" --body "The PR base or head moved after the bundle-size measurement. Please run \`/update-bundle-baseline\` again."
             exit 0
           fi
 
           echo "current=true" >> "${GITHUB_OUTPUT}"
 
       - name: Comment when baseline unchanged
-        if: steps.verify-head.outputs.current == 'true' && needs.measure.outputs.changed != 'true'
+        if: steps.verify-inputs.outputs.current == 'true' && needs.measure.outputs.changed != 'true'
         env:
           GH_TOKEN: ${{ github.token }}
           PR_NUMBER: ${{ needs.gate.outputs.pr_number }}
@@ -573,7 +575,7 @@ jobs:
         run: |
           set -euo pipefail
           gh pr comment "${PR_NUMBER}" --body "$(cat <<EOF
-          Baseline already matches the current measurement for this PR head.
+          Baseline already matches the current measurement for this PR merge checkout.
 
           | Metric | Size |
           | --- | ---: |
@@ -585,8 +587,8 @@ jobs:
           EOF
           )"
 
-      - name: Comment with fork update instructions
-        if: steps.verify-head.outputs.current == 'true' && needs.measure.outputs.changed == 'true'
+      - name: Comment with fork measurement
+        if: steps.verify-inputs.outputs.current == 'true' && needs.measure.outputs.changed == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
           PR_NUMBER: ${{ needs.gate.outputs.pr_number }}
@@ -605,9 +607,9 @@ jobs:
         run: |
           set -euo pipefail
           gh pr comment "${PR_NUMBER}" --body "$(cat <<EOF
-          Measured an updated Allure bundle size baseline for this fork PR at \`${HEAD_SHA}\`.
+          Measured the Allure bundle size for the merge checkout of this fork PR head at \`${HEAD_SHA}\`.
 
-          GitHub does not allow this workflow to push the update to a contributor-owned fork. Please download the \`updated-allure-bundle-size-baseline\` artifact from the [workflow run](${RUN_URL}), replace \`.github/allure-bundle-size.baseline.json\` with the downloaded file, and push the change to this PR branch.
+          The measurement is available in the \`updated-allure-bundle-size-baseline\` artifact from the [workflow run](${RUN_URL}). Accepting a new baseline requires a PR branch in the upstream repository.
 
           | Metric | Before | After | Δ |
           | --- | ---: | ---: | ---: |

@@ -1,5 +1,7 @@
 import { toPosixPath } from "@allurereport/core-api";
 
+import { readLocalStorage } from "./storage.js";
+
 /**
  * Hash which attaches to any report file to prevent caching
  */
@@ -58,7 +60,7 @@ export const reportDataUrl = async (
 
   const baseEl = globalThis.document.head.querySelector("base")?.href ?? "https://localhost";
   const url = new URL(path, baseEl);
-  const liveReloadHash = globalThis.localStorage.getItem(ALLURE_LIVE_RELOAD_HASH_STORAGE_KEY);
+  const liveReloadHash = readLocalStorage(ALLURE_LIVE_RELOAD_HASH_STORAGE_KEY);
   const cacheKey = getReportOptions<{ cacheKey?: string }>()?.cacheKey;
 
   if (liveReloadHash) {

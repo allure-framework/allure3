@@ -5,7 +5,7 @@ import * as process from "node:process";
 import {
   validateEnvironmentName,
   validateFlakinessScoringOptions,
-  validatePerformanceConfig,
+  validateMetricsConfig,
 } from "@allurereport/core-api";
 import { type NameContext, createNameContext, resolveName } from "@allurereport/core-api/expression";
 import type { Config, PluginConstructor, PluginConstructorContext, PluginDescriptor } from "@allurereport/plugin-api";
@@ -183,6 +183,7 @@ export const validateConfig = (config: Config) => {
     "dynamicEnvironments",
     "appendHistory",
     "qualityGate",
+    "metrics",
     "performance",
     "allureService",
     "categories",
@@ -362,7 +363,8 @@ export const resolveConfig = async (config: Config, override: ConfigOverride = {
 
   validateResolutionsConfig(config.resolutions);
   validateFlakyDetectionConfig(config.flakyDetection);
-  validatePerformanceConfig(config.performance);
+  const metrics = config.metrics ?? config.performance;
+  validateMetricsConfig(metrics);
 
   const nameContext = createNameContext();
   const { environments, environment, allowedEnvironments } = resolveConfigEnvironments(config, nameContext);
@@ -440,6 +442,7 @@ export const resolveConfig = async (config: Config, override: ConfigOverride = {
     plugins: pluginInstances,
     defaultLabels: config.defaultLabels ?? {},
     qualityGate: resolveQualityGate(config.qualityGate),
+    metrics,
     performance: config.performance,
     allureService: resolveAllureService(config.allureService, nameContext.env),
     categories: resolveCategories(config.categories, nameContext),

@@ -5,6 +5,8 @@ import {
   type LangLocale,
   getLocaleDateTimeOverride,
   getReportOptions,
+  writeLocalStorage,
+  readLocalStorage,
 } from "@allurereport/web-commons";
 import { computed, signal } from "@preact/signals";
 import i18next, { type TOptions } from "i18next";
@@ -45,7 +47,7 @@ export const currentLocaleIso = computed(() => LANG_LOCALE[currentLocale.value]?
 
 export const getLocale = async () => {
   const { reportLanguage } = getReportOptions<ReportOptions>() ?? {};
-  const locale = localStorage.getItem("currentLocale") || reportLanguage || DEFAULT_LOCALE;
+  const locale = readLocalStorage("currentLocale") || reportLanguage || DEFAULT_LOCALE;
 
   await setLocale(locale as LangLocale);
 };
@@ -157,7 +159,7 @@ export const useI18n = (namespace: (typeof namespaces)[number]) => {
 
 export const setLocale = async (locale: LangLocale) => {
   await i18next.changeLanguage(locale as string);
-  localStorage.setItem("currentLocale", locale as string);
+  writeLocalStorage("currentLocale", locale as string);
   currentLocale.value = locale;
   document.documentElement.dir = ["ar", "he", "fa"].includes(locale) ? "rtl" : "ltr";
 };

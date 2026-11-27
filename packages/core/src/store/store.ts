@@ -3,7 +3,7 @@ import { extname } from "node:path";
 /* eslint max-lines: off */
 import {
   type AllureHistory,
-  type AllurePerformanceResult,
+  type AllureMetricResult,
   type AllureQualityGateResult,
   type AttachmentLink,
   type AttachmentLinkLinked,
@@ -22,7 +22,7 @@ import {
   type ResolutionIssue,
   type ResolutionsConfig,
   type MetricSample,
-  type PerformanceConfig,
+  type MetricsConfig,
   type ReportVariables,
   type Statistic,
   type TestCase,
@@ -45,7 +45,7 @@ import {
   ordinal,
   reverse,
   resolveMetricSamples,
-  validatePerformanceConfig,
+  validateMetricsConfig,
   validateEnvironmentId,
   validateEnvironmentName,
 } from "@allurereport/core-api";
@@ -181,7 +181,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   #globalExitCode: ExitCode | undefined;
   #qualityGateResults: AllureQualityGateResult[] = [];
   #metrics: MetricSample[] = [];
-  #performance: PerformanceConfig = {};
+  #metricsConfig: MetricsConfig = {};
   #historyPoints: HistoryDataPoint[] = [];
   #historyLookup?: ReturnType<typeof createHistoryTestResultLookup>;
   #environments: EnvironmentIdentity[] = [];
@@ -198,7 +198,9 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     environmentsConfig?: EnvironmentsConfig;
     dynamicEnvironments?: DynamicEnvironmentResolver;
     reportVariables?: ReportVariables;
-    performance?: PerformanceConfig;
+    metrics?: MetricsConfig;
+    /** @deprecated Use metrics. */
+    performance?: MetricsConfig;
   }) {
     const {
       history,
@@ -212,7 +214,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       environmentsConfig = {},
       dynamicEnvironments,
       reportVariables = {},
-      performance = {},
+      metrics: metricsConfig = params?.performance ?? {},
     } = params ?? {};
     const errors: string[] = [];
     const {
@@ -264,8 +266,8 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     this.#history = history;
     this.#detectFlaky = createFlakyDetector(flakyDetection);
     this.#resolutionsConfig = resolutionsConfig;
-    validatePerformanceConfig(performance);
-    this.#performance = performance;
+    validateMetricsConfig(metricsConfig);
+    this.#metricsConfig = metricsConfig;
 
     this.#realtimeDispatcher = realtimeDispatcher;
     this.#realtimeSubscriber = realtimeSubscriber;
@@ -1031,7 +1033,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     await this.addQualityGateResult(result);
   }
 
-  async visitMetrics(metrics: AllurePerformanceResult[], context: ReaderContext = { readerId: "api" }): Promise<void> {
+  async visitMetrics(metrics: AllureMetricResult[], context: ReaderContext = { readerId: "api" }): Promise<void> {
     const source = context.metadata?.originalFileName;
 
     this.#metrics.push(
@@ -1040,7 +1042,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
           ...metric,
           ...(source ? { source } : {}),
         })),
-        this.#performance,
+        this.#metricsConfig,
       ),
     );
   }

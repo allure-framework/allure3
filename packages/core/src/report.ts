@@ -244,7 +244,7 @@ export class AllureReport {
       output,
       hideLabels,
       qualityGate,
-      performance,
+      metrics: metricsConfig = opts.performance,
       dump,
       categories,
       allureService,
@@ -293,7 +293,7 @@ export class AllureReport {
     }
 
     this.#categories = normalizeCategoriesConfig(categories);
-    this.#metricHierarchy = buildMetricHierarchy(performance);
+    this.#metricHierarchy = buildMetricHierarchy(metricsConfig);
 
     this.#historyBaseUrl =
       !this.#allureServiceClient && historyPath && historyBaseUrl ? normalizeHistoryBaseUrl(historyBaseUrl) : undefined;
@@ -323,7 +323,7 @@ export class AllureReport {
       defaultLabels,
       environment,
       allowedEnvironments,
-      performance,
+      metrics: metricsConfig,
     });
     this.#readers = [...readers];
     this.#plugins = [...plugins];

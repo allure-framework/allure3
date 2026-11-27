@@ -11,17 +11,16 @@
  * 3. Install only `allure` in a clean temp project; use npm overrides so every
  *    `@allurereport/*` dependency resolves to the local tarballs. External deps
  *    still come from the npm registry.
- * 4. Measure `du -skL node_modules` (follow symlinks).
+ * 4. Measure `du -skL node_modules` (follow symlinks) and count installed external packages.
  *
  * Usage:
  *   yarn build && yarn allure:size
  *   node scripts/allure-bundle-size.mjs --json
- *   node scripts/allure-bundle-size.mjs --output .ci/allure-bundle-size.json
- *   node scripts/allure-bundle-size.mjs --baseline .ci/allure-bundle-size.baseline.json --max-delta-mb 0.5
+ *   node scripts/allure-bundle-size.mjs --allure-results out/bundle-size-results
  *   node scripts/allure-bundle-size.mjs --update-baseline .ci/allure-bundle-size.baseline.json
  */
 
-import { execSync } from "node:child_process";
+import { execFileSync, execSync } from "node:child_process";
 import {
   appendFileSync,
   cpSync,
@@ -31,6 +30,7 @@ import {
   readFileSync,
   readdirSync,
   rmSync,
+  statSync,
   writeFileSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
@@ -58,11 +58,8 @@ const parseArgs = (argv) => {
     emojis: false,
     keepTemp: false,
     output: "",
-    baseline: "",
+    allureResults: "",
     updateBaseline: "",
-    maxDeltaMb: undefined,
-    maxSelfDeltaMb: undefined,
-    maxDepsDeltaMb: undefined,
     githubStepSummary: false,
   };
 
@@ -99,23 +96,11 @@ const parseArgs = (argv) => {
     } else if (arg === "--output") {
       args.output = resolve(argv[i + 1] ?? "");
       i += 1;
-    } else if (arg === "--baseline") {
-      args.baseline = resolve(argv[i + 1] ?? "");
+    } else if (arg === "--allure-results") {
+      args.allureResults = resolve(argv[i + 1] ?? "");
       i += 1;
     } else if (arg === "--update-baseline") {
       args.updateBaseline = resolve(argv[i + 1] ?? "");
-      i += 1;
-    } else if (arg === "--max-delta-mb") {
-      args.maxDeltaMb = Number(argv[i + 1]);
-      i += 1;
-    } else if (arg === "--fail-delta-mb") {
-      args.maxDeltaMb = Number(argv[i + 1]);
-      i += 1;
-    } else if (arg === "--max-self-delta-mb") {
-      args.maxSelfDeltaMb = Number(argv[i + 1]);
-      i += 1;
-    } else if (arg === "--max-deps-delta-mb") {
-      args.maxDepsDeltaMb = Number(argv[i + 1]);
       i += 1;
     } else if (arg === "--help" || arg === "-h") {
       printHelp();
@@ -162,12 +147,8 @@ Options:
   --keep-temp                 Keep the temp install directory
   --repo-root <path>          Repository root (default: cwd)
   --output <path>             Write JSON report to a file
-  --baseline <path>           Compare against a saved baseline JSON file
+  --allure-results <dir>      Write measured sizes as Allure metrics
   --update-baseline <path>    Save the current measurement as baseline JSON
-  --max-delta-mb <number>     Fail when total size exceeds baseline by this many MB
-  --fail-delta-mb <number>    Alias for --max-delta-mb
-  --max-self-delta-mb <n>    Fail when Allure code footprint exceeds baseline by this many MB
-  --max-deps-delta-mb <n>    Fail when external dependencies footprint exceeds baseline by this many MB
   --github-step-summary       Append a markdown summary to GITHUB_STEP_SUMMARY
   --help, -h                  Show this help
 `);
@@ -183,7 +164,6 @@ const ANSI = {
   reset: "\x1b[0m",
   bold: "\x1b[1m",
   green: "\x1b[32m",
-  red: "\x1b[31m",
   yellow: "\x1b[33m",
   cyan: "\x1b[36m",
   magenta: "\x1b[35m",
@@ -196,8 +176,6 @@ const bold = (text) => style(ANSI.bold, text);
 const color = (code, text) => style(code, text);
 const badge = (code, text) => bold(color(code, text));
 const dim = (text) => style(ANSI.gray, text);
-
-const formatSign = (value) => (value >= 0 ? `+${value}` : `${value}`);
 
 const makeInterruptedError = () => {
   const err = new Error("Interrupted");
@@ -244,7 +222,7 @@ const createProgressBar = (total, enabled, doneText) => {
   };
 };
 
-const printPlain = (report, comparison) => {
+const printPlain = (report) => {
   // Separate progress output from the final report.
   console.log("");
   const sep = "----------------------------------------------------------------------------";
@@ -256,7 +234,7 @@ const printPlain = (report, comparison) => {
   console.log(`${dim("Allure code:")}  ${color(ANSI.magenta, formatBytesForConsole(report.selfBytes))}`);
   console.log(`${dim("Dependencies:")}  ${color(ANSI.magenta, formatBytesForConsole(report.depsBytes))}`);
   console.log(`${dim("Total:")}         ${bold(formatBytesForConsole(report.totalBytes))}`);
-  console.log(dim(`node_modules:  ${report.nodeModulesTopLevelEntries} top-level entries`));
+  console.log(dim(`Installed external packages: ${report.dependencyCount}`));
 
   if (report.missingDist?.length) {
     console.log("");
@@ -267,53 +245,12 @@ const printPlain = (report, comparison) => {
     }
     console.log(dim("Tip: run `yarn build` before measuring for accurate results."));
   }
-
-  if (comparison) {
-    console.log("");
-    if (comparison.passed) {
-      console.log(badge(ANSI.green, "OK"));
-    } else {
-      console.log(badge(ANSI.red, "FAIL"));
-    }
-
-    const limitSelfText = comparison.maxSelfDeltaMb === undefined ? "N/A" : `${comparison.maxSelfDeltaMb} MB`;
-    const limitDepsText = comparison.maxDepsDeltaMb === undefined ? "N/A" : `${comparison.maxDepsDeltaMb} MB`;
-    const limitTotalText = comparison.maxDeltaMb === undefined ? "N/A" : `${comparison.maxDeltaMb} MB`;
-
-    const selfBadge =
-      comparison.deltaSelfMb < 0
-        ? badge(ANSI.green, "IMPROVED")
-        : comparison.passedSelf
-          ? badge(ANSI.green, "WITHIN BUDGET")
-          : badge(ANSI.red, "REGRESSED");
-    const depsBadge =
-      comparison.deltaDepsMb < 0
-        ? badge(ANSI.green, "IMPROVED")
-        : comparison.passedDeps
-          ? badge(ANSI.green, "WITHIN BUDGET")
-          : badge(ANSI.red, "REGRESSED");
-    const totalBadge =
-      comparison.deltaMb < 0
-        ? badge(ANSI.green, "IMPROVED")
-        : comparison.passedTotal
-          ? badge(ANSI.green, "WITHIN BUDGET")
-          : badge(ANSI.red, "REGRESSED");
-
-    console.log(
-      `Allure code: baseline ${comparison.baselineSelfMb} MB, delta ${formatSign(comparison.deltaSelfMb)} MB (limit ${limitSelfText}) ${selfBadge}`,
-    );
-    console.log(
-      `Deps: baseline ${comparison.baselineDepsMb} MB, delta ${formatSign(comparison.deltaDepsMb)} MB (limit ${limitDepsText}) ${depsBadge}`,
-    );
-    console.log(
-      `Total: baseline ${comparison.baselineTotalMb} MB, delta ${formatSign(comparison.deltaMb)} MB (limit ${limitTotalText}) ${totalBadge}`,
-    );
-  }
 };
 
 const readJson = (path) => JSON.parse(readFileSync(path, "utf8"));
 
 const writeJson = (path, value) => {
+  mkdirSync(dirname(path), { recursive: true });
   writeFileSync(path, `${JSON.stringify(value, null, 2)}\n`, "utf8");
 };
 
@@ -506,8 +443,40 @@ const formatBytesForConsole = (bytes) => {
   return `${bytes} B`;
 };
 
-const countNodeModulesEntries = (nodeModulesPath) =>
-  readdirSync(nodeModulesPath).filter((entry) => !entry.startsWith(".")).length;
+const countInstalledDependencies = (nodeModulesPath, internalPackages) => {
+  if (!existsSync(nodeModulesPath)) {
+    return 0;
+  }
+
+  const countPackage = (path, name) => {
+    if (!existsSync(join(path, "package.json"))) {
+      return 0;
+    }
+
+    const external = internalPackages.has(name) ? 0 : 1;
+    return external + countInstalledDependencies(join(path, "node_modules"), internalPackages);
+  };
+
+  let count = 0;
+  for (const entry of readdirSync(nodeModulesPath, { withFileTypes: true })) {
+    if (!entry.isDirectory() || entry.name.startsWith(".")) {
+      continue;
+    }
+
+    const path = join(nodeModulesPath, entry.name);
+    if (entry.name.startsWith("@")) {
+      for (const scoped of readdirSync(path, { withFileTypes: true })) {
+        if (scoped.isDirectory()) {
+          count += countPackage(join(path, scoped.name), `${entry.name}/${scoped.name}`);
+        }
+      }
+    } else {
+      count += countPackage(path, entry.name);
+    }
+  }
+
+  return count;
+};
 
 const findMissingDist = (packages, closureNames) => {
   const byName = new Map(packages.map((item) => [item.packageJson.name, item]));
@@ -529,11 +498,33 @@ const findMissingDist = (packages, closureNames) => {
   return missing;
 };
 
+// Entry points can contain conditions and fallback arrays.
+const entryTargets = (entry) => {
+  if (typeof entry === "string") {
+    return entry.includes("*") ? [] : [entry];
+  }
+  return entry && typeof entry === "object" ? Object.values(entry).flatMap(entryTargets) : [];
+};
+
+const validateInstalledPackage = (packageDir) => {
+  const manifest = readJson(join(packageDir, "package.json"));
+  const exports = manifest.exports;
+  const rootExport = exports && Object.keys(exports).some((key) => key.startsWith(".")) ? exports["."] : exports;
+  for (const target of new Set([manifest.main, manifest.module, manifest.bin, rootExport].flatMap(entryTargets))) {
+    if (!statSync(join(packageDir, target), { throwIfNoEntry: false })?.isFile()) {
+      throw new Error(`Missing installed entry point ${manifest.name}: ${target}`);
+    }
+  }
+};
+
 const measureLocalInstall = (repoRoot, options) => {
   const packages = listWorkspacePackages(repoRoot);
   const closureNames = resolveWorkspaceClosure(packages, ROOT_PACKAGE);
 
   const missingDist = findMissingDist(packages, closureNames);
+  if ((options.updateBaseline || options.allureResults) && missingDist.length > 0) {
+    throw new Error(`Missing dist/ for: ${missingDist.join(", ")}`);
+  }
 
   const abortController = new AbortController();
   const onInterrupt = () => {
@@ -594,7 +585,7 @@ const measureLocalInstall = (repoRoot, options) => {
     } else {
       log(installStartText, options.quiet);
     }
-    execSync("npm install --no-audit --no-fund --ignore-scripts", {
+    execSync("npm install --prefer-offline --no-audit --no-fund --ignore-scripts", {
       cwd: installDir,
       stdio: "ignore",
       signal: abortController.signal,
@@ -622,12 +613,26 @@ const measureLocalInstall = (repoRoot, options) => {
     let selfKb = 0;
     for (const pkgName of closureNames) {
       const pkgDir = join(nodeModulesPath, pkgName);
+      if (options.updateBaseline || options.allureResults) {
+        validateInstalledPackage(pkgDir);
+      }
       const pkgKb = duKb(pkgDir, abortController.signal);
 
       const nestedNodeModulesDir = join(pkgDir, "node_modules");
       const nestedKb = existsSync(nestedNodeModulesDir) ? duKb(nestedNodeModulesDir, abortController.signal) : 0;
 
       selfKb += Math.max(0, pkgKb - nestedKb);
+    }
+
+    if (options.updateBaseline || options.allureResults) {
+      const cliPackageDir = join(nodeModulesPath, ROOT_PACKAGE);
+      const { bin } = readJson(join(cliPackageDir, "package.json"));
+      const cli = typeof bin === "string" ? bin : bin[ROOT_PACKAGE];
+      execFileSync(process.execPath, [join(cliPackageDir, cli), "--version"], {
+        cwd: installDir,
+        stdio: ["ignore", "ignore", "inherit"],
+        signal: abortController.signal,
+      });
     }
 
     const depsKb = Math.max(0, totalKb - selfKb);
@@ -641,7 +646,7 @@ const measureLocalInstall = (repoRoot, options) => {
       rootPackage: ROOT_PACKAGE,
       internalClosureCount: closureNames.length,
       internalClosure: options.includeClosure ? closureNames : undefined,
-      nodeModulesTopLevelEntries: countNodeModulesEntries(nodeModulesPath),
+      dependencyCount: countInstalledDependencies(nodeModulesPath, new Set(closureNames)),
       selfBytes,
       depsBytes,
       totalBytes,
@@ -670,71 +675,7 @@ const measureLocalInstall = (repoRoot, options) => {
   }
 };
 
-const compareWithBaseline = (report, baselinePath, { maxDeltaMb, maxSelfDeltaMb, maxDepsDeltaMb }) => {
-  if (!existsSync(baselinePath)) {
-    throw new Error(`Baseline file not found: ${baselinePath}`);
-  }
-
-  const baseline = readJson(baselinePath);
-
-  const baselineSelfBytes = Number(
-    baseline.selfBytes ?? baseline.self_bytes ?? (baseline.selfKb ?? baseline.self_kb ?? 0) * 1024,
-  );
-  const baselineDepsBytes = Number(
-    baseline.depsBytes ?? baseline.deps_bytes ?? (baseline.depsKb ?? baseline.deps_kb ?? 0) * 1024,
-  );
-  const baselineTotalBytes = Number(
-    baseline.totalBytes ?? baseline.total_bytes ?? (baseline.totalKb ?? baseline.total_kb ?? 0) * 1024,
-  );
-
-  const deltaSelfBytes = report.selfBytes - baselineSelfBytes;
-  const deltaDepsBytes = report.depsBytes - baselineDepsBytes;
-  const deltaTotalBytes = report.totalBytes - baselineTotalBytes;
-
-  const maxDeltaBytes = maxDeltaMb === undefined ? undefined : Math.round(maxDeltaMb * 1024 * 1024);
-  const maxSelfDeltaBytes = maxSelfDeltaMb === undefined ? undefined : Math.round(maxSelfDeltaMb * 1024 * 1024);
-  const maxDepsDeltaBytes = maxDepsDeltaMb === undefined ? undefined : Math.round(maxDepsDeltaMb * 1024 * 1024);
-
-  const baselineSelfMb = Number((baselineSelfBytes / 1024 / 1024).toFixed(2));
-  const baselineDepsMb = Number((baselineDepsBytes / 1024 / 1024).toFixed(2));
-  const baselineTotalMb = Number((baselineTotalBytes / 1024 / 1024).toFixed(2));
-
-  const deltaSelfMb = Number((deltaSelfBytes / 1024 / 1024).toFixed(2));
-  const deltaDepsMb = Number((deltaDepsBytes / 1024 / 1024).toFixed(2));
-  const deltaMb = Number((deltaTotalBytes / 1024 / 1024).toFixed(2));
-
-  const passedSelf = maxSelfDeltaMb === undefined ? true : deltaSelfMb <= maxSelfDeltaMb;
-  const passedDeps = maxDepsDeltaMb === undefined ? true : deltaDepsMb <= maxDepsDeltaMb;
-  const passedTotal = maxDeltaMb === undefined ? true : deltaMb <= maxDeltaMb;
-
-  return {
-    baselinePath,
-    baselineSelfBytes,
-    baselineDepsBytes,
-    baselineTotalBytes,
-    deltaSelfBytes,
-    deltaDepsBytes,
-    deltaBytes: deltaTotalBytes,
-    baselineSelfMb,
-    baselineDepsMb,
-    baselineTotalMb,
-    deltaSelfMb,
-    deltaDepsMb,
-    deltaMb,
-    passedSelf,
-    passedDeps,
-    passedTotal,
-    passed: passedSelf && passedDeps && passedTotal,
-    maxDeltaMb,
-    maxSelfDeltaMb,
-    maxDepsDeltaMb,
-    maxDeltaBytes,
-    maxSelfDeltaBytes,
-    maxDepsDeltaBytes,
-  };
-};
-
-const appendGithubStepSummary = (report, comparison) => {
+const appendGithubStepSummary = (report) => {
   const summaryPath = process.env.GITHUB_STEP_SUMMARY;
   if (!summaryPath) {
     return;
@@ -743,38 +684,18 @@ const appendGithubStepSummary = (report, comparison) => {
   const lines = [
     "## Allure bundle size",
     "",
-    "| Metric | Size |",
+    "| Metric | Value |",
     "| --- | ---: |",
     `| Allure code | ${report.selfMb} MB |`,
     `| Dependencies | ${report.depsMb} MB |`,
     `| Total | ${report.totalMb} MB |`,
+    `| Installed external packages | ${report.dependencyCount} |`,
   ];
-
-  if (comparison) {
-    const limitSelfText = comparison.maxSelfDeltaMb === undefined ? "N/A" : `${comparison.maxSelfDeltaMb} MB`;
-    const limitDepsText = comparison.maxDepsDeltaMb === undefined ? "N/A" : `${comparison.maxDepsDeltaMb} MB`;
-    const limitTotalText = comparison.maxDeltaMb === undefined ? "N/A" : `${comparison.maxDeltaMb} MB`;
-
-    const resultText =
-      comparison.passed && (comparison.deltaSelfMb < 0 || comparison.deltaDepsMb < 0 || comparison.deltaMb < 0)
-        ? "Result: improved"
-        : comparison.passed
-          ? "Result: within budget"
-          : "Result: size regression";
-
-    lines.push(
-      "",
-      `Allure code: baseline ${comparison.baselineSelfMb} MB, delta ${comparison.deltaSelfMb >= 0 ? "+" : ""}${comparison.deltaSelfMb} MB (limit ${limitSelfText})`,
-      `Deps: baseline ${comparison.baselineDepsMb} MB, delta ${comparison.deltaDepsMb >= 0 ? "+" : ""}${comparison.deltaDepsMb} MB (limit ${limitDepsText})`,
-      `Total: baseline ${comparison.baselineTotalMb} MB, delta ${comparison.deltaMb >= 0 ? "+" : ""}${comparison.deltaMb} MB (limit ${limitTotalText})`,
-      resultText,
-    );
-  }
 
   appendFileSync(summaryPath, `${lines.join("\n")}\n`, "utf8");
 };
 
-const main = () => {
+const main = async () => {
   const args = parseArgs(process.argv);
   const scriptDir = dirname(fileURLToPath(import.meta.url));
   const defaultRepoRoot = resolve(scriptDir, "..");
@@ -794,7 +715,6 @@ const main = () => {
     }
     throw err;
   }
-  let comparison;
 
   const makeBaselinePayload = (r) => ({
     rootPackage: r.rootPackage,
@@ -811,15 +731,6 @@ const main = () => {
     log(`Baseline updated at ${args.updateBaseline}`, args.quiet);
   }
 
-  if (args.baseline) {
-    comparison = compareWithBaseline(report, args.baseline, {
-      maxDeltaMb: args.maxDeltaMb,
-      maxSelfDeltaMb: args.maxSelfDeltaMb,
-      maxDepsDeltaMb: args.maxDepsDeltaMb,
-    });
-    report.comparison = comparison;
-  }
-
   const makeJsonReportPayload = (r) => {
     const payload = {
       rootPackage: r.rootPackage,
@@ -827,6 +738,7 @@ const main = () => {
       internalClosureCount: r.internalClosureCount,
       selfBytes: r.selfBytes,
       depsBytes: r.depsBytes,
+      dependencyCount: r.dependencyCount,
       totalBytes: r.totalBytes,
     };
 
@@ -835,27 +747,6 @@ const main = () => {
     }
     if (r.missingDist?.length) {
       payload.missingDist = r.missingDist;
-    }
-
-    if (r.comparison) {
-      payload.comparison = {
-        passed: r.comparison.passed,
-        passedSelf: r.comparison.passedSelf,
-        passedDeps: r.comparison.passedDeps,
-        passedTotal: r.comparison.passedTotal,
-
-        baselineSelfBytes: r.comparison.baselineSelfBytes,
-        baselineDepsBytes: r.comparison.baselineDepsBytes,
-        baselineTotalBytes: r.comparison.baselineTotalBytes,
-
-        deltaSelfBytes: r.comparison.deltaSelfBytes,
-        deltaDepsBytes: r.comparison.deltaDepsBytes,
-        deltaBytes: r.comparison.deltaBytes,
-
-        maxDeltaBytes: r.comparison.maxDeltaBytes,
-        maxSelfDeltaBytes: r.comparison.maxSelfDeltaBytes,
-        maxDepsDeltaBytes: r.comparison.maxDepsDeltaBytes,
-      };
     }
 
     return payload;
@@ -868,8 +759,21 @@ const main = () => {
     log(`Report written to ${args.output}`, args.quiet);
   }
 
+  if (args.allureResults) {
+    const { FileSystemWriter } = await import("allure-js-commons/sdk/reporter");
+    const writer = new FileSystemWriter({ resultsDir: args.allureResults });
+    const timestamp = Date.parse(report.measuredAt);
+    const metrics = Object.entries({
+      "allure.bundle.size.self": report.selfBytes,
+      "allure.bundle.size.dependencies": report.depsBytes,
+      "allure.bundle.size.total": report.totalBytes,
+      "allure.bundle.dependencies.count": report.dependencyCount,
+    }).map(([key, value]) => ({ id: key, key, value, start: timestamp, stop: timestamp }));
+    writer.writeMetricResults("bundle-size-metric.json", metrics);
+  }
+
   if (args.githubStepSummary) {
-    appendGithubStepSummary(report, comparison);
+    appendGithubStepSummary(report);
   }
 
   if (args.json) {
@@ -877,18 +781,8 @@ const main = () => {
   } else {
     // Plain mode must not leak machine-specific paths.
     delete report.repoRoot;
-    printPlain(report, comparison);
-  }
-
-  if (comparison && !comparison.passed) {
-    console.error(
-      `Bundle size regression:\n` +
-        `- Allure code: baseline ${comparison.baselineSelfMb} MB -> ${report.selfMb} MB (delta ${formatSign(comparison.deltaSelfMb)} MB, limit ${comparison.maxSelfDeltaMb ?? "N/A"} MB)\n` +
-        `- Deps: baseline ${comparison.baselineDepsMb} MB -> ${report.depsMb} MB (delta ${formatSign(comparison.deltaDepsMb)} MB, limit ${comparison.maxDepsDeltaMb ?? "N/A"} MB)\n` +
-        `- Total: baseline ${comparison.baselineTotalMb} MB -> ${report.totalMb} MB (delta ${formatSign(comparison.deltaMb)} MB, limit ${comparison.maxDeltaMb ?? "N/A"} MB)`,
-    );
-    process.exit(1);
+    printPlain(report);
   }
 };
 
-main();
+await main();

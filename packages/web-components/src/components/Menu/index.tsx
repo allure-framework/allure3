@@ -3,7 +3,7 @@ import { autoUpdate, computePosition, flip, offset, shift } from "@floating-ui/d
 import { clsx } from "clsx";
 import { type ComponentChildren, type FunctionalComponent, type VNode, createContext } from "preact";
 import { createPortal } from "preact/compat";
-import { useContext, useEffect, useRef, useState } from "preact/hooks";
+import { useContext, useEffect, useLayoutEffect, useRef, useState } from "preact/hooks";
 
 import { SvgIcon, allureIcons } from "@/components/SvgIcon";
 import { Text } from "@/components/Typography";
@@ -29,6 +29,8 @@ const useMenuContext = () => {
 export const Menu = (props: {
   children: ComponentChildren;
   isInitialOpened?: boolean;
+  focusOnOpen?: boolean;
+  menuClassName?: string;
   size?: "xs" | "s" | "m" | "l" | "xl";
   placement?: "bottom-start" | "bottom-end";
   menuTrigger: (props: { onClick: () => void; isOpened: boolean; setIsOpened: (isOpened: boolean) => void }) => VNode;
@@ -40,6 +42,8 @@ export const Menu = (props: {
     menuTriggerWrapper: MenuTriggerWrapper = "div",
     size = "m",
     isInitialOpened = false,
+    focusOnOpen = false,
+    menuClassName,
     placement = "bottom-end",
     ...rest
   } = props;
@@ -50,42 +54,40 @@ export const Menu = (props: {
     setIsOpened(!isOpened);
   };
 
-  useEffect(() => {
+  const restoreFocus = () => {
+    triggerRef.current?.querySelector<HTMLElement>("button, a[href]")?.focus({ preventScroll: true });
+  };
+
+  useLayoutEffect(() => {
+    if (isOpened && focusOnOpen) {
+      menuRef.current?.querySelector<HTMLElement>("input, button, a[href]")?.focus({ preventScroll: true });
+    }
+  }, [isOpened, focusOnOpen]);
+
+  useLayoutEffect(() => {
+    if (!isOpened) return;
+
     const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && isOpened) {
+      if (e.key === "Escape") {
+        if (focusOnOpen && menuRef.current?.contains(document.activeElement)) restoreFocus();
+        setIsOpened(false);
+      }
+    };
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as Node;
+      if (menuRef.current && !menuRef.current.contains(target) && !triggerRef.current?.contains(target)) {
         setIsOpened(false);
       }
     };
 
     document.addEventListener("keydown", handleEscape);
+    document.addEventListener("click", handleClickOutside);
 
     return () => {
       document.removeEventListener("keydown", handleEscape);
-    };
-  }, [isOpened]);
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (!isOpened) {
-        return;
-      }
-
-      if (!menuRef.current) {
-        return;
-      }
-
-      if (!menuRef.current.contains(e.target as Node)) {
-        setIsOpened(false);
-      }
-    };
-
-    if (isOpened) {
-      document.addEventListener("click", handleClickOutside);
-    }
-
-    return () => {
       document.removeEventListener("click", handleClickOutside);
     };
-  }, [isOpened]);
+  }, [isOpened, focusOnOpen]);
   useEffect(() => {
     const updatePosition = () => {
       if (!menuRef.current && !triggerRef.current) {
@@ -118,7 +120,10 @@ export const Menu = (props: {
   return (
     <MenuContext.Provider
       value={{
-        setIsOpened,
+        setIsOpened: (opened) => {
+          if (!opened && focusOnOpen && menuRef.current?.contains(document.activeElement)) restoreFocus();
+          setIsOpened(opened);
+        },
       }}
     >
       <>
@@ -133,7 +138,7 @@ export const Menu = (props: {
         )}
         {createPortal(
           <div ref={menuRef} {...rest}>
-            {isOpened && <aside className={clsx(styles.menu, styles[`size-${size}`])}>{children}</aside>}
+            {isOpened && <aside className={clsx(styles.menu, styles[`size-${size}`], menuClassName)}>{children}</aside>}
           </div>,
           document.body,
         )}

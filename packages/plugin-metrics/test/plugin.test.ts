@@ -155,24 +155,27 @@ describe("MetricsPlugin", () => {
     expect(store.testsStatistic).not.toHaveBeenCalled();
   });
 
-  it("includes performance metrics only when requested", async () => {
-    const samples = [{ id: "1", key: "ttfb", value: 10, start: 0, stop: 1 }] as MetricSample[];
-    const off = createContext();
+  it.each([{ exportRunMetrics: true }, { performanceMetrics: true }])(
+    "exports run metrics with %j",
+    async (options) => {
+      const samples = [{ id: "1", key: "ttfb", value: 10, start: 0, stop: 1 }] as MetricSample[];
+      const off = createContext();
 
-    await new MetricsPlugin({ prometheus: { fileName: "off.txt" } }).prepare(
-      off.context,
-      createStore([tr({})], [], samples),
-    );
-    await new MetricsPlugin({
-      prometheus: { fileName: "on.txt" },
-      influxdb: { fileName: "on.influx" },
-      performanceMetrics: true,
-    }).prepare(off.context, createStore([tr({})], [], samples));
+      await new MetricsPlugin({ ...options, prometheus: { fileName: "off.txt" }, exportRunMetrics: false }).prepare(
+        off.context,
+        createStore([tr({})], [], samples),
+      );
+      await new MetricsPlugin({
+        prometheus: { fileName: "on.txt" },
+        influxdb: { fileName: "on.influx" },
+        ...options,
+      }).prepare(off.context, createStore([tr({})], [], samples));
 
-    expect(await written("off.txt")).not.toContain("launch_metric_ttfb");
-    expect(await written("on.txt")).toContain("launch_metric_ttfb 10\n");
-    expect(await written("on.influx")).toMatch(/^launch_metric ttfb=10 \d+$/m);
-  });
+      expect(await written("off.txt")).not.toContain("launch_metric_ttfb");
+      expect(await written("on.txt")).toContain("launch_metric_ttfb 10\n");
+      expect(await written("on.influx")).toMatch(/^launch_metric ttfb=10 \d+$/m);
+    },
+  );
 
   describe("push", () => {
     it("pushes to the Pushgateway and InfluxDB after writing the files", async () => {

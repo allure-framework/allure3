@@ -1,12 +1,7 @@
 import * as console from "node:console";
 import { randomUUID } from "node:crypto";
 
-import {
-  type AllurePerformanceResult,
-  ExpressionError,
-  normalizeQualityGateResult,
-  notNull,
-} from "@allurereport/core-api";
+import { type AllureMetricResult, ExpressionError, normalizeQualityGateResult, notNull } from "@allurereport/core-api";
 import type {
   RawGlobalAttachment,
   RawGlobalError,
@@ -146,11 +141,14 @@ const LEGACY_CHECK_RESULT_FILE_SUFFIX = "-check.json";
 const isQualityGateResultFileName = (fileName: string): boolean =>
   fileName.endsWith(QUALITY_GATE_RESULT_FILE_SUFFIX) || fileName.endsWith(LEGACY_CHECK_RESULT_FILE_SUFFIX);
 
+// Keep reading the deprecated -perf.json and performance.json result formats.
+const isMetricResultFile = (fileName: string): boolean =>
+  fileName.endsWith("-metric.json") || fileName.endsWith("-perf.json") || fileName === "performance.json";
+
 const matchesAllure2File = (fileName: string): boolean => {
   if (isQualityGateResultFileName(fileName)) return true;
   if (fileName.endsWith("-result.json")) return true;
-  if (fileName.endsWith("-perf.json")) return true;
-  if (fileName === "performance.json") return true;
+  if (isMetricResultFile(fileName)) return true;
   if (fileName.endsWith("-container.json")) return true;
   if (fileName.endsWith("-globals.json")) return true;
   if (isAllure2AttachmentFileName(fileName)) return true;
@@ -187,7 +185,7 @@ export const allure2: ResultsReader = {
       }
     }
 
-    if (originalFileName.endsWith("-perf.json") || originalFileName === "performance.json") {
+    if (isMetricResultFile(originalFileName)) {
       try {
         const results = await data.asJson<unknown>();
 
@@ -195,7 +193,7 @@ export const allure2: ResultsReader = {
           return false;
         }
 
-        await visitor.visitMetrics(results as AllurePerformanceResult[], { readerId, metadata: { originalFileName } });
+        await visitor.visitMetrics(results as AllureMetricResult[], { readerId, metadata: { originalFileName } });
 
         return true;
       } catch (e) {

@@ -73,6 +73,7 @@ import lineShapesDotCircle from "@/assets/svg/line-shapes-dot-circle.svg";
 import lineShapesMoon from "@/assets/svg/line-shapes-moon.svg";
 import lineShapesSun from "@/assets/svg/line-shapes-sun.svg";
 import lineShapesThemeAuto from "@/assets/svg/line-shapes-theme-auto.svg";
+import lineStar from "@/assets/svg/line-star.svg";
 import lineTimeClockStopwatch from "@/assets/svg/line-time-clock-stopwatch.svg";
 import playwrightLogo from "@/assets/svg/playwright-logo.svg";
 import reportLogo from "@/assets/svg/report-logo.svg";
@@ -81,6 +82,7 @@ import solidCheckCircle from "@/assets/svg/solid-check-circle.svg";
 import solidHelpCircle from "@/assets/svg/solid-help-circle.svg";
 import solidMinusCircle from "@/assets/svg/solid-minus-circle.svg";
 import solidPlusCircle from "@/assets/svg/solid-plus-circle.svg";
+import solidStar from "@/assets/svg/solid-star.svg";
 import solidXCircle from "@/assets/svg/solid-x-circle.svg";
 import spinner from "@/assets/svg/spinner.svg";
 import testNew from "@/assets/svg/test-new.svg";
@@ -93,6 +95,8 @@ type SvgIconComponent = ComponentType<SVGAttributes<SVGSVGElement>>;
 type SvgIconSource = SvgIconComponent | string;
 
 const iconComponents: Partial<Record<string, ComponentType<SVGAttributes<SVGSVGElement>> | string>> = {
+  "line-star": lineStar,
+  "solid-star": solidStar,
   "amazon": amazon,
   "arrows-chevron-down": arrowsChevronDown,
   "azure": azure,
@@ -181,6 +185,8 @@ const iconComponents: Partial<Record<string, ComponentType<SVGAttributes<SVGSVGE
 } satisfies Record<string, SvgIconSource>;
 
 export const allureIcons = {
+  lineStar: "line-star",
+  solidStar: "solid-star",
   amazon: "amazon",
   arrowsChevronDown: "arrows-chevron-down",
   azure: "azure",

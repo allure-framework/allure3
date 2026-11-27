@@ -65,10 +65,10 @@ const collectRetryMetrics = (input: MetricsInput): MetricLine[] => [
   { name: "launch_retries", key: "run", value: input.testResults.length },
 ];
 
-const collectPerformanceMetrics = (input: MetricsInput): MetricLine[] => {
+const collectCustomMetrics = (input: MetricsInput): MetricLine[] => {
   const grouped = new Map<string, number[]>();
 
-  for (const { key, value } of input.performanceMetrics ?? []) {
+  for (const { key, value } of input.runMetrics ?? input.performanceMetrics ?? []) {
     if (key && Number.isFinite(value)) {
       grouped.set(key, [...(grouped.get(key) ?? []), value]);
     }
@@ -90,5 +90,5 @@ export const collectMetrics = (input: MetricsInput): MetricLine[] => [
   ...collectTimeMetrics(input),
   ...collectCategoryMetrics(input),
   ...collectRetryMetrics(input),
-  ...collectPerformanceMetrics(input),
+  ...collectCustomMetrics(input),
 ];
